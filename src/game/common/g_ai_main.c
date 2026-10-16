@@ -155,7 +155,8 @@ bool G_Ai_IsOutgunned(const GameClient *cl, const GameEntity *enemy) {
   }
 
   const float best = G_Ai_BestWeaponPriority(cl);
-  const float recklessness = Mixf(1.5f, 1.f, cl->ai->personality.skill) * Mixf(.7f, 1.3f, cl->ai->personality.aggression);
+  const float recklessness = Mixf(1.5f, 1.f, cl->ai->personality.skill) *
+                             Mixf(.7f, 1.3f, cl->ai->personality.aggression);
 
   if ((enemy->s.effects & EF_QUAD) && best < AI_OUTGUNNED_QUAD_PRIORITY / recklessness) {
     return true;
@@ -198,7 +199,8 @@ bool G_Ai_ShouldRetreat(const GameClient *cl) {
 bool G_Ai_HasLineOfSight(const GameClient *cl, const GameEntity *other) {
 
   const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
-  const CollisionTrace tr = gi.Trace(eyeOrigin, other->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+  const CollisionTrace tr = gi.Trace(eyeOrigin, other->s.origin, Box3_Zero(), cl->entity,
+                                     CONTENTS_MASK_CLIP_PROJECTILE);
 
   if (tr.ent == other) {
     return true;
@@ -274,7 +276,8 @@ bool G_Ai_IsCovetedItem(const GameClient *cl, const GameEntity *ent) {
     return G_Ai_IsArmed(cl);
   }
 
-  return (ent->spawnFlags & SF_ITEM_DROPPED) && ent->item->def.type == ITEM_TYPE_WEAPON && !cl->inventory[ent->item->def.tag];
+  return (ent->spawnFlags & SF_ITEM_DROPPED) && ent->item->def.type == ITEM_TYPE_WEAPON &&
+         !cl->inventory[ent->item->def.tag];
 }
 
 /**
@@ -313,7 +316,8 @@ void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
       continue;
     }
 
-    if (Vec3_Distance(cl->entity->s.origin, item->s.origin) > AI_HEAR_PICKUP_DISTANCE && !G_Ai_CanSee(cl, item)) {
+    if (Vec3_Distance(cl->entity->s.origin, item->s.origin) > AI_HEAR_PICKUP_DISTANCE &&
+        !G_Ai_CanSee(cl, item)) {
       continue;
     }
 
@@ -333,7 +337,8 @@ void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
       }
     }
 
-    const float error = Mixf(AI_ITEM_TIMING_ERROR_MAX, 0.f, cl->ai->personality.skill) * RandomRangef(-1.f, 1.f);
+    const float error = Mixf(AI_ITEM_TIMING_ERROR_MAX, 0.f, cl->ai->personality.skill) *
+                        RandomRangef(-1.f, 1.f);
 
     slot->number = item->s.number;
     slot->respawnTime = (uint32_t) Maxf(gameLevel.time + 1.f, item->nextThink + error);
@@ -346,8 +351,8 @@ void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
 #define AI_ITEM_WAIT_MIN 1000.f
 
 /**
- * @brief The time in milliseconds that a bot of skill 1 allows itself to wait at a timed item. A bot
- * MUST NOT stand idle for longer: see `AI_WAIT_MILLIS`.
+ * @brief The time in milliseconds that a bot of skill 1 allows itself to wait at a timed item. A
+ * bot MUST NOT stand idle for longer: see `AI_WAIT_MILLIS`.
  */
 #define AI_ITEM_WAIT_MAX 3000.f
 
@@ -383,7 +388,8 @@ bool G_Ai_IsTimedItem(const GameClient *cl, const GameEntity *item, const uint32
       continue;
     }
 
-    const uint32_t wait = (uint32_t) Mixf(AI_ITEM_WAIT_MIN, AI_ITEM_WAIT_MAX, cl->ai->personality.skill);
+    const uint32_t wait = (uint32_t) Mixf(AI_ITEM_WAIT_MIN, AI_ITEM_WAIT_MAX,
+                                          cl->ai->personality.skill);
 
     return timing->respawnTime <= gameLevel.time + eta + wait;
   }
@@ -428,8 +434,8 @@ static void G_Ai_EndPath(GameClient *cl) {
 #define AI_WANDER_TURN_MILLIS 300
 
 /**
- * @brief Turns the bot when the way ahead is blocked or ends at a ledge: the flank angle of the move
- * goal while it is the enemy, or `GameAi::wanderAngle` with no goal.
+ * @brief Turns the bot when the way ahead is blocked or ends at a ledge: the flank angle of the
+ * move goal while it is the enemy, or `GameAi::wanderAngle` with no goal.
  * @return The yaw to move toward.
  */
 static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
@@ -451,7 +457,8 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
   if (!blocked && ent->waterLevel < WATER_WAIST) {
     const Vec3 dropStart = end;
     const Vec3 dropEnd = Vec3_Subtract(dropStart, MakeVec3(0, 0, PM_STEP_HEIGHT * 4.f));
-    const CollisionTrace groundTr = gi.Trace(dropStart, dropEnd, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
+    const CollisionTrace groundTr = gi.Trace(dropStart, dropEnd, Box3_Zero(), ent,
+                                             CONTENTS_MASK_SOLID);
     blocked = groundTr.fraction >= 1.0f;
   }
 
@@ -560,24 +567,28 @@ static Vec3 G_Ai_CircleStrafe(GameClient *cl, const GameEntity *enemy) {
     *side = Randomb() ? -90.f : 90.f;
   }
 
-  const Vec3 delta = MakeVec3(enemy->s.origin.x - ent->s.origin.x, enemy->s.origin.y - ent->s.origin.y, 0.f);
+  const Vec3 delta = MakeVec3(enemy->s.origin.x - ent->s.origin.x,
+                              enemy->s.origin.y - ent->s.origin.y, 0.f);
   const float distance = Vec3_Length(delta);
   const Vec3 toEnemy = distance > 1.f ? Vec3_Scale(delta, 1.f / distance) : MakeVec3(1.f, 0.f, 0.f);
 
   const float range = G_Ai_PreferredRange(cl);
   const float radial = Clampf((distance - range) / range, -1.f, 1.f);
 
-  Vec3 dir = Vec3_Normalize(Vec3_Fmaf(MakeVec3(-toEnemy.y * SignOf(*side), toEnemy.x * SignOf(*side), 0.f), radial, toEnemy));
+  Vec3 dir = Vec3_Normalize(Vec3_Fmaf(MakeVec3(-toEnemy.y * SignOf(*side),
+                                               toEnemy.x * SignOf(*side), 0.f), radial, toEnemy));
 
   const bool blocked = !G_Ai_CanStep(ent, dir);
 
   if (blocked || cl->ai->circleStrafeTime <= gameLevel.time) {
-    const uint32_t millis = (uint32_t) Mixf(AI_CIRCLE_STRAFE_MILLIS_MAX, AI_CIRCLE_STRAFE_MILLIS_MIN, cl->ai->personality.skill);
+    const uint32_t millis = (uint32_t) Mixf(AI_CIRCLE_STRAFE_MILLIS_MAX,
+                                            AI_CIRCLE_STRAFE_MILLIS_MIN, cl->ai->personality.skill);
     cl->ai->circleStrafeTime = gameLevel.time + RandomRangeu(millis / 2, millis);
 
     if (blocked || Randomb()) {
       *side = -*side;
-      dir = Vec3_Normalize(Vec3_Fmaf(MakeVec3(-toEnemy.y * SignOf(*side), toEnemy.x * SignOf(*side), 0.f), radial, toEnemy));
+      dir = Vec3_Normalize(Vec3_Fmaf(MakeVec3(-toEnemy.y * SignOf(*side),
+                                              toEnemy.x * SignOf(*side), 0.f), radial, toEnemy));
     }
   }
 
@@ -767,7 +778,8 @@ static bool G_Ai_AvoidRaisedPlatform(GameClient *cl) {
  * `a` and `b` share a column.
  * @return The horizontal distance from `a` to `b`.
  */
-static float G_Ai_ProjectXY(const Vec3 a, const Vec3 b, const Vec3 p, float *along, float *lateral) {
+static float G_Ai_ProjectXY(const Vec3 a, const Vec3 b, const Vec3 p, float *along,
+                            float *lateral) {
 
   const Vec2 ab = Vec2_Subtract(Vec3_XY(b), Vec3_XY(a));
   const Vec2 ap = Vec2_Subtract(Vec3_XY(p), Vec3_XY(a));
@@ -792,10 +804,13 @@ static bool G_Ai_IsOnLink(const Box3 bounds, const Vec3 a, const Vec3 b) {
 
   float along;
   const float length = G_Ai_ProjectXY(a, b, Box3_Center(bounds), &along, NULL);
-  const Vec2 closest = Vec3_XY(Vec3_Mix(a, b, length > 0.f ? Clampf(along / length, 0.f, 1.f) : 0.f));
+  const Vec2 closest = Vec3_XY(Vec3_Mix(a, b,
+                                        length > 0.f ? Clampf(along / length, 0.f, 1.f) : 0.f));
 
-  return closest.x >= bounds.mins.x - AI_PUSH_LINK_MARGIN && closest.x <= bounds.maxs.x + AI_PUSH_LINK_MARGIN &&
-         closest.y >= bounds.mins.y - AI_PUSH_LINK_MARGIN && closest.y <= bounds.maxs.y + AI_PUSH_LINK_MARGIN;
+  return closest.x >= bounds.mins.x - AI_PUSH_LINK_MARGIN &&
+         closest.x <= bounds.maxs.x + AI_PUSH_LINK_MARGIN &&
+         closest.y >= bounds.mins.y - AI_PUSH_LINK_MARGIN &&
+         closest.y <= bounds.maxs.y + AI_PUSH_LINK_MARGIN;
 }
 
 /**
@@ -858,17 +873,20 @@ static Vec3 G_Ai_PushDestination(const GameClient *cl, const Vec3 dest) {
     return dest;
   }
 
-  const Vec3 from = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
+  const Vec3 from = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId,
+                                                      goal->path.pathIndex - 1));
 
   const GameAiLink *pathLink = G_Ai_PathLink(cl);
   const bool pad = pathLink && pathLink->travelType == NAV_TRAVEL_PUSH;
 
-  if (!pad && Vec2_Distance(Vec3_XY(from), Vec3_XY(goal->path.pathPosition)) < AI_PUSH_LINK_DISTANCE) {
+  if (!pad &&
+      Vec2_Distance(Vec3_XY(from), Vec3_XY(goal->path.pathPosition)) < AI_PUSH_LINK_DISTANCE) {
     return dest;
   }
 
   GameEntity *ents[32];
-  const size_t len = gi.BoxEntities(Box3_FromCenterRadius(from, AI_PUSH_LINK_RADIUS), ents, lengthof(ents), BOX_OCCUPY);
+  const size_t len = gi.BoxEntities(Box3_FromCenterRadius(from, AI_PUSH_LINK_RADIUS), ents,
+                                    lengthof(ents), BOX_OCCUPY);
 
   Vec3 link = Vec3_Subtract(goal->path.pathPosition, from);
   link.z = 0.f;
@@ -888,20 +906,23 @@ static Vec3 G_Ai_PushDestination(const GameClient *cl, const Vec3 dest) {
       Vec3 push = ent->moveDir;
       push.z = 0.f;
 
-      if (Vec3_Length(push) > .1f && Vec3_Dot(Vec3_Normalize(push), Vec3_Normalize(link)) < AI_PUSH_LINK_ALIGNMENT) {
+      if (Vec3_Length(push) > .1f &&
+          Vec3_Dot(Vec3_Normalize(push), Vec3_Normalize(link)) < AI_PUSH_LINK_ALIGNMENT) {
         continue;
       }
 
       if (pad && !G_Ai_IsOnLink(ent->absBounds, from, goal->path.pathPosition)) {
         const Vec3 center = Box3_Center(ent->absBounds);
         const float distance = Vec2_Distance(Vec3_XY(center), Vec3_XY(from));
-        if (fabsf(ent->absBounds.mins.z - (from.z + PM_BOUNDS.mins.z)) <= PM_STEP_HEIGHT * 2.f && distance < nearestDistance) {
+        if (fabsf(ent->absBounds.mins.z - (from.z + PM_BOUNDS.mins.z)) <= PM_STEP_HEIGHT * 2.f &&
+            distance < nearestDistance) {
           nearestDistance = distance;
           nearest = ent;
         }
         continue;
       }
-    } else if (Str_Compare(ent->classname, "misc_teleporter") && Str_Compare(ent->classname, "trigger_teleporter")) {
+    } else if (Str_Compare(ent->classname, "misc_teleporter") &&
+               Str_Compare(ent->classname, "trigger_teleporter")) {
       continue;
     }
 
@@ -1040,8 +1061,8 @@ static bool G_Ai_CrossesTrigger(const Vec3 start, const Vec3 end, const bool hur
 /**
  * @brief Follows the arc of the AI from the given origin and velocity, with no input, until it
  * lands.
- * @return True if the AI lands on no floor, on the sky, in lava or slime, or in a `trigger_hurt`, or
- * if it slides off the floor on which it lands.
+ * @return True if the AI lands on no floor, on the sky, in lava or slime, or in a `trigger_hurt`,
+ * or if it slides off the floor on which it lands.
  */
 bool G_Ai_FallsToHazard(const GameClient *cl, Vec3 origin, Vec3 velocity) {
 
@@ -1059,7 +1080,8 @@ bool G_Ai_FallsToHazard(const GameClient *cl, Vec3 origin, Vec3 velocity) {
       return false;
     }
 
-    if (G_Ai_IsHurtful(Box3_Union(Box3_Translate(ent->bounds, origin), Box3_Translate(ent->bounds, tr.end)))) {
+    if (G_Ai_IsHurtful(Box3_Union(Box3_Translate(ent->bounds, origin),
+                                  Box3_Translate(ent->bounds, tr.end)))) {
       return true;
     }
 
@@ -1074,7 +1096,8 @@ bool G_Ai_FallsToHazard(const GameClient *cl, Vec3 origin, Vec3 velocity) {
       }
 
       if (tr.plane.normal.z >= PM_STEP_NORMAL) {
-        const Vec3 slide = Vec3_Fmaf(tr.end, AI_FALL_SLIDE_SECONDS, MakeVec3(velocity.x, velocity.y, 0.f));
+        const Vec3 slide = Vec3_Fmaf(tr.end, AI_FALL_SLIDE_SECONDS,
+                                     MakeVec3(velocity.x, velocity.y, 0.f));
         const CollisionTrace wall = gi.Trace(tr.end, slide, ent->bounds, ent, ent->clipMask);
 
         if (wall.fraction < 1.f) {
@@ -1085,7 +1108,8 @@ bool G_Ai_FallsToHazard(const GameClient *cl, Vec3 origin, Vec3 velocity) {
         return gi.Trace(slide, below, ent->bounds, ent, ent->clipMask).fraction == 1.f;
       }
 
-      velocity = Vec3_Subtract(velocity, Vec3_Scale(tr.plane.normal, Vec3_Dot(velocity, tr.plane.normal)));
+      velocity = Vec3_Subtract(velocity,
+                               Vec3_Scale(tr.plane.normal, Vec3_Dot(velocity, tr.plane.normal)));
     }
 
     origin = tr.end;
@@ -1158,7 +1182,8 @@ static void G_Ai_ReverseMove(PMoveCmd *cmd) {
 static void G_Ai_Brake(const GameClient *cl, PMoveCmd *cmd) {
 
   float speed;
-  const Vec3 back = Vec3_NormalizeLength(MakeVec3(-cl->entity->velocity.x, -cl->entity->velocity.y, 0.f), &speed);
+  const Vec3 back = Vec3_NormalizeLength(MakeVec3(-cl->entity->velocity.x, -cl->entity->velocity.y,
+                                                  0.f), &speed);
 
   Vec3 forward, right;
   Vec3_Vectors(MakeVec3(0.f, G_Ai_CommandYaw(cl, cmd), 0.f), &forward, &right, NULL);
@@ -1255,7 +1280,8 @@ static bool G_Ai_ApproachPathTarget(GameClient *cl) {
   GameAiGoal *goal = &cl->ai->moveTarget;
   const GameEntity *target = goal->path.pathTarget;
 
-  if (!target || !target->item || target->node != AI_NODE_INVALID || target->solid != SOLID_TRIGGER) {
+  if (!target || !target->item || target->node != AI_NODE_INVALID ||
+      target->solid != SOLID_TRIGGER) {
     return false;
   }
 
@@ -1263,7 +1289,8 @@ static bool G_Ai_ApproachPathTarget(GameClient *cl) {
     return false;
   }
 
-  const CollisionTrace tr = gi.Trace(cl->entity->s.origin, target->s.origin, Box3_Zero(), cl->entity, CONTENTS_MASK_SOLID);
+  const CollisionTrace tr = gi.Trace(cl->entity->s.origin, target->s.origin, Box3_Zero(),
+                                     cl->entity, CONTENTS_MASK_SOLID);
 
   if (tr.fraction < 1.f) {
     return false;
@@ -1293,7 +1320,8 @@ static bool G_Ai_IsLiftedOffNode(const GameClient *cl, const Box3 bounds, const 
     return false;
   }
 
-  return G_Ai_IsWithinXY(bounds, node) && G_Ai_IsWithinXY(ground->absBounds, node) && node.z < bounds.mins.z;
+  return G_Ai_IsWithinXY(bounds, node) && G_Ai_IsWithinXY(ground->absBounds, node) &&
+         node.z < bounds.mins.z;
 }
 
 /**
@@ -1316,7 +1344,8 @@ static bool G_Ai_IsPushedOffNode(const GameClient *cl, const GameAiGoal *goal, c
     return false;
   }
 
-  return G_Ai_IsWithinXY(bounds, goal->path.pathPosition) && goal->path.pathPosition.z < bounds.mins.z;
+  return G_Ai_IsWithinXY(bounds, goal->path.pathPosition) &&
+         goal->path.pathPosition.z < bounds.mins.z;
 }
 
 /**
@@ -1364,7 +1393,8 @@ static bool G_Ai_GoalDistress(GameClient *cl, GameAiGoal *goal, const Vec3 dest)
       goal->lastDistance = pathDist;
       goal->distress /= 2;
     } else {
-      goal->distress += (gi.PointContents(cl->entity->s.origin) & CONTENTS_MASK_LIQUID ? 0.05f : 0.25f);
+      goal->distress += (gi.PointContents(cl->entity->s.origin) & CONTENTS_MASK_LIQUID ?
+                         0.05f : 0.25f);
     }
 
     Vec3 target = Vec3_Zero();
@@ -1486,7 +1516,8 @@ static bool G_Ai_ShouldBarrierJump(const GameClient *cl, const GameAiLink *link)
     return false;
   }
 
-  const Vec2 delta = Vec2_Subtract(Vec3_XY(cl->ai->moveTarget.path.pathPosition), Vec3_XY(cl->entity->s.origin));
+  const Vec2 delta = Vec2_Subtract(Vec3_XY(cl->ai->moveTarget.path.pathPosition),
+                                   Vec3_XY(cl->entity->s.origin));
 
   return Vec2_Length(delta) <= AI_BARRIER_JUMP_DISTANCE;
 }
@@ -1572,8 +1603,8 @@ static const NavLadderClimb *G_Ai_JumpClimb(const GameClient *cl) {
  * @return True if the bot is on the ground or in water to the waist, far from the walk, crouch,
  * ledge or jump link that it follows, or of a ladder link that starts with a jump, or below both of
  * its ends, so that the link no longer leads where it goes. A bot that falls into water off its
- * path plans a new one, which swims out, and a bot that falls short of a jump, or misses the ladder,
- * plans one from where it lands.
+ * path plans a new one, which swims out, and a bot that falls short of a jump, or misses the
+ * ladder, plans one from where it lands.
  */
 static bool G_Ai_IsOffPath(const GameClient *cl) {
 
@@ -1583,16 +1614,19 @@ static bool G_Ai_IsOffPath(const GameClient *cl) {
 
   const GameAiLink *link = G_Ai_PathLink(cl);
 
-  if (!link || ((link->travelType < NAV_TRAVEL_WALK || link->travelType > NAV_TRAVEL_BARRIER_JUMP) &&
-                 link->travelType != NAV_TRAVEL_JUMP && !G_Ai_JumpClimb(cl))) {
+  if (!link ||
+      ((link->travelType < NAV_TRAVEL_WALK || link->travelType > NAV_TRAVEL_BARRIER_JUMP) &&
+       link->travelType != NAV_TRAVEL_JUMP && !G_Ai_JumpClimb(cl))) {
     return false;
   }
 
   const GameAiGoal *goal = &cl->ai->moveTarget;
-  const Vec3 a = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
+  const Vec3 a = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId,
+                                                   goal->path.pathIndex - 1));
   const float z = Minf(a.z, goal->path.pathPosition.z);
 
-  return G_Ai_PathLinkDistance(cl) > AI_OFF_PATH_DISTANCE || cl->entity->s.origin.z < z - AI_OFF_PATH_DROP;
+  return G_Ai_PathLinkDistance(cl) > AI_OFF_PATH_DISTANCE ||
+         cl->entity->s.origin.z < z - AI_OFF_PATH_DROP;
 }
 
 /**
@@ -1687,7 +1721,8 @@ static Vec3 G_Ai_JumpTarget(const GameClient *cl) {
 static bool G_Ai_IsHeading(const GameClient *cl, const Vec3 source, const Vec3 target) {
 
   const Vec3 line = Vec3_Normalize(MakeVec3(target.x - source.x, target.y - source.y, 0.f));
-  const Vec3 heading = Vec3_Normalize(MakeVec3(cl->entity->velocity.x, cl->entity->velocity.y, 0.f));
+  const Vec3 heading = Vec3_Normalize(MakeVec3(cl->entity->velocity.x, cl->entity->velocity.y,
+                                               0.f));
 
   return Vec3_Dot(line, heading) >= AI_JUMP_HEADING;
 }
@@ -1701,7 +1736,8 @@ static bool G_Ai_IsJumpHeading(const GameClient *cl) {
 
   const GameAiGoal *goal = &cl->ai->moveTarget;
 
-  const Vec3 source = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
+  const Vec3 source = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId,
+                                                        goal->path.pathIndex - 1));
 
   return G_Ai_IsHeading(cl, source, G_Ai_JumpTarget(cl));
 }
@@ -1737,8 +1773,8 @@ static bool G_Ai_IsJumpSpeed(const GameClient *cl) {
  * link to it or on the jump's own link, within `AI_JUMP_TURN_DISTANCE` of it, and does not move
  * along the jump's line, faster than `AI_LEDGE_SPEED`. It slows down to turn onto the line, so that
  * it does not run off the floor at another edge near the takeoff, as at a corner over lava. Only a
- * walk or a crouch leads to the source node so: a bot that comes by a jump, a drop or a barrier jump
- * needs its speed. A gap jump has no run-up behind its source node, so a bot that slowed there
+ * walk or a crouch leads to the source node so: a bot that comes by a jump, a drop or a barrier
+ * jump needs its speed. A gap jump has no run-up behind its source node, so a bot that slowed there
  * could not jump at speed.
  */
 static bool G_Ai_ShouldSlowForJump(const GameClient *cl) {
@@ -1794,7 +1830,8 @@ static bool G_Ai_IsOnJumpLine(const GameClient *cl, float *along) {
 
   const GameAiGoal *goal = &cl->ai->moveTarget;
 
-  const Vec3 source = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
+  const Vec3 source = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId,
+                                                        goal->path.pathIndex - 1));
   const Vec3 target = G_Ai_JumpTarget(cl);
 
   if (fabsf(cl->entity->s.origin.z - source.z) > PM_STEP_HEIGHT * 2.f) {
@@ -1812,7 +1849,8 @@ static bool G_Ai_IsOnJumpLine(const GameClient *cl, float *along) {
     *along = distance;
   }
 
-  return lateral <= AI_JUMP_LINE_DISTANCE && distance >= -AI_JUMP_LINE_DISTANCE && distance < length;
+  return lateral <= AI_JUMP_LINE_DISTANCE && distance >= -AI_JUMP_LINE_DISTANCE &&
+         distance < length;
 }
 
 /**
@@ -1831,7 +1869,8 @@ static Vec3 G_Ai_WalkDestination(const GameClient *cl) {
     return b;
   }
 
-  const Vec3 a = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
+  const Vec3 a = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId,
+                                                   goal->path.pathIndex - 1));
 
   float along;
   const float length = G_Ai_ProjectXY(a, b, cl->entity->s.origin, &along, NULL);
@@ -2221,7 +2260,8 @@ static Vec3 G_Ai_JumpDestination(const GameClient *cl) {
 
   const GameAiGoal *goal = &cl->ai->moveTarget;
 
-  const Vec3 a = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
+  const Vec3 a = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId,
+                                                   goal->path.pathIndex - 1));
   const Vec3 b = G_Ai_JumpTarget(cl);
 
   const NavLadderClimb *climb = G_Ai_JumpClimb(cl);
@@ -2233,7 +2273,8 @@ static Vec3 G_Ai_JumpDestination(const GameClient *cl) {
   float along;
   if (!G_Ai_IsOnJumpLine(cl, &along)) {
     const Vec3 origin = cl->entity->s.origin;
-    if (fabsf(origin.z - b.z) <= PM_STEP_HEIGHT && Vec3_Distance(origin, b) < Vec3_Distance(origin, a)) {
+    if (fabsf(origin.z - b.z) <= PM_STEP_HEIGHT &&
+        Vec3_Distance(origin, b) < Vec3_Distance(origin, a)) {
       return b;
     }
     return a;
@@ -2275,7 +2316,8 @@ static bool G_Ai_ReturnToPath(GameClient *cl) {
 #define AI_STRAFE_LOOK_NODES 12
 
 /**
- * @brief The sharpest turn in degrees, at `AI_STRAFE_JUMP_SKILL`, that a bot takes in a strafe jump.
+ * @brief The sharpest turn in degrees, at `AI_STRAFE_JUMP_SKILL`, that a bot takes in a strafe
+ * jump.
  */
 #define AI_STRAFE_TURN_MIN 15.f
 
@@ -2362,7 +2404,8 @@ static bool G_Ai_CanStrafeJump(const GameClient *cl) {
     return false;
   }
 
-  const uint32_t flags = PMF_DUCKED | PMF_ON_LADDER | PMF_TIME_PUSHED | PMF_TIME_TELEPORT | PMF_TIME_WATER_JUMP;
+  const uint32_t flags = PMF_DUCKED | PMF_ON_LADDER | PMF_TIME_PUSHED | PMF_TIME_TELEPORT |
+                         PMF_TIME_WATER_JUMP;
   if (cl->ps.pmState.flags & flags) {
     return false;
   }
@@ -2409,7 +2452,8 @@ static bool G_Ai_HasFloor(const GameEntity *ent, const Vec3 a, const Vec3 b) {
     const Vec3 start = Vec3_Add(point, MakeVec3(0.f, 0.f, PM_STEP_HEIGHT));
     const Vec3 end = Vec3_Subtract(point, MakeVec3(0.f, 0.f, depth));
 
-    const CollisionTrace tr = gi.Trace(start, end, Box3_Zero(), ent, CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
+    const CollisionTrace tr = gi.Trace(start, end, Box3_Zero(), ent,
+                                       CONTENTS_MASK_SOLID | CONTENTS_MASK_LIQUID);
 
     if (tr.fraction == 1.f || (tr.contents & CONTENTS_MASK_LIQUID)) {
       return false;
@@ -2439,13 +2483,13 @@ static float G_Ai_StrafeTurn(const GameClient *cl) {
 /**
  * @brief Finds the node that a strafe jumping bot steers to: the farthest node ahead on its path,
  * over run links, before the path turns more than `G_Ai_StrafeTurn` from the bot's heading. The
- * heading is the bot's velocity, or if it moves slower than half the run speed, the direction to the
- * first node beyond `AI_STRAFE_NEAR_DISTANCE`. Nodes within that distance are passed. The line to
- * the node MUST be clear for the player's box, touch no `trigger_hurt` or `trigger_push`, and have
- * floor under it, with no liquid, because the bot cuts the corners of its path on the way. Past the
- * node, the line on which the bot slides as it lands MUST touch no such trigger either, and have
- * floor under it to its end, because a bot that lands at speed beside a ledge slides off it. The
- * result is kept for `AI_STRAFE_LOOK_MILLIS`, and `G_Ai_SetPathGoal` clears it.
+ * heading is the bot's velocity, or if it moves slower than half the run speed, the direction to
+ * the first node beyond `AI_STRAFE_NEAR_DISTANCE`. Nodes within that distance are passed. The line
+ * to the node MUST be clear for the player's box, touch no `trigger_hurt` or `trigger_push`, and
+ * have floor under it, with no liquid, because the bot cuts the corners of its path on the way.
+ * Past the node, the line on which the bot slides as it lands MUST touch no such trigger either,
+ * and have floor under it to its end, because a bot that lands at speed beside a ledge slides off
+ * it. The result is kept for `AI_STRAFE_LOOK_MILLIS`, and `G_Ai_SetPathGoal` clears it.
  * @param run The distance along the path to that node.
  * @return The index of that node in the path, or -1 if no node passes: the path turns, its next
  * link is not a run link, or the line to its next node is blocked.
@@ -2457,19 +2501,22 @@ static int32_t G_Ai_StrafeTarget(GameClient *cl, float *run) {
   const GameAiGoal *goal = &ai->moveTarget;
   const Vector *path = goal->path.path;
   const Vec3 origin = MakeVec3(ent->s.origin.x, ent->s.origin.y, 0.f);
-  const Vec3 floor = MakeVec3(ent->s.origin.x, ent->s.origin.y, ent->ground.ent ? ent->s.origin.z : ai->groundPosition.z);
+  const Vec3 floor = MakeVec3(ent->s.origin.x, ent->s.origin.y,
+                              ent->ground.ent ? ent->s.origin.z : ai->groundPosition.z);
 
   Box3 bounds = Pm_Bounds(&cl->ps.pmState.params, false);
   bounds.mins.z += PM_STEP_HEIGHT;
 
   if (ai->strafeLookTime > gameLevel.time && ai->strafeLookPath == path &&
-      ai->strafeLookPathIndex == goal->path.pathIndex && ai->strafeLookIndex < (int32_t) path->count) {
+      ai->strafeLookPathIndex == goal->path.pathIndex &&
+      ai->strafeLookIndex < (int32_t) path->count) {
     *run = ai->strafeLookRun;
     return ai->strafeLookIndex;
   }
 
   const Vec3 velocity = MakeVec3(ent->velocity.x, ent->velocity.y, 0.f);
-  Vec3 heading = Vec3_Length(velocity) >= PM_SPEED_RUN * .5f ? Vec3_Normalize(velocity) : Vec3_Zero();
+  Vec3 heading = Vec3_Length(velocity) >= PM_SPEED_RUN * .5f ?
+                 Vec3_Normalize(velocity) : Vec3_Zero();
 
   const float limit = cosf(Radians(G_Ai_StrafeTurn(cl)));
 
@@ -2479,7 +2526,8 @@ static int32_t G_Ai_StrafeTarget(GameClient *cl, float *run) {
 
   *run = 0.f;
 
-  for (uint32_t i = goal->path.pathIndex; i < path->count && i < goal->path.pathIndex + AI_STRAFE_LOOK_NODES; i++) {
+  for (uint32_t i = goal->path.pathIndex; i < path->count &&
+       i < goal->path.pathIndex + AI_STRAFE_LOOK_NODES; i++) {
 
     if (!G_Ai_IsRunLink(path, i)) {
       break;
@@ -2509,10 +2557,12 @@ static int32_t G_Ai_StrafeTarget(GameClient *cl, float *run) {
       break;
     }
 
-    const float slideDistance = Maxf(Vec2_Length(Vec3_XY(ent->velocity)) / PM_FRICT_GROUND, AI_STRAFE_SLIDE_DISTANCE);
+    const float slideDistance = Maxf(Vec2_Length(Vec3_XY(ent->velocity)) / PM_FRICT_GROUND,
+                                     AI_STRAFE_SLIDE_DISTANCE);
     const Vec3 slide = Vec3_Add(node, Vec3_Scale(to, slideDistance));
     const Vec3 slideFloor = Vec3_Add(node, Vec3_Scale(to, slideDistance + AI_STRAFE_FLOOR_SPACING));
-    if (G_Ai_CrossesTrigger(node, MakeVec3(slide.x, slide.y, node.z), true) || !G_Ai_HasFloor(ent, node, slideFloor)) {
+    if (G_Ai_CrossesTrigger(node, MakeVec3(slide.x, slide.y, node.z), true) ||
+        !G_Ai_HasFloor(ent, node, slideFloor)) {
       break;
     }
 
@@ -2555,8 +2605,8 @@ static bool G_Ai_ShouldStrafeJump(const GameClient *cl, const float run) {
  * a right angle.
  * @param error The most error in degrees to add to the angle.
  */
-static Vec3 G_Ai_StrafeWish(const GameClient *cl, const Vec3 origin, Vec3 velocity, const Vec3 target,
-                            const uint8_t msec, const float error) {
+static Vec3 G_Ai_StrafeWish(const GameClient *cl, const Vec3 origin, Vec3 velocity,
+                            const Vec3 target, const uint8_t msec, const float error) {
 
   Vec3 to = Vec3_Subtract(target, origin);
   to.z = 0.f;
@@ -2629,7 +2679,8 @@ static bool G_Ai_SimulateDrop_(GameClient *cl, const Vec3 target) {
 
     const Box3 bounds = Box3_Translate(Pm_Bounds(&pm.s.params, false), pm.s.origin);
 
-    if (G_Ai_IsHurtful(bounds) || (gi.PointContents(pm.s.origin) & (CONTENTS_LAVA | CONTENTS_SLIME))) {
+    if (G_Ai_IsHurtful(bounds) ||
+        (gi.PointContents(pm.s.origin) & (CONTENTS_LAVA | CONTENTS_SLIME))) {
       return false;
     }
 
@@ -2667,19 +2718,20 @@ static bool G_Ai_SimulateDrop(GameClient *cl, const Vec3 target) {
 
 /**
  * @brief Steers the AI in the air if `G_Ai_FallsToHazard` ends its fall in the void, in lava or
- * slime, or in a `trigger_hurt`, as after a jump that carries it past a small floor or over an edge,
- * or a knockback. If it has a path, and `G_Ai_SimulateDrop` lands it safely if it steers toward its
- * next node, it steers there as the simulation does. Else it steers back toward the place at which
- * it left the ground. Air acceleration removes the speed of a run in about half a second, so a bot
- * that steers early lands. A bot in the air after a jump onto a ladder does not steer back: the fall
- * that the simulation sees ends on the ladder, which it does not know.
+ * slime, or in a `trigger_hurt`, as after a jump that carries it past a small floor or over an
+ * edge, or a knockback. If it has a path, and `G_Ai_SimulateDrop` lands it safely if it steers
+ * toward its next node, it steers there as the simulation does. Else it steers back toward the
+ * place at which it left the ground. Air acceleration removes the speed of a run in about half a
+ * second, so a bot that steers early lands. A bot in the air after a jump onto a ladder does not
+ * steer back: the fall that the simulation sees ends on the ladder, which it does not know.
  */
 static void G_Ai_AvoidHazard(GameClient *cl, PMoveCmd *cmd) {
 
   const GameEntity *ent = cl->entity;
   GameAi *ai = cl->ai;
 
-  if ((ent->ground.ent && cmd->up <= 0) || (cl->ps.pmState.flags & PMF_ON_LADDER) || !G_Ai_JumpClimb(cl)) {
+  if ((ent->ground.ent && cmd->up <= 0) || (cl->ps.pmState.flags & PMF_ON_LADDER) ||
+      !G_Ai_JumpClimb(cl)) {
     ai->ladderJumping = false;
   }
 
@@ -2757,7 +2809,8 @@ static bool G_Ai_SimulateStrafeJump(GameClient *cl, const Vec3 target) {
 
   const Box3 bounds = Pm_Bounds(&pm.s.params, false);
   const float speed = Maxf(G_Ai_AirWishSpeed(cl), PM_SPEED_RUN);
-  const float reach = Maxf(Vec2_Length(Vec3_XY(ent->velocity)), speed) * MILLIS_TO_SECONDS(AI_STRAFE_SIM_MILLIS);
+  const float reach = Maxf(Vec2_Length(Vec3_XY(ent->velocity)), speed) *
+                      MILLIS_TO_SECONDS(AI_STRAFE_SIM_MILLIS);
 
   const Box3 box = Box3_Expand(Box3_Translate(bounds, ent->s.origin), reach);
 
@@ -2851,7 +2904,9 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
   const Vector *path = ai->moveTarget.path.path;
   const bool coast = steer < 0 && !ent->ground.ent && ai->strafeJumping &&
                      G_Ai_IsRunLink(path, ai->moveTarget.path.pathIndex) &&
-                     Vec2_Distance(Vec3_XY(ent->s.origin), Vec3_XY(ai->moveTarget.path.pathPosition)) > AI_STRAFE_NEAR_DISTANCE;
+                     Vec2_Distance(Vec3_XY(ent->s.origin),
+                                   Vec3_XY(ai->moveTarget.path.pathPosition)) >
+                     AI_STRAFE_NEAR_DISTANCE;
 
   if (steer < 0 && !coast) {
     ai->strafeJumping = false;
@@ -2859,7 +2914,8 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
     return false;
   }
 
-  const Vec3 target = coast ? ai->moveTarget.path.pathPosition : G_Ai_Node_GetPosition(VectorValue(path, GameAiNodeId, steer));
+  const Vec3 target = coast ? ai->moveTarget.path.pathPosition :
+                      G_Ai_Node_GetPosition(VectorValue(path, GameAiNodeId, steer));
 
   if (coast) {
     cmd->up = 0;
@@ -2879,7 +2935,8 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
     ai->strafeJumping = true;
     cmd->up = (cl->ps.pmState.flags & PMF_JUMP_HELD) ? 0 : PM_SPEED_JUMP;
   } else if (ai->strafeJumping) {
-    cmd->up = (ent->velocity.z <= 0.f && G_Ai_ShouldStrafeJump(cl, run) && G_Ai_StrafeJumpIsSafe(cl, target)) ? PM_SPEED_JUMP : 0;
+    cmd->up = (ent->velocity.z <= 0.f && G_Ai_ShouldStrafeJump(cl, run) &&
+               G_Ai_StrafeJumpIsSafe(cl, target)) ? PM_SPEED_JUMP : 0;
   } else {
     ai->strafeBlock = AI_STRAFE_BLOCK_FALL;
     return false;
@@ -2914,7 +2971,8 @@ static void G_Ai_RefreshPath(GameClient *cl) {
 
   GameAiGoal *goal = &cl->ai->moveTarget;
 
-  if (goal->type != AI_GOAL_PATH || !goal->path.path || goal->path.pathIndex >= goal->path.path->count) {
+  if (goal->type != AI_GOAL_PATH || !goal->path.path ||
+      goal->path.pathIndex >= goal->path.path->count) {
     return;
   }
 
@@ -2922,18 +2980,22 @@ static void G_Ai_RefreshPath(GameClient *cl) {
   const uint32_t index = goal->path.pathIndex;
 
   goal->path.pathPosition = G_Ai_Node_GetPosition(VectorValue(path, GameAiNodeId, index));
-  goal->path.nextPathPosition = G_Ai_Node_GetPosition(VectorValue(path, GameAiNodeId, Minz(index + 1, path->count - 1)));
+  goal->path.nextPathPosition = G_Ai_Node_GetPosition(VectorValue(path, GameAiNodeId,
+                                                                  Minz(index + 1,
+                                                                       path->count - 1)));
 
   const GameAiNodeId next = VectorValue(path, GameAiNodeId, index);
 
   const GameAiLink *link = G_Ai_PathLink(cl);
   if (link && link->travelType <= NAV_TRAVEL_CROUCH && cl->entity->ground.ent &&
-      G_Ai_CrossesTrigger(cl->entity->s.origin, goal->path.pathPosition, false) && G_Ai_ReturnToPath(cl)) {
+      G_Ai_CrossesTrigger(cl->entity->s.origin, goal->path.pathPosition, false) &&
+      G_Ai_ReturnToPath(cl)) {
     return;
   }
 
-  if (index > 0 && (!G_Ai_Node_IsLinked(VectorValue(path, GameAiNodeId, index - 1), next) || G_Ai_Node_IsCrushing(next) ||
-                    (link && !G_Ai_Node_IsLinkOpen(link)))) {
+  if (index > 0 &&
+      (!G_Ai_Node_IsLinked(VectorValue(path, GameAiNodeId, index - 1), next) ||
+       G_Ai_Node_IsCrushing(next) || (link && !G_Ai_Node_IsLinkOpen(link)))) {
     if (!G_Ai_ReplanPath(cl)) {
       G_Ai_Probe_PathEnd(cl, "unlinked");
       G_Ai_ClearGoal(goal);
@@ -3621,7 +3683,8 @@ static Vec3 G_Ai_Turn_aim(const GameClient *cl, const GameAiLadderMove *ladder, 
     } else if (((ent->waterLevel < WATER_WAIST && !(cl->ps.pmState.flags & PMF_ON_LADDER)) ||
                 !(gi.PointContents(goal->path.pathPosition) & CONTENTS_MASK_LIQUID)) &&
                goal->path.pathIndex &&
-               G_Ai_Path_IsLinked(goal->path.path, goal->path.pathIndex, goal->path.pathIndex - 1)) {
+               G_Ai_Path_IsLinked(goal->path.path, goal->path.pathIndex,
+                                  goal->path.pathIndex - 1)) {
       aim = goal->path.nextPathPosition;
     } else {
       aim = goal->path.pathPosition;
@@ -3746,13 +3809,15 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
     const float error = G_Ai_AngleDelta(viewAngles.xyz[i], idealAngles.xyz[i]);
     float *speed = &cl->ai->viewVelocity.xyz[i];
 
-    *speed += (stiffness * stiffness * error + 2.f * stiffness * (idealRate.xyz[i] - *speed)) * seconds;
+    *speed += (stiffness * stiffness * error + 2.f * stiffness * (idealRate.xyz[i] - *speed)) *
+              seconds;
     *speed = Clampf(*speed, -maxSpeed, maxSpeed);
 
     angles.xyz[i] = viewAngles.xyz[i] + *speed * seconds;
   }
 
-  if (cl->ai->moveTarget.type == AI_GOAL_PATH && cl->ai->moveTarget.path.trickJump == TRICK_JUMP_TURNING &&
+  if (cl->ai->moveTarget.type == AI_GOAL_PATH &&
+      cl->ai->moveTarget.path.trickJump == TRICK_JUMP_TURNING &&
       fabsf(G_Ai_AngleDelta(angles.y, idealAngles.y)) < 2.f) {
     cl->ai->moveTarget.path.trickJump = TRICK_JUMP_NONE;
   }
@@ -3829,9 +3894,9 @@ static void G_Ai_ValidateEntityGoal(const GameClient *cl, const char *field, Gam
 
     char *backtrace = gi.Backtrace(1, 32);
     gi.Warn(__func__, "Invalidating stale %s for %s: cached ent %p, number %d, cached spawn_id %u, "
-            "resolved ent %p (in_use %d, spawn_id %u)\n%s\n",
-            field, etos(cl->entity), (void *) goal->entity.ent, goal->entity.number, goal->entity.spawnId,
-            (void *) ent, ent ? ent->inUse : 0, ent ? ent->s.spawnId : 0,
+            "resolved ent %p (in_use %d, spawn_id %u)\n%s\n", field, etos(cl->entity),
+            (void *) goal->entity.ent, goal->entity.number, goal->entity.spawnId, (void *) ent,
+            ent ? ent->inUse : 0, ent ? ent->s.spawnId : 0,
             backtrace ? backtrace : "(no backtrace available)");
     free(backtrace);
 
@@ -3871,7 +3936,8 @@ static void G_Ai_Think(GameClient *cl, PMoveCmd *cmd) {
 
   G_ClientThink(cl, cmd);
 
-  if (cl->ai->moveTarget.type == AI_GOAL_PATH && cl->entity->ground.ent && cl->ai->moveTarget.path.trickJump) {
+  if (cl->ai->moveTarget.type == AI_GOAL_PATH && cl->entity->ground.ent &&
+      cl->ai->moveTarget.path.trickJump) {
     if (Vec3_Distance(cl->ai->moveTarget.path.trickPosition, cl->entity->s.origin) < 24.f) {
       cl->ai->moveTarget.path.trickJump = TRICK_JUMP_TURNING;
       G_Ai_Debug("Trick jump: mission accomplished\n");
@@ -4029,7 +4095,8 @@ static void G_Ai_ReloadNodes(void) {
   int32_t numDrops = 0, numTeleporters = 0;
 
   G_ForEachEntity(ent, {
-    if (!Str_Compare(ent->classname, "misc_teleporter") || !Str_Compare(ent->classname, "trigger_teleporter")) {
+    if (!Str_Compare(ent->classname, "misc_teleporter") ||
+        !Str_Compare(ent->classname, "trigger_teleporter")) {
       if (ent->nextThink <= gameLevel.time) {
         teleporters[numTeleporters++] = ent;
       }
@@ -4103,7 +4170,8 @@ void G_Ai_Frame(void) {
 
     const int32_t activeClients = humanClients + aiClients;
 
-    const int32_t baseMinClients = gameLevel.minClientsMap > -1 ? gameLevel.minClientsMap : sv_minClients->integer;
+    const int32_t baseMinClients = gameLevel.minClientsMap > -1 ? gameLevel.minClientsMap :
+                                   sv_minClients->integer;
     const int32_t minClients = Maxi(0, baseMinClients);
     const int32_t maxClients = Maxi(0, sv_maxClients->integer);
 
@@ -4171,7 +4239,8 @@ static void G_Ai_Add_f(void) {
     cl->ai->personality.aggression = traits[1];
     cl->ai->personality.awareness = traits[2];
 
-    gi.Print("Added %s: skill=%.2f aggression=%.2f awareness=%.2f\n", cl->persistent.netName, traits[0], traits[1], traits[2]);
+    gi.Print("Added %s: skill=%.2f aggression=%.2f awareness=%.2f\n", cl->persistent.netName,
+             traits[0], traits[1], traits[2]);
     return;
   });
 
@@ -4185,7 +4254,8 @@ void G_Ai_Init(void) {
 
   g_aiNoTarget = gi.AddCvar("g_aiNoTarget", "0", CVAR_DEVELOPER, "Disables bots targeting enemies");
 
-  gi.AddCmd("addAi", G_Ai_Add_f, CMD_GAME, "Add a bot from the roster, with optional skill, aggression and awareness");
+  gi.AddCmd("addAi", G_Ai_Add_f, CMD_GAME, "Add a bot from the roster, with optional skill, "
+            "aggression and awareness");
 
   G_Ai_Probe_Init();
 
@@ -4232,7 +4302,8 @@ void G_Ai_Shutdown(void) {
  */
 static void G_Ai_Alert(GameClient *cl, const Vec3 position) {
 
-  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY && cl->ai->combatTargetSeenTime == gameLevel.time) {
+  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY &&
+      cl->ai->combatTargetSeenTime == gameLevel.time) {
     return;
   }
 
@@ -4274,7 +4345,8 @@ void G_Ai_Damaged(const GameEntity *target, const GameEntity *attacker) {
 
   GameClient *cl = target->client;
 
-  if (!cl || !cl->ai || !attacker->client || attacker == target || G_OnSameTeam(cl, attacker->client)) {
+  if (!cl || !cl->ai || !attacker->client || attacker == target ||
+      G_OnSameTeam(cl, attacker->client)) {
     return;
   }
 

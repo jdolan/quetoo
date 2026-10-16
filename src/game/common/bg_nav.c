@@ -220,8 +220,8 @@
 #define NAV_LADDER_EXIT 16.f
 
 /**
- * @brief The most that a detour through one other node in liquid MAY cost, as a multiple of the time
- * of a swim link, for `Nav_PruneSwims` to remove the link.
+ * @brief The most that a detour through one other node in liquid MAY cost, as a multiple of the
+ * time of a swim link, for `Nav_PruneSwims` to remove the link.
  */
 #define NAV_SWIM_PRUNE 4.f
 
@@ -330,14 +330,14 @@ static struct {
   int32_t nodeCapacity;
 
   /**
-   * @brief The movement's run speed (`PMoveParams::speedGround`), at which the build times walks and
-   * simulates jumps.
+   * @brief The movement's run speed (`PMoveParams::speedGround`), at which the build times walks
+   * and simulates jumps.
    */
   float speedRun;
 
   /**
-   * @brief The movement's speed in water (`PMoveParams::speedWater`), at which the build times swims
-   * and walks through liquid.
+   * @brief The movement's speed in water (`PMoveParams::speedWater`), at which the build times
+   * swims and walks through liquid.
    */
   float speedWater;
 
@@ -446,7 +446,8 @@ int32_t Nav_CellNode(const NavGraph *graph, const Vec3i xyz) {
 
   const Vec3i size = graph->size;
 
-  if (xyz.x < 0 || xyz.y < 0 || xyz.z < 0 || xyz.x >= size.x || xyz.y >= size.y || xyz.z >= size.z) {
+  if (xyz.x < 0 || xyz.y < 0 || xyz.z < 0 || xyz.x >= size.x || xyz.y >= size.y ||
+      xyz.z >= size.z) {
     return -1;
   }
 
@@ -499,7 +500,8 @@ static CollisionTrace Nav_Trace(const Vec3 start, const Vec3 end, const Box3 bou
   for (int32_t i = 0; i < module.numBarriers; i++) {
     const NavBarrier *barrier = &module.barriers[i];
 
-    if (!Box3_Intersects(swept, barrier->bounds) || (barrier->gate && barrier->group == module.openGate)) {
+    if (!Box3_Intersects(swept, barrier->bounds) ||
+        (barrier->gate && barrier->group == module.openGate)) {
       continue;
     }
 
@@ -600,7 +602,9 @@ static Box3 Nav_Footprint(void) {
  */
 static bool Nav_Rest(const Vec3 start, const float distance, const Box3 bounds, Vec3 *origin) {
 
-  const CollisionTrace trace = Nav_Trace(start, Vec3_Subtract(start, Vec3_Scale(Vec3_Up(), distance)), bounds);
+  const CollisionTrace trace = Nav_Trace(start,
+                                         Vec3_Subtract(start, Vec3_Scale(Vec3_Up(), distance)),
+                                         bounds);
 
   if (trace.startSolid || trace.fraction == 1.f) {
     return false;
@@ -685,7 +689,8 @@ static void Nav_AddNode(const int32_t cell, const NavNode *node) {
     module.nodeCapacity = Maxi(1024, module.nodeCapacity * 2);
     graph->nodes = realloc(graph->nodes, sizeof(NavNode) * module.nodeCapacity);
     if (!graph->nodes) {
-      module.params->Error(__func__, "Failed to allocate %d navigation nodes\n", module.nodeCapacity);
+      module.params->Error(__func__, "Failed to allocate %d navigation nodes\n",
+                           module.nodeCapacity);
     }
   }
 
@@ -694,13 +699,14 @@ static void Nav_AddNode(const int32_t cell, const NavNode *node) {
 }
 
 /**
- * @brief Samples the floor of one cell, at its center first and then at small offsets, and adds
- * its node to the graph. Where those find no floor, points `NAV_FINE_STEP` apart across the
- * cell sample, to find a beam or a ledge between them, so that a node stands over its floor where it
- * can, and a bot does not steer onto the lip of a ledge. Last, the player's footprint samples at the
- * coarse points, for a floor too narrow for any point. A cell whose whole area finds no floor is
- * skipped. A point where a player only fits crouched is kept until every point is sampled, because
- * a player stands at another point of the cell, away from a wall's trim, more often than not.
+ * @brief Samples the floor of one cell, at its center first and then at small offsets, and adds its
+ * node to the graph. Where those find no floor, points `NAV_FINE_STEP` apart across the cell
+ * sample, to find a beam or a ledge between them, so that a node stands over its floor where it
+ * can, and a bot does not steer onto the lip of a ledge. Last, the player's footprint samples at
+ * the coarse points, for a floor too narrow for any point. A cell whose whole area finds no floor
+ * is skipped. A point where a player only fits crouched is kept until every point is sampled,
+ * because a player stands at another point of the cell, away from a wall's trim, more often than
+ * not.
  * @return The outcome of the sample.
  */
 static NavSample Nav_SampleCell(const int32_t cell, bool *offset) {
@@ -710,7 +716,9 @@ static NavSample Nav_SampleCell(const int32_t cell, bool *offset) {
 
   const float half = NAV_CELL_SIZE * .5f;
   const Box3 area = MakeBox3(MakeVec3(-half, -half, 0.f), MakeVec3(half, half, 0.f));
-  const CollisionTrace any = Nav_Trace(center, Vec3_Subtract(center, Vec3_Scale(Vec3_Up(), NAV_CELL_HEIGHT)), area);
+  const CollisionTrace any = Nav_Trace(center,
+                                       Vec3_Subtract(center,
+                                                     Vec3_Scale(Vec3_Up(), NAV_CELL_HEIGHT)), area);
 
   if (!any.startSolid && any.fraction == 1.f) {
     return NAV_SAMPLE_NONE;
@@ -734,7 +742,8 @@ static NavSample Nav_SampleCell(const int32_t cell, bool *offset) {
       delta = Vec2_Scale(offsets[i], NAV_CELL_SIZE * .25f);
     } else if (i < numFine) {
       const int32_t j = i - (int32_t) lengthof(offsets);
-      delta = MakeVec2((j % steps + .5f) * NAV_FINE_STEP - half, (j / steps + .5f) * NAV_FINE_STEP - half);
+      delta = MakeVec2((j % steps + .5f) * NAV_FINE_STEP - half,
+                       (j / steps + .5f) * NAV_FINE_STEP - half);
     } else {
       delta = Vec2_Scale(offsets[i - numFine], NAV_CELL_SIZE * .25f);
     }
@@ -834,7 +843,8 @@ static bool Nav_TraceHitMover(void) {
  * at the height of `from`, as Pmove also tries.
  * @return True if the box arrives on a walkable floor.
  */
-static bool Nav_StepMove(const Vec3 from, const Vec3 target, const Box3 bounds, const float height, Vec3 *to) {
+static bool Nav_StepMove(const Vec3 from, const Vec3 target, const Box3 bounds, const float height,
+                         Vec3 *to) {
 
   const CollisionTrace up = Nav_Trace(from, Vec3_Add(from, Vec3_Scale(Vec3_Up(), height)), bounds);
   if (up.startSolid) {
@@ -881,16 +891,19 @@ static int32_t Nav_FallMillis(const float height) {
  * @remarks A drop's landing node MUST lie past the edge that the walk leaves, because a bot steers
  * toward it to walk off. A node short of the edge, such as one under the floor that the walk starts
  * on, leads the bot nowhere. For the same reason, the player's footprint at the landing node MUST
- * be able to rise straight up to the height of `start`: a node beside a narrow hole, under the floor
- * around it, lies past the edge of the hole but under the floor, where a bot that steers to it never
- * falls. The footprint is flat, at the height of the player's origin, so that a crouch node, or a
- * ceiling that only a player's head would touch, does not fail the test.
+ * be able to rise straight up to the height of `start`: a node beside a narrow hole, under the
+ * floor around it, lies past the edge of the hole but under the floor, where a bot that steers to
+ * it never falls. The footprint is flat, at the height of the player's origin, so that a crouch
+ * node, or a ceiling that only a player's head would touch, does not fail the test.
  */
-static int32_t Nav_NodeForOrigin(const Vec3 origin, const Vec3 start, const Vec3 dir, const float reach) {
+static int32_t Nav_NodeForOrigin(const Vec3 origin, const Vec3 start, const Vec3 dir,
+                                 const float reach) {
 
   const NavGraph *graph = module.graph;
 
-  const Vec3 floor = Vec3_Subtract(origin, Vec3_Scale(Vec3_Up(), -PM_BOUNDS.mins.z - NAV_CELL_HEIGHT * .5f));
+  const Vec3 floor = Vec3_Subtract(origin,
+                                   Vec3_Scale(Vec3_Up(),
+                                              -PM_BOUNDS.mins.z - NAV_CELL_HEIGHT * .5f));
   const Vec3i xyz = Nav_PointCoordinate(graph, floor);
 
   const Box3 footprint = Nav_Footprint();
@@ -951,7 +964,8 @@ static void Nav_AddLink(NavLink *links, int32_t *numLinks, const int32_t node,
 
   if (*numLinks == NAV_MAX_NODE_LINKS) {
     if (!module.linksFull) {
-      module.params->Warn(__func__, "A navigation node has more than %d links; bots may miss the rest\n", NAV_MAX_NODE_LINKS);
+      module.params->Warn(__func__, "A navigation node has more than %d links; bots may miss the "
+                          "rest\n", NAV_MAX_NODE_LINKS);
       module.linksFull = true;
     }
     return;
@@ -966,11 +980,12 @@ static void Nav_AddLink(NavLink *links, int32_t *numLinks, const int32_t node,
 }
 
 /**
- * @brief Adds a walk, or a crouch, from `node` to `other`, at the speed of the water if either is in
- * it, through the doorway of the door with inline model `gate`, or 0.
+ * @brief Adds a walk, or a crouch, from `node` to `other`, at the speed of the water if either is
+ * in it, through the doorway of the door with inline model `gate`, or 0.
  */
-static void Nav_AddWalk(NavLink *links, int32_t *numLinks, const NavNode *node, const NavNode *other,
-                        const int32_t target, const float distance, const int32_t gate) {
+static void Nav_AddWalk(NavLink *links, int32_t *numLinks, const NavNode *node,
+                        const NavNode *other, const int32_t target, const float distance,
+                        const int32_t gate) {
 
   const bool crouch = node->crouch || other->crouch;
   const bool wade = (node->contents | other->contents) != 0;
@@ -1055,7 +1070,8 @@ static int32_t Nav_GatedWalk(const NavNode *a, const NavNode *b, float *distance
   }
 
   const Box3 bounds = Nav_Bounds(a->crouch || b->crouch);
-  const Box3 swept = Box3_Union(Box3_Translate(bounds, a->position), Box3_Translate(bounds, b->position));
+  const Box3 swept = Box3_Union(Box3_Translate(bounds, a->position),
+                                Box3_Translate(bounds, b->position));
 
   for (int32_t i = 0; i < module.numBarriers; i++) {
     if (!Nav_IsGateToTry(i, swept)) {
@@ -1099,8 +1115,11 @@ static bool Nav_BarrierJump(const NavNode *a, const NavNode *b, float *distance)
     return false;
   }
 
-  const Vec3 top = Nav_Trace(a->position, Vec3_Add(a->position, Vec3_Scale(Vec3_Up(), module.barrierHeight)), PM_BOUNDS).end;
-  if (Nav_TouchesTrigger(Box3_Union(Box3_Translate(PM_BOUNDS, a->position), Box3_Translate(PM_BOUNDS, top)))) {
+  const Vec3 top = Nav_Trace(a->position,
+                             Vec3_Add(a->position, Vec3_Scale(Vec3_Up(), module.barrierHeight)),
+                             PM_BOUNDS).end;
+  if (Nav_TouchesTrigger(Box3_Union(Box3_Translate(PM_BOUNDS, a->position),
+                                    Box3_Translate(PM_BOUNDS, top)))) {
     return false;
   }
 
@@ -1170,7 +1189,8 @@ static bool Nav_WalkToLedge(const Vec3 start, const Vec3 dir, const float reach,
  * @brief Simulates a walk from `node` in `direction`, off a ledge, and the fall that follows.
  * @return The node that the fall lands at, or -1.
  */
-static int32_t Nav_Drop(const NavNode *node, const Vec3i direction, float *distance, float *height) {
+static int32_t Nav_Drop(const NavNode *node, const Vec3i direction, float *distance,
+                        float *height) {
 
   const Box3 bounds = Nav_Bounds(node->crouch);
 
@@ -1184,7 +1204,8 @@ static int32_t Nav_Drop(const NavNode *node, const Vec3i direction, float *dista
   const Vec3 end = Vec3_Subtract(origin, Vec3_Scale(Vec3_Up(), NAV_MAX_DROP));
   const CollisionTrace fall = Nav_Trace(origin, end, bounds);
 
-  if (fall.startSolid || fall.fraction == 1.f || fall.plane.normal.z < PM_STEP_NORMAL || Nav_TraceHitMover()) {
+  if (fall.startSolid || fall.fraction == 1.f || fall.plane.normal.z < PM_STEP_NORMAL ||
+      Nav_TraceHitMover()) {
     return -1;
   }
 
@@ -1194,7 +1215,8 @@ static int32_t Nav_Drop(const NavNode *node, const Vec3i direction, float *dista
   }
 
   const Vec3 edge = Vec3_Subtract(origin, node->position);
-  return Nav_NodeForOrigin(fall.end, node->position, dir, edge.x * dir.x + edge.y * dir.y - NAV_WALK_STEP);
+  return Nav_NodeForOrigin(fall.end, node->position, dir,
+                           edge.x * dir.x + edge.y * dir.y - NAV_WALK_STEP);
 }
 
 /**
@@ -1204,14 +1226,16 @@ static int32_t Nav_Drop(const NavNode *node, const Vec3i direction, float *dista
  * @param gate Receives the inline model of a door of the group that the drop passes.
  * @return The node that the drop lands at, or -1.
  */
-static int32_t Nav_GatedDrop(const NavNode *node, const Vec3i direction, float *distance, float *height, int32_t *gate) {
+static int32_t Nav_GatedDrop(const NavNode *node, const Vec3i direction, float *distance,
+                             float *height, int32_t *gate) {
 
   Box3 bounds = Nav_Bounds(node->crouch);
   bounds.mins.z -= NAV_MAX_DROP;
 
   const Vec3 dir = Vec3_Normalize(MakeVec3(direction.x, direction.y, 0.f));
   const Vec3 reach = Vec3_Add(node->position, Vec3_Scale(dir, NAV_LEDGE_DISTANCE));
-  const Box3 swept = Box3_Union(Box3_Translate(bounds, node->position), Box3_Translate(bounds, reach));
+  const Box3 swept = Box3_Union(Box3_Translate(bounds, node->position),
+                                Box3_Translate(bounds, reach));
 
   for (int32_t i = 0; i < module.numBarriers; i++) {
     if (!Nav_IsGateToTry(i, swept)) {
@@ -1250,7 +1274,8 @@ static bool Nav_IsEdge(const NavNode *node) {
 
     Vec3 ledge;
     float distance;
-    if (!Nav_WalkToLedge(node->position, dir, NAV_EDGE_DISTANCE, bounds, false, &ledge, &distance)) {
+    if (!Nav_WalkToLedge(node->position, dir, NAV_EDGE_DISTANCE, bounds, false, &ledge,
+                         &distance)) {
       continue;
     }
 
@@ -1355,7 +1380,8 @@ static bool Nav_FlyArc(const Vec3 takeoff, const Vec3 dir, const float remaining
     const float across = Minf(speed * t, remaining);
     const float rise = up * t - .5f * module.gravity * t * t;
 
-    const Vec3 next = Vec3_Add(Vec3_Add(takeoff, Vec3_Scale(dir, across)), MakeVec3(0.f, 0.f, rise));
+    const Vec3 next = Vec3_Add(Vec3_Add(takeoff, Vec3_Scale(dir, across)),
+                               MakeVec3(0.f, 0.f, rise));
 
     const CollisionTrace trace = Nav_Trace(origin, next, PM_BOUNDS);
     if (trace.startSolid || trace.fraction < 1.f) {
@@ -1426,8 +1452,8 @@ static bool Nav_JumpArc_landing(const Vec3 floor, const Vec3 dir) {
  * @brief Simulates a running jump from node `a` across a gap to node `b`. The player walks straight
  * toward `b` to the edge of the floor, and jumps `NAV_JUMP_TAKEOFF_MARGIN` before it: the lowest
  * jump of all movements, at `NAV_JUMP_SPEED_FRACTION` of the run speed, or
- * `NAV_GATED_JUMP_SPEED_FRACTION` for a jump through a door's doorway or over its place. The arc MUST be
- * `NAV_JUMP_CLEARANCE` above `b` when it arrives over it.
+ * `NAV_GATED_JUMP_SPEED_FRACTION` for a jump through a door's doorway or over its place. The arc
+ * MUST be `NAV_JUMP_CLEARANCE` above `b` when it arrives over it.
  * @param seconds The time of the run to the takeoff point, and of the flight until the player lands
  * at `b`.
  * @return True if the floor ends on the way, with no wall or high step before it, and the arc from
@@ -1438,7 +1464,8 @@ static bool Nav_JumpArc_landing(const Vec3 floor, const Vec3 dir) {
 static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
 
   float distance;
-  const Vec3 dir = Vec3_NormalizeLength(MakeVec3(b->position.x - a->position.x, b->position.y - a->position.y, 0.f), &distance);
+  const Vec3 dir = Vec3_NormalizeLength(MakeVec3(b->position.x - a->position.x,
+                                                 b->position.y - a->position.y, 0.f), &distance);
 
   Vec3 takeoff;
   const int32_t index = Nav_WalkToTakeoff(a->position, dir, distance, &takeoff);
@@ -1447,7 +1474,8 @@ static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
   }
 
   const float remaining = distance - index * NAV_WALK_STEP;
-  const float speed = module.speedRun * (module.gatedSpeed ? NAV_GATED_JUMP_SPEED_FRACTION : NAV_JUMP_SPEED_FRACTION);
+  const float speed = module.speedRun *
+                      (module.gatedSpeed ? NAV_GATED_JUMP_SPEED_FRACTION : NAV_JUMP_SPEED_FRACTION);
 
   const float low = b->position.z + NAV_JUMP_CLEARANCE;
 
@@ -1458,7 +1486,8 @@ static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
   }
 
   Vec3 floor;
-  if (!Nav_Rest(origin, origin.z - b->position.z + PM_STEP_HEIGHT + 1.f, PM_BOUNDS, &floor) || Nav_TraceHitMover()) {
+  if (!Nav_Rest(origin, origin.z - b->position.z + PM_STEP_HEIGHT + 1.f, PM_BOUNDS, &floor) ||
+      Nav_TraceHitMover()) {
     return false;
   }
 
@@ -1470,7 +1499,8 @@ static bool Nav_JumpArc(const NavNode *a, const NavNode *b, float *seconds) {
     return false;
   }
 
-  *seconds = index * NAV_WALK_STEP / module.speedRun + t + sqrtf(2.f * Maxf(0.f, origin.z - floor.z) / module.gravity);
+  *seconds = index * NAV_WALK_STEP / module.speedRun + t +
+             sqrtf(2.f * Maxf(0.f, origin.z - floor.z) / module.gravity);
   return true;
 }
 
@@ -1496,7 +1526,8 @@ static int32_t Nav_Jump(const NavNode *node, const Vec3i direction, float *secon
   for (int32_t k = 1; k <= NAV_MAX_JUMP_CELLS; k++) {
     for (int32_t dz = -2; dz <= rise; dz++) {
 
-      const Vec3i neighbor = MakeVec3i(xyz.x + direction.x * k, xyz.y + direction.y * k, xyz.z + dz);
+      const Vec3i neighbor = MakeVec3i(xyz.x + direction.x * k, xyz.y + direction.y * k,
+                                       xyz.z + dz);
 
       const int32_t n = Nav_CellNode(graph, neighbor);
       if (n == -1) {
@@ -1504,7 +1535,8 @@ static int32_t Nav_Jump(const NavNode *node, const Vec3i direction, float *secon
       }
 
       const NavNode *other = &graph->nodes[n];
-      if (other == node || other->model || other->crouch || (other->contents & CONTENTS_MASK_LIQUID)) {
+      if (other == node || other->model || other->crouch ||
+          (other->contents & CONTENTS_MASK_LIQUID)) {
         continue;
       }
 
@@ -1527,14 +1559,18 @@ static int32_t Nav_Jump(const NavNode *node, const Vec3i direction, float *secon
  * @param gate The inline model of the door that the jump passes.
  * @return The node that the jump lands at, or -1.
  */
-static int32_t Nav_GatedJump(const NavNode *node, const Vec3i direction, float *seconds, int32_t *gate) {
+static int32_t Nav_GatedJump(const NavNode *node, const Vec3i direction, float *seconds,
+                             int32_t *gate) {
 
   Box3 bounds = Nav_Bounds(false);
   bounds.mins.z -= PM_STEP_HEIGHT * 2.f;
   bounds.maxs.z += module.barrierHeight;
 
-  const Vec3 reach = Vec3_Add(node->position, Vec3_Scale(MakeVec3(direction.x, direction.y, 0.f), NAV_CELL_SIZE * NAV_MAX_JUMP_CELLS));
-  const Box3 swept = Box3_Union(Box3_Translate(bounds, node->position), Box3_Translate(bounds, reach));
+  const Vec3 reach = Vec3_Add(node->position,
+                              Vec3_Scale(MakeVec3(direction.x, direction.y, 0.f),
+                                         NAV_CELL_SIZE * NAV_MAX_JUMP_CELLS));
+  const Box3 swept = Box3_Union(Box3_Translate(bounds, node->position),
+                                Box3_Translate(bounds, reach));
 
   int32_t landing = -1;
   int32_t closed = -2;
@@ -1634,7 +1670,8 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
         }
 
         const NavNode *other = &graph->nodes[n];
-        if (!(other->contents & CONTENTS_MASK_LIQUID) || other->model || other->crouch || node->crouch) {
+        if (!(other->contents & CONTENTS_MASK_LIQUID) || other->model || other->crouch ||
+            node->crouch) {
           continue;
         }
 
@@ -1677,7 +1714,8 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
         }
 
         const NavNode *other = &graph->nodes[n];
-        if ((other->contents & CONTENTS_MASK_LIQUID) || other->model || other->crouch || other->position.z <= surface.z) {
+        if ((other->contents & CONTENTS_MASK_LIQUID) || other->model || other->crouch ||
+            other->position.z <= surface.z) {
           continue;
         }
 
@@ -1690,7 +1728,8 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
           continue;
         }
 
-        const float distance = Vec3_Distance(node->position, surface) + Vec3_Distance(surface, other->position);
+        const float distance = Vec3_Distance(node->position, surface) +
+                               Vec3_Distance(surface, other->position);
         const int32_t time = Nav_TravelMillis(distance, module.speedWater);
         Nav_AddLink(links, numLinks, n, NAV_TRAVEL_SWIM, time, 0);
       }
@@ -1759,12 +1798,12 @@ static int32_t Nav_LadderNode(const Vec3 origin, const float height) {
  * @return True if a player beside the ladder face with the outward `normal`, anywhere from `bottom`
  * up to `top`, each `NAV_FINE_STEP * 2` and at `top`, is on the ladder: the trace of
  * `Pm_CheckLadder` hits the ladder strictly before any other brush that a player collides with. A
- * trace tests a leaf's brushes only if the leaf's contents match its mask, and a leaf does not carry
- * `CONTENTS_LADDER`, so the ladder is traced as the player clip that it also is. The trace reports
- * only the first brush that it hits: a brush in front of the ladder hides it, and of two brushes on
- * the same plane, as the rungs that a ladder brush does not enclose, the one that it reports depends
- * on where the player stands, so that a player climbs there only at some places. Either sets
- * `module.ladderHidden`. A ladder brush that is also solid does not hide itself.
+ * trace tests a leaf's brushes only if the leaf's contents match its mask, and a leaf does not
+ * carry `CONTENTS_LADDER`, so the ladder is traced as the player clip that it also is. The trace
+ * reports only the first brush that it hits: a brush in front of the ladder hides it, and of two
+ * brushes on the same plane, as the rungs that a ladder brush does not enclose, the one that it
+ * reports depends on where the player stands, so that a player climbs there only at some places.
+ * Either sets `module.ladderHidden`. A ladder brush that is also solid does not hide itself.
  */
 static bool Nav_OnLadder(const Vec3 bottom, const Vec3 top, const Vec3 normal, const Box3 bounds) {
 
@@ -1772,7 +1811,8 @@ static bool Nav_OnLadder(const Vec3 bottom, const Vec3 top, const Vec3 normal, c
     const Vec3 origin = MakeVec3(bottom.x, bottom.y, Minf(z, top.z));
     const Vec3 end = Vec3_Fmaf(origin, -NAV_LADDER_REACH, normal);
 
-    const CollisionTrace ladder = module.params->BoxTrace(origin, end, bounds, 0, CONTENTS_LADDER | CONTENTS_PLAYER_CLIP);
+    const CollisionTrace ladder = module.params->BoxTrace(origin, end, bounds, 0,
+                                                          CONTENTS_LADDER | CONTENTS_PLAYER_CLIP);
     if (ladder.fraction == 1.f) {
       return false;
     }
@@ -1782,7 +1822,8 @@ static bool Nav_OnLadder(const Vec3 bottom, const Vec3 top, const Vec3 normal, c
       return false;
     }
 
-    const CollisionTrace other = module.params->BoxTrace(origin, end, bounds, 0, NAV_MASK & ~CONTENTS_PLAYER_CLIP);
+    const CollisionTrace other = module.params->BoxTrace(origin, end, bounds, 0,
+                                                         NAV_MASK & ~CONTENTS_PLAYER_CLIP);
     if (other.fraction <= ladder.fraction && !(other.contents & CONTENTS_LADDER)) {
       module.ladderHidden = true;
       return false;
@@ -1795,8 +1836,8 @@ static bool Nav_OnLadder(const Vec3 bottom, const Vec3 top, const Vec3 normal, c
 }
 
 /**
- * @return True if a player walks `NAV_LADDER_RUN_UP` from `origin` in `dir` on floor, stepping up or
- * down at most `PM_STEP_HEIGHT`, with no wall, mover, trigger or liquid on the way.
+ * @return True if a player walks `NAV_LADDER_RUN_UP` from `origin` in `dir` on floor, stepping up
+ * or down at most `PM_STEP_HEIGHT`, with no wall, mover, trigger or liquid on the way.
  * @param end The player origin where the walk ends.
  */
 static bool Nav_RunUp(const Vec3 origin, const Vec3 dir, Vec3 *end) {
@@ -1814,7 +1855,8 @@ static bool Nav_RunUp(const Vec3 origin, const Vec3 dir, Vec3 *end) {
       return false;
     }
 
-    if (Nav_TouchesTrigger(Box3_Translate(PM_BOUNDS, from)) || (Nav_PointContents(from) & CONTENTS_MASK_LIQUID)) {
+    if (Nav_TouchesTrigger(Box3_Translate(PM_BOUNDS, from)) ||
+        (Nav_PointContents(from) & CONTENTS_MASK_LIQUID)) {
       return false;
     }
   }
@@ -1836,15 +1878,17 @@ static bool Nav_RunUp(const Vec3 origin, const Vec3 dir, Vec3 *end) {
  * before it, and the arc from the takeoff clears the world and every trigger, and stays above `low`
  * until it arrives over the column.
  */
-static bool Nav_LadderJump(const NavNode *node, const Vec3 column, const Vec3 normal, const float low,
-                           const float high, Vec3 *grab, Vec3 *runUp, float *seconds) {
+static bool Nav_LadderJump(const NavNode *node, const Vec3 column, const Vec3 normal,
+                           const float low, const float high, Vec3 *grab, Vec3 *runUp,
+                           float *seconds) {
 
   if (Vec2_Dot(Vec2_Subtract(Vec3_XY(node->position), Vec3_XY(column)), Vec3_XY(normal)) <= 0.f) {
     return false;
   }
 
   float distance;
-  const Vec3 dir = Vec3_NormalizeLength(MakeVec3(column.x - node->position.x, column.y - node->position.y, 0.f), &distance);
+  const Vec3 dir = Vec3_NormalizeLength(MakeVec3(column.x - node->position.x,
+                                                 column.y - node->position.y, 0.f), &distance);
 
   if (!Nav_RunUp(node->position, Vec3_Negate(dir), runUp)) {
     return false;
@@ -1876,8 +1920,9 @@ static bool Nav_LadderJump(const NavNode *node, const Vec3 column, const Vec3 no
  * @brief Adds the climb from node `a` to node `b`, unless the graph has it. A climb from the foot
  * of a ladder replaces a jump onto it from the same node.
  */
-static void Nav_AddClimbLink(const int32_t a, const int32_t b, const int32_t time, const Vec3 column,
-                             const Vec3 landing, const bool jump, const Vec3 runUp) {
+static void Nav_AddClimbLink(const int32_t a, const int32_t b, const int32_t time,
+                             const Vec3 column, const Vec3 landing, const bool jump,
+                             const Vec3 runUp) {
 
   NavGraph *graph = module.graph;
 
@@ -1902,7 +1947,8 @@ static void Nav_AddClimbLink(const int32_t a, const int32_t b, const int32_t tim
 
   if (graph->numClimbs == NAV_MAX_CLIMBS) {
     if (!module.climbsFull) {
-      module.params->Warn(__func__, "More than %d ladder climbs; bots may not climb the rest\n", NAV_MAX_CLIMBS);
+      module.params->Warn(__func__, "More than %d ladder climbs; bots may not climb the rest\n",
+                          NAV_MAX_CLIMBS);
       module.climbsFull = true;
     }
     return;
@@ -2023,7 +2069,8 @@ static int32_t Nav_AddClimb_top(const Box3 brush, const Vec3 top, const Vec3 nor
                                 float *across) {
 
   const Box3 bounds = PM_BOUNDS;
-  const float depth = fabsf(normal.x) * (brush.maxs.x - brush.mins.x) + fabsf(normal.y) * (brush.maxs.y - brush.mins.y);
+  const float depth = fabsf(normal.x) * (brush.maxs.x - brush.mins.x) +
+                      fabsf(normal.y) * (brush.maxs.y - brush.mins.y);
   const float distances[] = {
     bounds.maxs.x * 2.f + NAV_LADDER_EXIT,
     depth + bounds.maxs.x * 2.f + NAV_LADDER_EXIT
@@ -2133,7 +2180,8 @@ static bool Nav_AddClimb_jumps(const Box3 brush, const Vec3 start, const Vec3 no
 
         const NavNode *node = &graph->nodes[n];
 
-        if (n == a || n == b || node->model || node->crouch || (node->contents & CONTENTS_MASK_LIQUID)) {
+        if (n == a || n == b || node->model || node->crouch ||
+            (node->contents & CONTENTS_MASK_LIQUID)) {
           continue;
         }
 
@@ -2198,7 +2246,9 @@ static bool Nav_AddClimb(const Box3 brush, const Vec3 column, const Vec3 normal)
     return false;
   }
 
-  if (!Nav_OnLadder(start, MakeVec3(column.x, column.y, brush.maxs.z - bounds.mins.z - PM_STEP_HEIGHT), normal, bounds)) {
+  if (!Nav_OnLadder(start,
+                    MakeVec3(column.x, column.y, brush.maxs.z - bounds.mins.z - PM_STEP_HEIGHT),
+                    normal, bounds)) {
     return false;
   }
 
@@ -2412,22 +2462,23 @@ static void Nav_FindClimbs_ladder(const int32_t *brushes, const int32_t *groups,
   }
 
   if (!climbs && module.ladderHidden) {
-    module.params->Warn(__func__, "The ladder at %s %s is behind or level with the face of a brush that a player "
-                        "collides with, so players grab it only at some places, if at all; extend it in front "
-                        "of that brush\n", vtos(ladder.mins), vtos(ladder.maxs));
+    module.params->Warn(__func__, "The ladder at %s %s is behind or level with the face of a brush "
+                        "that a player collides with, so players grab it only at some places, if "
+                        "at all; extend it in front of that brush\n", vtos(ladder.mins),
+                        vtos(ladder.maxs));
   }
 }
 
 /**
  * @brief Finds the climbs of the level's ladders. A ladder is a group of brushes of the world with
  * `CONTENTS_LADDER` that touch, as rails and rungs that are each a brush are. For each ladder, each
- * vertical face of its bounds on which one of its brushes has a side is climbed, at its center first
- * and then at columns `NAV_LADDER_SPACING` apart on each side of it, within the face, because a
- * player who faces any side climbs (`Pm_CheckLadder`). Only the widest faces are climbed, as the
- * front and the back of a ladder, and not its thin sides, which a bot could hold only by an edge
- * of its box. The first column that climbs between two nodes is the one that the climb keeps, so
- * a climb keeps to the middle of its ladder. A ladder of an inline model, which moves or is not
- * where the world is traced, and a sloped side, beside which a column would stand too far from the
+ * vertical face of its bounds on which one of its brushes has a side is climbed, at its center
+ * first and then at columns `NAV_LADDER_SPACING` apart on each side of it, within the face, because
+ * a player who faces any side climbs (`Pm_CheckLadder`). Only the widest faces are climbed, as the
+ * front and the back of a ladder, and not its thin sides, which a bot could hold only by an edge of
+ * its box. The first column that climbs between two nodes is the one that the climb keeps, so a
+ * climb keeps to the middle of its ladder. A ladder of an inline model, which moves or is not where
+ * the world is traced, and a sloped side, beside which a column would stand too far from the
  * ladder, add no climb. A ladder that no column climbs because its face is behind or level with
  * another brush's is reported, for its mapper.
  */
@@ -2442,12 +2493,14 @@ static void Nav_FindClimbs(void) {
   for (int32_t i = 0; i < bsp->numBrushes; i++) {
     const CollisionBrush *brush = &bsp->brushes[i];
 
-    if (!(brush->contents & CONTENTS_LADDER) || !(Nav_PointContents(Box3_Center(brush->bounds)) & CONTENTS_LADDER)) {
+    if (!(brush->contents & CONTENTS_LADDER) ||
+        !(Nav_PointContents(Box3_Center(brush->bounds)) & CONTENTS_LADDER)) {
       continue;
     }
 
     if (numBrushes == NAV_MAX_LADDER_BRUSHES) {
-      module.params->Warn(__func__, "More than %d ladder brushes; bots may not climb the rest\n", NAV_MAX_LADDER_BRUSHES);
+      module.params->Warn(__func__, "More than %d ladder brushes; bots may not climb the rest\n",
+                          NAV_MAX_LADDER_BRUSHES);
       break;
     }
 
@@ -2545,11 +2598,11 @@ static void Nav_LinkNode_gaps(const int32_t index, const Vec3i direction, NavLin
 
 /**
  * @brief Links one node to its neighbors: walks to the nodes in adjacent cells, and drops and jumps
- * across gaps where no walk exists. A node on a model that moves walks only to the nodes on the same
- * model, and the game links it to the rest as the model moves. A node in liquid also swims, and a
- * swim node only swims. A walk to or from a node in liquid takes the time at the speed in water,
- * because a player who walks on a floor in liquid moves no faster than one who swims. A node at
- * the foot of a ladder's climb, or that jumps onto the ladder, links to its top. A bot does not
+ * across gaps where no walk exists. A node on a model that moves walks only to the nodes on the
+ * same model, and the game links it to the rest as the model moves. A node in liquid also swims,
+ * and a swim node only swims. A walk to or from a node in liquid takes the time at the speed in
+ * water, because a player who walks on a floor in liquid moves no faster than one who swims. A node
+ * at the foot of a ladder's climb, or that jumps onto the ladder, links to its top. A bot does not
  * climb down a ladder: it falls, by a drop link. No drop, barrier jump, jump or swim enters lava or
  * slime (`Nav_EntersHazard`).
  * @return The count of links written to `links`.
@@ -2595,7 +2648,8 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
 static float Nav_BarrierHeight(void) {
 
   const float jump = module.params->movement.speedJump;
-  const float height = module.gravity > 0.f ? jump * jump / (2.f * module.gravity) : PM_STEP_HEIGHT + Box3_Size(PM_BOUNDS).z;
+  const float height = module.gravity > 0.f ? jump * jump / (2.f * module.gravity) :
+                       PM_STEP_HEIGHT + Box3_Size(PM_BOUNDS).z;
 
   return height - NAV_BARRIER_MARGIN;
 }
@@ -2643,7 +2697,8 @@ static bool Nav_EntityHas(const Entity *entity, const char *key) {
 }
 
 /**
- * @brief Adds the `trigger_push` to the graph's pushes, with its velocity read as the game reads it.
+ * @brief Adds the `trigger_push` to the graph's pushes, with its velocity read as the game reads
+ * it.
  */
 static void Nav_AddPush(const Entity *entity, const Box3 bounds, const int32_t spawnFlags) {
 
@@ -2696,7 +2751,8 @@ static void Nav_AddTrigger(const char *classname, const Box3 bounds) {
 
   if (module.numTriggers == NAV_MAX_TRIGGERS) {
     if (!module.triggersFull) {
-      module.params->Warn(__func__, "More than %d hurt and push triggers; bots may walk into the rest\n", NAV_MAX_TRIGGERS);
+      module.params->Warn(__func__, "More than %d hurt and push triggers; bots may walk into the "
+                          "rest\n", NAV_MAX_TRIGGERS);
       module.triggersFull = true;
     }
     return;
@@ -2726,7 +2782,8 @@ static void Nav_AddBarrier(const int32_t index, const char *classname, const int
   bool barrier = false, moves = false, gate = false;
 
   if (!Str_Compare(classname, "func_door") || !Str_Compare(classname, "func_door_rotating")) {
-    barrier = Nav_EntityInteger(model->entity, "health") || Nav_EntityHas(model->entity, "targetname");
+    barrier = Nav_EntityInteger(model->entity, "health") ||
+              Nav_EntityHas(model->entity, "targetname");
     moves = gate = true;
   } else if (!Str_Compare(classname, "func_train") || !Str_Compare(classname, "func_bob")) {
     barrier = moves = true;
@@ -2743,7 +2800,8 @@ static void Nav_AddBarrier(const int32_t index, const char *classname, const int
 
   if (module.numBarriers == NAV_MAX_BARRIERS) {
     if (!module.barriersFull) {
-      module.params->Warn(__func__, "More than %d closed doors, walls and rotating models; bots may path through the rest\n", NAV_MAX_BARRIERS);
+      module.params->Warn(__func__, "More than %d closed doors, walls and rotating models; bots "
+                          "may path through the rest\n", NAV_MAX_BARRIERS);
       module.barriersFull = true;
     }
     return;
@@ -2754,7 +2812,8 @@ static void Nav_AddBarrier(const int32_t index, const char *classname, const int
 
   for (int32_t j = 0; gate && *targetname && j < module.numBarriers; j++) {
     const Entity *other = module.params->bsp->models[module.barriers[j].model].entity;
-    if (module.barriers[j].gate && !Str_Compare(module.params->EntityValue(other, "targetname")->string, targetname)) {
+    if (module.barriers[j].gate &&
+        !Str_Compare(module.params->EntityValue(other, "targetname")->string, targetname)) {
       group = module.barriers[j].group;
       break;
     }
@@ -2880,7 +2939,8 @@ static int32_t Nav_PruneSwims_compare(const void *a, const void *b) {
  * @return The index of the swim link from node `a` to node `b` that `removed` keeps, and that is
  * faster than `time`, or -1.
  */
-static int32_t Nav_PruneSwims_link(const int32_t a, const int32_t b, const int32_t time, const bool *removed) {
+static int32_t Nav_PruneSwims_link(const int32_t a, const int32_t b, const int32_t time,
+                                   const bool *removed) {
 
   const NavGraph *graph = module.graph;
   const NavNode *node = &graph->nodes[a];
@@ -2888,7 +2948,8 @@ static int32_t Nav_PruneSwims_link(const int32_t a, const int32_t b, const int32
   for (int32_t i = node->firstLink; i < node->firstLink + node->numLinks; i++) {
     const NavLink *link = &graph->links[i];
 
-    if (link->node == b && link->travelType == NAV_TRAVEL_SWIM && !removed[i] && link->travelMillis < time) {
+    if (link->node == b && link->travelType == NAV_TRAVEL_SWIM && !removed[i] &&
+        link->travelMillis < time) {
       return i;
     }
   }
@@ -2914,7 +2975,8 @@ static int32_t Nav_PruneSwims_gather(const NavGraph *graph, NavSwim *swims) {
     for (int32_t j = node->firstLink; j < node->firstLink + node->numLinks; j++) {
       const NavLink *link = &graph->links[j];
 
-      if (link->travelType == NAV_TRAVEL_SWIM && (graph->nodes[link->node].contents & CONTENTS_MASK_LIQUID)) {
+      if (link->travelType == NAV_TRAVEL_SWIM &&
+          (graph->nodes[link->node].contents & CONTENTS_MASK_LIQUID)) {
         swims[numSwims++] = (NavSwim) { .from = i, .link = j };
       }
     }
@@ -2989,17 +3051,20 @@ static void Nav_PruneSwims(NavGraph *graph) {
     for (int32_t j = node->firstLink; j < node->firstLink + node->numLinks; j++) {
       const NavLink *first = &graph->links[j];
 
-      if (first->travelType != NAV_TRAVEL_SWIM || removed[j] || first->travelMillis >= link->travelMillis ||
+      if (first->travelType != NAV_TRAVEL_SWIM || removed[j] ||
+          first->travelMillis >= link->travelMillis ||
           !(graph->nodes[first->node].contents & CONTENTS_MASK_LIQUID)) {
         continue;
       }
 
-      const int32_t second = Nav_PruneSwims_link(first->node, link->node, link->travelMillis, removed);
+      const int32_t second = Nav_PruneSwims_link(first->node, link->node, link->travelMillis,
+                                                 removed);
       if (second == -1) {
         continue;
       }
 
-      if (first->travelMillis + graph->links[second].travelMillis <= link->travelMillis * NAV_SWIM_PRUNE) {
+      if (first->travelMillis + graph->links[second].travelMillis <=
+          link->travelMillis * NAV_SWIM_PRUNE) {
         removed[swims[i].link] = true;
         break;
       }
@@ -3101,7 +3166,8 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
 /**
  * @see bg_nav.h
  */
-bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints, int32_t *numPoints, float *seconds) {
+bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints,
+                 int32_t *numPoints, float *seconds) {
 
   const Box3 bounds = Pm_Bounds(&pm->s.params, false);
   const uint8_t msec = QUETOO_TICK_MILLIS;
@@ -3174,9 +3240,9 @@ const char *Nav_TravelName(const NavTravelType type) {
 bool Nav_SameMovement(const PMoveParams *a, const PMoveParams *b) {
   return a->movement == b->movement && a->gravity == b->gravity && a->speedJump == b->speedJump &&
          a->speedWaterJump == b->speedWaterJump && a->speedGround == b->speedGround &&
-         a->speedWater == b->speedWater && a->speedDucked == b->speedDucked && a->speedLadder == b->speedLadder &&
-         a->frictionAir == b->frictionAir && a->frictionWater == b->frictionWater &&
-         Box3_Equal(a->bounds, b->bounds);
+         a->speedWater == b->speedWater && a->speedDucked == b->speedDucked &&
+         a->speedLadder == b->speedLadder && a->frictionAir == b->frictionAir &&
+         a->frictionWater == b->frictionWater && Box3_Equal(a->bounds, b->bounds);
 }
 
 /**

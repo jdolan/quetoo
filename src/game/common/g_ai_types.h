@@ -280,7 +280,8 @@ typedef enum {
   AI_STATE_ESCAPE,
 
   /**
-   * @brief Climb the ladder that the bot holds, and nothing else: no fight, no fire, no new objective.
+   * @brief Climb the ladder that the bot holds, and nothing else: no fight, no fire, no new
+   * objective.
    */
   AI_STATE_CLIMB,
 
@@ -506,7 +507,8 @@ typedef struct GameAi {
   uint32_t stateTime;
 
   /**
-   * @brief Level time at which the state next reviews the bot's choice of objective, item or approach.
+   * @brief Level time at which the state next reviews the bot's choice of objective, item or
+   * approach.
    */
   uint32_t reviewTime;
 
@@ -593,8 +595,8 @@ typedef struct GameAi {
   uint32_t weaponCheckTime;
 
   /**
-   * @brief Level time until which the bot, once it has no move target, avoids the objective of a path
-   * that ended in distress, and chooses another.
+   * @brief Level time until which the bot, once it has no move target, avoids the objective of a
+   * path that ended in distress, and chooses another.
    */
   uint32_t reacquireTime;
 
@@ -684,9 +686,9 @@ typedef struct GameAi {
   uint32_t wanderTurnTime;
 
   /**
-   * @brief The yaw in degrees that the bot wanders toward with no move goal. It is not in the union of
-   * `GameAiGoal`, whose entity pointer it shares memory with, because `G_Ai_Wander` turns it while
-   * the move goal is the enemy.
+   * @brief The yaw in degrees that the bot wanders toward with no move goal. It is not in the union
+   * of `GameAiGoal`, whose entity pointer it shares memory with, because `G_Ai_Wander` turns it
+   * while the move goal is the enemy.
    */
   float wanderAngle;
 

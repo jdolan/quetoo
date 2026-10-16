@@ -24,11 +24,11 @@
 #if defined(__G_LOCAL_H__)
 
 /**
- * @brief The `g_aiProbe` flag that records what each bot does: where it is, its objective and speed,
- * its paths and why they end, its deaths, its pushes by a `trigger_push`, planned or not, its gap
- * jumps, its pickups, the times that it is stuck, its entries into lava or slime (`HAZARD`), its
- * grabs and releases of a ladder (`LADDER`), each node that it passes (`VISIT`), the level's gates
- * (`GATE`) and what it does with them (`GATEUSE`).
+ * @brief The `g_aiProbe` flag that records what each bot does: where it is, its objective and
+ * speed, its paths and why they end, its deaths, its pushes by a `trigger_push`, planned or not,
+ * its gap jumps, its pickups, the times that it is stuck, its entries into lava or slime
+ * (`HAZARD`), its grabs and releases of a ladder (`LADDER`), each node that it passes (`VISIT`),
+ * the level's gates (`GATE`) and what it does with them (`GATEUSE`).
  */
 #define AI_PROBE_BOTS 1
 
@@ -93,8 +93,8 @@ void G_Ai_Probe_ItemTaken(const GameClient *cl, const GameEntity *item);
  * time in milliseconds for which its doors stay activated after a press, or -1 if they do not move
  * back.
  */
-void G_Ai_Probe_Gate(const char *name, const int32_t numButtons, const int32_t numSources, const int32_t numDoors,
-                     const uint32_t openMillis);
+void G_Ai_Probe_Gate(const char *name, const int32_t numButtons, const int32_t numSources,
+                     const int32_t numDoors, const uint32_t openMillis);
 
 /**
  * @brief Records what a bot did with a gate, with `AI_PROBE_BOTS`: `choose` when it goes to the

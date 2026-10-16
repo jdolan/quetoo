@@ -313,7 +313,8 @@ static bool G_Ai_Probe_Records(const int32_t flags) {
 /**
  * @brief Writes one event to the log: `PROBE <time> <client> <event> <fields>`.
  */
-static void G_Ai_Probe_Print(const int32_t client, const char *event, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
+static void G_Ai_Probe_Print(const int32_t client, const char *event, const char *fmt, ...)
+  __attribute__((format(printf, 3, 4)));
 static void G_Ai_Probe_Print(const int32_t client, const char *event, const char *fmt, ...) {
 
   char line[AI_PROBE_LINE];
@@ -370,12 +371,15 @@ static bool G_Ai_Probe_NextIsPush(const GameClient *cl) {
 
   const GameAiGoal *goal = &cl->ai->moveTarget;
 
-  if (goal->type != AI_GOAL_PATH || !goal->path.path || goal->path.pathIndex + 1 >= goal->path.path->count) {
+  if (goal->type != AI_GOAL_PATH || !goal->path.path ||
+      goal->path.pathIndex + 1 >= goal->path.path->count) {
     return false;
   }
 
-  const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex),
-                                             VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex + 1));
+  const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(goal->path.path, GameAiNodeId,
+                                                         goal->path.pathIndex),
+                                             VectorValue(goal->path.path, GameAiNodeId,
+                                                         goal->path.pathIndex + 1));
 
   return link && link->travelType == NAV_TRAVEL_PUSH;
 }
@@ -388,7 +392,8 @@ static bool G_Ai_Probe_NextIsPush(const GameClient *cl) {
 static bool G_Ai_Probe_TouchesPush(const GameEntity *ent) {
 
   GameEntity *ents[64];
-  const size_t len = gi.BoxEntities(Box3_Expand(ent->absBounds, AI_PROBE_PUSH_DISTANCE), ents, lengthof(ents), BOX_OCCUPY);
+  const size_t len = gi.BoxEntities(Box3_Expand(ent->absBounds, AI_PROBE_PUSH_DISTANCE), ents,
+                                    lengthof(ents), BOX_OCCUPY);
 
   for (size_t i = 0; i < len; i++) {
     if (ents[i]->classname && !Str_Compare(ents[i]->classname, "trigger_push")) {
@@ -453,8 +458,8 @@ static const char *G_Ai_Probe_Objective(const GameClient *cl) {
  * `AI_PROBE_STUCK_POSITIONS` positions lie within `AI_PROBE_STUCK_DISTANCE` of each other, and its
  * samples at the first `STUCK` event of each time that it is stuck.
  */
-static void G_Ai_Probe_Stuck(const GameClient *cl, GameAiProbeClient *c, const int32_t from, const int32_t to,
-                             const int32_t travelType) {
+static void G_Ai_Probe_Stuck(const GameClient *cl, GameAiProbeClient *c, const int32_t from,
+                             const int32_t to, const int32_t travelType) {
 
   const bool stuck = c->stuck;
   c->stuck = false;
@@ -517,14 +522,16 @@ static GameAiProbeClient *G_Ai_Probe_Client(const GameClient *cl) {
 static int32_t G_Ai_Probe_Visit(const GameClient *cl, GameAiProbeClient *c) {
 
   const GameEntity *ent = cl->entity;
-  const int32_t node = G_Ai_Probe_Node(G_Ai_Node_FindClosest(ent->s.origin, AI_PROBE_VISIT_DISTANCE, false, true));
+  const int32_t node = G_Ai_Probe_Node(G_Ai_Node_FindClosest(ent->s.origin, AI_PROBE_VISIT_DISTANCE,
+                                                             false, true));
 
   if (node == -1 || node == c->visitNode) {
     return node;
   }
 
   if (c->visitNode != -1 && (uint32_t) c->visitNode < G_Ai_Node_Count()) {
-    const float current = Vec3_Distance(ent->s.origin, G_Ai_Node_GetPosition((GameAiNodeId) c->visitNode));
+    const float current = Vec3_Distance(ent->s.origin,
+                                        G_Ai_Node_GetPosition((GameAiNodeId) c->visitNode));
     const float nearer = Vec3_Distance(ent->s.origin, G_Ai_Node_GetPosition((GameAiNodeId) node));
 
     if (nearer + AI_PROBE_VISIT_MARGIN > current) {
@@ -546,7 +553,9 @@ static int32_t G_Ai_Probe_Visit(const GameClient *cl, GameAiProbeClient *c) {
  */
 void G_Ai_Probe_Init(void) {
 
-  g_aiProbe = gi.AddCvar("g_aiProbe", "0", CVAR_DEVELOPER, "Records what bots do to ai_probe_<level>.log: 1 for the bots, 2 for the navigation graph, 4 for the players");
+  g_aiProbe = gi.AddCvar("g_aiProbe", "0", CVAR_DEVELOPER, "Records what bots do to "
+                         "ai_probe_<level>.log: 1 for the bots, 2 for the navigation graph, 4 for "
+                         "the players");
 }
 
 /**
@@ -913,7 +922,8 @@ static void G_Ai_Probe_Think_position(const GameClient *cl, GameAiProbeClient *c
                    G_Ai_Probe_Objective(cl), ent->health, from, to, travelType,
                    cl->weapon ? cl->weapon->def.classname : "none", *fire ? fire : "none",
                    G_Ai_IsArmed(cl),
-                   enemy ? (int32_t) Vec3_Distance(ent->s.origin, combat->entity.ent->s.origin) : -1,
+                   enemy ? (int32_t) Vec3_Distance(ent->s.origin,
+                                                   combat->entity.ent->s.origin) : -1,
                    enemy ? (int32_t) combat->entity.combatType : -1, ent->waterLevel, ground);
 
   c->positions[c->numPositions++ % AI_PROBE_STUCK_POSITIONS] = ent->s.origin;
@@ -980,8 +990,8 @@ void G_Ai_Probe_PathEnd(const GameClient *cl, const char *reason) {
                    AI_PROBE_VEC3(ent->s.origin), AI_PROBE_VEC3(ent->velocity),
                    ent->ground.ent != NULL, goal->type, from, to,
                    goal->type == AI_GOAL_PATH ? goal->path.pathIndex : 0,
-                   goal->type == AI_GOAL_PATH && goal->path.path ? (uint32_t) goal->path.path->count : 0,
-                   G_Ai_Probe_Objective(cl));
+                   goal->type == AI_GOAL_PATH && goal->path.path ?
+                   (uint32_t) goal->path.path->count : 0, G_Ai_Probe_Objective(cl));
 
   if (!Str_Compare(reason, "distress")) {
     G_Ai_Probe_History(cl, "distress");
@@ -991,8 +1001,8 @@ void G_Ai_Probe_PathEnd(const GameClient *cl, const char *reason) {
 /**
  * @see g_ai_probe.h
  */
-void G_Ai_Probe_Gate(const char *name, const int32_t numButtons, const int32_t numSources, const int32_t numDoors,
-                     const uint32_t openMillis) {
+void G_Ai_Probe_Gate(const char *name, const int32_t numButtons, const int32_t numSources,
+                     const int32_t numDoors, const uint32_t openMillis) {
 
   if (!G_Ai_Probe_Records(AI_PROBE_BOTS)) {
     return;

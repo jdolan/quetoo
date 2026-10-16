@@ -158,7 +158,8 @@ static Vec3 Cg_NavNodePosition(const NavNode *node) {
   if (node->model) {
     const ClientEntity *ent = Cg_NavMover(node->model);
     if (ent) {
-      return Mat4_Transform(Mat4_FromRotationTranslationScale(ent->angles, ent->origin, 1.f), node->local);
+      return Mat4_Transform(Mat4_FromRotationTranslationScale(ent->angles, ent->origin, 1.f),
+                            node->local);
     }
   }
 
@@ -196,18 +197,18 @@ void Cg_DescribeNavNode(const Vec3 position, CGameNavRowFunc row, void *data) {
   const NavNode *node = &graph->nodes[nearest];
   const Vec3 origin = Cg_NavNodePosition(node);
 
-  row(data, "nav node", va("^5%d^7 at %d %d %d, %d away%s%s%s%s%s", nearest,
-                          (int32_t) origin.x, (int32_t) origin.y, (int32_t) origin.z, (int32_t) distance,
-                          node->crouch ? ", crouch" : "", (node->contents & CONTENTS_WATER) ? ", water" : "",
-                          node->swim ? ", swim" : "", node->edge ? ", edge" : "",
-                          node->model ? va(", on *%d", node->model) : ""));
+  row(data, "nav node",
+      va("^5%d^7 at %d %d %d, %d away%s%s%s%s%s", nearest, (int32_t) origin.x, (int32_t) origin.y,
+         (int32_t) origin.z, (int32_t) distance, node->crouch ? ", crouch" : "",
+         (node->contents & CONTENTS_WATER) ? ", water" : "", node->swim ? ", swim" : "",
+         node->edge ? ", edge" : "", node->model ? va(", on *%d", node->model) : ""));
 
   for (int32_t i = 0; i < node->numLinks; i++) {
     const NavLink *link = &graph->links[node->firstLink + i];
     const Vec3 to = Cg_NavNodePosition(&graph->nodes[link->node]);
 
-    row(data, va("  %s", Nav_TravelName(link->travelType)), va("%d at %d %d %d", link->node,
-                                                                  (int32_t) to.x, (int32_t) to.y, (int32_t) to.z));
+    row(data, va("  %s", Nav_TravelName(link->travelType)),
+        va("%d at %d %d %d", link->node, (int32_t) to.x, (int32_t) to.y, (int32_t) to.z));
   }
 
   for (int32_t i = 0; i < graph->numPushes; i++) {
@@ -219,8 +220,9 @@ void Cg_DescribeNavNode(const Vec3 position, CGameNavRowFunc row, void *data) {
 
     const Vec3 end = flight->points[flight->numPoints - 1];
 
-    row(data, "  flight", flight->lands ? va("lands at %d %d %d", (int32_t) end.x, (int32_t) end.y, (int32_t) end.z)
-                                     : "does not land");
+    row(data, "  flight",
+        flight->lands ? va("lands at %d %d %d", (int32_t) end.x, (int32_t) end.y, (int32_t) end.z) :
+        "does not land");
   }
 }
 
@@ -248,7 +250,8 @@ static void Cg_NavInfo_f(void) {
  */
 void Cg_InitNav(void) {
 
-  cgi.AddCmd("navInfo", Cg_NavInfo_f, CMD_CGAME, "Prints the navigation node nearest the view, with its links");
+  cgi.AddCmd("navInfo", Cg_NavInfo_f, CMD_CGAME, "Prints the navigation node nearest the view, "
+             "with its links");
 }
 
 /**
@@ -282,7 +285,8 @@ static void Cg_PrepareNavFlights(const ClientFrame *frame) {
 
     const Vec3 center = Box3_Center(push->bounds);
     const Vec3 top = MakeVec3(center.x, center.y, push->bounds.maxs.z - PM_BOUNDS.mins.z);
-    const Vec3 bottom = MakeVec3(center.x, center.y, push->bounds.mins.z - PM_BOUNDS.mins.z - PM_STEP_HEIGHT * 4.f);
+    const Vec3 bottom = MakeVec3(center.x, center.y,
+                                 push->bounds.mins.z - PM_BOUNDS.mins.z - PM_STEP_HEIGHT * 4.f);
 
     const CollisionTrace drop = Cg_NavFlightTrace(top, bottom, PM_BOUNDS);
     if (drop.startSolid || drop.fraction == 1.f) {
@@ -305,7 +309,8 @@ static void Cg_PrepareNavFlights(const ClientFrame *frame) {
     pm.debugMask = DEBUG_PMOVE_CLIENT;
 
     float seconds;
-    flight->lands = Nav_FlyPush(push, &pm, flight->points, CG_NAV_FLIGHT_POINTS, &flight->numPoints, &seconds);
+    flight->lands = Nav_FlyPush(push, &pm, flight->points, CG_NAV_FLIGHT_POINTS, &flight->numPoints,
+                                &seconds);
   }
 }
 
@@ -345,8 +350,8 @@ void Cg_PrepareNav(const ClientFrame *frame) {
     Cg_Warn("This map has no floor to navigate\n");
   } else {
     Cg_PrepareNavFlights(frame);
-    cgi.Print("Built %d navigation nodes, %d links and %d jump pad flights\n", module.graph.numNodes,
-              module.graph.numLinks, module.graph.numPushes);
+    cgi.Print("Built %d navigation nodes, %d links and %d jump pad flights\n",
+              module.graph.numNodes, module.graph.numLinks, module.graph.numPushes);
   }
 
   module.built = true;
@@ -420,7 +425,8 @@ static void Cg_AddNavFlights(void) {
     const Vec3 start = flight->points[0];
     const Vec3 end = flight->points[flight->numPoints - 1];
 
-    if (Vec3_Distance(start, view) > CG_NAV_DRAW_DISTANCE && Vec3_Distance(end, view) > CG_NAV_DRAW_DISTANCE) {
+    if (Vec3_Distance(start, view) > CG_NAV_DRAW_DISTANCE &&
+        Vec3_Distance(end, view) > CG_NAV_DRAW_DISTANCE) {
       continue;
     }
 
@@ -476,7 +482,8 @@ void Cg_AddNav(const ClientFrame *frame) {
       continue;
     }
 
-    const Vec3 color = (node->crouch ? ColorHSV(COLOR_HUE_RED, 1.f, 1.f) : ColorHSV(0.f, 0.f, 1.f)).vec3;
+    const Vec3 color = (node->crouch ? ColorHSV(COLOR_HUE_RED, 1.f, 1.f) :
+                        ColorHSV(0.f, 0.f, 1.f)).vec3;
 
     Cg_AddSprite(&(CGameSprite) {
       .atlasImage = cgameMedia.sprites.particle,

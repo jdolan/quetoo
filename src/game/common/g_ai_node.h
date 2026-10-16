@@ -92,8 +92,10 @@ const NavLadderClimb *G_Ai_Node_GetClimb(const GameAiNodeId a, const GameAiNodeI
  */
 const NavLadder *G_Ai_Node_GetLadder(const NavLadderClimb *climb);
 
-GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel);
-GameAiNodeId G_Ai_Node_FindClosestStatic(const Vec3 position, const float maxDistance, const bool onlyVisible, const bool preferLevel);
+GameAiNodeId G_Ai_Node_FindClosest(const Vec3 position, const float maxDistance,
+                                   const bool onlyVisible, const bool preferLevel);
+GameAiNodeId G_Ai_Node_FindClosestStatic(const Vec3 position, const float maxDistance,
+                                         const bool onlyVisible, const bool preferLevel);
 
 /**
  * @brief Finds the entry of an angled `trigger_push`: the player origin behind the pad, on the line
@@ -107,7 +109,8 @@ bool G_Ai_Node_PushEntry(const GameEntity *push, Vec3 *entry);
 const GameEntity *G_Ai_Node_RaisedPlatform(const Vec3 position);
 bool G_Ai_Node_CanFollowPath(const Vector *path, const uint32_t index);
 void G_Ai_Node_Link(const GameAiNodeId a, const GameAiNodeId b, const float cost);
-void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const float cost, const NavTravelType travelType);
+void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const float cost,
+                          const NavTravelType travelType);
 void G_Ai_Node_Init(void);
 bool G_Ai_Node_IsStale(void);
 void G_Ai_Node_Ready(void);
@@ -125,8 +128,8 @@ void G_Ai_Node_Shutdown(void);
  * `G_Ai_Node_TravelCosts` measures it.
  * @return The path as a Vector of `GameAiNodeId`, or NULL if none was found.
  */
-Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const float maxCost,
-                           float *length);
+Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end,
+                           const float maxCost, float *length);
 
 /**
  * @brief Finds the least travel cost from `start` to every node: the link costs plus the drop
@@ -192,6 +195,7 @@ typedef struct {
  * @param costs The travel costs from the client, from `G_Ai_Node_TravelCosts`.
  * @return True if the search ran to completion.
  */
-bool G_Ai_Node_GateCosts(const GameClient *cl, const float *costs, const GameAiNodeId *sources, const int32_t numSources,
-                         const char *doorName, const float window, const int32_t key, GameAiGateCost *gateCosts);
+bool G_Ai_Node_GateCosts(const GameClient *cl, const float *costs, const GameAiNodeId *sources,
+                         const int32_t numSources, const char *doorName, const float window,
+                         const int32_t key, GameAiGateCost *gateCosts);
 #endif

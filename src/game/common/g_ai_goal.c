@@ -24,7 +24,8 @@
 /**
  * @brief Clears the goal, and sets its type and priority.
  */
-static inline void G_Ai_InitGoal(const GameClient *cl, GameAiGoal *goal, GameAiGoalType type, float priority) {
+static inline void G_Ai_InitGoal(const GameClient *cl, GameAiGoal *goal, GameAiGoalType type,
+                                 float priority) {
 
   G_Ai_ClearGoal(goal);
 
@@ -64,7 +65,8 @@ const GameEntity *G_Ai_ResolveGoalEntity(int32_t number) {
 /**
  * @brief Sets a goal to move to the entity.
  */
-void G_Ai_SetEntityGoal(const GameClient *cl, GameAiGoal *goal, float priority, const GameEntity *entity) {
+void G_Ai_SetEntityGoal(const GameClient *cl, GameAiGoal *goal, float priority,
+                        const GameEntity *entity) {
 
   G_Ai_InitGoal(cl, goal, AI_GOAL_ENTITY, priority);
   
@@ -122,7 +124,8 @@ GameAiNodeId G_Ai_PathStart(const GameClient *cl, const float maxDistance) {
  * address, because the new path can reuse the address of one that was freed, and the strafe jump
  * that `G_Ai_StrafeJumpIsSafe` found safe.
  */
-void G_Ai_SetPathGoal(const GameClient *cl, GameAiGoal *goal, float priority, Vector *path, const GameEntity *pathTarget) {
+void G_Ai_SetPathGoal(const GameClient *cl, GameAiGoal *goal, float priority, Vector *path,
+                      const GameEntity *pathTarget) {
 
   GameAiNodeId bottom, top;
   const bool climb = goal == &cl->ai->moveTarget && G_Ai_IsOnClimb(cl, &bottom, &top) &&
@@ -141,7 +144,8 @@ void G_Ai_SetPathGoal(const GameClient *cl, GameAiGoal *goal, float priority, Ve
   goal->path.pathIndex = climb ? 1 : 0;
 
   const GameAiNodeId node = VectorValue(path, GameAiNodeId, goal->path.pathIndex);
-  const GameAiNodeId next = VectorValue(path, GameAiNodeId, Minz(path->count - 1, goal->path.pathIndex + 1));
+  const GameAiNodeId next = VectorValue(path, GameAiNodeId,
+                                        Minz(path->count - 1, goal->path.pathIndex + 1));
   goal->path.pathPosition = G_Ai_Node_GetPosition(node);
   goal->path.nextPathPosition = G_Ai_Node_GetPosition(next);
   goal->path.pathTarget = pathTarget;
@@ -154,7 +158,9 @@ void G_Ai_SetPathGoal(const GameClient *cl, GameAiGoal *goal, float priority, Ve
   goal->path.pathTargetNumber = pathTarget ? pathTarget->s.number : -1;
 #endif
 
-  G_Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", VectorValue(path, GameAiNodeId, 0), VectorValue(path, GameAiNodeId, path->count - 1), priority, etos(pathTarget));
+  G_Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n",
+             VectorValue(path, GameAiNodeId, 0), VectorValue(path, GameAiNodeId, path->count - 1),
+             priority, etos(pathTarget));
 }
 
 /**
@@ -162,8 +168,10 @@ void G_Ai_SetPathGoal(const GameClient *cl, GameAiGoal *goal, float priority, Ve
  */
 bool G_Ai_GoalHasEntity(const GameAiGoal *goal, const GameEntity *ent) {
 
-  return (goal->type == AI_GOAL_ENTITY && goal->entity.ent == ent && goal->entity.spawnId == ent->s.spawnId) ||
-    (goal->type == AI_GOAL_PATH && goal->path.pathTarget == ent && goal->path.pathTargetSpawnId == ent->s.spawnId);
+  return (goal->type == AI_GOAL_ENTITY && goal->entity.ent == ent &&
+          goal->entity.spawnId == ent->s.spawnId) ||
+         (goal->type == AI_GOAL_PATH && goal->path.pathTarget == ent &&
+          goal->path.pathTargetSpawnId == ent->s.spawnId);
 }
 
 /**

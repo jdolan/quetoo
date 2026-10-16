@@ -176,8 +176,8 @@ typedef struct {
   int32_t travelMillis;
 
   /**
-   * @brief The inline model of the door whose doorway the walk, drop or jump crosses, or 0. The game lets
-   * a bot use the link only while the door is away from where the map places it.
+   * @brief The inline model of the door whose doorway the walk, drop or jump crosses, or 0. The
+   * game lets a bot use the link only while the door is away from where the map places it.
    */
   int32_t gate;
 } NavLink;
@@ -427,7 +427,8 @@ typedef struct {
   /**
    * @brief Traces a box against the given BSP head node.
    */
-  CollisionTrace (*BoxTrace)(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t headNode, int32_t contents);
+  CollisionTrace (*BoxTrace)(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t headNode,
+                             int32_t contents);
 
   /**
    * @return True if `point` is inside `brush`.
@@ -447,7 +448,8 @@ typedef struct {
   /**
    * @brief Aborts with an error.
    */
-  void (*Error)(const char *func, const char *fmt, ...) __attribute__((noreturn, format(printf, 2, 3)));
+  void (*Error)(const char *func, const char *fmt, ...)
+    __attribute__((noreturn, format(printf, 2, 3)));
 } NavParams;
 
 /**
@@ -468,8 +470,8 @@ bool Nav_Build(const NavParams *params, NavGraph *graph);
 Vec3i Nav_PointCoordinate(const NavGraph *graph, const Vec3 point);
 
 /**
- * @return The node on the floor of the graph's cell at the grid coordinate `xyz`, or floating in it,
- * or -1 if the cell has none or is outside the grid.
+ * @return The node on the floor of the graph's cell at the grid coordinate `xyz`, or floating in
+ * it, or -1 if the cell has none or is outside the grid.
  */
 int32_t Nav_CellNode(const NavGraph *graph, const Vec3i xyz);
 
@@ -513,7 +515,8 @@ const char *Nav_TravelName(const NavTravelType type);
  * @param seconds The duration of the flight, written only if it lands.
  * @return True if the flight lands within `NAV_FLIGHT_SECONDS`, at `pm->s.origin`.
  */
-bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints, int32_t *numPoints, float *seconds);
+bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints,
+                 int32_t *numPoints, float *seconds);
 
 /**
  * @brief Frees the nodes and links of a graph that `Nav_Build` made, and zeroes their counts. It

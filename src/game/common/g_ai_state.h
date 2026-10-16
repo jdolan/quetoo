@@ -37,8 +37,8 @@ uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd);
 bool G_Ai_State_IsWaiting(const GameClient *cl);
 
 /**
- * @brief Returns the bot to `AI_STATE_ROAM` with no objective, as when it spawns, and forgets its wait,
- * its alert and the items that it avoids.
+ * @brief Returns the bot to `AI_STATE_ROAM` with no objective, as when it spawns, and forgets its
+ * wait, its alert and the items that it avoids.
  */
 void G_Ai_State_Reset(GameClient *cl);
 
