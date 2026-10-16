@@ -1,0 +1,196 @@
+{
+  "identifier": "Communication & capture",
+  "classNames": [
+    "communicationCapture"
+  ],
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "StackView",
+          "classNames": [
+            "columns",
+            "container"
+          ],
+          "subviews": [
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Communication"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Chat"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "cg_messageMode"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Team chat"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "cg_messageMode2"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Voice chat"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "+voice"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Vote"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Vote yes"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "vote yes"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Vote no"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "vote no"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Capture"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Record demo"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "record"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Stop recording"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "stop"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Take screenshot"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "r_screenshot"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Take screenshot (3D only)"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "r_screenshot view"
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

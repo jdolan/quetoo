@@ -76,11 +76,13 @@ cguicontrolsdir = \
 	@PKGLIBDIR@/default/ui/controls
 
 cguicontrols_DATA = \
+	$(CGUI_DIR)/controls/CommunicationCaptureViewController.css \
+	$(CGUI_DIR)/controls/CommunicationCaptureViewController.json \
 	$(CGUI_DIR)/controls/ControlsViewController.json \
+	$(CGUI_DIR)/controls/CrosshairHudViewController.css \
+	$(CGUI_DIR)/controls/CrosshairHudViewController.json \
 	$(CGUI_DIR)/controls/MovementCombatViewController.css \
-	$(CGUI_DIR)/controls/MovementCombatViewController.json \
-	$(CGUI_DIR)/controls/ResponseServiceViewController.css \
-	$(CGUI_DIR)/controls/ResponseServiceViewController.json
+	$(CGUI_DIR)/controls/MovementCombatViewController.json
 
 cguicreditsdir = \
 	@PKGLIBDIR@/default/ui/credits
@@ -252,10 +254,11 @@ cgame_la_SOURCES = \
 	ui/CvarSlider.c \
 	ui/CvarTextView.c \
 	ui/DialogViewController.c \
+	ui/controls/CommunicationCaptureViewController.c \
 	ui/controls/ControlsViewController.c \
+	ui/controls/CrosshairHudViewController.c \
 	ui/controls/CrosshairPreviewView.c \
 	ui/controls/MovementCombatViewController.c \
-	ui/controls/ResponseServiceViewController.c \
 	ui/credits/CreditsViewController.c \
 	ui/editor/EditorViewController.c \
 	ui/editor/EntityView.c \

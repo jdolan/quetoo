@@ -2006,6 +2006,9 @@ bool G_ClientConnect(GameClient *cl, char *userInfo) {
 
 /**
  * @brief Called when a player drops from the server. Not be called between levels.
+ * @remarks The entities the player owns are freed with them, because projectiles, the hook, the
+ * lightning beam and the held grenade read their owner without testing it for NULL. Items the
+ * player dropped and their corpse are not: those outlive the player, and test their owner.
  */
 void G_ClientDisconnect(GameClient *cl) {
 
@@ -2046,6 +2049,12 @@ void G_ClientDisconnect(GameClient *cl) {
   }
 
   if (cl->entity) {
+    G_ForEachEntity(ent, {
+      if (ent->owner == cl->entity && ent->item == NULL && ent->dead == false) {
+        G_FreeEntity(ent);
+      }
+    });
+
     G_FreeEntity(cl->entity);
     cl->entity = NULL;
   }

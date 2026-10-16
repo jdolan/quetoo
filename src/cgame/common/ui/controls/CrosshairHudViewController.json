@@ -1,7 +1,7 @@
 {
-  "identifier": "Response & service",
+  "identifier": "Crosshair & HUD",
   "classNames": [
-    "responseService"
+    "crosshairHud"
   ],
   "subviews": [
     {
@@ -141,42 +141,6 @@
                       }
                     ]
                   }
-                },
-                {
-                  "class": "Box",
-                  "label": {
-                    "text": {
-                      "text": "Vote"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Vote yes"
-                          }
-                        },
-                        "control": {
-                          "class": "BindTextView",
-                          "bind": "vote yes"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Vote no"
-                          }
-                        },
-                        "control": {
-                          "class": "BindTextView",
-                          "bind": "vote no"
-                        }
-                      }
-                    ]
-                  }
                 }
               ]
             },
@@ -290,60 +254,6 @@
                 {
                   "class": "CrosshairPreviewView",
                   "identifier": "crosshairView"
-                },
-                {
-                  "class": "Box",
-                  "label": {
-                    "text": {
-                      "text": "View"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Show weapon"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarCheckbox",
-                          "var": "cg_drawWeapon"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Weapon sway"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 0,
-                          "max": 2,
-                          "step": 0.05,
-                          "var": "cg_drawWeaponBob"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Bob"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 0,
-                          "max": 2,
-                          "step": 0.05,
-                          "var": "cg_bob"
-                        }
-                      }
-                    ]
-                  }
                 }
               ]
             },
@@ -439,54 +349,6 @@
                           "step": 0.05,
                           "var": "cg_drawBlend"
                         }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "class": "Box",
-                  "label": {
-                    "text": {
-                      "text": "Communication"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Chat"
-                          }
-                        },
-                        "control": {
-                          "class": "BindTextView",
-                          "bind": "cg_messageMode"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Team chat"
-                          }
-                        },
-                        "control": {
-                          "class": "BindTextView",
-                          "bind": "cg_messageMode2"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Voice chat"
-                          }
-                        },
-                        "control": {
-                          "class": "BindTextView",
-                          "bind": "+voice"
-                        }
                       },
                       {
                         "class": "Input",
@@ -499,29 +361,59 @@
                           "class": "BindTextView",
                           "bind": "+score"
                         }
-                      },
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "View"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
                       {
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Take screenshot"
+                            "text": "Show weapon"
                           }
                         },
                         "control": {
-                          "class": "BindTextView",
-                          "bind": "r_screenshot"
+                          "class": "CvarCheckbox",
+                          "var": "cg_drawWeapon"
                         }
                       },
                       {
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Take screenshot (3D only)"
+                            "text": "Weapon sway"
                           }
                         },
                         "control": {
-                          "class": "BindTextView",
-                          "bind": "r_screenshot view"
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 2,
+                          "step": 0.05,
+                          "var": "cg_drawWeaponBob"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Bob"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 2,
+                          "step": 0.05,
+                          "var": "cg_bob"
                         }
                       }
                     ]
