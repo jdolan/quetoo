@@ -34,7 +34,7 @@ uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd);
  * @return True if the bot collects an item that is taken, and stands where it returns, so that the
  * bot reviews its choices only at intervals while it waits, and does not wander.
  */
-bool G_Ai_IsWaiting(const GameClient *cl);
+bool G_Ai_State_IsWaiting(const GameClient *cl);
 
 /**
  * @brief Returns the bot to `AI_STATE_ROAM` with no objective, as when it spawns, and forgets its wait,
@@ -46,17 +46,17 @@ void G_Ai_State_Reset(GameClient *cl);
  * @brief Lets the bot avoid the item for a time: because it took the item, failed to reach it, or
  * began a detour to it, so that a failed detour is not tried again at once.
  */
-void G_Ai_Avoid(GameClient *cl, const GameEntity *item);
+void G_Ai_State_Avoid(GameClient *cl, const GameEntity *item);
 
 /**
  * @return The name of the bot's state, such as `collect` or `fight`.
  */
-const char *G_Ai_StateName(const GameClient *cl);
+const char *G_Ai_State_Name(const GameClient *cl);
 
 /**
  * @return The item that the bot collects, or NULL if it collects none, or the item is gone.
  */
-const GameEntity *G_Ai_ObjectiveEntity(const GameClient *cl);
+const GameEntity *G_Ai_State_Objective(const GameClient *cl);
 
 /**
  * @brief Finds the gates, the doors that buttons move and whose doorways navigation links cross,

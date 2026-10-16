@@ -85,7 +85,7 @@ Box3 G_PlayerBounds(void) {
 void G_InitPlayerSpawn(GameEntity *ent) {
 
   if (!Str_Compare(ent->classname, "info_player_intermission")) {
-    G_Ai_DropItemLikeNode(ent);
+    G_Ai_Node_AddEntity(ent);
   }
 }
 

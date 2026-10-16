@@ -302,7 +302,7 @@ void G_Ai_ItemTaken(const GameEntity *item, const GameEntity *taker) {
   G_Ai_State_ItemTaken(item, taker);
 
   if (taker->client && taker->client->ai) {
-    G_Ai_Avoid(taker->client, item);
+    G_Ai_State_Avoid(taker->client, item);
   }
 
   if (taker->client) {
@@ -2285,7 +2285,7 @@ static bool G_Ai_CanStrafeJump(const GameClient *cl) {
     return false;
   }
 
-  return G_Ai_Path_CanPathTo(goal->path.path, goal->path.pathIndex);
+  return G_Ai_Node_CanFollowPath(goal->path.path, goal->path.pathIndex);
 }
 
 /**
@@ -2967,7 +2967,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     return 0;
   }
 
-  if (cl->ai->moveTarget.type == AI_GOAL_NONE && G_Ai_IsWaiting(cl)) {
+  if (cl->ai->moveTarget.type == AI_GOAL_NONE && G_Ai_State_IsWaiting(cl)) {
     cmd->forward = 0;
     cmd->right = 0;
     cmd->up = 0;
@@ -3105,7 +3105,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
     cl->ai->strafeBlock = AI_STRAFE_BLOCK_STATE;
     // the next step(s) will be onto a mover, so if we can't move yet, we wait.
-    if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !G_Ai_Path_CanPathTo(cl->ai->moveTarget.path.path, cl->ai->moveTarget.path.pathIndex)) {
+    if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !G_Ai_Node_CanFollowPath(cl->ai->moveTarget.path.path, cl->ai->moveTarget.path.pathIndex)) {
       const GameEntity *plat = G_Ai_Node_RaisedPlatform(cl->ai->moveTarget.path.pathPosition);
       dir = plat ? G_Ai_LeavePlatform(cl, cmd, plat) : Vec3_Scale(dir, PM_SPEED_RUN);
       waitPolitely = true;
@@ -3240,7 +3240,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
         const int32_t travelType = link ? link->travelType : 0;
 
         // we're most likely on or going to a mover; if we'll be falling in a few frames, stop us early
-        if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !G_Ai_Path_CanPathTo(cl->ai->moveTarget.path.path, cl->ai->moveTarget.path.pathIndex)) {
+        if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !G_Ai_Node_CanFollowPath(cl->ai->moveTarget.path.path, cl->ai->moveTarget.path.pathIndex)) {
           cmd->forward = -cmd->forward;
           cmd->right = -cmd->right; // stop for now
           G_Ai_Debug("Stopping early to prevent mover issues\n");
@@ -3825,8 +3825,8 @@ static void G_Ai_Connect(GameClient *cl, const GameAiRoster *roster) {
 /**
  * @brief Builds the level's navigation graph again, for a movement or gravity that changed during
  * the level. The entities that added nodes to the graph add them again: the teleporters, by their
- * `Think`, and the items and spawn points that `G_Ai_DropItemLikeNode` linked. Items that hover
- * over jump pads link again in `G_Ai_NodesReady`, if the first second of the level is over. Each
+ * `Think`, and the items and spawn points that `G_Ai_Node_AddEntity` linked. Items that hover
+ * over jump pads link again in `G_Ai_Node_Ready`, if the first second of the level is over. Each
  * bot drops its goals and paths, as it does when it respawns, because they name nodes of the old
  * graph. Every teleporter links again, also one that found no room for its node in the old graph,
  * except one whose first `Think` is still to come, which links then.
@@ -3854,10 +3854,10 @@ static void G_Ai_ReloadNodes(void) {
   });
 
   G_Ai_State_Unload();
-  G_Ai_InitNodes();
+  G_Ai_Node_Init();
 
   for (int32_t i = 0; i < numDrops; i++) {
-    G_Ai_DropItemLikeNode(drops[i]);
+    G_Ai_Node_AddEntity(drops[i]);
   }
 
   for (int32_t i = 0; i < numTeleporters; i++) {
@@ -3870,7 +3870,7 @@ static void G_Ai_ReloadNodes(void) {
   free(teleporters);
 
   if (gameLevel.time > 1000) {
-    G_Ai_NodesReady();
+    G_Ai_Node_Ready();
     G_Ai_State_Load();
   }
 
@@ -3897,7 +3897,7 @@ void G_Ai_Frame(void) {
   }
 
   if (gameLevel.time == 1000) {
-    G_Ai_NodesReady();
+    G_Ai_Node_Ready();
     G_Ai_State_Load();
   }
 
@@ -4015,7 +4015,7 @@ void G_Ai_Load(void) {
 
   G_Ai_State_Unload();
 
-  G_Ai_InitNodes();
+  G_Ai_Node_Init();
 }
 
 /**
@@ -4026,7 +4026,7 @@ void G_Ai_Shutdown(void) {
   G_Ai_ShutdownSkins();
   G_Ai_State_Shutdown();
   G_Ai_Probe_Shutdown();
-  G_Ai_ShutdownNodes();
+  G_Ai_Node_Shutdown();
 
   gi.FreeTag(MEM_TAG_AI);
 }

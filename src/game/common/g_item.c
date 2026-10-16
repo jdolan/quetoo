@@ -1119,7 +1119,7 @@ static void G_ItemDropToFloor(GameEntity *ent) {
   G_ResetItem(ent);
 
   if (dropNode) {
-    G_Ai_DropItemLikeNode(ent);
+    G_Ai_Node_AddEntity(ent);
   }
 }
 

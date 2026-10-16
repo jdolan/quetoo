@@ -636,7 +636,7 @@ void G_SpawnEntities(const char *name, const Entity *mapListEntry, Entity *const
     G_FreeEntity(ge.entities[i]);
   }
 
-  G_Ai_ShutdownNodes();
+  G_Ai_Node_Shutdown();
 
   currentMapListEntry = mapListEntry;
 

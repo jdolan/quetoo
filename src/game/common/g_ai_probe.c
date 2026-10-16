@@ -190,7 +190,7 @@ static void G_Ai_Probe_Link(const GameClient *cl, int32_t *from, int32_t *to, in
  * @return True if the next link of the bot's path, after the one that it travels, is a jump pad
  * link. A vertical pad launches the bot before its path advances onto the pad link.
  */
-static bool G_Ai_Probe_NextIsPad(const GameClient *cl) {
+static bool G_Ai_Probe_NextIsPush(const GameClient *cl) {
 
   const GameAiGoal *goal = &cl->ai->moveTarget;
 
@@ -266,7 +266,7 @@ static const char *G_Ai_Probe_Token(const char *name) {
  */
 static const char *G_Ai_Probe_Objective(const GameClient *cl) {
 
-  const GameEntity *objective = G_Ai_ObjectiveEntity(cl);
+  const GameEntity *objective = G_Ai_State_Objective(cl);
 
   return objective ? objective->classname : "none";
 }
@@ -305,7 +305,7 @@ static void G_Ai_Probe_Stuck(const GameClient *cl, GameAiProbeClient *c, const i
 
   G_Ai_Probe_Print(cl->ps.client, "STUCK", "pos=%d,%d,%d state=%s goal=%s link=%d->%d type=%d next=%d,%d,%d ground=%d spread=%d",
                    (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                   G_Ai_StateName(cl), G_Ai_Probe_Objective(cl), from, to, travelType,
+                   G_Ai_State_Name(cl), G_Ai_Probe_Objective(cl), from, to, travelType,
                    (int32_t) next.x, (int32_t) next.y, (int32_t) next.z, ent->ground.ent != NULL, (int32_t) spread);
 
   if (!stuck) {
@@ -530,7 +530,7 @@ void G_Ai_Probe_Think(const GameClient *cl) {
       .travelType = travelType,
       .strafeJumping = cl->ai->strafeJumping,
       .ground = ground,
-      .state = G_Ai_StateName(cl),
+      .state = G_Ai_State_Name(cl),
       .knocked = (cl->ps.pmState.flags & PMF_TIME_PUSHED) && !G_Ai_Probe_TouchesPush(ent),
       .ladder = (cl->ps.pmState.flags & PMF_ON_LADDER) != 0,
       .phase = G_Ai_LadderPhaseName(cl)
@@ -569,7 +569,7 @@ void G_Ai_Probe_Think(const GameClient *cl) {
     G_Ai_Probe_Print(n, "HAZARD", "pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d state=%s enemy=%d lava=%d",
                      (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
                      (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
-                     from, to, travelType, cl->ai->strafeJumping, G_Ai_StateName(cl),
+                     from, to, travelType, cl->ai->strafeJumping, G_Ai_State_Name(cl),
                      cl->ai->combatTarget.type == AI_GOAL_ENTITY && cl->ai->combatTarget.entity.ent,
                      (ent->waterType & CONTENTS_LAVA) != 0);
     G_Ai_Probe_History(cl, "hazard");
@@ -579,7 +579,7 @@ void G_Ai_Probe_Think(const GameClient *cl) {
 
   const bool pushed = (cl->ps.pmState.flags & PMF_TIME_PUSHED) != 0;
   if (pushed && !c->pushed && G_Ai_Probe_TouchesPush(ent)) {
-    const bool planned = travelType == NAV_TRAVEL_PUSH || G_Ai_Probe_NextIsPad(cl);
+    const bool planned = travelType == NAV_TRAVEL_PUSH || G_Ai_Probe_NextIsPush(cl);
     G_Ai_Probe_Print(n, "PUSHED", "pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d ground=%d planned=%d launch=%u goal=%s",
                      (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
                      (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
@@ -655,7 +655,7 @@ void G_Ai_Probe_Think(const GameClient *cl) {
 
     G_Ai_Probe_Print(n, "POS", "pos=%d,%d,%d speed=%d state=%s goal=%s health=%d link=%d->%d type=%d weapon=%s fire=%s armed=%d enemy=%d combat=%d water=%d ground=%d",
                      (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                     (int32_t) Vec2_Length(Vec3_XY(ent->velocity)), G_Ai_StateName(cl), G_Ai_Probe_Objective(cl),
+                     (int32_t) Vec2_Length(Vec3_XY(ent->velocity)), G_Ai_State_Name(cl), G_Ai_Probe_Objective(cl),
                      ent->health, from, to, travelType, cl->weapon ? cl->weapon->def.classname : "none", *fire ? fire : "none",
                      G_Ai_IsArmed(cl), enemy ? (int32_t) Vec3_Distance(ent->s.origin, combat->entity.ent->s.origin) : -1,
                      enemy ? (int32_t) combat->entity.combatType : -1, ent->waterLevel, ent->ground.ent != NULL);

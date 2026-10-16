@@ -52,7 +52,7 @@ typedef struct {
   int32_t gate;
 
   /**
-   * @brief True if `hazard` holds the result of `G_Ai_LinkPassesHazard` for the link, which
+   * @brief True if `hazard` holds the result of `G_Ai_Node_LinkPassesHazard` for the link, which
    * `G_Ai_Node_LinkTravel` tests once for a link between two nodes that do not move.
    */
   bool hazardTested;
@@ -106,15 +106,15 @@ GameAiNodeId G_Ai_Node_FindClosestStatic(const Vec3 position, const float maxDis
 bool G_Ai_Node_PushEntry(const GameEntity *push, Vec3 *entry);
 bool G_Ai_Node_CanPathTo(const Vec3 position);
 const GameEntity *G_Ai_Node_RaisedPlatform(const Vec3 position);
-bool G_Ai_Path_CanPathTo(const Vector *path, const uint32_t index);
+bool G_Ai_Node_CanFollowPath(const Vector *path, const uint32_t index);
 void G_Ai_Node_Link(const GameAiNodeId a, const GameAiNodeId b, const float cost);
 void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const float cost, const int32_t travelType);
-void G_Ai_InitNodes(void);
+void G_Ai_Node_Init(void);
 bool G_Ai_Node_IsStale(void);
-void G_Ai_NodesReady(void);
+void G_Ai_Node_Ready(void);
 void G_Ai_Node_UpdateMovers(void);
 bool G_Ai_Node_IsCrushing(const GameAiNodeId id);
-void G_Ai_ShutdownNodes(void);
+void G_Ai_Node_Shutdown(void);
 
 /**
  * @brief Finds the cheapest path between two nodes, with Dijkstra's search. A heuristic of distance
@@ -138,7 +138,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
  * false, because the nodes that it did not reach would read as unreachable.
  */
 bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float *costs);
-bool G_Ai_DropItemLikeNode(GameEntity *ent);
+bool G_Ai_Node_AddEntity(GameEntity *ent);
 
 /**
  * @return True if the link crosses no doorway, or the door whose doorway it crosses is away from
@@ -148,14 +148,14 @@ bool G_Ai_DropItemLikeNode(GameEntity *ent);
 bool G_Ai_Node_IsLinkOpen(const GameAiLink *link);
 
 /**
- * @return True if the link crosses the doorway of a door with the `targetName`.
+ * @return True if the link crosses the doorway of a door with the `targetname` `doorName`.
  */
-bool G_Ai_Node_IsLinkGatedBy(const GameAiLink *link, const char *targetName);
+bool G_Ai_Node_IsLinkGatedBy(const GameAiLink *link, const char *doorName);
 
 /**
- * @return True if a link crosses the doorway of a door with the `targetName`.
+ * @return True if a link crosses the doorway of a door with the `targetname` `doorName`.
  */
-bool G_Ai_Node_HasGate(const char *targetName);
+bool G_Ai_Node_HasGate(const char *doorName);
 
 /**
  * @brief The travel cost of a node through closed doors that a button opens, from
@@ -181,7 +181,7 @@ typedef struct {
 
 /**
  * @brief Finds the nodes that the client reaches cheaper if it goes first to one of the `sources`,
- * presses there the button that moves the doors with the `targetname` `doors`, and then crosses
+ * presses there the button that moves the doors with the `targetname` `doorName`, and then crosses
  * the doors: a link through their doorway, whose state the press changes, or a press link. A path
  * starts at a source at the source's cost in `costs`, and MUST take each link through the doors
  * within `window` of travel cost after it. A path that has crossed the doors goes on only through
@@ -199,5 +199,5 @@ typedef struct {
  * @return True if the search ran to completion.
  */
 bool G_Ai_Node_GateCosts(const GameClient *cl, const float *costs, const GameAiNodeId *sources, const int32_t numSources,
-                         const char *doors, const float window, const int32_t key, GameAiGateCost *gateCosts);
+                         const char *doorName, const float window, const int32_t key, GameAiGateCost *gateCosts);
 #endif
