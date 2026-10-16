@@ -150,17 +150,23 @@ static bool G_ItemRestoreOrigin(GameEntity *ent) {
 }
 
 /**
+ * @return The entity that respawns in place of the given one: the next of its team, or itself.
+ */
+static GameEntity *G_ItemRespawnTarget(GameEntity *ent) {
+
+  if (ent->team) {
+    return ent->teamNext ?: ent->teamMaster;
+  }
+
+  return ent;
+}
+
+/**
  * @brief Think function that respawns an item entity after its delay expires.
  */
 static void G_ItemRespawn(GameEntity *ent) {
 
-  if (ent->team) {
-    if (ent->teamNext) {
-      ent = ent->teamNext;
-    } else {
-      ent = ent->teamMaster;
-    }
-  }
+  ent = G_ItemRespawnTarget(ent);
 
   ent->serverFlags &= ~SVF_NO_CLIENT;
   ent->solid = SOLID_TRIGGER;
@@ -259,7 +265,7 @@ void G_RunItemTimers(void) {
         continue;
       }
 
-      const int32_t timer = G_ItemTimer(ent->item);
+      const int32_t timer = G_ItemTimer(G_ItemRespawnTarget(ent)->item);
       if (timer) {
         uint32_t *respawn = &respawns[timer - CS_ITEM_TIMER_MEGA];
         if (ent->nextThink < *respawn) {
