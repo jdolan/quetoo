@@ -184,7 +184,6 @@ void G_Ai_CopyGoal(const GameAiGoal *from, GameAiGoal *to) {
 
   switch (from->type) {
     case AI_GOAL_NONE:
-      to->wander.angle = from->wander.angle;
       break;
     case AI_GOAL_POSITION:
       to->position.pos = from->position.pos;

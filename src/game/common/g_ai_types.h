@@ -123,14 +123,6 @@ typedef struct {
     struct {
 
       /**
-       * @brief Wander direction angle in degrees.
-       */
-      float angle;
-    } wander;
-
-    struct {
-
-      /**
        * @brief Target world-space position.
        */
       Vec3 pos;
@@ -498,6 +490,12 @@ typedef struct GameAi {
   GameAiStateId climbState;
 
   /**
+   * @brief The `stateTime` of `climbState`. The bot returns to it later by the time of the climb,
+   * so that the climb does not count against the timeouts of the state.
+   */
+  uint32_t climbStateTime;
+
+  /**
    * @brief Level time until which the bot leaves the ladder on which its climb was blocked.
    */
   uint32_t ladderLeaveTime;
@@ -516,6 +514,12 @@ typedef struct GameAi {
    * @brief Level time at which the state next reviews the bot's choice of goal, item or approach.
    */
   uint32_t reviewTime;
+
+  /**
+   * @brief Level time at which the state last reviewed the choices of the bot with no move target,
+   * or 0 if its last review was with one.
+   */
+  uint32_t reviewedTime;
 
   /**
    * @brief True once a chase or an investigation has planned its path.
@@ -658,9 +662,38 @@ typedef struct GameAi {
   bool fallToNode;
 
   /**
+   * @brief The frame of the last `G_Ai_SimulateDrop`, whose result `dropSafe` holds for
+   * `dropTarget` from `dropOrigin`.
+   */
+  uint32_t dropFrame;
+
+  /**
+   * @brief The origin of the bot at the last `G_Ai_SimulateDrop`. The bot moves between the passes
+   * of `G_Ai_ClientThink` in one frame.
+   */
+  Vec3 dropOrigin;
+
+  /**
+   * @brief The target of the last `G_Ai_SimulateDrop`.
+   */
+  Vec3 dropTarget;
+
+  /**
+   * @brief The result of the last `G_Ai_SimulateDrop`.
+   */
+  bool dropSafe;
+
+  /**
    * @brief Level time before the bot may turn again while it wanders.
    */
   uint32_t wanderTurnTime;
+
+  /**
+   * @brief The yaw in degrees that the bot wanders toward with no goal. It is not in the union of
+   * `GameAiGoal`, whose entity pointer it shares memory with, because `G_Ai_Wander` turns it while
+   * the move goal is the enemy.
+   */
+  float wanderAngle;
 
   /**
    * @brief Level time at which the bot last saw its combat target.

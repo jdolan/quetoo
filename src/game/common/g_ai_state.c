@@ -33,6 +33,12 @@
 #define AI_REVIEW_MILLIS 500
 
 /**
+ * @brief The least interval in milliseconds at which a state reviews the choices of a bot that has
+ * no move target and does not wait, so that a review that finds nothing does not repeat each tick.
+ */
+#define AI_IDLE_REVIEW_MILLIS 300
+
+/**
  * @brief The distance within which a bot finds the node that it travels from, or that an item or
  * a position lies at.
  */
@@ -150,6 +156,11 @@
  * @brief A retreating bot fights again once its health exceeds this multiple of its retreat health.
  */
 #define AI_RECOVER_SCALE 1.5f
+
+/**
+ * @brief The least time in milliseconds for which a bot retreats once it starts.
+ */
+#define AI_RETREAT_MILLIS 1500
 
 /**
  * @brief The utility scale of health and armor that lie nearer to the enemy than to a retreating
@@ -667,7 +678,7 @@ static bool G_Ai_PathTo(GameClient *cl, const GameAiNodeId dest, const float pri
     return false;
   }
 
-  Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, 0.f, NULL);
+  Vector *path = G_Ai_Node_FindPath(cl, src, dest, 0.f, NULL);
 
   if (!path) {
     return false;
@@ -776,7 +787,7 @@ static void G_Ai_Enter(GameClient *cl, const GameAiStateId state) {
 
   ai->state = state;
   ai->stateTime = gameLevel.time;
-  ai->reviewTime = 0;
+  ai->reviewTime = ai->reviewedTime = 0;
   ai->statePathed = false;
   ai->shootTarget = NULL;
 
@@ -801,17 +812,23 @@ bool G_Ai_IsWaiting(const GameClient *cl) {
 }
 
 /**
- * @return True if the state should review its choices now: the bot has no move target, or the
- * review interval passed.
+ * @return True if the state should review its choices now: the review interval passed, or the bot
+ * has no move target, does not wait, and no review with no move target came within
+ * `AI_IDLE_REVIEW_MILLIS`. A review while the bot has a move target does not delay the next one, so
+ * that a bot whose path ends chooses again at once.
  */
 static bool G_Ai_ShouldReview(GameClient *cl) {
 
   GameAi *ai = cl->ai;
 
-  if (ai->reviewTime > gameLevel.time && (ai->moveTarget.type != AI_GOAL_NONE || G_Ai_IsWaiting(cl))) {
+  const bool idle = ai->moveTarget.type == AI_GOAL_NONE && !G_Ai_IsWaiting(cl);
+
+  if (idle ? gameLevel.time - ai->reviewedTime < AI_IDLE_REVIEW_MILLIS && ai->reviewedTime
+           : ai->reviewTime > gameLevel.time) {
     return false;
   }
 
+  ai->reviewedTime = idle ? gameLevel.time : 0;
   ai->reviewTime = gameLevel.time + AI_REVIEW_MILLIS;
   return true;
 }
@@ -895,9 +912,10 @@ static GameAiNodeId G_Ai_RoamNode(const GameClient *cl, const float *costs) {
 
 /**
  * @brief Chooses a detour: the item whose value per added travel time is greatest, among those that
- * add at most `AI_DETOUR_COST` to the route to the goal. The added time is the travel to the item
- * and on from it to the goal, less the travel straight to the goal, so an item on the route costs
- * little, and an item behind the bot costs much.
+ * are there and add at most `AI_DETOUR_COST` to the route to the goal. The added time is the travel
+ * to the item and on from it to the goal, less the travel straight to the goal, so an item on the
+ * route costs little, and an item behind the bot costs much. A detour never waits for an item to
+ * return, because `G_Ai_State_Detour` ends once the item is gone.
  * @return True if the bot takes a detour.
  */
 static bool G_Ai_ChooseDetour(GameClient *cl, const float *costs) {
@@ -914,7 +932,7 @@ static bool G_Ai_ChooseDetour(GameClient *cl, const float *costs) {
   GameAiChoice candidates[AI_DETOUR_CANDIDATES] = { 0 };
 
   G_ForEachEntity(ent, {
-    if (!ent->item || ent == goal) {
+    if (!ent->item || ent == goal || ent->solid != SOLID_TRIGGER) {
       continue;
     }
 
@@ -948,7 +966,7 @@ static bool G_Ai_ChooseDetour(GameClient *cl, const float *costs) {
     GameAiChoice *choice = &candidates[i];
 
     float onward;
-    Vector *path = G_Ai_Node_FindPath(cl, choice->node, goalNode, G_Ai_Node_Heuristic, direct + AI_DETOUR_COST, &onward);
+    Vector *path = G_Ai_Node_FindPath(cl, choice->node, goalNode, direct + AI_DETOUR_COST, &onward);
 
     if (!path) {
       continue;
@@ -1037,7 +1055,8 @@ static bool G_Ai_IsGoalInWater(const GameClient *cl) {
  * water does so until it is out of it, so that it does not fight again at its edge. A bot near the
  * item in the water that it collects takes it first (`G_Ai_IsGoalInWater`). A bot that
  * retreats fights again only once its health exceeds its retreat health by `AI_RECOVER_SCALE`, so
- * that it does not switch at the threshold.
+ * that it does not switch at the threshold, and not within `AI_RETREAT_MILLIS` of the start of its
+ * retreat, so that each change of the enemy's weapon does not switch it.
  * @remarks An unarmed bot only defends itself with the Blaster: it retreats to the weapons, armor
  * and health of most utility, and fires back on the way.
  */
@@ -1049,6 +1068,11 @@ static bool G_Ai_WantsRetreat(const GameClient *cl) {
 
   const GameEntity *ent = cl->entity;
   const bool retreating = cl->ai->state == AI_STATE_RETREAT;
+
+  if (retreating && gameLevel.time - cl->ai->stateTime < AI_RETREAT_MILLIS) {
+    return true;
+  }
+
   const bool wet = retreating ? ent->waterLevel > WATER_NONE && (ent->waterType & CONTENTS_WATER)
                               : G_Ai_IsInWater(ent);
 
@@ -1688,6 +1712,7 @@ static void G_Ai_Climb(GameClient *cl) {
   G_Ai_Debug("%s: %s -> climb\n", cl->persistent.netName, stateNames[ai->state]);
 
   ai->climbState = ai->state;
+  ai->climbStateTime = ai->stateTime;
   ai->state = AI_STATE_CLIMB;
   ai->stateTime = gameLevel.time;
   ai->shootTarget = NULL;
@@ -1719,7 +1744,7 @@ uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd) {
     if (ai->state == AI_STATE_CLIMB) {
       G_Ai_Debug("%s: climb -> %s\n", cl->persistent.netName, stateNames[ai->climbState]);
       ai->state = ai->climbState;
-      ai->stateTime = gameLevel.time;
+      ai->stateTime = ai->climbStateTime + (gameLevel.time - ai->stateTime);
     }
 
     if (ai->state == AI_STATE_ESCAPE) {
@@ -1779,13 +1804,19 @@ void G_Ai_State_Reset(GameClient *cl) {
 
   ai->state = AI_STATE_ROAM;
   ai->stateTime = gameLevel.time;
-  ai->reviewTime = 0;
+  ai->reviewTime = ai->reviewedTime = 0;
   ai->statePathed = false;
   ai->combatTargetLost = false;
   ai->gate = ai->gateButton = -1;
   ai->gateNode = AI_NODE_INVALID;
   ai->shootTarget = NULL;
   ai->ladderLeaveTime = 0;
+  ai->climbState = AI_STATE_ROAM;
+  ai->waitTime = 0;
+  ai->gateRestTime = 0;
+  ai->alertInvestigated = false;
+
+  memset(ai->avoids, 0, sizeof(ai->avoids));
 
   G_Ai_SetGoal(cl, NULL, AI_NODE_INVALID);
 }

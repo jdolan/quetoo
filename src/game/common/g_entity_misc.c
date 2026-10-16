@@ -175,6 +175,11 @@ static void G_misc_teleporter_Think(GameEntity *ent) {
 
     const GameAiNodeId newNode = G_Ai_Node_Create(origin);
 
+    if (newNode == AI_NODE_INVALID) {
+      G_Warn("No room for a navigation node at %s\n", vtos(origin));
+      return;
+    }
+
     // use default cost for the entrance
     G_Ai_Node_Link(srcNode, newNode, Vec3_Distance(G_Ai_Node_GetPosition(srcNode), origin));
 

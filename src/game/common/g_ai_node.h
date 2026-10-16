@@ -116,36 +116,18 @@ void G_Ai_Node_UpdateMovers(void);
 bool G_Ai_Node_IsCrushing(const GameAiNodeId id);
 void G_Ai_ShutdownNodes(void);
 
-typedef float (*GameAiNodeCostFunc)(const GameAiNodeId a, const GameAiNodeId b);
-
 /**
- * @brief Heuristic cost function for A* pathfinding using Manhattan distance.
- */
-static inline float G_Ai_Node_Heuristic(const GameAiNodeId link, const GameAiNodeId end) {
-  const Vec3 av = G_Ai_Node_GetPosition(link);
-  const Vec3 bv = G_Ai_Node_GetPosition(end);
-  return fabsf(av.x - bv.x) + fabsf(av.y - bv.y) + fabsf(av.z - bv.z);
-}
-
-/**
- * @brief Computes the traversal cost between two nodes as their Euclidean distance.
- */
-static inline float G_Ai_Node_Cost(const GameAiNodeId a, const GameAiNodeId b) {
-  const Vec3 av = G_Ai_Node_GetPosition(a);
-  const Vec3 bv = G_Ai_Node_GetPosition(b);
-
-  return Vec3_Distance(av, bv);
-}
-
-/**
- * @brief Finds a path between two nodes with A*.
+ * @brief Finds the cheapest path between two nodes, with Dijkstra's search. A heuristic of distance
+ * would overestimate the cost of a teleporter or a jump pad, whose links cost less than the
+ * distance that they cross, and so find paths that are not the cheapest.
  * @param maxCost The search MUST NOT extend a path whose cost, including drop penalties, exceeds
  * this. Pass 0 for no limit.
  * @param length If not NULL, receives the cost of the path found, including drop penalties, as
  * `G_Ai_Node_TravelCosts` measures it.
  * @return The path as a Vector of `GameAiNodeId`, or NULL if none was found.
  */
-Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const GameAiNodeCostFunc heuristic, const float maxCost, float *length);
+Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const float maxCost,
+                           float *length);
 
 /**
  * @brief Finds the least travel cost from `start` to every node: the link costs plus the drop

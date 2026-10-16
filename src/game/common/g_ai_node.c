@@ -275,13 +275,6 @@ static Vector *aiNodes;
  */
 static Vector *aiPlatforms;
 
-/**
- * @brief Returns the index of a node pointer within the global node array.
- */
-static inline GameAiNodeId G_Ai_Node_Index(const GameAiNode *node) {
-  return node - (GameAiNode *) aiNodes->elements;
-}
-
 static void G_Ai_Node_FreePathPool(void);
 static int32_t G_Ai_Node_Contents(const GameAiNode *node);
 static const GameAiNode *G_Ai_Node_Refresh(const GameAiNode *node);
@@ -594,6 +587,11 @@ GameAiNodeId G_Ai_Node_Create(const Vec3 position) {
     aiNodes = $(alloc(Vector), initWithSize, sizeof(GameAiNode));
   }
 
+  if (aiNodes->count >= AI_NODE_INVALID) {
+    G_Warn("More than %d navigation nodes; rejected node at %s\n", AI_NODE_INVALID - 1, vtos(position));
+    return AI_NODE_INVALID;
+  }
+
   Box3 standing = PM_BOUNDS;
   standing.mins.z += PM_STEP_HEIGHT;
 
@@ -840,6 +838,12 @@ void G_Ai_InitNodes(void) {
 
   const NavGraph *graph = &module.graph;
 
+  if (graph->numNodes >= AI_NODE_INVALID) {
+    G_Warn("This map has %d navigation nodes, more than %d; bots will be dumb!\n", graph->numNodes, AI_NODE_INVALID - 1);
+    Nav_Free(&module.graph);
+    return;
+  }
+
   gi.Print("  Built %d navigation nodes, %d at an offset, %d at the edge of the void and %d in open water, and "
            "found %d floors with no room for a player and %d in a hurt or push trigger\n", graph->numNodes,
            graph->numOffset, graph->numEdge, graph->numSwim, graph->numNoFit, graph->numTrigger);
@@ -886,7 +890,7 @@ void G_Ai_InitNodes(void) {
 
         const GameAiLink out = {
           .id = link->node,
-          .cost = Maxf(distance, link->travelTime * PM_SPEED_RUN / 100.f),
+          .cost = Maxf(distance, link->travelTime * Maxf(1.f, module.movement.speedGround) / 100.f),
           .travelType = link->travelType,
           .gate = link->gate
         };
@@ -2031,7 +2035,9 @@ static void G_Ai_Node_LinkPresses(void) {
 /**
  * @brief Moves the nodes on models that move with their entities, each frame, and links them
  * again to the nodes beside them every `AI_MOVER_LINK_MILLIS`, if any has moved since they were
- * last linked. A bot whose path loses a link plans a new one.
+ * last linked, and every `AI_MOVER_RELINK_MILLIS` if none has, so that a link that a player or
+ * another model blocked when they came to rest comes back. A bot whose path loses a link plans a
+ * new one.
  */
 void G_Ai_Node_UpdateMovers(void) {
 
@@ -2054,7 +2060,10 @@ void G_Ai_Node_UpdateMovers(void) {
     }
   }
 
-  if (module.moverLinkTime > gameLevel.time || (module.moverLinkTime && !module.moverMoved)) {
+  const uint32_t relinkTime = module.moverLinkTime - AI_MOVER_LINK_MILLIS + AI_MOVER_RELINK_MILLIS;
+
+  if (module.moverLinkTime > gameLevel.time ||
+      (module.moverLinkTime && !module.moverMoved && relinkTime > gameLevel.time)) {
     return;
   }
 
@@ -2481,7 +2490,7 @@ static bool G_Ai_Node_IsMovedBy(const GameAiNode *node, const char *targetName) 
  */
 bool G_Ai_Node_HasGate(const char *targetName) {
 
-  for (uint32_t i = 0; i < aiNodes->count; i++) {
+  for (uint32_t i = 0; i < G_Ai_Node_Count(); i++) {
     const GameAiNode *node = AI_NODE(aiNodes, i);
 
     for (size_t j = 0; node->links && j < node->links->count; j++) {
@@ -2585,28 +2594,23 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
 /**
  * @see g_ai_node.h
  */
-Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const GameAiNodeCostFunc heuristic, const float maxCost, float *length) {
-  
+Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const float maxCost,
+                           float *length) {
+
   if (length) {
     *length = 0;
   }
 
-  // sanity
-  if (start == AI_NODE_INVALID || end == AI_NODE_INVALID) {
+  if (start >= G_Ai_Node_Count() || end >= G_Ai_Node_Count()) {
     return NULL;
   }
-  
-  // size on 64k nodes is, say, 8kb.
+
   const size_t costsStartedWords = ((size_t) aiNodes->count + 31u) / 32u;
   uint32_t *costsStarted = calloc(costsStartedWords, sizeof(*costsStarted));
   if (!costsStarted) {
     return NULL;
   }
-  uint32_t visited = 0;
-  // Min-heap open set (priority = f-cost). Replaces the previous sorted-array
-  // queue (O(n) insertion) with an O(log n) binary heap from g_ai_grid.c.
-  // Capacity is bounded by the node count plus headroom for re-insertions
-  // (A* may push a better-cost duplicate before popping the stale one).
+
   const size_t heapCapacity = (size_t) aiNodes->count * 4 + 16;
   if (!G_Ai_Node_EnsurePathPool(heapCapacity)) {
     free(costsStarted);
@@ -2616,21 +2620,16 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
   struct GameAiHeap *queue = aiNodePathQueue;
   bool finished = false;
 
-  {
-    GameAiNodePriority *e = G_Ai_Node_AllocPathEntry();
-    e->id = start;
-    e->priority = 0;
-    G_Ai_HeapPush(queue, e->priority, e);
-  }
+  GameAiNodePriority *first = G_Ai_Node_AllocPathEntry();
+  *first = (GameAiNodePriority) { .id = start, .priority = 0.f };
+  G_Ai_HeapPush(queue, first->priority, first);
 
-  GameAiNode *startNode = AI_NODE(aiNodes, start);
-  startNode->cost = 0;
+  AI_NODE(aiNodes, start)->cost = 0;
   module.escape = G_Ai_Node_InLava(cl, start);
-  costsStarted[start / 32] |= (uint32_t)1 << (start % 32);
-  visited++;
+  costsStarted[start / 32] |= (uint32_t) 1 << (start % 32);
 
-  for (;;) {
-    GameAiNodePriority *current = (GameAiNodePriority *) G_Ai_HeapPop(queue);
+  for (bool full = false; !full;) {
+    const GameAiNodePriority *current = (GameAiNodePriority *) G_Ai_HeapPop(queue);
     if (!current) {
       break;
     }
@@ -2642,14 +2641,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
 
     GameAiNode *node = AI_NODE(aiNodes, current->id);
 
-    // Stale entry guard: if this entry's priority is worse than the node's
-    // best-known f-cost approximation (cost + 0 heuristic lower bound), the
-    // node has already been processed via a better path.
-    if (current->priority > node->cost + heuristic(current->id, end) + 0.0001f) {
-      continue;
-    }
-
-    if (!node->links || !node->links->count) {
+    if (current->priority > node->cost + 0.0001f || !node->links || !node->links->count) {
       continue;
     }
 
@@ -2670,66 +2662,48 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
         continue;
       }
 
-      GameAiNodeId linkIndex = G_Ai_Node_Index(linkNode);
+      const GameAiNodeId linkIndex = link->id;
       const bool found = (costsStarted[linkIndex / 32] & ((uint32_t) 1u << (linkIndex % 32))) != 0;
-      if (!found) {
-        costsStarted[linkIndex / 32] |= (uint32_t) 1u << (linkIndex % 32);
-        visited++;
+
+      if (found && newCost >= linkNode->cost) {
+        continue;
       }
-      if (!found || newCost < linkNode->cost) {
 
-        linkNode->cost = newCost;
-        const float priority = newCost + heuristic(link->id, end);
-
-        GameAiNodePriority *e = G_Ai_Node_AllocPathEntry();
-        if (!e) {
-          G_Warn("A* open-set entry pool exhausted (capacity %zu)\n", heapCapacity);
-          break;
-        }
-
-        e->id = link->id;
-        e->priority = priority;
-        // If the heap is somehow full (large maps with many revisits),
-        // fall back to allocating a larger one is overkill; we simply
-        // log and stop expanding from this node. The capacity heuristic
-        // above (4 * N + 16) is generous for typical Quetoo maps.
-        if (!G_Ai_HeapPush(queue, priority, e)) {
-          G_Warn("A* open-set heap exhausted (capacity %zu)\n", heapCapacity);
-          break;
-        }
-
-        linkNode->cameFrom = G_Ai_Node_Index(node);
+      GameAiNodePriority *e = G_Ai_Node_AllocPathEntry();
+      if (!e) {
+        G_Warn("Path search entry pool exhausted (capacity %zu)\n", heapCapacity);
+        full = true;
+        break;
       }
+
+      *e = (GameAiNodePriority) { .id = link->id, .priority = newCost };
+
+      if (!G_Ai_HeapPush(queue, newCost, e)) {
+        G_Warn("Path search heap exhausted (capacity %zu)\n", heapCapacity);
+        full = true;
+        break;
+      }
+
+      costsStarted[linkIndex / 32] |= (uint32_t) 1u << (linkIndex % 32);
+      linkNode->cost = newCost;
+      linkNode->cameFrom = current->id;
     }
   }
 
   Vector *returnPath = NULL;
 
   if (finished) {
-    G_Ai_Debug("Found path from %u -> %u with %u nodes visited\n", start, end, visited);
-
     returnPath = $(alloc(Vector), initWithSize, sizeof(GameAiNodeId));
     $(returnPath, insert, (void *) &end, 0);
 
-    if (start != end) {
-      GameAiNodeId from = end;
-
-      for (;;) {
-        const GameAiNode *fromNode = AI_NODE(aiNodes, from);
-        from = fromNode->cameFrom;
-        $(returnPath, insert, &from, 0);
-
-        if (from == start) {
-          break;
-        }
-      }
+    for (GameAiNodeId from = end; from != start;) {
+      from = AI_NODE(aiNodes, from)->cameFrom;
+      $(returnPath, insert, &from, 0);
     }
 
     if (length) {
       *length = AI_NODE(aiNodes, end)->cost;
     }
-  } else {
-    G_Ai_Debug("Couldn't find path from %u -> %u\n", start, end);
   }
 
   module.escape = false;
@@ -2743,7 +2717,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
  */
 bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float *costs) {
 
-  if (start == AI_NODE_INVALID) {
+  if (start >= G_Ai_Node_Count()) {
     return false;
   }
 
@@ -2828,7 +2802,11 @@ bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float
 bool G_Ai_Node_GateCosts(const GameClient *cl, const float *costs, const GameAiNodeId *sources, const int32_t numSources,
                          const char *doors, const float window, const int32_t key, GameAiGateCost *gateCosts) {
 
-  const uint32_t count = aiNodes->count;
+  const uint32_t count = G_Ai_Node_Count();
+
+  if (count == 0) {
+    return false;
+  }
 
   if (count > module.pressCount) {
     module.pressCosts = realloc(module.pressCosts, 2 * count * sizeof(float));
@@ -2989,6 +2967,11 @@ bool G_Ai_DropItemLikeNode(GameEntity *ent) {
   const Vector *srcLinks = G_Ai_Node_GetLinks(srcNode);
 
   const GameAiNodeId newNode = G_Ai_Node_Create(pos);
+
+  if (newNode == AI_NODE_INVALID) {
+    return false;
+  }
+
   const float dist = Vec3_Distance(G_Ai_Node_GetPosition(srcNode), ent->s.origin);
 
   // bidirectionally connect us to source

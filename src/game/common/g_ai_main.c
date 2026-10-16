@@ -433,15 +433,17 @@ void G_Ai_EndPath(GameClient *cl) {
 #define AI_WANDER_TURN_MILLIS 300
 
 /**
- * @brief Wander aimlessly, hoping to find something to love.
+ * @brief Turns the bot when the way ahead is blocked or ends at a ledge: the flank angle of the move
+ * goal while it is the enemy, or `GameAi::wanderAngle` with no goal.
+ * @return The yaw to move toward.
  */
 static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
 
   GameEntity *ent = cl->entity;
 
-  float *angle = cl->ai->combatTarget.type == AI_GOAL_ENTITY
-    ? &cl->ai->combatTarget.entity.flankAngle
-    : &cl->ai->moveTarget.wander.angle;
+  GameAiGoal *goal = &cl->ai->moveTarget;
+
+  float *angle = goal->type == AI_GOAL_ENTITY ? &goal->entity.flankAngle : &cl->ai->wanderAngle;
 
   Vec3 forward;
   Vec3_Vectors(MakeVec3(0.f, *angle, 0.f), &forward, NULL, NULL);
@@ -462,12 +464,12 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
   if (blocked && cl->ai->wanderTurnTime <= gameLevel.time) {
     cl->ai->wanderTurnTime = gameLevel.time + AI_WANDER_TURN_MILLIS;
 
-    if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
-      if (cl->ai->combatTarget.entity.combatType == AI_COMBAT_FLANK && Randomb()) {
-        cl->ai->combatTarget.entity.combatType = Randomb() ? AI_COMBAT_CLOSE : AI_COMBAT_WANDER;
+    if (goal->type == AI_GOAL_ENTITY) {
+      if (goal->entity.combatType == AI_COMBAT_FLANK && Randomb()) {
+        goal->entity.combatType = Randomb() ? AI_COMBAT_CLOSE : AI_COMBAT_WANDER;
       }
 
-      if (cl->ai->combatTarget.entity.combatType == AI_COMBAT_FLANK) {
+      if (goal->entity.combatType == AI_COMBAT_FLANK) {
         *angle = -*angle;
       } else {
         float angleChange = 45 + Randomf() * 45;
@@ -545,7 +547,7 @@ static bool G_Ai_CanStep(const GameEntity *ent, const Vec3 dir) {
 static Vec3 G_Ai_Strafe(GameClient *cl, const GameEntity *enemy) {
 
   const GameEntity *ent = cl->entity;
-  float *side = &cl->ai->combatTarget.entity.flankAngle;
+  float *side = &cl->ai->moveTarget.entity.flankAngle;
 
   if (*side == 0.f) {
     *side = Randomb() ? -90.f : 90.f;
@@ -588,14 +590,14 @@ static CollisionTrace G_Ai_MoveTrace(const Vec3 start, const Vec3 end, const Box
 }
 
 /**
- * @brief Increase our path pointer.
+ * @brief Moves the goal to the next node of its path.
+ * @return False if the path has no node left.
  */
 static bool G_Ai_AdvancePath(GameClient *cl, GameAiGoal *goal) {
 
   goal->path.pathIndex++;
 
-  // we're done with this path
-  if (goal->path.pathIndex == goal->path.path->count) {
+  if (goal->path.pathIndex >= goal->path.path->count) {
     return false;
   }
 
@@ -633,7 +635,7 @@ static bool G_Ai_ReplanPath(GameClient *cl) {
     return false;
   }
 
-  Vector *path = G_Ai_Node_FindPath(cl, src, dest, G_Ai_Node_Heuristic, 0.f, NULL);
+  Vector *path = G_Ai_Node_FindPath(cl, src, dest, 0.f, NULL);
 
   if (!path) {
     return false;
@@ -664,8 +666,8 @@ static bool G_Ai_AvoidRaisedPlatform(GameClient *cl) {
     return false;
   }
 
-  if (goal->path.path->count > 1 && G_Ai_Node_RaisedPlatform(goal->path.pathPosition)) {
-    G_Ai_AdvancePath(cl, goal);
+  if (G_Ai_Node_RaisedPlatform(goal->path.pathPosition) && !G_Ai_AdvancePath(cl, goal)) {
+    G_Ai_EndPath(cl);
   }
 
   G_Ai_Debug("Pathing around a raised plat\n");
@@ -1336,12 +1338,13 @@ bool G_Ai_ShouldSlowDrop(const GameAiNodeId fromNode, const GameAiNodeId toNode)
 
 /**
  * @return True if the entity stands on a mover that carries it, such as a plat, a door or a train,
- * and not on one that only rotates in place.
+ * moving or at rest, as one that waits on a plat for it to rise. Not on a `func_wall`, which never
+ * moves, or on a mover that only rotates in place.
  */
 static bool G_Ai_IsRidingMover(const GameEntity *ent) {
   const GameEntity *ground = ent->ground.ent;
 
-  if (!ground || ground->s.number == 0) {
+  if (!ground || ground->s.number == 0 || !Str_Compare(ground->classname, "func_wall")) {
     return false;
   }
 
@@ -2508,7 +2511,7 @@ static Vec3 G_Ai_StrafeWish(const GameClient *cl, const Vec3 origin, Vec3 veloci
  * @return True if the drop lands on the floor no lower than the target, or in water to the waist,
  * from where the bot swims to the target, and touches no `trigger_hurt`, lava or slime on the way.
  */
-static bool G_Ai_SimulateDrop(GameClient *cl, const Vec3 target) {
+static bool G_Ai_SimulateDrop_(GameClient *cl, const Vec3 target) {
 
   GameEntity *ent = cl->entity;
 
@@ -2572,6 +2575,26 @@ static bool G_Ai_SimulateDrop(GameClient *cl, const Vec3 target) {
   }
 
   return false;
+}
+
+/**
+ * @brief Simulates the bot's walk off a ledge to the target (`G_Ai_SimulateDrop_`), once each frame
+ * for the same target and origin, because `G_Ai_Move` asks again in each of its passes.
+ * @return True if the drop lands safely.
+ */
+static bool G_Ai_SimulateDrop(GameClient *cl, const Vec3 target) {
+
+  GameAi *ai = cl->ai;
+
+  if (ai->dropFrame != gameLevel.frameNum || !Vec3_Equal(ai->dropTarget, target) ||
+      !Vec3_Equal(ai->dropOrigin, cl->entity->s.origin)) {
+    ai->dropFrame = gameLevel.frameNum;
+    ai->dropTarget = target;
+    ai->dropOrigin = cl->entity->s.origin;
+    ai->dropSafe = G_Ai_SimulateDrop_(cl, target);
+  }
+
+  return ai->dropSafe;
 }
 
 /**
@@ -3059,8 +3082,8 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 
   if (targetEnemy && len < 200.0f) {
     // switch to flank/wander, this helps us recover from being up close to enemies
-    if (cl->ai->combatTarget.entity.combatType == AI_COMBAT_CLOSE && Randomb()) {
-      cl->ai->combatTarget.entity.combatType = Randomb() ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
+    if (cl->ai->moveTarget.entity.combatType == AI_COMBAT_CLOSE && Randomb()) {
+      cl->ai->moveTarget.entity.combatType = Randomb() ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
     }
   }
 
@@ -3265,7 +3288,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
           cl->ai->moveTarget.entity.combatType = Randomb() ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
           cl->ai->moveTarget.entity.flankAngle += Randomb() ? -angle : angle;
         } else {
-          cl->ai->moveTarget.wander.angle += Randomb() ? -angle : angle;
+          cl->ai->wanderAngle += Randomb() ? -angle : angle;
         }
       } else if (targetEnemy) {
         // charging toward enemy would go off edge - switch to flanking
@@ -3403,7 +3426,7 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
     idealAngles = MakeVec3(0.f, Vec3_Euler(cl->ai->ladderLeaveDir).y, 0.f);
   } else if (combatTarget->type != AI_GOAL_ENTITY || climbing) {
     if (cl->ai->moveTarget.type == AI_GOAL_NONE) {
-      idealAngles = MakeVec3(0.0, cl->ai->moveTarget.wander.angle, 0.0);
+      idealAngles = MakeVec3(0.0, cl->ai->wanderAngle, 0.0);
     } else {
       Vec3 aimTarget = Vec3_Zero();
       bool holdYaw = false;
@@ -3680,11 +3703,16 @@ void G_Ai_Respawn(GameClient *cl) {
   cl->ai->pushTime = 0;
   cl->ai->groundPosition = cl->entity->s.origin;
   cl->ai->fallFrame = 0;
+  cl->ai->dropFrame = 0;
   cl->ai->wanderTurnTime = 0;
   cl->ai->strafeJumping = false;
   cl->ai->ladderJumping = false;
   cl->ai->strafeLookTime = 0;
   cl->ai->strafeSafeTime = 0;
+  cl->ai->strafeTime = 0;
+  cl->ai->alertTime = 0;
+  cl->ai->alertPosition = Vec3_Zero();
+  cl->ai->attackedTime = 0;
 
   cl->ai->viewVelocity = Vec3_Zero();
   cl->ai->perceivedVelocity = Vec3_Zero();
@@ -3795,7 +3823,8 @@ static void G_Ai_Connect(GameClient *cl, const GameAiRoster *roster) {
  * `Think`, and the items and spawn points that `G_Ai_DropItemLikeNode` linked. Items that hover
  * over jump pads link again in `G_Ai_NodesReady`, if the first second of the level is over. Each
  * bot drops its goals and paths, as it does when it respawns, because they name nodes of the old
- * graph.
+ * graph. Every teleporter links again, also one that found no room for its node in the old graph,
+ * except one whose first `Think` is still to come, which links then.
  */
 static void G_Ai_ReloadNodes(void) {
 
@@ -3809,15 +3838,14 @@ static void G_Ai_ReloadNodes(void) {
   int32_t numDrops = 0, numTeleporters = 0;
 
   G_ForEachEntity(ent, {
-    if (ent->node != AI_NODE_INVALID) {
-      if (ent->classname && (!Str_Compare(ent->classname, "misc_teleporter") ||
-                             !Str_Compare(ent->classname, "trigger_teleporter"))) {
+    if (!Str_Compare(ent->classname, "misc_teleporter") || !Str_Compare(ent->classname, "trigger_teleporter")) {
+      if (ent->nextThink <= gameLevel.time) {
         teleporters[numTeleporters++] = ent;
-      } else if (!ent->item || !(ent->spawnFlags & SF_ITEM_HOVER)) {
-        drops[numDrops++] = ent;
       }
-      ent->node = AI_NODE_INVALID;
+    } else if (ent->node != AI_NODE_INVALID && (!ent->item || !(ent->spawnFlags & SF_ITEM_HOVER))) {
+      drops[numDrops++] = ent;
     }
+    ent->node = AI_NODE_INVALID;
   });
 
   G_Ai_State_Unload();
@@ -3828,7 +3856,9 @@ static void G_Ai_ReloadNodes(void) {
   }
 
   for (int32_t i = 0; i < numTeleporters; i++) {
-    teleporters[i]->Think(teleporters[i]);
+    if (teleporters[i]->Think) {
+      teleporters[i]->Think(teleporters[i]);
+    }
   }
 
   free(drops);
