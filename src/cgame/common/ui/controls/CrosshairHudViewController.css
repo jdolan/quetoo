@@ -5,7 +5,10 @@
 CrosshairPreviewView {
   alignment: center;
   autoresizing-mask: width;
-  background-color: #08151a66;
+  background-color: #08151a88;
+  border-color: #1e4e62;
+  border-radius: 4;
+  border-width: 1;
   height: 108;
 }
 
