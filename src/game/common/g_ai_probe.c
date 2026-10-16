@@ -243,6 +243,25 @@ static void G_Ai_Probe_History(const GameClient *cl, const char *reason) {
 }
 
 /**
+ * @return `name` with each space replaced by an underscore, in a static buffer, because a value in
+ * the log MUST NOT contain a space. A name from the map, such as a gate's target, MAY have one.
+ */
+static const char *G_Ai_Probe_Token(const char *name) {
+
+  static char token[MAX_QPATH];
+
+  Str_Copy(token, name ?: "none", sizeof(token));
+
+  for (char *c = token; *c; c++) {
+    if (isspace((unsigned char) *c)) {
+      *c = '_';
+    }
+  }
+
+  return token;
+}
+
+/**
  * @return The class name of the bot's goal item, or `none`.
  */
 static const char *G_Ai_Probe_Goal(const GameClient *cl) {
@@ -687,7 +706,7 @@ void G_Ai_Probe_Gate(const char *name, const int32_t numButtons, const int32_t n
     return;
   }
 
-  G_Ai_Probe_Print(-1, "GATE", "name=%s buttons=%d sources=%d doors=%d open=%d", name, numButtons, numSources,
+  G_Ai_Probe_Print(-1, "GATE", "name=%s buttons=%d sources=%d doors=%d open=%d", G_Ai_Probe_Token(name), numButtons, numSources,
                    numDoors, openMillis == UINT32_MAX ? -1 : (int32_t) openMillis);
 }
 
@@ -700,7 +719,7 @@ void G_Ai_Probe_GateUse(const GameClient *cl, const char *name, const char *resu
     return;
   }
 
-  G_Ai_Probe_Print(cl->ps.client, "GATEUSE", "name=%s result=%s pos=%d,%d,%d goal=%s", name, result,
+  G_Ai_Probe_Print(cl->ps.client, "GATEUSE", "name=%s result=%s pos=%d,%d,%d goal=%s", G_Ai_Probe_Token(name), result,
                    (int32_t) cl->entity->s.origin.x, (int32_t) cl->entity->s.origin.y,
                    (int32_t) cl->entity->s.origin.z, G_Ai_Probe_Goal(cl));
 }
