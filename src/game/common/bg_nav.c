@@ -2865,7 +2865,7 @@ bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints
     if (Box3_Intersects(Box3_Translate(bounds, pm->s.origin), push->bounds)) {
       pm->s.velocity = push->velocity;
       pm->s.flags |= PMF_TIME_PUSHED;
-      pm->s.time = 240;
+      pm->s.time = PM_PUSH_MILLIS;
     } else if (pm->ground.ent && !(pm->s.flags & PMF_TIME_PUSHED)) {
       *seconds = MILLIS_TO_SECONDS(millis);
       return true;

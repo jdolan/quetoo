@@ -247,7 +247,7 @@ static void G_trigger_push_Push(GameEntity *ent, GameEntity *other, int32_t dept
 
   if (other->client) {
     other->client->ps.pmState.flags |= PMF_TIME_PUSHED;
-    other->client->ps.pmState.time = 240;
+    other->client->ps.pmState.time = PM_PUSH_MILLIS;
 
     if (other->client->ai && !other->client->ai->pushTime && ent->moveDir.z > 0.f && ent->moveDir.z < PUSH_VERTICAL) {
       other->client->ai->pushTime = gameLevel.time;
