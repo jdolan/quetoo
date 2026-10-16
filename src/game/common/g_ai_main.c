@@ -632,7 +632,8 @@ static const GameAiLink *G_Ai_Path_GetLink(const Vector *path, const uint32_t in
     return NULL;
   }
 
-  return G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index - 1), VectorValue(path, GameAiNodeId, index));
+  return G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index - 1),
+                           VectorValue(path, GameAiNodeId, index));
 }
 
 /**
@@ -1384,7 +1385,8 @@ static bool G_Ai_GoalDistress(GameClient *cl, GameAiGoal *goal, const Vec3 dest)
     }
 
     const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
-    const CollisionTrace tr = gi.Trace(eyeOrigin, target, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_CORPSE);
+    const CollisionTrace tr = gi.Trace(eyeOrigin, target, Box3_Zero(), cl->entity,
+                                       CONTENTS_MASK_CLIP_CORPSE);
 
     if (tr.fraction < 1.0f && !(cl->ps.pmState.flags & PMF_ON_LADDER)) {
       goal->distress += 0.25f;
@@ -1521,7 +1523,8 @@ static float G_Ai_PathLinkDistance(const GameClient *cl) {
 
   const GameAiGoal *goal = &cl->ai->moveTarget;
 
-  const Vec3 a = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
+  const GameAiNodeId from = VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1);
+  const Vec3 a = G_Ai_Node_GetPosition(from);
   const Vec3 b = goal->path.pathPosition;
   const Vec3 p = cl->entity->s.origin;
 
@@ -1756,7 +1759,8 @@ static bool G_Ai_ShouldSlowForJump(const GameClient *cl) {
   if (climb) {
     source = VectorValue(path, GameAiNodeId, index - 1);
   } else if (index + 1 < path->count && (!link || link->travelType <= NAV_TRAVEL_CROUCH)) {
-    climb = G_Ai_LadderJump(VectorValue(path, GameAiNodeId, index), VectorValue(path, GameAiNodeId, index + 1));
+    climb = G_Ai_LadderJump(VectorValue(path, GameAiNodeId, index),
+                            VectorValue(path, GameAiNodeId, index + 1));
     source = VectorValue(path, GameAiNodeId, index);
   }
 
@@ -2755,8 +2759,10 @@ static bool G_Ai_SimulateStrafeJump(GameClient *cl, const Vec3 target) {
   const float speed = Maxf(G_Ai_AirWishSpeed(cl), PM_SPEED_RUN);
   const float reach = Maxf(Vec2_Length(Vec3_XY(ent->velocity)), speed) * MILLIS_TO_SECONDS(AI_STRAFE_SIM_MILLIS);
 
+  const Box3 box = Box3_Expand(Box3_Translate(bounds, ent->s.origin), reach);
+
   Box3 triggers[AI_TRIGGERS_MAX];
-  const size_t numTriggers = G_Ai_BoxTriggers(Box3_Expand(Box3_Translate(bounds, ent->s.origin), reach), true, triggers);
+  const size_t numTriggers = G_Ai_BoxTriggers(box, true, triggers);
 
   const float floor = Minf(ent->s.origin.z, target.z) - PM_STEP_HEIGHT * 2.f;
   const uint8_t msec = QUETOO_TICK_MILLIS;
@@ -3209,6 +3215,7 @@ static void G_Ai_Move_speed(GameClient *cl, PMoveCmd *cmd, GameAiMovePass *move)
 
   const GameEntity *ent = cl->entity;
   GameAiGoal *goal = &cl->ai->moveTarget;
+  const Vector *path = goal->path.path;
   const bool swimming = ent->waterLevel >= WATER_WAIST;
 
   if (G_Ai_IsWaitingForMover(cl)) {
@@ -3237,8 +3244,8 @@ static void G_Ai_Move_speed(GameClient *cl, PMoveCmd *cmd, GameAiMovePass *move)
     move->turnToJump = true;
   } else if (!swimming && goal->path.pathIndex > 0 &&
              ((move->link && move->link->travelType == NAV_TRAVEL_WALK_OFF_LEDGE) ||
-              G_Ai_ShouldSlowDrop(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
-                                  VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex)))) {
+              G_Ai_ShouldSlowDrop(VectorValue(path, GameAiNodeId, goal->path.pathIndex - 1),
+                                  VectorValue(path, GameAiNodeId, goal->path.pathIndex)))) {
     move->dir = Vec3_Scale(move->dir, PM_SPEED_RUN * AI_LEDGE_SPEED);
   } else {
     move->dir = Vec3_Scale(move->dir, PM_SPEED_RUN);
@@ -3308,7 +3315,8 @@ static void G_Ai_Move_predict(GameClient *cl, const PMoveCmd *cmd, GameAiMovePas
   }
 
   const bool grabs = (move->pm.s.flags & PMF_ON_LADDER) && G_Ai_IsClimbing(cl);
-  move->atEdge = cl->entity->ground.ent && (cl->ai->lookaheadNoGround || (!move->pm.ground.ent && !grabs));
+  move->atEdge = cl->entity->ground.ent &&
+                 (cl->ai->lookaheadNoGround || (!move->pm.ground.ent && !grabs));
 }
 
 /**
@@ -3362,11 +3370,11 @@ static void G_Ai_Move_edge(GameClient *cl, PMoveCmd *cmd, const GameAiMovePass *
   if (G_Ai_IsWaitingForMover(cl)) {
     G_Ai_ReverseMove(cmd);
     G_Ai_Debug("Stopping early to prevent mover issues\n");
-  } else if (travelType == NAV_TRAVEL_WALK_OFF_LEDGE && G_Ai_PathLinkDistance(cl) <= AI_LEDGE_DISTANCE &&
-             G_Ai_SimulateDrop(cl, node)) {
+  } else if (travelType == NAV_TRAVEL_WALK_OFF_LEDGE &&
+             G_Ai_PathLinkDistance(cl) <= AI_LEDGE_DISTANCE && G_Ai_SimulateDrop(cl, node)) {
     G_Ai_Debug("Walking off a ledge to %s\n", vtos(node));
-  } else if (travelType == NAV_TRAVEL_NONE && !move->toPush && node.z < ent->s.origin.z - PM_STEP_HEIGHT &&
-             G_Ai_SimulateDrop(cl, node)) {
+  } else if (travelType == NAV_TRAVEL_NONE && !move->toPush &&
+             node.z < ent->s.origin.z - PM_STEP_HEIGHT && G_Ai_SimulateDrop(cl, node)) {
     G_Ai_Debug("Dropping to %s\n", vtos(node));
   } else if (jumpLink && !move->toPush && G_Ai_IsOnJumpLine(cl, NULL) &&
              (!jumpClimb || (G_Ai_IsJumpHeading(cl) && G_Ai_IsJumpSpeed(cl)))) {
@@ -3458,8 +3466,9 @@ static void G_Ai_Move_stuck(GameClient *cl, PMoveCmd *cmd, const GameAiMovePass 
     return;
   }
 
-  if (cl->ai->distressJumpOffset <= gameLevel.time && goal->type == AI_GOAL_PATH && ent->ground.ent &&
-      move->pm.ground.ent && !G_Ai_IsRideLink(move->link) && !G_Ai_JumpClimb(cl) && !G_Ai_IsClimbing(cl)) {
+  if (cl->ai->distressJumpOffset <= gameLevel.time && goal->type == AI_GOAL_PATH &&
+      ent->ground.ent && move->pm.ground.ent && !G_Ai_IsRideLink(move->link) &&
+      !G_Ai_JumpClimb(cl) && !G_Ai_IsClimbing(cl)) {
 
     const float rise = goal->path.pathPosition.z - ent->s.origin.z;
 
@@ -3470,8 +3479,8 @@ static void G_Ai_Move_stuck(GameClient *cl, PMoveCmd *cmd, const GameAiMovePass 
 
       G_Ai_Debug("Node *far* above us, and we're probably stuck; trick jump most likely!\n");
     } else if (rise > PM_STEP_HEIGHT &&
-               Vec2_Distance(Vec3_XY(goal->path.pathPosition), Vec3_XY(ent->s.origin)) < PM_STEP_HEIGHT * 7.f &&
-               G_Ai_FacingTarget(cl, goal->path.pathPosition)) {
+               Vec2_Distance(Vec3_XY(goal->path.pathPosition), Vec3_XY(ent->s.origin)) <
+               PM_STEP_HEIGHT * 7.f && G_Ai_FacingTarget(cl, goal->path.pathPosition)) {
       cmd->up = PM_SPEED_JUMP;
 
       G_Ai_Debug("Node above us & close, and we're probably stuck; regular jump\n");
@@ -3490,7 +3499,8 @@ static void G_Ai_Move_stuck(GameClient *cl, PMoveCmd *cmd, const GameAiMovePass 
         if (goal->time & 1) {
           cmd->right = -cmd->right;
         }
-      } else if (goal->distress > 12.f && !G_Ai_FallsToHazard(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
+      } else if (goal->distress > 12.f &&
+                 !G_Ai_FallsToHazard(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
         cmd->up = PM_SPEED_JUMP;
       }
     }
@@ -3617,7 +3627,8 @@ static Vec3 G_Ai_Turn_aim(const GameClient *cl, const GameAiLadderMove *ladder, 
       aim = goal->path.pathPosition;
     }
 
-    if (!goal->path.trickJump && !(cl->ps.pmState.flags & PMF_ON_LADDER) && ent->waterLevel < WATER_WAIST &&
+    if (!goal->path.trickJump && !(cl->ps.pmState.flags & PMF_ON_LADDER) &&
+        ent->waterLevel < WATER_WAIST &&
         goal->path.pathPosition.z - ent->s.origin.z <= PM_STEP_HEIGHT) {
 
       if (Vec2_Distance(Vec3_XY(aim), Vec3_XY(ent->s.origin)) < AI_LOOK_MIN_DISTANCE) {
