@@ -2966,6 +2966,18 @@ static bool G_Ai_NeedsAir(const GameClient *cl) {
 }
 
 /**
+ * @return True if the bot, out of liquid, cannot follow its path yet, because its next step is onto
+ * a mover that is not there (`G_Ai_Node_CanFollowPath`).
+ */
+static bool G_Ai_IsWaitingForMover(const GameClient *cl) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  return !(gi.PointContents(cl->entity->s.origin) & CONTENTS_MASK_LIQUID) &&
+         !G_Ai_Node_CanFollowPath(goal->path.path, goal->path.pathIndex);
+}
+
+/**
  * @brief Move towards our current target
  */
 static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
@@ -3127,7 +3139,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
   if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
     cl->ai->strafeBlock = AI_STRAFE_BLOCK_STATE;
     // the next step(s) will be onto a mover, so if we can't move yet, we wait.
-    if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !G_Ai_Node_CanFollowPath(cl->ai->moveTarget.path.path, cl->ai->moveTarget.path.pathIndex)) {
+    if (G_Ai_IsWaitingForMover(cl)) {
       const GameEntity *plat = G_Ai_Node_RaisedPlatform(cl->ai->moveTarget.path.pathPosition);
       dir = plat ? G_Ai_LeavePlatform(cl, cmd, plat) : Vec3_Scale(dir, PM_SPEED_RUN);
       waitPolitely = true;
@@ -3240,7 +3252,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
         const NavTravelType travelType = link ? link->travelType : NAV_TRAVEL_NONE;
 
         // we're most likely on or going to a mover; if we'll be falling in a few frames, stop us early
-        if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !G_Ai_Node_CanFollowPath(cl->ai->moveTarget.path.path, cl->ai->moveTarget.path.pathIndex)) {
+        if (G_Ai_IsWaitingForMover(cl)) {
           G_Ai_ReverseMove(cmd);
           G_Ai_Debug("Stopping early to prevent mover issues\n");
         // a ledge link drops from one place, if the fall lands where the link does
