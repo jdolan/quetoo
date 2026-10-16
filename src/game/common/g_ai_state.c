@@ -148,9 +148,10 @@
 #define AI_DISENGAGE_SCALE 2.f
 
 /**
- * @brief The most travel cost of an item that a bot strafing around an enemy goes for.
+ * @brief The most travel cost of an item that a bot that circle strafes around an enemy goes for:
+ * a little less than one second of running.
  */
-#define AI_FIGHT_ITEM_COST 256.f
+#define AI_FIGHT_ITEM_COST (PM_SPEED_RUN * .85f)
 
 /**
  * @brief A retreating bot fights again once its health exceeds this multiple of its retreat health.
@@ -1619,8 +1620,9 @@ static bool G_Ai_IsInLava(const GameClient *cl) {
 }
 
 /**
- * @brief Goes by the cheapest path to the nearest node out of lava or slime, which a path that
- * starts in it crosses, as up a ladder. The bot plans again whenever its path ends while it is in the
+ * @brief Takes a bot in lava by the cheapest path to the nearest node out of lava and slime, which
+ * a path that starts in lava crosses, as up a ladder. A bot in slime, which hurts slowly, does not
+ * escape: `G_Ai_IsInLava` enters this state only in lava. The bot plans again whenever its path ends while it is in the
  * lava, at most each `AI_ESCAPE_MILLIS`, and keeps the path out of it until it stands on the ground,
  * so that a bot whose feet leave the lava on a ladder climbs on.
  */
