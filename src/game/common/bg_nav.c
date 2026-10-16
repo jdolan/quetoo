@@ -197,11 +197,11 @@
 #define NAV_LADDER_SPACING (NAV_FINE_STEP * 2.f)
 
 /**
- * @brief The time in hundredths of a second that a climb takes beyond its height at the
+ * @brief The time in milliseconds that a climb takes beyond its height at the
  * movement's ladder speed: to come to the ladder, turn to it and get on. A bot climbs about this
  * much slower than the speed alone.
  */
-#define NAV_LADDER_DELAY 100
+#define NAV_LADDER_DELAY 1000
 
 /**
  * @brief The distance in units ahead of a player that `Pm_CheckLadder` traces for a ladder.
@@ -799,23 +799,23 @@ static bool Nav_StepMove(const Vec3 from, const Vec3 target, const Box3 bounds, 
 }
 
 /**
- * @return The travel time for the given distance and speed, in hundredths of a second.
+ * @return The travel time for the given distance and speed, in milliseconds.
  */
-static int32_t Nav_TravelTime(const float distance, const float speed) {
-  return Maxi(1, (int32_t) ceilf(distance / speed * 100.f));
+static int32_t Nav_TravelMillis(const float distance, const float speed) {
+  return Maxi(1, (int32_t) ceilf(distance / speed * 1000.f));
 }
 
 /**
- * @return The time to fall the given height, in hundredths of a second, or 0 with no gravity or
+ * @return The time to fall the given height, in milliseconds, or 0 with no gravity or
  * with gravity that lifts.
  */
-static int32_t Nav_FallTime(const float height) {
+static int32_t Nav_FallMillis(const float height) {
 
   if (module.gravity <= 0.f || height <= 0.f) {
     return 0;
   }
 
-  return (int32_t) ceilf(sqrtf(2.f * height / module.gravity) * 100.f);
+  return (int32_t) ceilf(sqrtf(2.f * height / module.gravity) * 1000.f);
 }
 
 /**
@@ -904,7 +904,7 @@ static void Nav_AddLink(NavLink *links, int32_t *numLinks, const int32_t node,
   links[(*numLinks)++] = (NavLink) {
     .node = node,
     .travelType = type,
-    .travelTime = time,
+    .travelMillis = time,
     .gate = gate
   };
 }
@@ -921,7 +921,7 @@ static void Nav_AddWalk(NavLink *links, int32_t *numLinks, const NavNode *node, 
   const NavTravelType type = crouch ? NAV_TRAVEL_CROUCH : NAV_TRAVEL_WALK;
   const float speed = wade ? module.speedWater : crouch ? module.speedDucked : module.speedRun;
 
-  Nav_AddLink(links, numLinks, target, type, Nav_TravelTime(distance, speed), gate);
+  Nav_AddLink(links, numLinks, target, type, Nav_TravelMillis(distance, speed), gate);
 }
 
 /**
@@ -1510,7 +1510,7 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
         }
 
         const float distance = Vec3_Distance(node->position, other->position);
-        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelTime(distance, module.speedWater), 0);
+        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelMillis(distance, module.speedWater), 0);
       }
     }
   }
@@ -1547,7 +1547,7 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
         }
 
         const float distance = Vec3_Distance(node->position, surface) + Vec3_Distance(surface, other->position);
-        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelTime(distance, module.speedWater), 0);
+        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelMillis(distance, module.speedWater), 0);
       }
     }
   }
@@ -1803,7 +1803,7 @@ static void Nav_AddClimbLink(const int32_t a, const int32_t b, const int32_t tim
         *climb = (NavLadderClimb) {
           .bottom = a,
           .top = b,
-          .time = time,
+          .millis = time,
           .column = column,
           .landing = landing,
           .runUp = runUp,
@@ -1832,7 +1832,7 @@ static void Nav_AddClimbLink(const int32_t a, const int32_t b, const int32_t tim
   graph->climbs[graph->numClimbs++] = (NavLadderClimb) {
     .bottom = a,
     .top = b,
-    .time = time,
+    .millis = time,
     .column = column,
     .landing = landing,
     .jump = jump,
@@ -1969,14 +1969,14 @@ static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
     }
   }
 
-  const int32_t over = Nav_TravelTime(across, module.speedRun);
+  const int32_t over = Nav_TravelMillis(across, module.speedRun);
   const bool foot = floor.fraction < 1.f || (Nav_PointContents(bottom) & CONTENTS_MASK_LIQUID);
   const int32_t a = foot ? Nav_LadderNode(bottom, PM_STEP_HEIGHT * 2.f) : -1;
 
   bool climbs = false;
 
   if (a != -1 && a != b) {
-    Nav_AddClimbLink(a, b, NAV_LADDER_DELAY + Nav_TravelTime(top.z - bottom.z, module.speedLadder) + over, bottom, landing, false, bottom);
+    Nav_AddClimbLink(a, b, NAV_LADDER_DELAY + Nav_TravelMillis(top.z - bottom.z, module.speedLadder) + over, bottom, landing, false, bottom);
     climbs = true;
   }
 
@@ -1988,7 +1988,7 @@ static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
       continue;
     }
 
-    const int32_t time = NAV_LADDER_DELAY + Nav_TravelTime(top.z - swim.z, module.speedLadder) + over;
+    const int32_t time = NAV_LADDER_DELAY + Nav_TravelMillis(top.z - swim.z, module.speedLadder) + over;
     Nav_AddClimbLink(n, b, time, swim, landing, false, swim);
     climbs = true;
   }
@@ -2036,8 +2036,8 @@ static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
           continue;
         }
 
-        const int32_t time = NAV_LADDER_DELAY + (int32_t) (seconds * 100.f) +
-                             Nav_TravelTime(top.z - grab.z, module.speedLadder) + over;
+        const int32_t time = NAV_LADDER_DELAY + (int32_t) ceilf(seconds * 1000.f) +
+                             Nav_TravelMillis(top.z - grab.z, module.speedLadder) + over;
 
         Nav_AddClimbLink(n, b, time, grab, landing, true, runUp);
         climbs = true;
@@ -2290,8 +2290,8 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
         walked = true;
       } else if (!Nav_EntersHazard(node, other) && Nav_BarrierJump(node, other, &distance)) {
         const float fall = module.barrierHeight - (other->position.z - node->position.z);
-        const int32_t time = Nav_TravelTime(distance, module.speedRun) +
-                             Nav_FallTime(module.barrierHeight) + Nav_FallTime(fall);
+        const int32_t time = Nav_TravelMillis(distance, module.speedRun) +
+                             Nav_FallMillis(module.barrierHeight) + Nav_FallMillis(fall);
         Nav_AddLink(links, &numLinks, target, NAV_TRAVEL_BARRIER_JUMP, time, 0);
         walked = true;
       } else if ((gate = Nav_GatedWalk(node, other, &distance))) {
@@ -2311,7 +2311,7 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
       target = Nav_GatedDrop(node, directions[i], &distance, &height, &dropGate);
     }
     if (target != -1 && target != index && !Nav_EntersHazard(node, &graph->nodes[target])) {
-      const int32_t time = Nav_TravelTime(distance, module.speedRun) + Nav_FallTime(height);
+      const int32_t time = Nav_TravelMillis(distance, module.speedRun) + Nav_FallMillis(height);
       Nav_AddLink(links, &numLinks, target, NAV_TRAVEL_WALK_OFF_LEDGE, time, dropGate);
     }
 
@@ -2322,7 +2322,7 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
       landing = Nav_GatedJump(node, directions[i], &seconds, &gate);
     }
     if (landing != -1 && !Nav_EntersHazard(node, &graph->nodes[landing])) {
-      Nav_AddLink(links, &numLinks, landing, NAV_TRAVEL_JUMP, (int32_t) ceilf(seconds * 100.f), gate);
+      Nav_AddLink(links, &numLinks, landing, NAV_TRAVEL_JUMP, (int32_t) ceilf(seconds * 1000.f), gate);
     }
   }
 
@@ -2334,7 +2334,7 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
     const NavLadderClimb *climb = &module.graph->climbs[i];
 
     if (climb->bottom == index) {
-      Nav_AddLink(links, &numLinks, climb->top, NAV_TRAVEL_LADDER, climb->time, 0);
+      Nav_AddLink(links, &numLinks, climb->top, NAV_TRAVEL_LADDER, climb->millis, 0);
     }
   }
 
@@ -2601,7 +2601,7 @@ static int32_t Nav_PruneSwims_compare(const void *a, const void *b) {
   const NavSwim *x = a, *y = b;
   const NavGraph *graph = module.graph;
 
-  const int32_t dt = graph->links[x->link].travelTime - graph->links[y->link].travelTime;
+  const int32_t dt = graph->links[x->link].travelMillis - graph->links[y->link].travelMillis;
 
   return dt ? dt : x->link - y->link;
 }
@@ -2618,7 +2618,7 @@ static int32_t Nav_PruneSwims_link(const int32_t a, const int32_t b, const int32
   for (int32_t i = node->firstLink; i < node->firstLink + node->numLinks; i++) {
     const NavLink *link = &graph->links[i];
 
-    if (link->node == b && link->travelType == NAV_TRAVEL_SWIM && !removed[i] && link->travelTime < time) {
+    if (link->node == b && link->travelType == NAV_TRAVEL_SWIM && !removed[i] && link->travelMillis < time) {
       return i;
     }
   }
@@ -2674,17 +2674,17 @@ static void Nav_PruneSwims(NavGraph *graph) {
     for (int32_t j = node->firstLink; j < node->firstLink + node->numLinks; j++) {
       const NavLink *first = &graph->links[j];
 
-      if (first->travelType != NAV_TRAVEL_SWIM || removed[j] || first->travelTime >= link->travelTime ||
+      if (first->travelType != NAV_TRAVEL_SWIM || removed[j] || first->travelMillis >= link->travelMillis ||
           !(graph->nodes[first->node].contents & CONTENTS_MASK_LIQUID)) {
         continue;
       }
 
-      const int32_t second = Nav_PruneSwims_link(first->node, link->node, link->travelTime, removed);
+      const int32_t second = Nav_PruneSwims_link(first->node, link->node, link->travelMillis, removed);
       if (second == -1) {
         continue;
       }
 
-      if (first->travelTime + graph->links[second].travelTime <= link->travelTime * NAV_SWIM_PRUNE) {
+      if (first->travelMillis + graph->links[second].travelMillis <= link->travelMillis * NAV_SWIM_PRUNE) {
         removed[swims[i].link] = true;
         break;
       }
@@ -2843,6 +2843,39 @@ bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints
   }
 
   return false;
+}
+
+/**
+ * @see bg_nav.h
+ */
+const char *Nav_TravelName(const NavTravelType type) {
+
+  switch (type) {
+    case NAV_TRAVEL_NONE:
+      return "none";
+    case NAV_TRAVEL_WALK:
+      return "walk";
+    case NAV_TRAVEL_CROUCH:
+      return "crouch";
+    case NAV_TRAVEL_WALK_OFF_LEDGE:
+      return "walk_off_ledge";
+    case NAV_TRAVEL_BARRIER_JUMP:
+      return "barrier_jump";
+    case NAV_TRAVEL_TELEPORT:
+      return "teleport";
+    case NAV_TRAVEL_PUSH:
+      return "push";
+    case NAV_TRAVEL_PLAT:
+      return "plat";
+    case NAV_TRAVEL_SWIM:
+      return "swim";
+    case NAV_TRAVEL_JUMP:
+      return "jump";
+    case NAV_TRAVEL_LADDER:
+      return "ladder";
+  }
+
+  return "?";
 }
 
 /**

@@ -44,7 +44,7 @@ typedef struct {
   /**
    * @brief The `NavTravelType`.
    */
-  int32_t travelType;
+  NavTravelType travelType;
 
   /**
    * @brief The inline model of the door whose doorway the link crosses, as `NavLink::gate`, or 0.
@@ -108,7 +108,7 @@ bool G_Ai_Node_CanPathTo(const Vec3 position);
 const GameEntity *G_Ai_Node_RaisedPlatform(const Vec3 position);
 bool G_Ai_Node_CanFollowPath(const Vector *path, const uint32_t index);
 void G_Ai_Node_Link(const GameAiNodeId a, const GameAiNodeId b, const float cost);
-void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const float cost, const int32_t travelType);
+void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const float cost, const NavTravelType travelType);
 void G_Ai_Node_Init(void);
 bool G_Ai_Node_IsStale(void);
 void G_Ai_Node_Ready(void);

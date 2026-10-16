@@ -49,10 +49,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
 
-TRAVEL = {-1: 'none', 0: 'spliced', 1: 'walk', 2: 'crouch', 3: 'ledge', 4: 'barrier', 5: 'teleport',
+TRAVEL = {-1: '-', 0: 'none', 1: 'walk', 2: 'crouch', 3: 'walk_off_ledge', 4: 'barrier_jump', 5: 'teleport',
           6: 'push', 7: 'plat', 8: 'swim', 9: 'jump', 10: 'ladder'}
-
-TRAVEL_PUSH = 6
 
 RCON_PASSWORD = 'probe'
 
@@ -124,7 +122,7 @@ def last_link(event, samples):
     for s in reversed(samples):
         if s.link() != '-1->-1':
             return s.link(), TRAVEL.get(int(s.get('type', -1)), '?')
-    return 'no path', 'none'
+    return 'no path', TRAVEL[-1]
 
 
 def game_seconds(events):

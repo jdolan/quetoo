@@ -171,9 +171,9 @@ typedef struct {
   NavTravelType travelType;
 
   /**
-   * @brief The time to travel the link, in hundredths of a second.
+   * @brief The time to travel the link, in milliseconds.
    */
-  int32_t travelTime;
+  int32_t travelMillis;
 
   /**
    * @brief The inline model of the door whose doorway the walk, drop or jump crosses, or 0. The game lets
@@ -264,9 +264,9 @@ typedef struct {
   int32_t top;
 
   /**
-   * @brief The time of the climb in hundredths of a second.
+   * @brief The time of the climb in milliseconds.
    */
-  int32_t time;
+  int32_t millis;
 
   /**
    * @brief The player origin at the foot of the column beside the ladder that the build tested, or
@@ -448,6 +448,12 @@ bool Nav_Build(const NavParams *params, NavGraph *graph);
  * player's bounds.
  */
 bool Nav_SameMovement(const PMoveParams *a, const PMoveParams *b);
+
+/**
+ * @return The name of the travel type: the name of its `NavTravelType` constant, in lowercase and
+ * without the prefix, such as `walk_off_ledge`. `src/tools/ai_probe.py` uses the same names.
+ */
+const char *Nav_TravelName(const NavTravelType type);
 
 /**
  * @brief The longest flight in milliseconds that `Nav_FlyPush` follows. It is an integer, so that

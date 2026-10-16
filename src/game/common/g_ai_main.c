@@ -2310,7 +2310,7 @@ static bool G_Ai_IsRunLink(const Vector *path, const uint32_t index) {
   const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index - 1),
                                              VectorValue(path, GameAiNodeId, index));
 
-  return link && (link->travelType == 0 || link->travelType == NAV_TRAVEL_WALK);
+  return link && (link->travelType == NAV_TRAVEL_NONE || link->travelType == NAV_TRAVEL_WALK);
 }
 
 /**
@@ -3237,7 +3237,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
       if (cmd->up <= 0) {
         const float xyDist = Vec2_Distance(Vec3_XY(cl->ai->moveTarget.path.pathPosition), Vec3_XY(ent->s.origin));
         const GameAiLink *link = G_Ai_PathLink(cl);
-        const int32_t travelType = link ? link->travelType : 0;
+        const NavTravelType travelType = link ? link->travelType : NAV_TRAVEL_NONE;
 
         // we're most likely on or going to a mover; if we'll be falling in a few frames, stop us early
         if (!(gi.PointContents(ent->s.origin) & CONTENTS_MASK_LIQUID) && !G_Ai_Node_CanFollowPath(cl->ai->moveTarget.path.path, cl->ai->moveTarget.path.pathIndex)) {

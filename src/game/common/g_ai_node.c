@@ -663,7 +663,7 @@ const Vector *G_Ai_Node_GetLinks(const GameAiNodeId a) {
 /**
  * @brief Creates a directed link from node a to node b with the given traversal cost and travel type.
  */
-void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const float cost, const int32_t travelType) {
+void G_Ai_Node_LinkTravel(const GameAiNodeId a, const GameAiNodeId b, const float cost, const NavTravelType travelType) {
 
   if (!aiNodes || a >= aiNodes->count || b >= aiNodes->count) {
     return;
@@ -890,7 +890,7 @@ void G_Ai_Node_Init(void) {
 
         const GameAiLink out = {
           .id = link->node,
-          .cost = Maxf(distance, link->travelTime * Maxf(1.f, module.movement.speedGround) / 100.f),
+          .cost = Maxf(distance, link->travelMillis * Maxf(1.f, module.movement.speedGround) / 1000.f),
           .travelType = link->travelType,
           .gate = link->gate
         };

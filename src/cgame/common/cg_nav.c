@@ -166,37 +166,6 @@ static Vec3 Cg_NavNodePosition(const NavNode *node) {
 }
 
 /**
- * @return The name of the travel type, as `navInfo` prints it.
- */
-static const char *Cg_NavTravelName(const NavTravelType type) {
-
-  switch (type) {
-    case NAV_TRAVEL_WALK:
-      return "walk";
-    case NAV_TRAVEL_CROUCH:
-      return "crouch";
-    case NAV_TRAVEL_WALK_OFF_LEDGE:
-      return "walk off ledge";
-    case NAV_TRAVEL_BARRIER_JUMP:
-      return "barrier jump";
-    case NAV_TRAVEL_TELEPORT:
-      return "teleport";
-    case NAV_TRAVEL_PUSH:
-      return "push";
-    case NAV_TRAVEL_PLAT:
-      return "plat";
-    case NAV_TRAVEL_SWIM:
-      return "swim";
-    case NAV_TRAVEL_JUMP:
-      return "jump";
-    case NAV_TRAVEL_LADDER:
-      return "ladder";
-    default:
-      return "none";
-  }
-}
-
-/**
  * @see cg_nav.h
  */
 void Cg_DescribeNavNode(const Vec3 position, CGameNavRowFunc row, void *data) {
@@ -237,7 +206,7 @@ void Cg_DescribeNavNode(const Vec3 position, CGameNavRowFunc row, void *data) {
     const NavLink *link = &graph->links[node->firstLink + i];
     const Vec3 to = Cg_NavNodePosition(&graph->nodes[link->node]);
 
-    row(data, va("  %s", Cg_NavTravelName(link->travelType)), va("%d at %d %d %d", link->node,
+    row(data, va("  %s", Nav_TravelName(link->travelType)), va("%d at %d %d %d", link->node,
                                                                   (int32_t) to.x, (int32_t) to.y, (int32_t) to.z));
   }
 

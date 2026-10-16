@@ -112,7 +112,7 @@ typedef struct {
   uint32_t frames;
   uint32_t strafeFrames;
   uint32_t airFrames;
-  uint32_t goalFrames;
+  uint32_t offPathFrames;
   uint32_t blockFrames[AI_STRAFE_BLOCK_TOTAL];
   Vec3 positions[AI_PROBE_STUCK_POSITIONS];
   uint32_t numPositions;
@@ -457,7 +457,7 @@ void G_Ai_Probe_Graph(void) {
                          climb->bottom, climb->top,
                          (int32_t) climb->column.x, (int32_t) climb->column.y, (int32_t) climb->column.z,
                          (int32_t) climb->landing.x, (int32_t) climb->landing.y, (int32_t) climb->landing.z,
-                         climb->time);
+                         climb->millis);
       }
     }
   }
@@ -617,17 +617,17 @@ void G_Ai_Probe_Think(const GameClient *cl) {
   if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
     c->blockFrames[cl->ai->strafeBlock]++;
   } else {
-    c->goalFrames++;
+    c->offPathFrames++;
   }
 
   if (gameLevel.time - c->speedTime >= AI_PROBE_SPEED_MILLIS) {
     const float frames = Maxf(1.f, c->frames);
 
     G_Ai_Probe_Print(n, "SPEED", "name=%s skill=%.2f avg=%d max=%d strafe=%.2f air=%.2f "
-                     "goal=%.2f strafing=%.2f lowskill=%.2f state=%.2f turn=%.2f short=%.2f unsafe=%.2f fall=%.2f",
+                     "offPath=%.2f strafing=%.2f lowskill=%.2f state=%.2f turn=%.2f short=%.2f unsafe=%.2f fall=%.2f",
                      cl->ai->roster ? cl->ai->roster->name : "none", cl->ai->personality.skill,
                      (int32_t) (c->speedSum / frames), (int32_t) c->speedMax,
-                     c->strafeFrames / frames, c->airFrames / frames, c->goalFrames / frames,
+                     c->strafeFrames / frames, c->airFrames / frames, c->offPathFrames / frames,
                      c->blockFrames[AI_STRAFE_BLOCK_NONE] / frames, c->blockFrames[AI_STRAFE_BLOCK_SKILL] / frames,
                      c->blockFrames[AI_STRAFE_BLOCK_STATE] / frames, c->blockFrames[AI_STRAFE_BLOCK_TURN] / frames,
                      c->blockFrames[AI_STRAFE_BLOCK_SHORT] / frames, c->blockFrames[AI_STRAFE_BLOCK_UNSAFE] / frames,
@@ -635,7 +635,7 @@ void G_Ai_Probe_Think(const GameClient *cl) {
 
     c->speedTime = gameLevel.time;
     c->speedSum = c->speedMax = 0.f;
-    c->frames = c->strafeFrames = c->airFrames = c->goalFrames = 0;
+    c->frames = c->strafeFrames = c->airFrames = c->offPathFrames = 0;
     memset(c->blockFrames, 0, sizeof(c->blockFrames));
   }
 
@@ -683,7 +683,7 @@ void G_Ai_Probe_PathEnd(const GameClient *cl, const char *reason) {
   int32_t from, to, travelType;
   G_Ai_Probe_Link(cl, &from, &to, &travelType);
 
-  G_Ai_Probe_Print(cl->ps.client, "PATHEND", "reason=%s pos=%d,%d,%d vel=%d,%d,%d ground=%d type=%d link=%d->%d index=%u/%u goal=%s",
+  G_Ai_Probe_Print(cl->ps.client, "PATHEND", "reason=%s pos=%d,%d,%d vel=%d,%d,%d ground=%d goalType=%d link=%d->%d index=%u/%u goal=%s",
                    reason, (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
                    (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
                    ent->ground.ent != NULL, goal->type, from, to,

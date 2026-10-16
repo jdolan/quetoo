@@ -98,16 +98,16 @@ milliseconds. The client is -1 for an event of the level. A value MUST NOT conta
 |---|---|
 | `GRAPH` | Once, with the node and link counts |
 | `NODE`, `TRIGGER` | Once, with `g_aiProbe 2`: each node, `edge=1` if it stands at the edge of the void, with its links, as `node:type:cost`, or `node:type:cost:door` for a walk through the doorway of the door with inline model `door`, and each push and hurt trigger's bounds |
-| `CLIMB` | Once, with `g_aiProbe 2`, after the `NODE` of its bottom: each ladder climb, with its bottom and top nodes, the `column` where the climb meets the ladder (the foot, or where a jump grabs it), the `landing` over the top, and the time in hundredths of a second |
+| `CLIMB` | Once, with `g_aiProbe 2`, after the `NODE` of its bottom: each ladder climb, with its bottom and top nodes, the `column` where the climb meets the ladder (the foot, or where a jump grabs it), the `landing` over the top, and the time in milliseconds |
 | `POS` | Each second for each bot: position, speed, state, goal item, health, link, the weapon in hand, the weapons it can fire, whether it counts itself armed, the enemy's distance, the combat movement, the water level (0 to 3) and whether it is on the ground |
-| `SPEED` | Each 5 seconds: roster name, skill, average and highest speed, the share of time that the bot strafe jumps and is in the air, and the share of time by the reason that it does or does not strafe jump on a path (`GameAiStrafeBlock`): `goal` (not on a path), `strafing`, `lowskill`, `state`, `turn`, `short`, `unsafe`, `fall`. These eight sum to 1 |
+| `SPEED` | Each 5 seconds: roster name, skill, average and highest speed, the share of time that the bot strafe jumps and is in the air, and the share of time by the reason that it does or does not strafe jump on a path (`GameAiStrafeBlock`): `offPath` (not on a path), `strafing`, `lowskill`, `state`, `turn`, `short`, `unsafe`, `fall`. These eight sum to 1 |
 | `DEATH` + `HIST reason=death` | When a bot dies, from any cause |
 | `HAZARD` + `HIST reason=hazard` | When a bot enters lava or slime: its link, state, whether it has an enemy, and `lava=1` for lava |
 | `KILL` | With flag 1 or 4, when any bot or player dies: the attacker (the victim's own number for a suicide, -1 for the world), the means of death (`mod`, as `GameMeansOfDeath`), the weapon in the attacker's hand, the range, and whether each is a bot |
 | `VISIT` | Each time a client moves to another node: the client's route, node by node. The client leaves a node only for one at least 16 units nearer. A death starts a new route. Bots with flag 1, players with flag 4 |
 | `CMD` | With flag 4, each movement command of a human player: the nearest node (-1 if none is within 128 units), position, velocity, view angles (yaw, pitch), the move (forward, right, up), its duration, the ground, the water level and the buttons. Up to 250 lines a second for each player, about 150 MB an hour |
 | `PATH` | When a bot gets a new path: where it is, its speed, whether it is on the ground, and the first, second and last nodes |
-| `PATHEND` | When the game ends a bot's path, and why: `arrived`, `distress`, `unlinked` or `teleported`, with `HIST reason=distress` after a distress |
+| `PATHEND` | When the game ends a bot's path, and why: `arrived`, `distress`, `unlinked` or `teleported`, with its position, velocity, whether it is on the ground, the `goalType` of its move goal (`GameAiGoalType`), its link, its index in the path, and its objective, and `HIST reason=distress` after a distress |
 | `PUSHED` | When a push trigger throws a bot. `planned=0` if the bot does not follow a pad link, with `HIST reason=pushed` |
 | `JUMP`, `LAND` | When a bot takes off on a gap jump link, and where it lands |
 | `PICKUP` | When a bot, or with flag 4 a player, takes an item |
@@ -116,9 +116,10 @@ milliseconds. The client is -1 for an event of the level. A value MUST NOT conta
 | `LADDER` | When a bot grabs a ladder (`on=1`) or leaves it (`on=0`), with its position, velocity, link and the ladder controller's `phase` (`GameAiLadderPhase`). A climb completed if the bot left the ladder near the height of the climb's landing. It also has the bot's view `yaw`, its pmove time `flags` (`PMF_TIME_MASK`, in hex), and the `trace` that `Pm_CheckLadder` makes, 4 units ahead: fraction, contents in hex, and the normal's x and y in hundredths. A let-go with `flags=40` (`PMF_TIME_PUSHED`) while the trace touches the ladder is a hit's knockback: `G_Damage` sets that flag on a climber for any hit, and `Pm_CheckLadder` does not grab while a time flag is set |
 | `STUCK` | Each second that a bot on a path, out of combat, has stayed within 96 units over its last 6 `POS` events, which span 5 seconds, with `HIST reason=stuck` at the first |
 
-Link types are the `NavTravelType` values: 0 for the links that `G_Ai_Node_Link` adds to splice
-item and spawn nodes into the graph, 1 walk, 2 crouch, 3 walk off ledge, 4 barrier jump,
-5 teleport, 6 push, 7 plat, 8 swim, 9 jump, 10 ladder.
+Link types are the `NavTravelType` values, which `ai_probe.py` and `navInfo` name as
+`Nav_TravelName` does: 0 `none`, for the links that `G_Ai_Node_Link` adds to splice item and spawn
+nodes into the graph, 1 `walk`, 2 `crouch`, 3 `walk_off_ledge`, 4 `barrier_jump`, 5 `teleport`,
+6 `push`, 7 `plat`, 8 `swim`, 9 `jump`, 10 `ladder`. The tool prints `-` for no link.
 
 ## 4. Query the graph
 
