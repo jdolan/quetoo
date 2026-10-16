@@ -382,6 +382,12 @@ typedef struct {
    * bot on the shore never takes a node in the lava as the start of its path, and walks into it.
    */
   bool skipHazards;
+
+  /**
+   * @brief For the k-d tree query, the squared distance of the closest node that it has taken, as
+   * the query keeps it, from the squared maximum distance down.
+   */
+  double treeDistance;
 } GameAiNodeQueryFilter;
 
 /**
@@ -439,6 +445,28 @@ static void G_Ai_Node_FindClosest_compare(GameAiNodeQueryFilter *filter, const G
 }
 
 /**
+ * @brief The filter of the k-d tree query of `G_Ai_Node_FindClosest_`. The query takes a node that
+ * passes the filter nearer than `treeDistance`, the nearest that it has taken, so a node whose plain
+ * distance is no nearer is rejected before the filter traces to it, and `treeDistance` follows each
+ * node that the query takes.
+ */
+static bool G_Ai_Node_FindClosest_tree(const size_t node, void *data, float *distance) {
+
+  GameAiNodeQueryFilter *filter = data;
+
+  if (Vec3_DistanceSquared(filter->position, AI_NODE(aiNodes, node)->position) >= filter->treeDistance) {
+    return false;
+  }
+
+  if (!G_Ai_Node_FindClosestFilter(node, filter, distance) || *distance >= filter->treeDistance) {
+    return false;
+  }
+
+  filter->treeDistance = *distance;
+  return true;
+}
+
+/**
  * @brief Finds the closest node of the built graph in the cells around the given position, or of
  * the nodes that the game added to it, and the nodes on models that move, which are in no cell.
  * @details Any node of the built graph outside of the cells searched is at least one cell width, or
@@ -480,15 +508,7 @@ static GameAiNodeId G_Ai_Node_FindClosestCell(GameAiNodeQueryFilter *filter, con
           continue;
         }
 
-        float distance;
-        if (!G_Ai_Node_FindClosestFilter(node, filter, &distance)) {
-          continue;
-        }
-
-        if (distance <= closestDistance) {
-          closestDistance = distance;
-          closest = node;
-        }
+        G_Ai_Node_FindClosest_compare(filter, node, &closest, &closestDistance);
       }
     }
   }
@@ -545,13 +565,15 @@ static GameAiNodeId G_Ai_Node_FindClosest_(const Vec3 position, const float maxD
   if (G_Ai_Node_EnsureSpatialIndex()) {
 
     filter.skipMovers = true;
-    const size_t node = G_Ai_KdTreeQuery(aiNodesKdtree, position, maxDistance, G_Ai_Node_FindClosestFilter, &filter);
+    filter.treeDistance = (double) maxDistance * maxDistance;
+    const size_t node = G_Ai_KdTreeQuery(aiNodesKdtree, position, maxDistance, G_Ai_Node_FindClosest_tree, &filter);
     filter.skipMovers = false;
 
     float closestDistance = distSquared;
 
-    if (node != SIZE_MAX && G_Ai_Node_FindClosestFilter(node, &filter, &closestDistance)) {
+    if (node != SIZE_MAX) {
       closest = (GameAiNodeId) node;
+      closestDistance = (float) filter.treeDistance;
     }
 
     if (module.moverNodes && !staticOnly) {
