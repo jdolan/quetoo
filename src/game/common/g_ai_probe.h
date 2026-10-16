@@ -26,7 +26,9 @@
 /**
  * @brief The `g_aiProbe` flag that records what each bot does: where it is, its objective and speed,
  * its paths and why they end, its deaths, its pushes by a `trigger_push`, planned or not, its gap
- * jumps, its pickups and the times that it is stuck.
+ * jumps, its pickups, the times that it is stuck, its entries into lava or slime (`HAZARD`), its
+ * grabs and releases of a ladder (`LADDER`), each node that it passes (`VISIT`), the level's gates
+ * (`GATE`) and what it does with them (`GATEUSE`).
  */
 #define AI_PROBE_BOTS 1
 
@@ -110,8 +112,9 @@ void G_Ai_Probe_ClientMove(const GameClient *cl, const PMoveCmd *cmd);
 /**
  * @brief Records that the client was killed, by whom, with which weapon and at which range, with
  * `AI_PROBE_BOTS` or `AI_PROBE_PLAYERS`, for bots and players alike. The attacker is the victim
- * itself for a suicide, and -1 for the world. The client's next `VISIT` starts a new route. For a bot, with `AI_PROBE_BOTS`, it also records the bot's `DEATH` and its
- * samples before it. The game calls it as the client dies.
+ * itself for a suicide, and -1 for the world. The client's next `VISIT` starts a new route. For a
+ * bot, with `AI_PROBE_BOTS`, it also records the bot's `DEATH` and its samples before it. The game
+ * calls it as the client dies.
  */
 void G_Ai_Probe_Killed(const GameClient *cl, const GameEntity *attacker, const uint32_t mod);
 #endif

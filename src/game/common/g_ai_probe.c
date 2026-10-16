@@ -76,19 +76,68 @@
 #define AI_PROBE_LINE 4096
 
 /**
+ * @brief Expands to the x, y and z of the vector, truncated to integers, as the arguments of a
+ * `%d,%d,%d` in a format: the log writes each position and velocity so.
+ */
+#define AI_PROBE_VEC3(v) (int32_t) (v).x, (int32_t) (v).y, (int32_t) (v).z
+
+/**
  * @brief A sample of what a bot does.
  */
 typedef struct {
+  /**
+   * @brief The bot's origin.
+   */
   Vec3 origin;
+
+  /**
+   * @brief The bot's velocity.
+   */
   Vec3 velocity;
+
+  /**
+   * @brief The node at the start of the link that the bot travels, or -1.
+   */
   int32_t from;
+
+  /**
+   * @brief The node at the end of the link that the bot travels, or -1.
+   */
   int32_t to;
+
+  /**
+   * @brief The `NavTravelType` of the link that the bot travels, or -1.
+   */
   int32_t travelType;
+
+  /**
+   * @brief True if the bot strafe jumps.
+   */
   bool strafeJumping;
+
+  /**
+   * @brief True if the bot is on the ground.
+   */
   bool ground;
+
+  /**
+   * @brief The name of the bot's state.
+   */
   const char *state;
+
+  /**
+   * @brief True if the knockback of damage pushes the bot, away from any `trigger_push`.
+   */
   bool knocked;
+
+  /**
+   * @brief True if the bot is on a ladder.
+   */
   bool ladder;
+
+  /**
+   * @brief The name of the ladder controller's phase.
+   */
   const char *phase;
 } GameAiProbeSample;
 
@@ -97,42 +146,169 @@ typedef struct {
  * another bot takes the client slot.
  */
 typedef struct {
+  /**
+   * @brief The bot's `GameAi`, or NULL for a player, by which the probe tells another bot in the
+   * client slot.
+   */
   const GameAi *ai;
+
+  /**
+   * @brief The path that the bot followed last frame, or NULL.
+   */
   const Vector *path;
+
+  /**
+   * @brief The first node of that path, or -1.
+   */
   int32_t pathStart;
+
+  /**
+   * @brief The count of nodes in that path.
+   */
   uint32_t pathCount;
+
+  /**
+   * @brief The bot's index in that path.
+   */
   uint32_t pathIndex;
+
+  /**
+   * @brief The bot's last samples, a ring of `AI_PROBE_SAMPLES`.
+   */
   GameAiProbeSample samples[AI_PROBE_SAMPLES];
+
+  /**
+   * @brief The count of samples taken, of which the last `AI_PROBE_SAMPLES` are kept.
+   */
   uint32_t numSamples;
+
+  /**
+   * @brief The time of the last sample.
+   */
   uint32_t sampleTime;
+
+  /**
+   * @brief The time of the last `POS` event.
+   */
   uint32_t positionTime;
+
+  /**
+   * @brief The time of the last `SPEED` event.
+   */
   uint32_t speedTime;
+
+  /**
+   * @brief The sum of the bot's horizontal speed over the frames since the last `SPEED` event.
+   */
   float speedSum;
+
+  /**
+   * @brief The bot's highest horizontal speed since the last `SPEED` event.
+   */
   float speedMax;
+
+  /**
+   * @brief The count of frames since the last `SPEED` event.
+   */
   uint32_t frames;
+
+  /**
+   * @brief The count of those frames in which the bot strafe jumped.
+   */
   uint32_t strafeFrames;
+
+  /**
+   * @brief The count of those frames in which the bot was in the air.
+   */
   uint32_t airFrames;
+
+  /**
+   * @brief The count of those frames in which the bot followed no path.
+   */
   uint32_t offPathFrames;
+
+  /**
+   * @brief The count of those frames on a path, by the reason that the bot did or did not strafe
+   * jump.
+   */
   uint32_t blockFrames[AI_STRAFE_BLOCK_TOTAL];
+
+  /**
+   * @brief The bot's positions at its last `POS` events, a ring of `AI_PROBE_STUCK_POSITIONS`.
+   */
   Vec3 positions[AI_PROBE_STUCK_POSITIONS];
+
+  /**
+   * @brief The count of positions kept since the bot last died.
+   */
   uint32_t numPositions;
+
+  /**
+   * @brief True if the bot was stuck at its last `POS` event.
+   */
   bool stuck;
+
+  /**
+   * @brief True if the bot was pushed last frame.
+   */
   bool pushed;
+
+  /**
+   * @brief True if the bot was in lava or slime last frame.
+   */
   bool hazard;
+
+  /**
+   * @brief True if the bot was on the ground last frame.
+   */
   bool ground;
+
+  /**
+   * @brief True from the bot's `JUMP` until its `LAND`.
+   */
   bool jumping;
+
+  /**
+   * @brief The height of the bot's path position when it took off, from which `LAND` measures.
+   */
   float jumpHeight;
+
+  /**
+   * @brief The node that the client last visited, or -1.
+   */
   int32_t visitNode;
+
+  /**
+   * @brief True if the bot was on a ladder last frame.
+   */
   bool ladder;
+
+  /**
+   * @brief True once the probe has set up the state for the client in the slot.
+   */
   bool used;
 } GameAiProbeClient;
 
 static Cvar *g_aiProbe;
 
 static struct {
+  /**
+   * @brief The log, or NULL if the probe records nothing.
+   */
   File *file;
+
+  /**
+   * @brief What the probe knows of each client, by client number.
+   */
   GameAiProbeClient clients[MAX_CLIENTS];
 } module;
+
+/**
+ * @return True if the log is open and `g_aiProbe` has any of the flags.
+ */
+static bool G_Ai_Probe_Records(const int32_t flags) {
+  return module.file && (g_aiProbe->integer & flags);
+}
 
 /**
  * @brief Writes one event to the log: `PROBE <time> <client> <event> <fields>`.
@@ -235,10 +411,11 @@ static void G_Ai_Probe_History(const GameClient *cl, const char *reason) {
   for (uint32_t i = 0; i < count; i++) {
     const GameAiProbeSample *s = &c->samples[(c->numSamples - count + i) % AI_PROBE_SAMPLES];
 
-    G_Ai_Probe_Print(cl->ps.client, "HIST", "reason=%s i=%u pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d ground=%d state=%s knocked=%d ladder=%d phase=%s",
-                     reason, i, (int32_t) s->origin.x, (int32_t) s->origin.y, (int32_t) s->origin.z,
-                     (int32_t) s->velocity.x, (int32_t) s->velocity.y, (int32_t) s->velocity.z,
-                     s->from, s->to, s->travelType, s->strafeJumping, s->ground, s->state, s->knocked, s->ladder, s->phase);
+    G_Ai_Probe_Print(cl->ps.client, "HIST", "reason=%s i=%u pos=%d,%d,%d vel=%d,%d,%d link=%d->%d "
+                     "type=%d strafe=%d ground=%d state=%s knocked=%d ladder=%d phase=%s", reason,
+                     i, AI_PROBE_VEC3(s->origin), AI_PROBE_VEC3(s->velocity), s->from, s->to,
+                     s->travelType, s->strafeJumping, s->ground, s->state, s->knocked, s->ladder,
+                     s->phase);
   }
 }
 
@@ -303,10 +480,10 @@ static void G_Ai_Probe_Stuck(const GameClient *cl, GameAiProbeClient *c, const i
   const GameEntity *ent = cl->entity;
   const Vec3 next = cl->ai->moveTarget.path.pathPosition;
 
-  G_Ai_Probe_Print(cl->ps.client, "STUCK", "pos=%d,%d,%d state=%s goal=%s link=%d->%d type=%d next=%d,%d,%d ground=%d spread=%d",
-                   (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
+  G_Ai_Probe_Print(cl->ps.client, "STUCK", "pos=%d,%d,%d state=%s goal=%s link=%d->%d type=%d "
+                   "next=%d,%d,%d ground=%d spread=%d", AI_PROBE_VEC3(ent->s.origin),
                    G_Ai_State_Name(cl), G_Ai_Probe_Objective(cl), from, to, travelType,
-                   (int32_t) next.x, (int32_t) next.y, (int32_t) next.z, ent->ground.ent != NULL, (int32_t) spread);
+                   AI_PROBE_VEC3(next), ent->ground.ent != NULL, (int32_t) spread);
 
   if (!stuck) {
     G_Ai_Probe_History(cl, "stuck");
@@ -357,9 +534,9 @@ static int32_t G_Ai_Probe_Visit(const GameClient *cl, GameAiProbeClient *c) {
 
   c->visitNode = node;
 
-  G_Ai_Probe_Print(cl->ps.client, "VISIT", "node=%d pos=%d,%d,%d speed=%d ground=%d water=%d",
-                   node, (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                   (int32_t) Vec2_Length(Vec3_XY(ent->velocity)), ent->ground.ent != NULL, ent->waterLevel);
+  G_Ai_Probe_Print(cl->ps.client, "VISIT", "node=%d pos=%d,%d,%d speed=%d ground=%d water=%d", node,
+                   AI_PROBE_VEC3(ent->s.origin), (int32_t) Vec2_Length(Vec3_XY(ent->velocity)),
+                   ent->ground.ent != NULL, ent->waterLevel);
 
   return node;
 }
@@ -419,7 +596,8 @@ static void G_Ai_Probe_Graph_node(const uint32_t id) {
   const Vector *links = G_Ai_Node_GetLinks((GameAiNodeId) id);
   for (size_t j = 0; links && j < links->count && len < sizeof(text) - 32; j++) {
     const GameAiLink *link = VectorElement(links, GameAiLink, j);
-    len += snprintf(text + len, sizeof(text) - len, "%s%d:%d:%d", j ? "," : "", link->id, link->travelType, (int32_t) link->cost);
+    len += snprintf(text + len, sizeof(text) - len, "%s%d:%d:%d", j ? "," : "", link->id,
+                    link->travelType, (int32_t) link->cost);
     if (link->gate) {
       len += snprintf(text + len, sizeof(text) - len, ":%d", link->gate);
     }
@@ -427,20 +605,18 @@ static void G_Ai_Probe_Graph_node(const uint32_t id) {
 
   const Vec3 position = G_Ai_Node_GetPosition((GameAiNodeId) id);
 
-  G_Ai_Probe_Print(-1, "NODE", "id=%u pos=%d,%d,%d edge=%d links=%s",
-                   id, (int32_t) position.x, (int32_t) position.y, (int32_t) position.z,
+  G_Ai_Probe_Print(-1, "NODE", "id=%u pos=%d,%d,%d edge=%d links=%s", id, AI_PROBE_VEC3(position),
                    G_Ai_Node_IsEdge((GameAiNodeId) id), text);
 
   for (size_t j = 0; links && j < links->count; j++) {
     const GameAiLink *link = VectorElement(links, GameAiLink, j);
-    const NavLadderClimb *climb = link->travelType == NAV_TRAVEL_LADDER ? G_Ai_Node_GetClimb(id, link->id) : NULL;
+    const NavLadderClimb *climb = link->travelType == NAV_TRAVEL_LADDER ?
+                                  G_Ai_Node_GetClimb(id, link->id) : NULL;
 
     if (climb) {
       G_Ai_Probe_Print(-1, "CLIMB", "bottom=%d top=%d column=%d,%d,%d landing=%d,%d,%d time=%d",
-                       climb->bottom, climb->top,
-                       (int32_t) climb->column.x, (int32_t) climb->column.y, (int32_t) climb->column.z,
-                       (int32_t) climb->landing.x, (int32_t) climb->landing.y, (int32_t) climb->landing.z,
-                       climb->millis);
+                       climb->bottom, climb->top, AI_PROBE_VEC3(climb->column),
+                       AI_PROBE_VEC3(climb->landing), climb->millis);
     }
   }
 }
@@ -460,8 +636,7 @@ static void G_Ai_Probe_Graph_trigger(const GameEntity *ent) {
   }
 
   G_Ai_Probe_Print(-1, "TRIGGER", "class=%s mins=%d,%d,%d maxs=%d,%d,%d", ent->classname,
-                   (int32_t) ent->absBounds.mins.x, (int32_t) ent->absBounds.mins.y, (int32_t) ent->absBounds.mins.z,
-                   (int32_t) ent->absBounds.maxs.x, (int32_t) ent->absBounds.maxs.y, (int32_t) ent->absBounds.maxs.z);
+                   AI_PROBE_VEC3(ent->absBounds.mins), AI_PROBE_VEC3(ent->absBounds.maxs));
 }
 
 /**
@@ -481,7 +656,7 @@ void G_Ai_Probe_Graph(void) {
 
   G_Ai_Probe_Print(-1, "GRAPH", "nodes=%u links=%zu", G_Ai_Node_Count(), numLinks);
 
-  if (!(g_aiProbe->integer & AI_PROBE_GRAPH)) {
+  if (!G_Ai_Probe_Records(AI_PROBE_GRAPH)) {
     return;
   }
 
@@ -499,7 +674,8 @@ void G_Ai_Probe_Graph(void) {
  * it.
  */
 static void G_Ai_Probe_Think_ladder(const GameClient *cl, GameAiProbeClient *c, const bool ladder,
-                                    const int32_t from, const int32_t to, const int32_t travelType) {
+                                    const int32_t from, const int32_t to,
+                                    const int32_t travelType) {
 
   if (ladder == c->ladder) {
     return;
@@ -516,14 +692,13 @@ static void G_Ai_Probe_Think_ladder(const GameClient *cl, GameAiProbeClient *c, 
   const Vec3 ahead = Vec3_Fmaf(ent->s.origin, 4.f, forward);
   const CollisionTrace tr = gi.Trace(ent->s.origin, ahead, bounds, ent, ent->clipMask);
 
-  G_Ai_Probe_Print(cl->ps.client, "LADDER", "on=%d pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d phase=%s "
-                   "yaw=%d flags=%x trace=%.2f,%x,%d,%d",
-                   ladder, (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                   (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
-                   from, to, travelType, G_Ai_LadderPhaseName(cl), (int32_t) cl->angles.y,
+  G_Ai_Probe_Print(cl->ps.client, "LADDER", "on=%d pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d "
+                   "phase=%s yaw=%d flags=%x trace=%.2f,%x,%d,%d", ladder,
+                   AI_PROBE_VEC3(ent->s.origin), AI_PROBE_VEC3(ent->velocity), from, to, travelType,
+                   G_Ai_LadderPhaseName(cl), (int32_t) cl->angles.y,
                    (uint32_t) (cl->ps.pmState.flags & PMF_TIME_MASK), tr.fraction,
-                   (uint32_t) tr.contents,
-                   (int32_t) (tr.plane.normal.x * 100.f), (int32_t) (tr.plane.normal.y * 100.f));
+                   (uint32_t) tr.contents, (int32_t) (tr.plane.normal.x * 100.f),
+                   (int32_t) (tr.plane.normal.y * 100.f));
 }
 
 /**
@@ -563,20 +738,23 @@ static void G_Ai_Probe_Think_path(const GameClient *cl, GameAiProbeClient *c, co
 
   const GameEntity *ent = cl->entity;
 
-  const Vector *path = cl->ai->moveTarget.type == AI_GOAL_PATH ? cl->ai->moveTarget.path.path : NULL;
-  const int32_t pathStart = path && path->count ? G_Ai_Probe_Node(VectorValue(path, GameAiNodeId, 0)) : -1;
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+  const Vector *path = goal->type == AI_GOAL_PATH ? goal->path.path : NULL;
+  const int32_t pathStart = path && path->count ?
+                            G_Ai_Probe_Node(VectorValue(path, GameAiNodeId, 0)) : -1;
   const uint32_t pathCount = path ? (uint32_t) path->count : 0;
-  const uint32_t pathIndex = path ? cl->ai->moveTarget.path.pathIndex : 0;
+  const uint32_t pathIndex = path ? goal->path.pathIndex : 0;
 
-  if (path && pathCount && (path != c->path || pathStart != c->pathStart || pathCount != c->pathCount ||
-                            pathIndex < c->pathIndex)) {
+  if (path && pathCount && (path != c->path || pathStart != c->pathStart ||
+                            pathCount != c->pathCount || pathIndex < c->pathIndex)) {
     const GameAiNodeId start = VectorValue(path, GameAiNodeId, 0);
     const GameAiNodeId next = VectorValue(path, GameAiNodeId, Mini((int32_t) path->count - 1, 1));
-    G_Ai_Probe_Print(cl->ps.client, "PATH", "pos=%d,%d,%d vel=%d,%d,%d ground=%d start=%d next=%d end=%d nodes=%zu goal=%s",
-                     (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                     (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z, ground,
-                     G_Ai_Probe_Node(start), G_Ai_Probe_Node(next),
-                     G_Ai_Probe_Node(VectorValue(path, GameAiNodeId, path->count - 1)), path->count, G_Ai_Probe_Objective(cl));
+    G_Ai_Probe_Print(cl->ps.client, "PATH", "pos=%d,%d,%d vel=%d,%d,%d ground=%d start=%d next=%d "
+                     "end=%d nodes=%zu goal=%s", AI_PROBE_VEC3(ent->s.origin),
+                     AI_PROBE_VEC3(ent->velocity), ground, G_Ai_Probe_Node(start),
+                     G_Ai_Probe_Node(next),
+                     G_Ai_Probe_Node(VectorValue(path, GameAiNodeId, path->count - 1)), path->count,
+                     G_Ai_Probe_Objective(cl));
   }
 
   c->path = path;
@@ -595,10 +773,10 @@ static void G_Ai_Probe_Think_hazard(const GameClient *cl, GameAiProbeClient *c, 
 
   const bool hazard = ent->waterLevel && (ent->waterType & (CONTENTS_LAVA | CONTENTS_SLIME));
   if (hazard && !c->hazard) {
-    G_Ai_Probe_Print(cl->ps.client, "HAZARD", "pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d state=%s enemy=%d lava=%d",
-                     (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                     (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
-                     from, to, travelType, cl->ai->strafeJumping, G_Ai_State_Name(cl),
+    G_Ai_Probe_Print(cl->ps.client, "HAZARD", "pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d "
+                     "strafe=%d state=%s enemy=%d lava=%d", AI_PROBE_VEC3(ent->s.origin),
+                     AI_PROBE_VEC3(ent->velocity), from, to, travelType, cl->ai->strafeJumping,
+                     G_Ai_State_Name(cl),
                      cl->ai->combatTarget.type == AI_GOAL_ENTITY && cl->ai->combatTarget.entity.ent,
                      (ent->waterType & CONTENTS_LAVA) != 0);
     G_Ai_Probe_History(cl, "hazard");
@@ -612,17 +790,19 @@ static void G_Ai_Probe_Think_hazard(const GameClient *cl, GameAiProbeClient *c, 
  * path did not plan the push.
  */
 static void G_Ai_Probe_Think_pushed(const GameClient *cl, GameAiProbeClient *c, const bool ground,
-                                    const int32_t from, const int32_t to, const int32_t travelType) {
+                                    const int32_t from, const int32_t to,
+                                    const int32_t travelType) {
 
   const GameEntity *ent = cl->entity;
 
   const bool pushed = (cl->ps.pmState.flags & PMF_TIME_PUSHED) != 0;
   if (pushed && !c->pushed && G_Ai_Probe_TouchesPush(ent)) {
     const bool planned = travelType == NAV_TRAVEL_PUSH || G_Ai_Probe_NextIsPush(cl);
-    G_Ai_Probe_Print(cl->ps.client, "PUSHED", "pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d strafe=%d ground=%d planned=%d launch=%u goal=%s",
-                     (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                     (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
-                     from, to, travelType, cl->ai->strafeJumping, ground, planned, cl->ai->pushTime, G_Ai_Probe_Objective(cl));
+    G_Ai_Probe_Print(cl->ps.client, "PUSHED", "pos=%d,%d,%d vel=%d,%d,%d link=%d->%d type=%d "
+                     "strafe=%d ground=%d planned=%d launch=%u goal=%s",
+                     AI_PROBE_VEC3(ent->s.origin), AI_PROBE_VEC3(ent->velocity), from, to,
+                     travelType, cl->ai->strafeJumping, ground, planned, cl->ai->pushTime,
+                     G_Ai_Probe_Objective(cl));
     if (!planned) {
       G_Ai_Probe_History(cl, "pushed");
     }
@@ -644,12 +824,11 @@ static void G_Ai_Probe_Think_jump(const GameClient *cl, GameAiProbeClient *c, co
     c->jumping = true;
     c->jumpHeight = cl->ai->moveTarget.path.pathPosition.z;
     G_Ai_Probe_Print(cl->ps.client, "JUMP", "pos=%d,%d,%d vel=%d,%d link=%d->%d",
-                     (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                     (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, from, to);
+                     AI_PROBE_VEC3(ent->s.origin), (int32_t) ent->velocity.x,
+                     (int32_t) ent->velocity.y, from, to);
   } else if (c->jumping && ground) {
     c->jumping = false;
-    G_Ai_Probe_Print(cl->ps.client, "LAND", "pos=%d,%d,%d dz=%d",
-                     (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
+    G_Ai_Probe_Print(cl->ps.client, "LAND", "pos=%d,%d,%d dz=%d", AI_PROBE_VEC3(ent->s.origin),
                      (int32_t) (ent->s.origin.z - c->jumpHeight));
   }
 
@@ -683,13 +862,16 @@ static void G_Ai_Probe_Think_speed(const GameClient *cl, GameAiProbeClient *c, c
   const float frames = Maxf(1.f, c->frames);
 
   G_Ai_Probe_Print(cl->ps.client, "SPEED", "name=%s skill=%.2f avg=%d max=%d strafe=%.2f air=%.2f "
-                   "offPath=%.2f strafing=%.2f lowskill=%.2f state=%.2f turn=%.2f short=%.2f unsafe=%.2f fall=%.2f",
-                   cl->ai->roster ? cl->ai->roster->name : "none", cl->ai->personality.skill,
-                   (int32_t) (c->speedSum / frames), (int32_t) c->speedMax,
-                   c->strafeFrames / frames, c->airFrames / frames, c->offPathFrames / frames,
-                   c->blockFrames[AI_STRAFE_BLOCK_NONE] / frames, c->blockFrames[AI_STRAFE_BLOCK_SKILL] / frames,
-                   c->blockFrames[AI_STRAFE_BLOCK_STATE] / frames, c->blockFrames[AI_STRAFE_BLOCK_TURN] / frames,
-                   c->blockFrames[AI_STRAFE_BLOCK_SHORT] / frames, c->blockFrames[AI_STRAFE_BLOCK_UNSAFE] / frames,
+                   "offPath=%.2f strafing=%.2f lowskill=%.2f state=%.2f turn=%.2f short=%.2f "
+                   "unsafe=%.2f fall=%.2f", cl->ai->roster ? cl->ai->roster->name : "none",
+                   cl->ai->personality.skill, (int32_t) (c->speedSum / frames),
+                   (int32_t) c->speedMax, c->strafeFrames / frames, c->airFrames / frames,
+                   c->offPathFrames / frames, c->blockFrames[AI_STRAFE_BLOCK_NONE] / frames,
+                   c->blockFrames[AI_STRAFE_BLOCK_SKILL] / frames,
+                   c->blockFrames[AI_STRAFE_BLOCK_STATE] / frames,
+                   c->blockFrames[AI_STRAFE_BLOCK_TURN] / frames,
+                   c->blockFrames[AI_STRAFE_BLOCK_SHORT] / frames,
+                   c->blockFrames[AI_STRAFE_BLOCK_UNSAFE] / frames,
                    c->blockFrames[AI_STRAFE_BLOCK_FALL] / frames);
 
   c->speedTime = gameLevel.time;
@@ -725,11 +907,13 @@ static void G_Ai_Probe_Think_position(const GameClient *cl, GameAiProbeClient *c
     }
   }
 
-  G_Ai_Probe_Print(cl->ps.client, "POS", "pos=%d,%d,%d speed=%d state=%s goal=%s health=%d link=%d->%d type=%d weapon=%s fire=%s armed=%d enemy=%d combat=%d water=%d ground=%d",
-                   (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                   (int32_t) speed, G_Ai_State_Name(cl), G_Ai_Probe_Objective(cl),
-                   ent->health, from, to, travelType, cl->weapon ? cl->weapon->def.classname : "none", *fire ? fire : "none",
-                   G_Ai_IsArmed(cl), enemy ? (int32_t) Vec3_Distance(ent->s.origin, combat->entity.ent->s.origin) : -1,
+  G_Ai_Probe_Print(cl->ps.client, "POS", "pos=%d,%d,%d speed=%d state=%s goal=%s health=%d "
+                   "link=%d->%d type=%d weapon=%s fire=%s armed=%d enemy=%d combat=%d water=%d "
+                   "ground=%d", AI_PROBE_VEC3(ent->s.origin), (int32_t) speed, G_Ai_State_Name(cl),
+                   G_Ai_Probe_Objective(cl), ent->health, from, to, travelType,
+                   cl->weapon ? cl->weapon->def.classname : "none", *fire ? fire : "none",
+                   G_Ai_IsArmed(cl),
+                   enemy ? (int32_t) Vec3_Distance(ent->s.origin, combat->entity.ent->s.origin) : -1,
                    enemy ? (int32_t) combat->entity.combatType : -1, ent->waterLevel, ground);
 
   c->positions[c->numPositions++ % AI_PROBE_STUCK_POSITIONS] = ent->s.origin;
@@ -742,7 +926,7 @@ static void G_Ai_Probe_Think_position(const GameClient *cl, GameAiProbeClient *c
  */
 void G_Ai_Probe_Think(const GameClient *cl) {
 
-  if (!module.file || !(g_aiProbe->integer & AI_PROBE_BOTS)) {
+  if (!G_Ai_Probe_Records(AI_PROBE_BOTS)) {
     return;
   }
 
@@ -781,7 +965,7 @@ void G_Ai_Probe_Think(const GameClient *cl) {
  */
 void G_Ai_Probe_PathEnd(const GameClient *cl, const char *reason) {
 
-  if (!module.file || !(g_aiProbe->integer & AI_PROBE_BOTS)) {
+  if (!G_Ai_Probe_Records(AI_PROBE_BOTS)) {
     return;
   }
 
@@ -791,9 +975,9 @@ void G_Ai_Probe_PathEnd(const GameClient *cl, const char *reason) {
   int32_t from, to, travelType;
   G_Ai_Probe_Link(cl, &from, &to, &travelType);
 
-  G_Ai_Probe_Print(cl->ps.client, "PATHEND", "reason=%s pos=%d,%d,%d vel=%d,%d,%d ground=%d goalType=%d link=%d->%d index=%u/%u goal=%s",
-                   reason, (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                   (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
+  G_Ai_Probe_Print(cl->ps.client, "PATHEND", "reason=%s pos=%d,%d,%d vel=%d,%d,%d ground=%d "
+                   "goalType=%d link=%d->%d index=%u/%u goal=%s", reason,
+                   AI_PROBE_VEC3(ent->s.origin), AI_PROBE_VEC3(ent->velocity),
                    ent->ground.ent != NULL, goal->type, from, to,
                    goal->type == AI_GOAL_PATH ? goal->path.pathIndex : 0,
                    goal->type == AI_GOAL_PATH && goal->path.path ? (uint32_t) goal->path.path->count : 0,
@@ -810,12 +994,13 @@ void G_Ai_Probe_PathEnd(const GameClient *cl, const char *reason) {
 void G_Ai_Probe_Gate(const char *name, const int32_t numButtons, const int32_t numSources, const int32_t numDoors,
                      const uint32_t openMillis) {
 
-  if (!module.file || !(g_aiProbe->integer & AI_PROBE_BOTS)) {
+  if (!G_Ai_Probe_Records(AI_PROBE_BOTS)) {
     return;
   }
 
-  G_Ai_Probe_Print(-1, "GATE", "name=%s buttons=%d sources=%d doors=%d open=%d", G_Ai_Probe_Token(name), numButtons, numSources,
-                   numDoors, openMillis == UINT32_MAX ? -1 : (int32_t) openMillis);
+  G_Ai_Probe_Print(-1, "GATE", "name=%s buttons=%d sources=%d doors=%d open=%d",
+                   G_Ai_Probe_Token(name), numButtons, numSources, numDoors,
+                   openMillis == UINT32_MAX ? -1 : (int32_t) openMillis);
 }
 
 /**
@@ -823,13 +1008,14 @@ void G_Ai_Probe_Gate(const char *name, const int32_t numButtons, const int32_t n
  */
 void G_Ai_Probe_GateUse(const GameClient *cl, const char *name, const char *result) {
 
-  if (!module.file || !(g_aiProbe->integer & AI_PROBE_BOTS)) {
+  if (!G_Ai_Probe_Records(AI_PROBE_BOTS)) {
     return;
   }
 
-  G_Ai_Probe_Print(cl->ps.client, "GATEUSE", "name=%s result=%s pos=%d,%d,%d goal=%s", G_Ai_Probe_Token(name), result,
-                   (int32_t) cl->entity->s.origin.x, (int32_t) cl->entity->s.origin.y,
-                   (int32_t) cl->entity->s.origin.z, G_Ai_Probe_Objective(cl));
+  G_Ai_Probe_Print(cl->ps.client, "GATEUSE", "name=%s result=%s pos=%d,%d,%d goal=%s",
+                   G_Ai_Probe_Token(name), result, (int32_t) cl->entity->s.origin.x,
+                   (int32_t) cl->entity->s.origin.y, (int32_t) cl->entity->s.origin.z,
+                   G_Ai_Probe_Objective(cl));
 }
 
 /**
@@ -837,12 +1023,12 @@ void G_Ai_Probe_GateUse(const GameClient *cl, const char *name, const char *resu
  */
 void G_Ai_Probe_ItemTaken(const GameClient *cl, const GameEntity *item) {
 
-  if (!module.file || !(g_aiProbe->integer & (cl->ai ? AI_PROBE_BOTS : AI_PROBE_PLAYERS))) {
+  if (!G_Ai_Probe_Records(cl->ai ? AI_PROBE_BOTS : AI_PROBE_PLAYERS)) {
     return;
   }
 
-  G_Ai_Probe_Print(cl->ps.client, "PICKUP", "item=%s number=%d pos=%d,%d,%d", item->classname, item->s.number,
-                   (int32_t) item->s.origin.x, (int32_t) item->s.origin.y, (int32_t) item->s.origin.z);
+  G_Ai_Probe_Print(cl->ps.client, "PICKUP", "item=%s number=%d pos=%d,%d,%d", item->classname,
+                   item->s.number, AI_PROBE_VEC3(item->s.origin));
 }
 
 /**
@@ -850,7 +1036,7 @@ void G_Ai_Probe_ItemTaken(const GameClient *cl, const GameEntity *item) {
  */
 void G_Ai_Probe_ClientMove(const GameClient *cl, const PMoveCmd *cmd) {
 
-  if (!module.file || !(g_aiProbe->integer & AI_PROBE_PLAYERS)) {
+  if (!G_Ai_Probe_Records(AI_PROBE_PLAYERS)) {
     return;
   }
 
@@ -863,11 +1049,10 @@ void G_Ai_Probe_ClientMove(const GameClient *cl, const PMoveCmd *cmd) {
   GameAiProbeClient *c = G_Ai_Probe_Client(cl);
   const int32_t node = G_Ai_Probe_Visit(cl, c);
 
-  G_Ai_Probe_Print(cl->ps.client, "CMD", "node=%d pos=%d,%d,%d vel=%d,%d,%d angles=%.1f,%.1f move=%d,%d,%d msec=%d "
-                   "ground=%d water=%d buttons=%d",
-                   node, (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                   (int32_t) ent->velocity.x, (int32_t) ent->velocity.y, (int32_t) ent->velocity.z,
-                   cl->angles.y, cl->angles.x, cmd->forward, cmd->right, cmd->up, cmd->msec,
+  G_Ai_Probe_Print(cl->ps.client, "CMD", "node=%d pos=%d,%d,%d vel=%d,%d,%d angles=%.1f,%.1f "
+                   "move=%d,%d,%d msec=%d ground=%d water=%d buttons=%d", node,
+                   AI_PROBE_VEC3(ent->s.origin), AI_PROBE_VEC3(ent->velocity), cl->angles.y,
+                   cl->angles.x, cmd->forward, cmd->right, cmd->up, cmd->msec,
                    ent->ground.ent != NULL, ent->waterLevel, cmd->buttons);
 }
 
@@ -876,24 +1061,23 @@ void G_Ai_Probe_ClientMove(const GameClient *cl, const PMoveCmd *cmd) {
  */
 void G_Ai_Probe_Killed(const GameClient *cl, const GameEntity *attacker, const uint32_t mod) {
 
-  if (!module.file || !(g_aiProbe->integer & (AI_PROBE_BOTS | AI_PROBE_PLAYERS))) {
+  if (!G_Ai_Probe_Records(AI_PROBE_BOTS | AI_PROBE_PLAYERS)) {
     return;
   }
 
   const GameEntity *ent = cl->entity;
   const GameClient *killer = attacker && attacker->client ? attacker->client : NULL;
 
-  G_Ai_Probe_Print(cl->ps.client, "KILL", "attacker=%d mod=%u weapon=%s range=%d pos=%d,%d,%d bot=%d attackerBot=%d",
-                   killer ? killer->ps.client : -1, mod,
+  G_Ai_Probe_Print(cl->ps.client, "KILL", "attacker=%d mod=%u weapon=%s range=%d pos=%d,%d,%d "
+                   "bot=%d attackerBot=%d", killer ? killer->ps.client : -1, mod,
                    killer && killer->weapon ? killer->weapon->def.classname : "none",
                    killer ? (int32_t) Vec3_Distance(ent->s.origin, killer->entity->s.origin) : -1,
-                   (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                   cl->ai != NULL, killer && killer->ai);
+                   AI_PROBE_VEC3(ent->s.origin), cl->ai != NULL, killer && killer->ai);
 
   GameAiProbeClient *c = G_Ai_Probe_Client(cl);
   c->visitNode = -1;
 
-  if (!cl->ai || !(g_aiProbe->integer & AI_PROBE_BOTS)) {
+  if (!cl->ai || !G_Ai_Probe_Records(AI_PROBE_BOTS)) {
     return;
   }
 
@@ -901,8 +1085,8 @@ void G_Ai_Probe_Killed(const GameClient *cl, const GameEntity *attacker, const u
   G_Ai_Probe_Link(cl, &from, &to, &travelType);
 
   G_Ai_Probe_Print(cl->ps.client, "DEATH", "pos=%d,%d,%d water=%d link=%d->%d type=%d goal=%s",
-                   (int32_t) ent->s.origin.x, (int32_t) ent->s.origin.y, (int32_t) ent->s.origin.z,
-                   ent->waterLevel, from, to, travelType, G_Ai_Probe_Objective(cl));
+                   AI_PROBE_VEC3(ent->s.origin), ent->waterLevel, from, to, travelType,
+                   G_Ai_Probe_Objective(cl));
   G_Ai_Probe_History(cl, "death");
 
   c->numPositions = 0;
