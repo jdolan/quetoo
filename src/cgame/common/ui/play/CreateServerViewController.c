@@ -40,6 +40,7 @@ static void botsDidEndEditing(TextView *textView) {
     cgi.SetCvarInteger("sv_minClients", atoi(string->chars) + 1);
   } else {
     cgi.SetCvarString("sv_minClients", "default");
+    $(textView, setDefaultText, NULL);
   }
 }
 
