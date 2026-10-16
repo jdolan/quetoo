@@ -430,6 +430,11 @@ void R_DrawSprites(const RenderView *view, RenderPass *pass) {
       batchSize++;
     }
 
+    if (developer->value && R_CulludeBox(view, batchBounds)) {
+      i += batchSize;
+      continue;
+    }
+
     RenderSpriteLocals locals = { 0 };
     R_ActiveDynamicLights(view, batchBounds, &locals.activeDynamicLights);
     $(commands, pushVertexUniformData, SLOT_UNIFORMS_LOCALS, &locals, sizeof(locals));
