@@ -137,6 +137,7 @@
 		552ED498920A44B77CEAEC2E /* DemosViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B494B9785D852307F27967A /* DemosViewController.c */; };
 		55ECBA76D3FED12161978AAF /* DemosViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B494B9785D852307F27967A /* DemosViewController.c */; };
 		5638E4EA8D41AFE5849D7894 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
+		526E8E96F956C4105DE5EE22 /* ItemTimerView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7460F457CA7284873B6B7FDD /* ItemTimerView.c */; };
 		56AC1EB89F50309A3C1E9C4B /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
 		5810CED851DC85CBFF9ED038 /* CounterView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D77AADBD995ED68B8CFA201 /* CounterView.json */; };
 		5A41D1910F5ECC29544A0261 /* ChaseView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1C923406FE86A096F618B0A6 /* ChaseView.c */; };
@@ -166,6 +167,7 @@
 		7F60EB773A4C8F99836FB0C2 /* cg_portal.c in Sources */ = {isa = PBXBuildFile; fileRef = E960839170EAFC21DD702B32 /* cg_portal.c */; };
 		7F8DDFA7DCEDCE753F01C436 /* CameraControlsView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = F832961157041452B1D76143 /* CameraControlsView.json */; };
 		814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
+		14DD3D004AD792574857585A /* ItemTimerView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7460F457CA7284873B6B7FDD /* ItemTimerView.c */; };
 		8236B95B2330D9D30937F121 /* g_ai_profile.c in Sources */ = {isa = PBXBuildFile; fileRef = 24CBFB8B8E393C7A86B6F94A /* g_ai_profile.c */; };
 		8384218FD11548C58EB5CC4C /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		863226968B6B482FB9B13CD1 /* PingView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5624F1C74F4646918DA71088 /* PingView.c */; };
@@ -177,6 +179,7 @@
 		8B1140063C9B27E1D3035623 /* ChatView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 7CE0633BA281A5303C6F4A6C /* ChatView.json */; };
 		8C2222B66C5893E999A00A1D /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
 		8DEB3D3652F455759D3ECC1B /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
+		E96D0938AC80E3D3C5B49544 /* ItemTimerView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7460F457CA7284873B6B7FDD /* ItemTimerView.c */; };
 		8EF87DE8E42CB34AC627912E /* DemosViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B494B9785D852307F27967A /* DemosViewController.c */; };
 		8F85DBADFFE9C53563BB805B /* StageView.c in Sources */ = {isa = PBXBuildFile; fileRef = C412F8050FB26E0D40018D29 /* StageView.c */; };
 		91B39671CA4F375D3FEBBDA0 /* DemosCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */; };
@@ -1183,6 +1186,7 @@
 		CEE13C15293241970075585D /* r_shadow.c in Sources */ = {isa = PBXBuildFile; fileRef = CEE13C13293241970075585D /* r_shadow.c */; };
 		CEE13C16293241970075585D /* r_shadow.h in Headers */ = {isa = PBXBuildFile; fileRef = CEE13C14293241970075585D /* r_shadow.h */; };
 		CEE21B7B45DA97BAA8A5395F /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
+		19D10ECF427DC93790501A5F /* ItemTimerView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7460F457CA7284873B6B7FDD /* ItemTimerView.c */; };
 		CEE3A0F421EE2B3F0070FD3E /* tests.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6DC1C5C58C300CD0B13 /* tests.c */; };
 		CEE3A10521EE2BAA0070FD3E /* libcollision.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FE381C5E421900A21A51 /* libcollision.a */; };
 		CEEEEEA82F9EF1FA00665A30 /* HomeViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CEEEEEA72F9EF1BC00665A30 /* HomeViewController.css */; };
@@ -2327,6 +2331,7 @@
 		9C56DC135154CED4C2498031 /* SpectatorView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SpectatorView.h; sourceTree = "<group>"; };
 		9CA6BC01A9434CCDBF23E8C0 /* StatView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StatView.c; sourceTree = "<group>"; };
 		9EB3BF772B595B2E11DA92E7 /* TimeView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TimeView.h; sourceTree = "<group>"; };
+		3494245DD788522E06772B19 /* ItemTimerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ItemTimerView.h; sourceTree = "<group>"; };
 		A2AC5066CAE474DC8C332F7E /* StageView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StageView.h; sourceTree = "<group>"; };
 		A499587CCAB9D1B603E5A857 /* StageView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = StageView.json; sourceTree = "<group>"; };
 		A59EB892C12DF10ACA8253DD /* CounterView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CounterView.c; sourceTree = "<group>"; };
@@ -2359,6 +2364,7 @@
 		C8249BF99F0E4A2D77D37865 /* CrosshairView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrosshairView.h; sourceTree = "<group>"; };
 		C853849AF0A2CC2F7C531245 /* PowerupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerupView.h; sourceTree = "<group>"; };
 		C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TimeView.c; sourceTree = "<group>"; };
+		7460F457CA7284873B6B7FDD /* ItemTimerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ItemTimerView.c; sourceTree = "<group>"; };
 		CE04EF9325CA0EE400C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE04EFC125CA0F7D00C31433 /* Makefile.am */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = Makefile.am; sourceTree = "<group>"; };
 		CE04FB1725CEDCD400C31433 /* net_http_server.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = net_http_server.h; sourceTree = "<group>"; };
@@ -3746,7 +3752,9 @@
 				740BEA7DBF2B020A6D1B29C7 /* TeamBannerView.h */,
 				A73DD77B1D5B8231028B01FA /* TeamBannerView.c */,
 				9EB3BF772B595B2E11DA92E7 /* TimeView.h */,
+				3494245DD788522E06772B19 /* ItemTimerView.h */,
 				C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */,
+				7460F457CA7284873B6B7FDD /* ItemTimerView.c */,
 				CEAF01CE0000000000000006 /* VoiceView.h */,
 				CEAF01CE0000000000000001 /* VoiceView.c */,
 				CEBF01CE0000000000000001 /* VoiceView.json */,
@@ -6966,6 +6974,7 @@
 				4DA60E0E0E86520782FCF112 /* DemoControlsView.c in Sources */,
 				D584EC3FC9B74B2DB6B8FE92 /* PingView.c in Sources */,
 				814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */,
+				14DD3D004AD792574857585A /* ItemTimerView.c in Sources */,
 				39FADC0544F1D2D0BAF1CF06 /* WeaponBarView.c in Sources */,
 				C5BD795EA472E6C067A6EB72 /* BlendView.c in Sources */,
 				78BFCA151AAC14630B15208D /* CenterPrintView.c in Sources */,
@@ -7141,6 +7150,7 @@
 				4932286FA54FFE0479DD188C /* DemoControlsView.c in Sources */,
 				B8A5AAD33BD44C1EA2F1800F /* PingView.c in Sources */,
 				5638E4EA8D41AFE5849D7894 /* TimeView.c in Sources */,
+				526E8E96F956C4105DE5EE22 /* ItemTimerView.c in Sources */,
 				DD02E1ABB673209C4A8D0EFC /* WeaponBarView.c in Sources */,
 				9B67395438D49AA25C710A4A /* BlendView.c in Sources */,
 				0D717FD0F554D48A47A4C2A9 /* CenterPrintView.c in Sources */,
@@ -7629,6 +7639,7 @@
 				4F0FA3FF26DFBC1FF49D2A63 /* DemoControlsView.c in Sources */,
 				863226968B6B482FB9B13CD1 /* PingView.c in Sources */,
 				CEE21B7B45DA97BAA8A5395F /* TimeView.c in Sources */,
+				19D10ECF427DC93790501A5F /* ItemTimerView.c in Sources */,
 				E10D01F620BB74E4166A8E7F /* WeaponBarView.c in Sources */,
 				C1A592C4D259F42E82027392 /* BlendView.c in Sources */,
 				56AC1EB89F50309A3C1E9C4B /* CenterPrintView.c in Sources */,
@@ -7859,6 +7870,7 @@
 				86605B56F326AB08CF8B574D /* DemoControlsView.c in Sources */,
 				AD9B2D464FD840D5A031FC6A /* PingView.c in Sources */,
 				8DEB3D3652F455759D3ECC1B /* TimeView.c in Sources */,
+				E96D0938AC80E3D3C5B49544 /* ItemTimerView.c in Sources */,
 				5D26ECD45D3B9CEDA1FCE596 /* WeaponBarView.c in Sources */,
 				6681071D48F7B492ADC27385 /* BlendView.c in Sources */,
 				68FBD5DEAC1FB3CC3C2322D5 /* CenterPrintView.c in Sources */,

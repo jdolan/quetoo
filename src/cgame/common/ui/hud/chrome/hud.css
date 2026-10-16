@@ -250,6 +250,57 @@
   color: #8fc7dc;
 }
 
+/* The clock sits top center, where a glance finds it, with the item timers below it */
+
+#clock {
+  alignment: top-center;
+  autoresizing-mask: contain;
+  padding-top: 12;
+  spacing: 8;
+}
+
+#hud #clock CounterView {
+  alignment: center;
+}
+
+#hud #clock CounterView > .caption {
+  alignment: center;
+}
+
+#hud #clock CounterView > .value {
+  alignment: center;
+}
+
+#hud #clock #time .number {
+  font-size: 32;
+}
+
+#itemTimers {
+  alignment: center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 8;
+}
+
+/* The item timers belong to the clock, so they go bare as it does, rather than on the powerup card */
+
+#hud #itemTimers ItemTimerView {
+  background-color: #00000000;
+  background-gradient-color: #00000000;
+  corner-cut: 0 0 0 0;
+  padding: 0 6 0 6;
+  spacing: 6;
+}
+
+#hud #itemTimers ImageView {
+  width: 32;
+  height: 32;
+}
+
+#hud #itemTimers .number {
+  font-size: 22;
+}
+
 /* The weapon bar runs up the right edge, each slot cut on its bottom left */
 
 #weaponBar {
@@ -301,9 +352,12 @@
   background-gradient-angle: 90;
 }
 
+/* The clock holds the top center, so the pickup and the spectator line sit below it */
+
 #pickup {
   alignment: top-center;
   autoresizing-mask: contain;
+  padding-top: 128;
 }
 
 #pickup > PickupView {
@@ -422,7 +476,7 @@ ChatView TextView > Text {
 #hud #spectatorAnchor {
   alignment: top-center;
   autoresizing-mask: contain;
-  padding-top: 32;
+  padding-top: 128;
 }
 
 #hud #spectator {

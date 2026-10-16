@@ -25,15 +25,16 @@
 
 /**
  * @file
- * @brief The match clock, from the `CS_TIME` config string.
+ * @brief The match clock, from the `CS_TIME` or `CS_TIME_UP` config string.
  */
 
 typedef struct TimeView TimeView;
 typedef struct TimeViewInterface TimeViewInterface;
 
 /**
- * @brief The match clock, from the `CS_TIME` config string, captioned like the counters
- * beside it.
+ * @brief The match clock, captioned like the counters beside it.
+ * @details `cg_drawTime` selects `CS_TIME`, which counts down to the time limit, or
+ * `CS_TIME_UP`, which counts up from the start of the level. It hides if `cg_drawTime` is 0.
  * @remarks The server leads the string with `^7` for neutral, which would defeat the
  * stylesheet's color, so that one escape is dropped; the `^2` countdown flash is kept.
  * @extends CounterView

@@ -150,17 +150,23 @@ static bool G_ItemRestoreOrigin(GameEntity *ent) {
 }
 
 /**
+ * @return The entity that respawns in place of the given one: the next of its team, or itself.
+ */
+static GameEntity *G_ItemRespawnTarget(GameEntity *ent) {
+
+  if (ent->team) {
+    return ent->teamNext ?: ent->teamMaster;
+  }
+
+  return ent;
+}
+
+/**
  * @brief Think function that respawns an item entity after its delay expires.
  */
 static void G_ItemRespawn(GameEntity *ent) {
 
-  if (ent->team) {
-    if (ent->teamNext) {
-      ent = ent->teamNext;
-    } else {
-      ent = ent->teamMaster;
-    }
-  }
+  ent = G_ItemRespawnTarget(ent);
 
   ent->serverFlags &= ~SVF_NO_CLIENT;
   ent->solid = SOLID_TRIGGER;
@@ -218,6 +224,65 @@ void G_SetItemRespawn(GameEntity *ent, uint32_t delay) {
   G_ItemRestoreOrigin(ent);
 
   gi.LinkEntity(ent);
+}
+
+/**
+ * @return The `CS_ITEM_TIMER_*` config string that times the given item, or 0 if none does.
+ */
+static int32_t G_ItemTimer(const GameItem *item) {
+
+  switch (item->def.tag) {
+    case HEALTH_MEGA:
+    case HEALTH_QUAKE_MEGA:
+      return CS_ITEM_TIMER_MEGA;
+    case POWERUP_QUAD:
+      return CS_ITEM_TIMER_QUAD;
+    case POWERUP_INVULNERABILITY:
+      return CS_ITEM_TIMER_INVULNERABILITY;
+    case POWERUP_INVISIBILITY:
+      return CS_ITEM_TIMER_INVISIBILITY;
+    default:
+      return 0;
+  }
+}
+
+/**
+ * @brief Publishes the seconds until the next mega health and each powerup respawns, to the
+ * `CS_ITEM_TIMER_*` config strings. A config string is empty if no such item is pending, or if
+ * `g_itemTimers` is off.
+ */
+void G_RunItemTimers(void) {
+  uint32_t respawns[CS_ITEM_TIMER_INVISIBILITY - CS_ITEM_TIMER_MEGA + 1];
+
+  for (size_t i = 0; i < lengthof(respawns); i++) {
+    respawns[i] = UINT32_MAX;
+  }
+
+  if (g_itemTimers->integer) {
+    G_ForEachEntity(ent, {
+
+      if (!ent->item || ent->Think != G_ItemRespawn || !ent->nextThink) {
+        continue;
+      }
+
+      const int32_t timer = G_ItemTimer(G_ItemRespawnTarget(ent)->item);
+      if (timer) {
+        uint32_t *respawn = &respawns[timer - CS_ITEM_TIMER_MEGA];
+        if (ent->nextThink < *respawn) {
+          *respawn = ent->nextThink;
+        }
+      }
+    });
+  }
+
+  for (size_t i = 0; i < lengthof(respawns); i++) {
+    if (respawns[i] == UINT32_MAX) {
+      gi.SetConfigString(CS_ITEM_TIMER_MEGA + (int32_t) i, NULL);
+    } else {
+      const uint32_t millis = respawns[i] > gameLevel.time ? respawns[i] - gameLevel.time : 0;
+      gi.SetConfigString(CS_ITEM_TIMER_MEGA + (int32_t) i, va("%u", (millis + 999) / 1000));
+    }
+  }
 }
 
 /**

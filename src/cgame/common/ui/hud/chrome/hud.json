@@ -92,16 +92,39 @@
               "identifier": "deaths",
               "caption": "Deaths",
               "stat": "deaths"
-            },
-            {
-              "classNames": [
-                "divider"
-              ]
-            },
+            }
+          ]
+        },
+        {
+          "class": "StackView",
+          "identifier": "clock",
+          "subviews": [
             {
               "class": "TimeView",
               "identifier": "time",
               "caption": "Time"
+            },
+            {
+              "class": "StackView",
+              "identifier": "itemTimers",
+              "subviews": [
+                {
+                  "class": "ItemTimerView",
+                  "item": "mega"
+                },
+                {
+                  "class": "ItemTimerView",
+                  "item": "quad"
+                },
+                {
+                  "class": "ItemTimerView",
+                  "item": "invulnerability"
+                },
+                {
+                  "class": "ItemTimerView",
+                  "item": "invisibility"
+                }
+              ]
             }
           ]
         },

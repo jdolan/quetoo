@@ -34,6 +34,16 @@ static View *init(View *self) {
   return (View *) $((CounterView *) self, initWithCaption, NULL, COUNTER_VIEW_NO_STAT);
 }
 
+/**
+ * @see View::updateBindings(View *, ident)
+ */
+static void updateBindings(View *self, ident data) {
+
+  $(self, setVisibility, cg_drawTime->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
+
+  super(View, self, updateBindings, data);
+}
+
 #pragma mark - CounterView
 
 /**
@@ -41,7 +51,7 @@ static View *init(View *self) {
  */
 static const char *textForFrame(CounterView *self, const ClientFrame *frame) {
 
-  const char *time = cgi.ConfigString(CS_TIME);
+  const char *time = cgi.ConfigString(cg_drawTime->integer == 2 ? CS_TIME_UP : CS_TIME);
 
   if (time[0] == '^' && time[1] == '7') {
     return time + 2;
@@ -54,6 +64,7 @@ static const char *textForFrame(CounterView *self, const ClientFrame *frame) {
 
 static void initialize(Class *clazz) {
   ((ViewInterface *) clazz->interface)->init = init;
+  ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
   ((CounterViewInterface *) clazz->interface)->textForFrame = textForFrame;
 }
 

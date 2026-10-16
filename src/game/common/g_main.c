@@ -167,6 +167,7 @@ Cvar *g_deathCamHeight;
 Cvar *g_deathCamRise;
 Cvar *g_deathCamTime;
 Cvar *g_deathCamVelocity;
+Cvar *g_itemTimers;
 Cvar *g_motd;
 Cvar *g_numTeams;
 Cvar *g_password;
@@ -1199,6 +1200,7 @@ void G_Init(void) {
   g_deathCamTime = gi.AddCvar("g_deathCamTime", "800", 0, "Time in milliseconds for the death camera to settle.");
   g_deathCamVelocity = gi.AddCvar("g_deathCamVelocity", "0.25", 0, "Fraction of the player's velocity inherited by the death camera.");
   g_numTeams = gi.AddCvar("g_numTeams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
+  g_itemTimers = gi.AddCvar("g_itemTimers", "1", CVAR_SERVER_INFO, "Publishes the time until the mega health and each powerup respawns, for the HUD.");
   g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");
   g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");
   g_playerProjectile = gi.AddCvar("g_playerProjectile", "1", CVAR_SERVER_INFO, "Scales player velocity to projectiles.");
@@ -1280,6 +1282,11 @@ void G_RunTimers(void) {
 
   if (gameLevel.frameNum % QUETOO_TICK_RATE == 0) { // send time updates once per second
     gi.SetConfigString(CS_TIME, G_FormatTime(time));
+
+    const uint32_t seconds = gameLevel.time / 1000;
+    gi.SetConfigString(CS_TIME_UP, va("%2u:%02u", seconds / 60, seconds % 60));
+
+    G_RunItemTimers();
   }
 }
 

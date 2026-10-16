@@ -177,6 +177,7 @@ static void loadView(ViewController *self) {
 
   Slider *crosshairScale;
   Slider *crosshairAlpha;
+  Select *time;
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("crosshairSelect", &this->crosshair),
@@ -185,7 +186,8 @@ static void loadView(ViewController *self) {
     MakeOutlet("crosshairScale", &crosshairScale),
     MakeOutlet("crosshairHealth", &this->crosshairHealth),
     MakeOutlet("crosshairView", &this->crosshairView),
-    MakeOutlet("hudSelect", &this->hud)
+    MakeOutlet("hudSelect", &this->hud),
+    MakeOutlet("timeSelect", &time)
   );
 
   $(self->view, resolve, outlets);
@@ -222,6 +224,10 @@ static void loadView(ViewController *self) {
 
   this->crosshairColorPicker->delegate.self = this;
   this->crosshairColorPicker->delegate.didPickColor = didPickCrosshairColor;
+
+  $(time, addOption, "Off", (ident) 0);
+  $(time, addOption, "Count down", (ident) 1);
+  $(time, addOption, "Count up", (ident) 2);
 
   this->hud->comparator = sortAlphabetical;
   cgi.EnumerateFiles("ui/hud/*", enumerateHuds, this->hud);

@@ -55,6 +55,7 @@ extern Cvar *cg_drawPing;
 extern Cvar *cg_drawPingWarn;
 extern Cvar *cg_hud;
 extern Cvar *cg_drawTargetName;
+extern Cvar *cg_drawTime;
 extern Cvar *cg_drawWeapon;
 extern Cvar *cg_drawWeaponAlpha;
 extern Cvar *cg_drawWeaponBob;

@@ -327,6 +327,19 @@
                         "class": "Input",
                         "label": {
                           "text": {
+                            "text": "Show clock"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSelect",
+                          "identifier": "timeSelect",
+                          "var": "cg_drawTime"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
                             "text": "Pulse low vitals"
                           }
                         },

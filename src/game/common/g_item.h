@@ -53,6 +53,7 @@
   bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const GameItem **drop,
                             const GameItem **give, int16_t *count);
   void G_PrecacheItem(const GameItem *it);
+  void G_RunItemTimers(void);
   void G_SetItemRespawn(GameEntity *ent, uint32_t delay);
   void G_SpawnItem(GameEntity *ent, const GameItem *item);
   bool G_SetAmmo(GameClient *cl, const GameItem *item, int16_t count);

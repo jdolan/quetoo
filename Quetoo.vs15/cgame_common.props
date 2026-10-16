@@ -167,6 +167,8 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\ScoreView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\IntermissionView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\IntermissionView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\hud\ItemTimerView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\hud\ItemTimerView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\ScoreboardView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\ScoreboardView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\SpectatorView.c" />
