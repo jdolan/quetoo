@@ -190,18 +190,6 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Secondary attack"
-                          }
-                        },
-                        "control": {
-                          "class": "BindTextView",
-                          "bind": "+attack2"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
                             "text": "Next weapon"
                           }
                         },
