@@ -252,6 +252,7 @@
  * that target them, which a bot touches to spring the trap under an enemy.
  */
 typedef struct {
+  const char *name;
   const GameEntity *doors[AI_TRAP_DOORS];
   int32_t numDoors;
   const GameEntity *buttons[AI_TRAP_BUTTONS];
@@ -808,6 +809,20 @@ static void G_Ai_SetObjective(GameClient *cl, const GameEntity *ent, const GameA
 }
 
 /**
+ * @brief Switches the bot to the state from now, and forgets the button that it shoots.
+ */
+static void G_Ai_SwitchState(GameClient *cl, const GameAiStateId state) {
+
+  GameAi *ai = cl->ai;
+
+  G_Ai_Debug("%s: %s -> %s\n", cl->persistent.netName, stateNames[ai->state], stateNames[state]);
+
+  ai->state = state;
+  ai->stateTime = gameLevel.time;
+  ai->shootTarget = NULL;
+}
+
+/**
  * @brief Enters the state, and clears the move target so that the state sets its own.
  */
 static void G_Ai_Enter(GameClient *cl, const GameAiStateId state) {
@@ -818,13 +833,10 @@ static void G_Ai_Enter(GameClient *cl, const GameAiStateId state) {
     return;
   }
 
-  G_Ai_Debug("%s: %s -> %s\n", cl->persistent.netName, stateNames[ai->state], stateNames[state]);
+  G_Ai_SwitchState(cl, state);
 
-  ai->state = state;
-  ai->stateTime = gameLevel.time;
   ai->reviewTime = ai->reviewedTime = 0;
   ai->statePathed = false;
-  ai->shootTarget = NULL;
 
   G_Ai_ClearGoal(&ai->moveTarget);
 }
@@ -834,6 +846,27 @@ static void G_Ai_Enter(GameClient *cl, const GameAiStateId state) {
  */
 static void G_Ai_Resume(GameClient *cl) {
   G_Ai_Enter(cl, G_Ai_State_Objective(cl) ? AI_STATE_COLLECT : AI_STATE_ROAM);
+}
+
+/**
+ * @brief Gives up the bot's objective, and avoids the item, if any, for a time.
+ */
+static void G_Ai_GiveUp(GameClient *cl, const GameEntity *item) {
+
+  if (item) {
+    G_Ai_State_Avoid(cl, item);
+  }
+
+  G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
+}
+
+/**
+ * @brief Gives up the bot's objective, avoids the item, if any, for a time, and roams.
+ */
+static void G_Ai_Abandon(GameClient *cl, const GameEntity *item) {
+
+  G_Ai_GiveUp(cl, item);
+  G_Ai_Enter(cl, AI_STATE_ROAM);
 }
 
 /**
@@ -1158,13 +1191,7 @@ static void G_Ai_State_navigate(GameClient *cl) {
   }
 
   if (ai->moveTarget.type == AI_GOAL_NONE && ai->reacquireTime > gameLevel.time) {
-    const GameEntity *objective = G_Ai_State_Objective(cl);
-
-    if (objective) {
-      G_Ai_State_Avoid(cl, objective);
-    }
-
-    G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
+    G_Ai_GiveUp(cl, G_Ai_State_Objective(cl));
     ai->reacquireTime = 0;
   }
 
@@ -1217,9 +1244,7 @@ static void G_Ai_State_navigate(GameClient *cl) {
         return;
       }
 
-      G_Ai_State_Avoid(cl, item.ent);
-      G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
-      G_Ai_Enter(cl, AI_STATE_ROAM);
+      G_Ai_Abandon(cl, item.ent);
       return;
     }
 
@@ -1242,15 +1267,13 @@ static void G_Ai_State_navigate(GameClient *cl) {
         return;
       }
 
-      G_Ai_State_Avoid(cl, objective);
-      G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
+      G_Ai_GiveUp(cl, objective);
       objective = NULL;
     }
 
     if (objective) {
       if (!G_Ai_PathTo(cl, ai->objectiveNode, objectiveUtility, objective)) {
-        G_Ai_State_Avoid(cl, objective);
-        G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
+        G_Ai_GiveUp(cl, objective);
       }
       return;
     }
@@ -1370,6 +1393,27 @@ static bool G_Ai_SpringTrap(GameClient *cl, const GameEntity *enemy) {
 }
 
 /**
+ * @return The node that the bot reaches at the least travel cost, of those that `exclude` does not
+ * match, or `AI_NODE_INVALID`.
+ */
+static GameAiNodeId G_Ai_CheapestNode(const float *costs, bool (*exclude)(const GameAiNodeId node)) {
+
+  GameAiNodeId best = AI_NODE_INVALID;
+
+  for (uint32_t i = 0; i < G_Ai_Node_Count(); i++) {
+    if (costs[i] == FLT_MAX || exclude((GameAiNodeId) i)) {
+      continue;
+    }
+
+    if (best == AI_NODE_INVALID || costs[i] < costs[best]) {
+      best = (GameAiNodeId) i;
+    }
+  }
+
+  return best;
+}
+
+/**
  * @return True if the bot, in water to its waist or deeper, takes the path to the nearest node out
  * of liquid, as a retreat with no item to go to. A retreat to an item leaves the water anyway if
  * the item is on dry land, because a path into water costs more. The bot fires on the way, because
@@ -1381,19 +1425,25 @@ static bool G_Ai_LeaveWater(GameClient *cl, const float *costs) {
     return false;
   }
 
-  GameAiNodeId best = AI_NODE_INVALID;
-
-  for (uint32_t i = 0; i < G_Ai_Node_Count(); i++) {
-    if (costs[i] == FLT_MAX || G_Ai_Node_IsLiquid((GameAiNodeId) i)) {
-      continue;
-    }
-
-    if (best == AI_NODE_INVALID || costs[i] < costs[best]) {
-      best = (GameAiNodeId) i;
-    }
-  }
+  const GameAiNodeId best = G_Ai_CheapestNode(costs, G_Ai_Node_IsLiquid);
 
   return best != AI_NODE_INVALID && G_Ai_PathTo(cl, best, AI_PURSUE_PRIORITY, NULL);
+}
+
+/**
+ * @brief Sets the bot's move target to its combat target, unless it already moves to that enemy.
+ * @return True if the move target is set.
+ */
+static bool G_Ai_MoveToEnemy(GameClient *cl) {
+
+  GameAi *ai = cl->ai;
+
+  if (ai->moveTarget.type == AI_GOAL_ENTITY && G_Ai_GoalHasEntity(&ai->moveTarget, ai->combatTarget.entity.ent)) {
+    return false;
+  }
+
+  G_Ai_CopyGoal(&ai->combatTarget, &ai->moveTarget);
+  return true;
 }
 
 /**
@@ -1437,9 +1487,7 @@ static void G_Ai_State_fight(GameClient *cl) {
     }
   }
 
-  if (ai->moveTarget.type != AI_GOAL_ENTITY || !G_Ai_GoalHasEntity(&ai->moveTarget, enemy)) {
-    G_Ai_CopyGoal(&ai->combatTarget, &ai->moveTarget);
-  }
+  G_Ai_MoveToEnemy(cl);
 }
 
 /**
@@ -1450,9 +1498,6 @@ static void G_Ai_State_fight(GameClient *cl) {
  * around the enemy and fights.
  */
 static void G_Ai_State_retreat(GameClient *cl) {
-
-  GameAi *ai = cl->ai;
-  const GameEntity *enemy = ai->combatTarget.entity.ent;
 
   if (!G_Ai_ShouldReview(cl)) {
     return;
@@ -1480,9 +1525,8 @@ static void G_Ai_State_retreat(GameClient *cl) {
     return;
   }
 
-  if (ai->moveTarget.type != AI_GOAL_ENTITY || !G_Ai_GoalHasEntity(&ai->moveTarget, enemy)) {
-    G_Ai_CopyGoal(&ai->combatTarget, &ai->moveTarget);
-    ai->moveTarget.entity.combatType = AI_COMBAT_FLANK;
+  if (G_Ai_MoveToEnemy(cl)) {
+    cl->ai->moveTarget.entity.combatType = AI_COMBAT_FLANK;
   }
 }
 
@@ -1511,9 +1555,7 @@ static void G_Ai_FailGate(GameClient *cl, GameAiGate *gate, const GameEntity *it
 
   G_Ai_Probe_GateUse(cl, gate->name, "fail");
 
-  G_Ai_State_Avoid(cl, item);
-  G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
-  G_Ai_Enter(cl, AI_STATE_ROAM);
+  G_Ai_Abandon(cl, item);
 }
 
 /**
@@ -1591,8 +1633,7 @@ static void G_Ai_State_activate(GameClient *cl) {
 
   if (!item || ai->gate < 0 || ai->gate >= module.numGates || ai->gateButton < 0 ||
       ai->gateButton >= module.gates[ai->gate].numButtons) {
-    G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
-    G_Ai_Enter(cl, AI_STATE_ROAM);
+    G_Ai_Abandon(cl, NULL);
     return;
   }
 
@@ -1639,9 +1680,7 @@ static void G_Ai_State_activate(GameClient *cl) {
 
   if (ai->moveTarget.type == AI_GOAL_NONE && !G_Ai_IsAtButton(cl, target) &&
       !G_Ai_PathTo(cl, ai->gateNode, AI_PURSUE_PRIORITY, NULL)) {
-    G_Ai_State_Avoid(cl, item);
-    G_Ai_SetObjective(cl, NULL, AI_NODE_INVALID);
-    G_Ai_Enter(cl, AI_STATE_ROAM);
+    G_Ai_Abandon(cl, item);
   }
 }
 
@@ -1675,13 +1714,7 @@ static void G_Ai_State_escape(GameClient *cl) {
     return;
   }
 
-  GameAiNodeId best = AI_NODE_INVALID;
-
-  for (uint32_t i = 0; i < G_Ai_Node_Count(); i++) {
-    if (costs[i] != FLT_MAX && !G_Ai_Node_IsHazard((GameAiNodeId) i) && (best == AI_NODE_INVALID || costs[i] < costs[best])) {
-      best = (GameAiNodeId) i;
-    }
-  }
+  const GameAiNodeId best = G_Ai_CheapestNode(costs, G_Ai_Node_IsHazard);
 
   if (best != AI_NODE_INVALID) {
     G_Ai_PathTo(cl, best, AI_PURSUE_PRIORITY, NULL);
@@ -1744,13 +1777,10 @@ static void G_Ai_Climb(GameClient *cl) {
     return;
   }
 
-  G_Ai_Debug("%s: %s -> climb\n", cl->persistent.netName, stateNames[ai->state]);
-
   ai->climbState = ai->state;
   ai->climbStateTime = ai->stateTime;
-  ai->state = AI_STATE_CLIMB;
-  ai->stateTime = gameLevel.time;
-  ai->shootTarget = NULL;
+
+  G_Ai_SwitchState(cl, AI_STATE_CLIMB);
 }
 
 /**
@@ -1931,6 +1961,88 @@ static bool G_Ai_IsTrapDoor(const GameEntity *ent) {
 }
 
 /**
+ * @return True if the entity is a button that a bot touches to spring a trap.
+ */
+static bool G_Ai_IsTrapButton(const GameEntity *ent) {
+  return ent->Touch && !Str_Compare(ent->classname, "func_button");
+}
+
+/**
+ * @return True if the entity is a door that MAY be part of a gate: a door not marked
+ * `"ai_hint" "trap"`.
+ */
+static bool G_Ai_IsGateDoor(const GameEntity *ent) {
+  return G_Ai_IsDoor(ent) && !G_Ai_IsTrapDoor(ent);
+}
+
+/**
+ * @brief Collects, up to `max`, the entities whose string at `field` is `name`, and which `accept`.
+ * @return The number of entities collected.
+ */
+static int32_t G_Ai_FindEntities(const ptrdiff_t field, const char *name, bool (*accept)(const GameEntity *ent),
+                                 const GameEntity **ents, const int32_t max) {
+
+  int32_t count = 0;
+
+  G_ForEachEntity(ent, {
+    if (count == max) {
+      break;
+    }
+
+    const char *value = *(const char **) ((const byte *) ent + field);
+
+    if (value && !Str_Compare(value, name) && accept(ent)) {
+      ents[count++] = ent;
+    }
+  });
+
+  return count;
+}
+
+/**
+ * @return The trap with the name, or NULL.
+ */
+static GameAiTrap *G_Ai_FindTrap(const char *name) {
+
+  for (int32_t i = 0; i < module.numTraps; i++) {
+    if (!Str_Compare(module.traps[i].name, name)) {
+      return &module.traps[i];
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @return The gate with the name, or NULL.
+ */
+static GameAiGate *G_Ai_FindGate(const char *name) {
+
+  for (int32_t i = 0; i < module.numGates; i++) {
+    if (!Str_Compare(module.gates[i].name, name)) {
+      return &module.gates[i];
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief Adds the trap of the doors with the `targetname`, with the buttons that target them.
+ * @return The trap, with no doors yet.
+ */
+static GameAiTrap *G_Ai_LoadTraps_create(const char *name) {
+
+  GameAiTrap *trap = &module.traps[module.numTraps++];
+  memset(trap, 0, sizeof(*trap));
+
+  trap->name = name;
+  trap->numButtons = G_Ai_FindEntities(EOFS(target), name, G_Ai_IsTrapButton, trap->buttons, AI_TRAP_BUTTONS);
+
+  return trap;
+}
+
+/**
  * @brief Finds the doors that a map marks with `"ai_hint" "trap"`, grouped by `targetname`, and the
  * buttons that a bot touches to move them.
  */
@@ -1943,13 +2055,7 @@ static void G_Ai_LoadTraps(void) {
       continue;
     }
 
-    GameAiTrap *trap = NULL;
-
-    for (int32_t j = 0; j < module.numTraps && !trap; j++) {
-      if (!Str_Compare(module.traps[j].doors[0]->targetName, ent->targetName)) {
-        trap = &module.traps[j];
-      }
-    }
+    GameAiTrap *trap = G_Ai_FindTrap(ent->targetName);
 
     if (!trap) {
       if (module.numTraps == AI_MAX_TRAPS) {
@@ -1957,23 +2063,62 @@ static void G_Ai_LoadTraps(void) {
         break;
       }
 
-      trap = &module.traps[module.numTraps++];
-      memset(trap, 0, sizeof(*trap));
-
-      for (int32_t j = 0; j < sv_maxEntities->integer; j++) {
-        const GameEntity *other = ge.entities[j];
-
-        if (other->inUse && other->target && !Str_Compare(other->target, ent->targetName) && other->Touch &&
-            !Str_Compare(other->classname, "func_button") && trap->numButtons < AI_TRAP_BUTTONS) {
-          trap->buttons[trap->numButtons++] = other;
-        }
-      }
+      trap = G_Ai_LoadTraps_create(ent->targetName);
     }
 
     if (trap->numDoors < AI_TRAP_DOORS) {
       trap->doors[trap->numDoors++] = ent;
     }
   });
+}
+
+/**
+ * @brief Adds the gate of the doors with the `targetname`, with the shortest time for which one
+ * stays activated after a press.
+ * @return The gate, with no buttons yet, or NULL if no door has the `targetname`.
+ */
+static GameAiGate *G_Ai_LoadGates_create(const char *name) {
+
+  GameAiGate *gate = &module.gates[module.numGates];
+  memset(gate, 0, sizeof(*gate));
+
+  gate->name = name;
+  gate->openMillis = UINT32_MAX;
+  gate->numDoors = G_Ai_FindEntities(EOFS(targetName), name, G_Ai_IsGateDoor, gate->doors, AI_GATE_DOORS);
+
+  if (!gate->numDoors) {
+    return NULL;
+  }
+
+  for (int32_t i = 0; i < gate->numDoors; i++) {
+    const uint32_t open = G_Ai_DoorOpenMillis(gate->doors[i]);
+
+    if (open < gate->openMillis) {
+      gate->openMillis = open;
+    }
+  }
+
+  module.numGates++;
+  return gate;
+}
+
+/**
+ * @brief Adds the button to the gate, with the nodes from which a bot presses it.
+ */
+static void G_Ai_LoadGates_button(GameAiGate *gate, const GameEntity *button) {
+
+  GameAiNodeId nodes[AI_BUTTON_NODES];
+  int32_t numNodes;
+
+  G_Ai_ButtonNodes(button, nodes, &numNodes);
+
+  for (int32_t i = 0; i < numNodes; i++) {
+    gate->sources[gate->numSources] = nodes[i];
+    gate->sourceButtons[gate->numSources] = gate->numButtons;
+    gate->numSources++;
+  }
+
+  gate->buttons[gate->numButtons++] = button;
 }
 
 /**
@@ -1991,13 +2136,7 @@ static void G_Ai_LoadGates(void) {
       continue;
     }
 
-    GameAiGate *gate = NULL;
-
-    for (int32_t j = 0; j < module.numGates && !gate; j++) {
-      if (!Str_Compare(module.gates[j].name, ent->target)) {
-        gate = &module.gates[j];
-      }
-    }
+    GameAiGate *gate = G_Ai_FindGate(ent->target);
 
     if (!gate) {
       if (!G_Ai_Node_HasGate(ent->target)) {
@@ -2009,48 +2148,16 @@ static void G_Ai_LoadGates(void) {
         break;
       }
 
-      gate = &module.gates[module.numGates];
-      memset(gate, 0, sizeof(*gate));
+      gate = G_Ai_LoadGates_create(ent->target);
 
-      gate->name = ent->target;
-      gate->openMillis = UINT32_MAX;
-
-      for (int32_t j = 0; j < sv_maxEntities->integer; j++) {
-        const GameEntity *other = ge.entities[j];
-
-        if (other->inUse && other->targetName && !Str_Compare(other->targetName, gate->name) &&
-            G_Ai_IsDoor(other) && !G_Ai_IsTrapDoor(other) && gate->numDoors < AI_GATE_DOORS) {
-          gate->doors[gate->numDoors++] = other;
-          const uint32_t open = G_Ai_DoorOpenMillis(other);
-          if (open < gate->openMillis) {
-            gate->openMillis = open;
-          }
-        }
-      }
-
-      if (!gate->numDoors) {
+      if (!gate) {
         continue;
       }
-
-      module.numGates++;
     }
 
-    if (gate->numButtons == AI_GATE_BUTTONS) {
-      continue;
+    if (gate->numButtons < AI_GATE_BUTTONS) {
+      G_Ai_LoadGates_button(gate, ent);
     }
-
-    GameAiNodeId nodes[AI_BUTTON_NODES];
-    int32_t numNodes;
-
-    G_Ai_ButtonNodes(ent, nodes, &numNodes);
-
-    for (int32_t j = 0; j < numNodes; j++) {
-      gate->sources[gate->numSources] = nodes[j];
-      gate->sourceButtons[gate->numSources] = gate->numButtons;
-      gate->numSources++;
-    }
-
-    gate->buttons[gate->numButtons++] = ent;
   });
 
   for (int32_t i = 0; i < module.numGates; i++) {
