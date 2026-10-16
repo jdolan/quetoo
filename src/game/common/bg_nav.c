@@ -393,17 +393,17 @@ static const Vec3i directions[] = {
 };
 
 /**
- * @return The index of the cell at the given grid coordinate, or -1 if it is outside the grid.
+ * @see bg_nav.h
  */
-static int32_t Nav_CellIndex(const Vec3i xyz) {
+int32_t Nav_CellNode(const NavGraph *graph, const Vec3i xyz) {
 
-  const Vec3i size = module.graph->size;
+  const Vec3i size = graph->size;
 
   if (xyz.x < 0 || xyz.y < 0 || xyz.z < 0 || xyz.x >= size.x || xyz.y >= size.y || xyz.z >= size.z) {
     return -1;
   }
 
-  return (xyz.z * size.y + xyz.y) * size.x + xyz.x;
+  return graph->cellNodes[(xyz.z * size.y + xyz.y) * size.x + xyz.x];
 }
 
 /**
@@ -417,11 +417,11 @@ static Vec3i Nav_CellCoordinate(const int32_t index) {
 }
 
 /**
- * @return The grid coordinate of the cell that contains the given point.
+ * @see bg_nav.h
  */
-static Vec3i Nav_PointCoordinate(const Vec3 point) {
+Vec3i Nav_PointCoordinate(const NavGraph *graph, const Vec3 point) {
 
-  const Vec3 rel = Vec3_Subtract(point, module.graph->mins);
+  const Vec3 rel = Vec3_Subtract(point, graph->mins);
 
   return MakeVec3i((int32_t) floorf(rel.x / NAV_CELL_SIZE),
                    (int32_t) floorf(rel.y / NAV_CELL_SIZE),
@@ -834,7 +834,7 @@ static int32_t Nav_NodeForOrigin(const Vec3 origin, const Vec3 start, const Vec3
   const NavGraph *graph = module.graph;
 
   const Vec3 floor = Vec3_Subtract(origin, Vec3_Scale(Vec3_Up(), -PM_BOUNDS.mins.z - NAV_CELL_HEIGHT * .5f));
-  const Vec3i xyz = Nav_PointCoordinate(floor);
+  const Vec3i xyz = Nav_PointCoordinate(graph, floor);
 
   const Box3 footprint = MakeBox3(MakeVec3(PM_BOUNDS.mins.x, PM_BOUNDS.mins.y, 0.f),
                                   MakeVec3(PM_BOUNDS.maxs.x, PM_BOUNDS.maxs.y, 0.f));
@@ -846,12 +846,12 @@ static int32_t Nav_NodeForOrigin(const Vec3 origin, const Vec3 start, const Vec3
     for (int32_t dy = -1; dy <= 1; dy++) {
       for (int32_t dx = -1; dx <= 1; dx++) {
 
-        const int32_t cell = Nav_CellIndex(MakeVec3i(xyz.x + dx, xyz.y + dy, xyz.z + dz));
-        if (cell == -1 || graph->cellNodes[cell] == -1) {
+        const int32_t n = Nav_CellNode(graph, MakeVec3i(xyz.x + dx, xyz.y + dy, xyz.z + dz));
+        if (n == -1) {
           continue;
         }
 
-        const NavNode *node = &graph->nodes[graph->cellNodes[cell]];
+        const NavNode *node = &graph->nodes[n];
         if (node->model || node->swim || fabsf(node->position.z - origin.z) > PM_STEP_HEIGHT) {
           continue;
         }
@@ -873,7 +873,7 @@ static int32_t Nav_NodeForOrigin(const Vec3 origin, const Vec3 start, const Vec3
         }
 
         bestDistance = distance;
-        best = graph->cellNodes[cell];
+        best = n;
       }
     }
   }
@@ -1440,18 +1440,20 @@ static int32_t Nav_Jump(const NavNode *node, const Vec3i direction, float *secon
   for (int32_t k = 1; k <= NAV_MAX_JUMP_CELLS; k++) {
     for (int32_t dz = -2; dz <= rise; dz++) {
 
-      const int32_t cell = Nav_CellIndex(MakeVec3i(xyz.x + direction.x * k, xyz.y + direction.y * k, xyz.z + dz));
-      if (cell == -1 || graph->cellNodes[cell] == -1) {
+      const Vec3i neighbor = MakeVec3i(xyz.x + direction.x * k, xyz.y + direction.y * k, xyz.z + dz);
+
+      const int32_t n = Nav_CellNode(graph, neighbor);
+      if (n == -1) {
         continue;
       }
 
-      const NavNode *other = &graph->nodes[graph->cellNodes[cell]];
+      const NavNode *other = &graph->nodes[n];
       if (other == node || other->model || other->crouch || (other->contents & CONTENTS_MASK_LIQUID)) {
         continue;
       }
 
       if (Nav_JumpArc(node, other, seconds)) {
-        return graph->cellNodes[cell];
+        return n;
       }
     }
   }
@@ -1570,12 +1572,12 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
     for (int32_t dy = -1; dy <= 1; dy++) {
       for (int32_t dx = -1; dx <= 1; dx++) {
 
-        const int32_t cell = Nav_CellIndex(MakeVec3i(xyz.x + dx, xyz.y + dy, xyz.z + dz));
-        if (cell == -1 || graph->cellNodes[cell] == -1 || graph->cellNodes[cell] == index) {
+        const int32_t n = Nav_CellNode(graph, MakeVec3i(xyz.x + dx, xyz.y + dy, xyz.z + dz));
+        if (n == -1 || n == index) {
           continue;
         }
 
-        const NavNode *other = &graph->nodes[graph->cellNodes[cell]];
+        const NavNode *other = &graph->nodes[n];
         if (!(other->contents & CONTENTS_MASK_LIQUID) || other->model || other->crouch || node->crouch) {
           continue;
         }
@@ -1595,7 +1597,8 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
         }
 
         const float distance = Vec3_Distance(node->position, other->position);
-        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelMillis(distance, module.speedWater), 0);
+        const int32_t time = Nav_TravelMillis(distance, module.speedWater);
+        Nav_AddLink(links, numLinks, n, NAV_TRAVEL_SWIM, time, 0);
       }
     }
   }
@@ -1605,19 +1608,19 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
     return;
   }
 
-  const Vec3i top = Nav_PointCoordinate(surface);
+  const Vec3i top = Nav_PointCoordinate(graph, surface);
   const int32_t rise = (int32_t) ceilf(module.waterJumpHeight / NAV_CELL_HEIGHT);
 
   for (int32_t dz = -1; dz <= rise; dz++) {
     for (int32_t dy = -1; dy <= 1; dy++) {
       for (int32_t dx = -1; dx <= 1; dx++) {
 
-        const int32_t cell = Nav_CellIndex(MakeVec3i(top.x + dx, top.y + dy, top.z + dz));
-        if (cell == -1 || graph->cellNodes[cell] == -1 || graph->cellNodes[cell] == index) {
+        const int32_t n = Nav_CellNode(graph, MakeVec3i(top.x + dx, top.y + dy, top.z + dz));
+        if (n == -1 || n == index) {
           continue;
         }
 
-        const NavNode *other = &graph->nodes[graph->cellNodes[cell]];
+        const NavNode *other = &graph->nodes[n];
         if ((other->contents & CONTENTS_MASK_LIQUID) || other->model || other->crouch || other->position.z <= surface.z) {
           continue;
         }
@@ -1632,7 +1635,8 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
         }
 
         const float distance = Vec3_Distance(node->position, surface) + Vec3_Distance(surface, other->position);
-        Nav_AddLink(links, numLinks, graph->cellNodes[cell], NAV_TRAVEL_SWIM, Nav_TravelMillis(distance, module.speedWater), 0);
+        const int32_t time = Nav_TravelMillis(distance, module.speedWater);
+        Nav_AddLink(links, numLinks, n, NAV_TRAVEL_SWIM, time, 0);
       }
     }
   }
@@ -1646,7 +1650,7 @@ static void Nav_LinkSwims(const int32_t index, NavLink *links, int32_t *numLinks
 static int32_t Nav_LadderNode(const Vec3 origin, const float height) {
 
   const NavGraph *graph = module.graph;
-  const Vec3i xyz = Nav_PointCoordinate(origin);
+  const Vec3i xyz = Nav_PointCoordinate(graph, origin);
   const int32_t levels = (int32_t) ceilf(height / NAV_CELL_HEIGHT) + 1;
 
   int32_t best = -1;
@@ -1656,12 +1660,12 @@ static int32_t Nav_LadderNode(const Vec3 origin, const float height) {
     for (int32_t dy = -1; dy <= 1; dy++) {
       for (int32_t dx = -1; dx <= 1; dx++) {
 
-        const int32_t cell = Nav_CellIndex(MakeVec3i(xyz.x + dx, xyz.y + dy, xyz.z + dz));
-        if (cell == -1 || graph->cellNodes[cell] == -1) {
+        const int32_t n = Nav_CellNode(graph, MakeVec3i(xyz.x + dx, xyz.y + dy, xyz.z + dz));
+        if (n == -1) {
           continue;
         }
 
-        const NavNode *node = &graph->nodes[graph->cellNodes[cell]];
+        const NavNode *node = &graph->nodes[n];
         if (node->model || fabsf(node->position.z - origin.z) > height) {
           continue;
         }
@@ -1687,7 +1691,7 @@ static int32_t Nav_LadderNode(const Vec3 origin, const float height) {
         }
 
         bestDistance = distance;
-        best = graph->cellNodes[cell];
+        best = n;
       }
     }
   }
@@ -2027,7 +2031,7 @@ static bool Nav_AddClimb(const Box3 brush, const Vec3 column, const Vec3 normal)
   const float high = brush.maxs.z - bounds.mins.z - PM_STEP_HEIGHT;
   const float reach = NAV_MAX_JUMP_CELLS * NAV_CELL_SIZE;
 
-  const Vec3i xyz = Nav_PointCoordinate(start);
+  const Vec3i xyz = Nav_PointCoordinate(graph, start);
   const int32_t below = (int32_t) ceilf(module.barrierHeight / NAV_CELL_HEIGHT);
   const int32_t above = (int32_t) ceilf((high - start.z) / NAV_CELL_HEIGHT);
 
@@ -2035,12 +2039,11 @@ static bool Nav_AddClimb(const Box3 brush, const Vec3 column, const Vec3 normal)
     for (int32_t dy = -NAV_MAX_JUMP_CELLS; dy <= NAV_MAX_JUMP_CELLS; dy++) {
       for (int32_t dx = -NAV_MAX_JUMP_CELLS; dx <= NAV_MAX_JUMP_CELLS; dx++) {
 
-        const int32_t cell = Nav_CellIndex(MakeVec3i(xyz.x + dx, xyz.y + dy, xyz.z + dz));
-        if (cell == -1 || graph->cellNodes[cell] == -1) {
+        const int32_t n = Nav_CellNode(graph, MakeVec3i(xyz.x + dx, xyz.y + dy, xyz.z + dz));
+        if (n == -1) {
           continue;
         }
 
-        const int32_t n = graph->cellNodes[cell];
         const NavNode *node = &graph->nodes[n];
 
         if (n == a || n == b || node->model || node->crouch || (node->contents & CONTENTS_MASK_LIQUID)) {
@@ -2297,12 +2300,11 @@ static int32_t Nav_LinkNode(const int32_t index, NavLink *links) {
 
       const Vec3i neighbor = MakeVec3i(xyz.x + directions[i].x, xyz.y + directions[i].y, xyz.z + dz);
 
-      const int32_t cell = Nav_CellIndex(neighbor);
-      if (cell == -1 || graph->cellNodes[cell] == -1) {
+      const int32_t target = Nav_CellNode(graph, neighbor);
+      if (target == -1) {
         continue;
       }
 
-      const int32_t target = graph->cellNodes[cell];
       const NavNode *other = &graph->nodes[target];
 
       if (other->model != node->model || other->swim) {

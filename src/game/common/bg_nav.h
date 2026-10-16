@@ -441,6 +441,18 @@ typedef struct {
 bool Nav_Build(const NavParams *params, NavGraph *graph);
 
 /**
+ * @return The grid coordinate of the graph's cell that contains `point`, which MAY be outside the
+ * grid.
+ */
+Vec3i Nav_PointCoordinate(const NavGraph *graph, const Vec3 point);
+
+/**
+ * @return The node on the floor of the graph's cell at the grid coordinate `xyz`, or floating in it,
+ * or -1 if the cell has none or is outside the grid.
+ */
+int32_t Nav_CellNode(const NavGraph *graph, const Vec3i xyz);
+
+/**
  * @return True if the graph that `Nav_Build` makes with the movement `a`, and the flights that
  * `Nav_FlyPush` flies with it, are those for the movement `b`. The build reads only the gravity and
  * the speeds of the run, the water, the crouch, the ladder, the jump and the water jump. A flight
