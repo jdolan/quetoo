@@ -288,7 +288,7 @@ static struct {
   float gravity;
   float barrierHeight;
   float waterJumpHeight;
-  int32_t capacity;
+  int32_t nodeCapacity;
 
   /**
    * @brief The movement's run speed (`PMoveParams::speedGround`), at which the build times walks and
@@ -623,11 +623,11 @@ static void Nav_AddNode(const int32_t cell, const NavNode *node) {
 
   NavGraph *graph = module.graph;
 
-  if (graph->numNodes == module.capacity) {
-    module.capacity = Maxi(1024, module.capacity * 2);
-    graph->nodes = realloc(graph->nodes, sizeof(NavNode) * module.capacity);
+  if (graph->numNodes == module.nodeCapacity) {
+    module.nodeCapacity = Maxi(1024, module.nodeCapacity * 2);
+    graph->nodes = realloc(graph->nodes, sizeof(NavNode) * module.nodeCapacity);
     if (!graph->nodes) {
-      module.params->Error(__func__, "Failed to allocate %d navigation nodes\n", module.capacity);
+      module.params->Error(__func__, "Failed to allocate %d navigation nodes\n", module.nodeCapacity);
     }
   }
 
@@ -1887,11 +1887,11 @@ static bool Nav_ClimbOver(const Vec3 top, const Vec3 over, const Box3 bounds, Ve
  * with no floor or no node across it, as a ladder that only dresses a wall has, add no climb.
  * @return True if the column climbs the ladder, as a climb added now or before.
  */
-static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal) {
+static bool Nav_AddClimb(const Box3 brush, const Vec3 column, const Vec3 normal) {
 
   const Box3 bounds = PM_BOUNDS;
-  const float lowest = ladder.mins.z - bounds.mins.z;
-  const float highest = ladder.maxs.z - bounds.mins.z + 1.f;
+  const float lowest = brush.mins.z - bounds.mins.z;
+  const float highest = brush.maxs.z - bounds.mins.z + 1.f;
 
   Vec3 start = MakeVec3(column.x, column.y, lowest);
   while (start.z < highest && Nav_Trace(start, start, bounds).startSolid) {
@@ -1923,11 +1923,11 @@ static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
     return false;
   }
 
-  if (!Nav_OnLadder(start, MakeVec3(column.x, column.y, ladder.maxs.z - bounds.mins.z - PM_STEP_HEIGHT), normal, bounds)) {
+  if (!Nav_OnLadder(start, MakeVec3(column.x, column.y, brush.maxs.z - bounds.mins.z - PM_STEP_HEIGHT), normal, bounds)) {
     return false;
   }
 
-  const float depth = fabsf(normal.x) * (ladder.maxs.x - ladder.mins.x) + fabsf(normal.y) * (ladder.maxs.y - ladder.mins.y);
+  const float depth = fabsf(normal.x) * (brush.maxs.x - brush.mins.x) + fabsf(normal.y) * (brush.maxs.y - brush.mins.y);
   const float distances[] = {
     bounds.maxs.x * 2.f + NAV_LADDER_EXIT,
     depth + bounds.maxs.x * 2.f + NAV_LADDER_EXIT
@@ -1998,7 +1998,7 @@ static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
   }
 
   const NavGraph *graph = module.graph;
-  const float high = ladder.maxs.z - bounds.mins.z - PM_STEP_HEIGHT;
+  const float high = brush.maxs.z - bounds.mins.z - PM_STEP_HEIGHT;
   const float reach = NAV_MAX_JUMP_CELLS * NAV_CELL_SIZE;
 
   const Vec3i xyz = Nav_PointCoordinate(start);
@@ -2049,12 +2049,12 @@ static bool Nav_AddClimb(const Box3 ladder, const Vec3 column, const Vec3 normal
 }
 
 /**
- * @brief Adds the face of `ladder` with the outward axial `normal` to the graph's ladders, as the
+ * @brief Adds the face of `brush` with the outward axial `normal` to the graph's ladders, as the
  * face whose climbs `Nav_AddClimb` adds next.
  * @param axis The axis of `normal`.
  * @param face The position of the face along `axis`.
  */
-static void Nav_AddLadder(const Box3 ladder, const Vec3 normal, const int32_t axis,
+static void Nav_AddLadder(const Box3 brush, const Vec3 normal, const int32_t axis,
                           const float face) {
 
   NavGraph *graph = module.graph;
@@ -2071,18 +2071,18 @@ static void Nav_AddLadder(const Box3 ladder, const Vec3 normal, const int32_t ax
 
   Vec3 center = Vec3_Zero();
   center.xyz[axis] = face + normal.xyz[axis] * (PM_BOUNDS.maxs.x + 1.f);
-  center.xyz[other] = (ladder.mins.xyz[other] + ladder.maxs.xyz[other]) * .5f;
-  center.z = ladder.mins.z - PM_BOUNDS.mins.z;
+  center.xyz[other] = (brush.mins.xyz[other] + brush.maxs.xyz[other]) * .5f;
+  center.z = brush.mins.z - PM_BOUNDS.mins.z;
 
   module.ladder = graph->numLadders;
 
   graph->ladders[graph->numLadders++] = (NavLadder) {
-    .bounds = ladder,
+    .bounds = brush,
     .normal = normal,
     .lateral = lateral,
     .center = center,
-    .halfWidth = (ladder.maxs.xyz[other] - ladder.mins.xyz[other]) * .5f,
-    .top = ladder.maxs.z - PM_BOUNDS.mins.z
+    .halfWidth = (brush.maxs.xyz[other] - brush.mins.xyz[other]) * .5f,
+    .top = brush.maxs.z - PM_BOUNDS.mins.z
   };
 }
 
