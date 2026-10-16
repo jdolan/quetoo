@@ -208,11 +208,11 @@ bool G_Ai_HasLineOfSight(const GameClient *cl, const GameEntity *other) {
 }
 
 /**
- * @brief Returns true if the AI client has line of sight to the target entity.
+ * @brief Returns true if the AI client has line of sight to the target entity, and faces it. An
+ * invisible entity is seen only within a range that grows with skill.
  */
 bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other) {
 
-  // invisible enemies are only detectable within a skill-dependent range
   if (other->s.effects & EF_INVISIBILITY) {
     const float dist = Vec3_Distance(cl->entity->s.origin, other->s.origin);
     const float detectRange = Mixf(256.f, 512.f, cl->ai->personality.skill);
@@ -220,8 +220,6 @@ bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other) {
       return false;
     }
   }
-
-  // see if we're even facing the object
 
   const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
   const Vec3 dir = Vec3_Normalize(Vec3_Subtract(other->s.origin, eyeOrigin));
@@ -450,7 +448,6 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
 
   bool blocked = tr.fraction < 1.0f;
 
-  // check for ground ahead to avoid walking off edges
   if (!blocked && ent->waterLevel < WATER_WAIST) {
     const Vec3 dropStart = end;
     const Vec3 dropEnd = Vec3_Subtract(dropStart, MakeVec3(0, 0, PM_STEP_HEIGHT * 4.f));
@@ -482,10 +479,18 @@ static inline float G_Ai_Wander(GameClient *cl, PMoveCmd *cmd) {
 }
 
 /**
- * @brief The preferred distance to a target, by the range that the weapon is made for.
+ * @brief The preferred distance to a target with a short range weapon (`WF_SHORT_RANGE`).
  */
 #define AI_RANGE_SHORT 160.f
+
+/**
+ * @brief The preferred distance to a target with a weapon made for neither short nor long range.
+ */
 #define AI_RANGE_MEDIUM 384.f
+
+/**
+ * @brief The preferred distance to a target with a long range weapon (`WF_LONG_RANGE`).
+ */
 #define AI_RANGE_LONG 640.f
 
 /**
@@ -542,8 +547,8 @@ static bool G_Ai_CanStep(const GameEntity *ent, const Vec3 dir) {
 
 /**
  * @brief Circle strafes around the combat target: sideways, plus toward or away from it to hold the
- * weapon's preferred range. It is not a strafe jump (`G_Ai_StrafeJump`). The bot reverses at intervals that shorten with skill, and when the
- * way ahead is blocked or ends at a ledge.
+ * weapon's preferred range. It is not a strafe jump (`G_Ai_StrafeJump`). The bot reverses at
+ * intervals that shorten with skill, and when the way ahead is blocked or ends at a ledge.
  * @return The point to move toward.
  */
 static Vec3 G_Ai_CircleStrafe(GameClient *cl, const GameEntity *enemy) {
@@ -837,10 +842,10 @@ static Vec3 G_Ai_PushApproach(const GameClient *cl, const GameEntity *ent, const
 /**
  * @return The aim of `G_Ai_PushApproach` at the jump pad or teleporter at the start of the AI's
  * current path link, if the link is a jump pad link or too long to walk, and the trigger lies on
- * it. A jump pad link MAY be short, as to a ledge above a vertical push. If no pad lies on
- * a jump pad link, it takes the nearest pad to its start that pushes along it, on the floor of the
- * start, because the game can link a pad from a node that lies to the side of the line to the
- * landing. Else, the given destination.
+ * it. A jump pad link MAY be short, as to a ledge above a vertical push. If no pad lies on a jump
+ * pad link, it takes the nearest pad to its start that pushes along it, on the floor of the start,
+ * because the game can link a pad from a node that lies to the side of the line to the landing.
+ * Else, the given destination.
  * @remarks A path heads for the node at the far end of the link, and so it can run past the side
  * of a small jump pad, and off the edge.
  */
@@ -1314,19 +1319,18 @@ static bool G_Ai_IsPushedOffNode(const GameClient *cl, const GameAiGoal *goal, c
 }
 
 /**
- * @brief See if we're in a good spot to keep going towards our node goal.
+ * @brief Moves the bot on to the next node of its path once it reaches the node that it moves to:
+ * once its box, widened by 8 units, holds the node, so that a node on a ledge does not make it
+ * misjudge a jump, or once a mover lifts it off the node (`G_Ai_IsLiftedOffNode`), or a jump pad
+ * launches it off the node (`G_Ai_IsPushedOffNode`).
+ * @return False if the bot reached the last node of its path.
  */
 static bool G_Ai_CheckNav(GameClient *cl, GameAiGoal *goal) {
 
-  /*
-   * The AI's bbox is expanded for collision checks. This is so
-   * nodes on ledges don't cause the bot to misjudge a jump as much.
-   */
   const Vec3 padding = { .x = 8.f, .y = 8.f, .z = 0.f };
 
   const Box3 bounds = Box3_Expand3(cl->entity->absBounds, padding);
 
-  // if we're touching our nav goal, we can go next
   if (Box3_ContainsPoint(bounds, goal->path.pathPosition)) {
     return G_Ai_AdvancePath(cl, goal);
   }
@@ -1344,21 +1348,20 @@ static bool G_Ai_CheckNav(GameClient *cl, GameAiGoal *goal) {
 
 /**
  * @brief Updates the distress counter for a goal and returns false if the goal should be abandoned.
- * A bot on a ladder does not count a blocked view of its next node, which the lip of the floor over
- * the ladder hides until the bot reaches the top. The bot is closing in if it comes nearer `dest`,
- * and the caller passes the top of a ladder link as `dest`, not the point that the bot steers to,
+ * A bot that closes in on `dest` halves its distress, and one that does not gains distress, less in
+ * liquid, and more if its view of the goal is blocked. A bot with no goal, which wanders, gains
+ * distress only when it is stuck (`G_Ai_Move_stuck`). A bot on a ladder does not count a blocked
+ * view of its next node, which the lip of the floor over the ladder hides until the bot reaches the
+ * top. The caller passes the top of a ladder link as `dest`, not the point that the bot steers to,
  * which stays the same distance ahead of it.
  */
 static bool G_Ai_GoalDistress(GameClient *cl, GameAiGoal *goal, const Vec3 dest) {
   const float pathDist = Vec3_Distance(cl->entity->s.origin, dest);
 
-  // wander's distress is handled elsewhere
   if (goal->type) {
-    // closing in
     if (pathDist < goal->lastDistance) {
       goal->lastDistance = pathDist;
       goal->distress /= 2;
-    // getting further away
     } else {
       goal->distress += (gi.PointContents(cl->entity->s.origin) & CONTENTS_MASK_LIQUID ? 0.05f : 0.25f);
     }
@@ -1955,10 +1958,10 @@ typedef struct {
 
 /**
  * @return The climb that the bot follows: that of its ladder link, or, for a bot that holds a
- * ladder within `AI_LADDER_GRAB_DISTANCE` of the column of the link before, that climb, as after
- * it reached the climb's top node, which stands at the edge of the ladder's top, before it stepped
- * off, or that of the next link, as after it grabbed
- * the ladder on its way to the foot. NULL if none is a climb.
+ * ladder within `AI_LADDER_GRAB_DISTANCE` of the column of the link before, that climb, as after it
+ * reached the climb's top node, which stands at the edge of the ladder's top, before it stepped
+ * off, or that of the next link, as after it grabbed the ladder on its way to the foot. NULL if
+ * none is a climb.
  */
 static const NavLadderClimb *G_Ai_LadderClimb(const GameClient *cl) {
 
@@ -2006,18 +2009,17 @@ static const NavLadderClimb *G_Ai_LadderClimb(const GameClient *cl) {
 
 /**
  * @return How the bot follows the ladder of its climb (`G_Ai_LadderClimb`), in the frame of the
- * ladder's face: `d`, the distance in front of the line through the climb's column along the
- * face's normal, `s`, the offset across the face from that line, and the height. A bot reaches the
- * line clear of the ladder, so that `Pm_CheckLadder` grabs the face that the build tested at its
- * middle, not its edge or its side: off the line and near the face, it moves straight out, then
- * across the face, then in. On the ladder, it climbs only on the line: off it, it strafes onto it,
- * which `Pm_LadderMove` moves across the ladder, and with its box across the plane of the face and
- * beside it, as on the side of a narrow pole that it grabbed on its way to the foot, it strafes out
- * along that side, past the face. The column stands just clear of the face, so a bot behind it
- * crosses the plane.
- * Over the top, it moves onto the landing. A bot in the air after a jump onto the ladder flies to
- * where the jump grabs it. A bot that swims, as in lava below a ladder, goes straight in, because
- * every moment there costs health.
+ * ladder's face: `d`, the distance in front of the line through the climb's column along the face's
+ * normal, `s`, the offset across the face from that line, and the height. A bot reaches the line
+ * clear of the ladder, so that `Pm_CheckLadder` grabs the face that the build tested at its middle,
+ * not its edge or its side: off the line and near the face, it moves straight out, then across the
+ * face, then in. On the ladder, it climbs only on the line: off it, it strafes onto it, which
+ * `Pm_LadderMove` moves across the ladder, and with its box across the plane of the face and beside
+ * it, as on the side of a narrow pole that it grabbed on its way to the foot, it strafes out along
+ * that side, past the face. The column stands just clear of the face, so a bot behind it crosses
+ * the plane. Over the top, it moves onto the landing. A bot in the air after a jump onto the ladder
+ * flies to where the jump grabs it. A bot that swims, as in lava below a ladder, goes straight in,
+ * because every moment there costs health.
  */
 static GameAiLadderMove G_Ai_LadderMove(const GameClient *cl) {
 
@@ -2896,12 +2898,11 @@ static bool G_Ai_StrafeJump(GameClient *cl, PMoveCmd *cmd, Vec3 *dir) {
  * @brief Updates the positions of the bot's next nodes, which move if they stand on a model that
  * moves, and plans a new path at once if the link into its next node is gone, as a link to a node
  * that moves is once the model moves on, if the door whose doorway the link crosses closes, or if a
- * crusher is about to sweep its next node. If no path
- * comes back, the bot drops its path, so that it does not follow a node that the model carries
- * away, over a gap or a lava pit, or walk under a crusher. A bot on the ground whose line to its
- * next node touches a push trigger plans a new path too, at most once a second. The first node of a
- * path is not tested for a crusher, because the search does not test it, and a new path would
- * start there again.
+ * crusher is about to sweep its next node. If no path comes back, the bot drops its path, so that
+ * it does not follow a node that the model carries away, over a gap or a lava pit, or walk under a
+ * crusher. A bot on the ground whose line to its next node touches a push trigger plans a new path
+ * too, at most once a second. The first node of a path is not tested for a crusher, because the
+ * search does not test it, and a new path would start there again.
  */
 static void G_Ai_RefreshPath(GameClient *cl) {
 
@@ -3768,11 +3769,11 @@ void G_Ai_InvalidateReferences(GameAi *ai, const GameEntity *ent) {
 }
 
 /**
- * @brief Called just before an AI leaves this mortal plane.
+ * @brief Called just before an AI leaves this mortal plane. Clears its goals, which release their
+ * paths, and frees its state.
  */
 void G_Ai_Disconnect(GameClient *cl) {
 
-  // clear any dynamic memory
   G_Ai_ClearGoal(&cl->ai->combatTarget);
   G_Ai_ClearGoal(&cl->ai->moveTarget);
 
@@ -3832,7 +3833,11 @@ static void G_Ai_ValidateEntityGoal(const GameClient *cl, const char *field, Gam
 #endif
 
 /**
- * @brief Called every frame for every AI.
+ * @brief Called in each pass of `G_Ai_ClientThink` for every AI. A dead bot drops its goals. With
+ * `AI_GOAL_HARDENING`, an entity goal whose entity was freed or reused, or whose cached pointer no
+ * longer matches the entity of its slot, is dropped too (#960). The functional goals that are due
+ * run in turn, each returning when it runs next, and then the player moves. A trick jump ends when
+ * the bot lands: near its landing, the bot turns to the next node first.
  */
 static void G_Ai_Think(GameClient *cl, PMoveCmd *cmd) {
 
@@ -3842,16 +3847,10 @@ static void G_Ai_Think(GameClient *cl, PMoveCmd *cmd) {
   }
 
 #if AI_GOAL_HARDENING
-  // clear stale entity goals whose target has been freed, reused, or whose
-  // cached `entity.ent` pointer can no longer be trusted. Re-resolve against
-  // the canonical `ge.entities` table by slot number rather than dereferencing
-  // the cached pointer directly, since it may have gone stale or been
-  // corrupted (see #960).
   G_Ai_ValidateEntityGoal(cl, "combat_target", &cl->ai->combatTarget);
   G_Ai_ValidateEntityGoal(cl, "move_target", &cl->ai->moveTarget);
 #endif
 
-  // run functional goals
   for (int32_t i = 0; i < AI_FUNC_GOAL_TOTAL; i++) {
 
     if (cl->ai->funcGoalNextThinks[i] <= gameLevel.time) {
@@ -3859,10 +3858,8 @@ static void G_Ai_Think(GameClient *cl, PMoveCmd *cmd) {
     }
   }
 
-  // run client think
   G_ClientThink(cl, cmd);
 
-  // can't trick jump when we hit the ground.
   if (cl->ai->moveTarget.type == AI_GOAL_PATH && cl->entity->ground.ent && cl->ai->moveTarget.path.trickJump) {
     if (Vec3_Distance(cl->ai->moveTarget.path.trickPosition, cl->entity->s.origin) < 24.f) {
       cl->ai->moveTarget.path.trickJump = TRICK_JUMP_TURNING;
@@ -3978,7 +3975,8 @@ static void G_Ai_ClientBegin(GameClient *cl) {
 }
 
 /**
- * @brief Allocates AI state and connects the bot client to the game using a generated user info string.
+ * @brief Allocates AI state and connects the bot client to the game using a generated user info
+ * string.
  * @param roster The roster entry to connect, or NULL for the next entry in the shuffled order.
  */
 static void G_Ai_Connect(GameClient *cl, const GameAiRoster *roster) {

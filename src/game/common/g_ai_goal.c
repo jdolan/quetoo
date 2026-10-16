@@ -22,7 +22,7 @@
 #include "g_local.h"
 
 /**
- * @brief Setup base entity goal for the specified target.
+ * @brief Clears the goal, and sets its type and priority.
  */
 static inline void G_Ai_InitGoal(const GameClient *cl, GameAiGoal *goal, GameAiGoalType type, float priority) {
 
@@ -33,7 +33,7 @@ static inline void G_Ai_InitGoal(const GameClient *cl, GameAiGoal *goal, GameAiG
 }
 
 /**
- * @brief Setup entity goal for the specified target.
+ * @brief Sets a goal to move to the position.
  */
 void G_Ai_SetPositionGoal(const GameClient *cl, GameAiGoal *goal, float priority, const Vec3 pos) {
 
@@ -62,7 +62,7 @@ const GameEntity *G_Ai_ResolveGoalEntity(int32_t number) {
 #endif
 
 /**
- * @brief Setup entity goal for the specified target.
+ * @brief Sets a goal to move to the entity.
  */
 void G_Ai_SetEntityGoal(const GameClient *cl, GameAiGoal *goal, float priority, const GameEntity *entity) {
 
@@ -114,9 +114,10 @@ GameAiNodeId G_Ai_PathStart(const GameClient *cl, const float maxDistance) {
 }
 
 /**
- * @brief Setup entity goal for the specified target. A bot that climbs a ladder keeps its climb in
- * front of a new path that starts at the climb's top (`G_Ai_PathStart`), so that it does not let
- * go of the ladder for a path from the node nearest it, as one in a pipe that the ladder passes.
+ * @brief Sets a goal to follow the path, toward `pathTarget` if it is not NULL. A bot that climbs a
+ * ladder keeps its climb in front of a new path that starts at the climb's top (`G_Ai_PathStart`),
+ * so that it does not let go of the ladder for a path from the node nearest it, as one in a pipe
+ * that the ladder passes.
  * @remarks It clears the bot's strafe look-ahead, which `G_Ai_StrafeTarget` keys by the path's
  * address, because the new path can reuse the address of one that was freed, and the strafe jump
  * that `G_Ai_StrafeJumpIsSafe` found safe.
@@ -157,7 +158,7 @@ void G_Ai_SetPathGoal(const GameClient *cl, GameAiGoal *goal, float priority, Ve
 }
 
 /**
- * @brief Check if the goal references the same entity still
+ * @return True if the goal is the entity, or a path to it, and the entity has not respawned since.
  */
 bool G_Ai_GoalHasEntity(const GameAiGoal *goal, const GameEntity *ent) {
 
@@ -210,7 +211,7 @@ void G_Ai_CopyGoal(const GameAiGoal *from, GameAiGoal *to) {
 }
 
 /**
- * @brief Clear a goal
+ * @brief Releases the goal's path, if it has one, and clears the goal.
  */
 void G_Ai_ClearGoal(GameAiGoal *goal) {
   

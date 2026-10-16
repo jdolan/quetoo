@@ -24,8 +24,9 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
-#define AI_NAME "default"
-
+/**
+ * @brief Prints an AI debug message, with the name of the calling function, if `DEBUG_AI` is set.
+ */
 #define G_Ai_Debug(...) gi.Debug(DEBUG_AI, __func__, __VA_ARGS__)
 
 #include "bg_nav.h"
