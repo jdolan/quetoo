@@ -246,10 +246,6 @@ int32_t G_Ai_CompareItems(const void *a, const void *b) {
   return SignOf(w1->weight - w0->weight);
 }
 
-static inline int64_t G_Ai_Microseconds(void) {
-  return (int64_t) gameLevel.time * 1000;
-}
-
 /**
  * @return True if the item decides who controls the map: a powerup, mega health or body armor.
  */
@@ -1249,35 +1245,29 @@ static bool G_Ai_GoalDistress(GameClient *cl, GameAiGoal *goal, const Vec3 dest)
       goal->distress += (gi.PointContents(cl->entity->s.origin) & CONTENTS_MASK_LIQUID ? 0.05f : 0.25f);
     }
 
-    Vec3 dest = Vec3_Zero();
+    Vec3 target = Vec3_Zero();
 
     switch (goal->type) {
     default:
       assert(false);
       break;
     case AI_GOAL_POSITION:
-      dest = goal->position.pos;
+      target = goal->position.pos;
       break;
     case AI_GOAL_PATH:
-      dest = goal->path.pathPosition;
+      target = goal->path.pathPosition;
       break;
     case AI_GOAL_ENTITY:
-      dest = goal->entity.ent->s.origin;
+      target = goal->entity.ent->s.origin;
       break;
     }
 
-    // something is blocking our destination
     const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
-    const CollisionTrace tr = gi.Trace(eyeOrigin, dest, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_CORPSE);
+    const CollisionTrace tr = gi.Trace(eyeOrigin, target, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_CORPSE);
 
     if (tr.fraction < 1.0f && !(cl->ps.pmState.flags & PMF_ON_LADDER)) {
       goal->distress += 0.25f;
     }
-  }
-
-  if (goal->lastDistress != goal->distress) {
-    //G_Ai_Debug("Distress: %f\n", goal->distress);
-    goal->lastDistress = goal->distress;
   }
 
   if (goal->distress > (goal->distressExtension ? (QUETOO_TICK_RATE * 15) : QUETOO_TICK_RATE)) {
@@ -3376,22 +3366,20 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
       // jump off of it
       if (G_Ai_IsRidingMover(ent)) {
         cl->ai->moveTarget.distress += 0.02f;
-      } else if (G_Ai_IsClimbing(cl)) {
-        cl->ai->moveTarget.distress += 0.2f;
       } else {
         cl->ai->moveTarget.distress += 0.2f;
 
-        // try moving left/right if we weren't already trying this
-        if (cl->ai->moveTarget.distress > 8.f && !cmd->right) {
-          cmd->right = cmd->forward;
+        if (!G_Ai_IsClimbing(cl)) {
+          if (cl->ai->moveTarget.distress > 8.f && !cmd->right) {
+            cmd->right = cmd->forward;
 
-          if (cl->ai->moveTarget.time & 1) {
-            cmd->right = -cmd->right;
+            if (cl->ai->moveTarget.time & 1) {
+              cmd->right = -cmd->right;
+            }
+          } else if (cl->ai->moveTarget.distress > 12.f &&
+                     !G_Ai_FallsToHazard(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
+            cmd->up = PM_SPEED_JUMP;
           }
-        // try a jump
-        } else if (cl->ai->moveTarget.distress > 12.f &&
-                   !G_Ai_FallsToHazard(cl, ent->s.origin, G_Ai_JumpVelocity(cl))) {
-          cmd->up = PM_SPEED_JUMP;
         }
       }
     // we're making some distance, reduce our distress
@@ -3661,16 +3649,7 @@ static void G_Ai_Think(GameClient *cl, PMoveCmd *cmd) {
   for (int32_t i = 0; i < AI_FUNC_GOAL_TOTAL; i++) {
 
     if (cl->ai->funcGoalNextThinks[i] <= gameLevel.time) {
-      const int64_t funcStart = G_Ai_Microseconds();
-      const uint32_t next = aiGoalFuncs[i](cl, cmd);
-      const int64_t funcUs = G_Ai_Microseconds() - funcStart;
-
-      cl->ai->funcGoalNextThinks[i] = gameLevel.time + next;
-
-      if (funcUs > 50000) { // > 50ms for one goal function is pathological
-        G_Warn("%s goal func %d took %dms\n",
-               cl->persistent.netName, i, (int32_t)(funcUs / 1000));
-      }
+      cl->ai->funcGoalNextThinks[i] = gameLevel.time + aiGoalFuncs[i](cl, cmd);
     }
   }
 
@@ -3765,16 +3744,7 @@ static void G_Ai_ClientThink(GameEntity *ent) {
 
     cmd.msec = (i == numRuns - 1) ? msecLeft : ceilf(1000.f / QUETOO_TICK_RATE / numRuns);
 
-    const int64_t thinkStart = G_Ai_Microseconds();
     G_Ai_Think(ent->client, &cmd);
-    const int64_t thinkUs = G_Ai_Microseconds() - thinkStart;
-
-    if (thinkUs > 100000) { // > 100ms for one think pass is pathological
-      if (ent->client) {
-        G_Warn("%s AI think pass %d took %dms\n",
-               ent->client->persistent.netName, i, (int32_t)(thinkUs / 1000));
-      }
-    }
 
     msecLeft -= cmd.msec;
   }

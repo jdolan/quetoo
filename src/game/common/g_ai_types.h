@@ -105,11 +105,6 @@ typedef struct {
   float distress;
 
   /**
-   * @brief Previous distress value, used for debug logging.
-   */
-  float lastDistress;
-
-  /**
    * @brief Last recorded distance to the goal destination.
    */
   float lastDistance;

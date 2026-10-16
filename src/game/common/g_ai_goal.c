@@ -145,17 +145,12 @@ void G_Ai_SetPathGoal(const GameClient *cl, GameAiGoal *goal, float priority, Ve
   goal->path.nextPathPosition = G_Ai_Node_GetPosition(next);
   goal->path.pathTarget = pathTarget;
 
-#if AI_GOAL_HARDENING
   if (pathTarget) {
-    goal->path.pathTargetNumber = pathTarget->s.number;
     goal->path.pathTargetSpawnId = pathTarget->s.spawnId;
-  } else {
-    goal->path.pathTargetNumber = -1;
   }
-#else
-  if (path_target) {
-    goal->path.pathTargetSpawnId = path_target->s.spawnId;
-  }
+
+#if AI_GOAL_HARDENING
+  goal->path.pathTargetNumber = pathTarget ? pathTarget->s.number : -1;
 #endif
 
   G_Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", VectorValue(path, GameAiNodeId, 0), VectorValue(path, GameAiNodeId, path->count - 1), priority, etos(pathTarget));
