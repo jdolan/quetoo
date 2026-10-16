@@ -599,7 +599,12 @@ const GameArmorInfo *G_ArmorInfo(const GameItem *armor) {
 
 /**
  * @brief Resolves an armor pickup without applying it: the client loses `drop`, and has `count`
- * of `give`.
+ * of `give`. A shard always adds to the client's armor, or gives jacket armor, whatever the cap. A
+ * client with no armor takes any. Quake armor replaces the client's armor, with no salvage, only if
+ * its protection times its quantity is greater (Quake's effective score). Quake II armor that
+ * protects more replaces it, and keeps the old armor in proportion to their protections, as q2pro
+ * does. Quake II armor that protects as much or less adds to the client's armor in the same
+ * proportion, if that adds anything below the cap.
  * @return True if the client takes the armor.
  */
 bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const GameItem **drop,
@@ -614,7 +619,7 @@ bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const 
   *give = NULL;
   *count = 0;
 
-  if (newArmor->def.tag == ARMOR_SHARD) { // always take it, ignoring cap
+  if (newArmor->def.tag == ARMOR_SHARD) {
     if (currentArmor) {
       *give = currentArmor;
       *count = Clampf(cl->inventory[currentArmor->def.tag] + newArmor->def.quantity, 0, cl->maxArmor);
@@ -626,7 +631,7 @@ bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const 
     return true;
   }
 
-  if (!currentArmor) { // no current armor, take it
+  if (!currentArmor) {
     *give = newArmor;
     *count = Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
 
@@ -634,8 +639,6 @@ bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const 
   }
 
   if (newArmor->def.tag >= ARMOR_QUAKE_JACKET) {
-    // Quake-family armor uses Q1 effective-score logic: full swap, no salvage.
-    // A pickup is only accepted if it strictly improves the player's effective score.
     const float currentScore = currentInfo->normalProtection * cl->inventory[currentArmor->def.tag];
     const float newScore = newInfo->normalProtection * newArmor->def.quantity;
 
@@ -649,12 +652,7 @@ bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const 
     return false;
   }
 
-  // Q2-family armor uses salvage-conversion logic.
-  // we picked up stronger armor than we currently had
   if (newInfo->normalProtection > currentInfo->normalProtection) {
-
-    // get the ratio between the new and old armor to add a portion to
-    // new armor pickup. Ganked from q2pro (thanks skuller)
     const float salvage = currentInfo->normalProtection / newInfo->normalProtection;
     const int16_t salvageCount = salvage * cl->inventory[currentArmor->def.tag];
 
@@ -667,14 +665,12 @@ bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const 
     return true;
   }
 
-  // we picked up the same, or weaker
   const float salvage = newInfo->normalProtection / currentInfo->normalProtection;
   const int16_t salvageCount = salvage * newArmor->def.quantity;
 
   int16_t newCount = salvageCount + cl->inventory[currentArmor->def.tag];
   newCount = Clampf(newCount, 0, currentArmor->def.max);
 
-  // take it
   if (cl->inventory[currentArmor->def.tag] < newCount &&
           cl->inventory[currentArmor->def.tag] < cl->maxArmor) {
     *give = currentArmor;

@@ -237,7 +237,6 @@ void G_misc_teleporter(GameEntity *ent) {
     gi.SoundIndex(customSound);
   }
   
-  // create link to destination, once the level's graph is loaded
   ent->Think = G_misc_teleporter_Think;
   ent->nextThink = gameLevel.time + 1;
 

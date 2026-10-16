@@ -479,7 +479,9 @@ static void Sv_UpdatePings(void) {
  * @brief Once per second, gives all clients an allotment of 1000 milliseconds
  * for their movement commands which will be decremented as we receive
  * new information from them. If they drift by a significant margin
- * over the next interval, assume they are trying to cheat.
+ * over the next interval, assume they are trying to cheat. A client in this
+ * process, such as a bot, scales its commands by `timeScale`, as the server's
+ * clock does, so its allowed drift scales too.
  */
 static void Sv_CheckCommandTimes(void) {
   static uint32_t lastCheckTime;
@@ -501,7 +503,6 @@ static void Sv_CheckCommandTimes(void) {
 
     if (sv_enforceTime->value && !timeDemo->value) { // check them
 
-      // a client in this process scales its commands by timeScale, as the server's clock does
       const float scale = cl->netChan.remoteAddress.type == NA_LOOP ? timeScale->value : 1.f;
       if (cl->cmdMsec > CMD_MSEC_ALLOWABLE_DRIFT * scale) { // irregular movement
         cl->cmdMsecErrors++;
