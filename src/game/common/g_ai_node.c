@@ -2372,15 +2372,27 @@ static bool G_Ai_Node_EnsurePathPool(const size_t capacity) {
 }
 
 /**
- * @brief The next free pathfinding entry, or `NULL` when the pool is spent.
+ * @brief Pushes the node `id` onto the pathfinding queue, at `priority`, with an entry of the pool.
+ * @param search The name of the search, for the warning when the pool or the queue is full.
+ * @param crossed For `G_Ai_Node_GateCosts`, true if the path crossed the doorway.
+ * @return True if the node was pushed, false if the pool or the queue is full.
  */
-static GameAiNodePriority *G_Ai_Node_AllocPathEntry(void) {
+static bool G_Ai_Node_PushPath(const char *search, const GameAiNodeId id, const float priority, const bool crossed) {
 
   if (aiNodePathCount == aiNodePathCapacity) {
-    return NULL;
+    G_Warn("%s entry pool exhausted (capacity %zu)\n", search, aiNodePathCapacity);
+    return false;
   }
 
-  return &aiNodePathEntries[aiNodePathCount++];
+  GameAiNodePriority *entry = &aiNodePathEntries[aiNodePathCount++];
+  *entry = (GameAiNodePriority) { .id = id, .priority = priority, .crossed = crossed };
+
+  if (!G_Ai_HeapPush(aiNodePathQueue, priority, entry)) {
+    G_Warn("%s heap exhausted (capacity %zu)\n", search, aiNodePathCapacity);
+    return false;
+  }
+
+  return true;
 }
 
 #define AI_MAX_DROP_HEIGHT 512.f
@@ -2687,6 +2699,23 @@ static float G_Ai_Node_StepCost(const GameClient *cl, const GameAiNode *node, co
 }
 
 /**
+ * @return The path that `G_Ai_Node_FindPath` found from `start` to `end`, as a Vector of
+ * `GameAiNodeId`, followed back from `end` along each node's `cameFrom`.
+ */
+static Vector *G_Ai_Node_FindPath_path(const GameAiNodeId start, const GameAiNodeId end) {
+
+  Vector *path = $(alloc(Vector), initWithSize, sizeof(GameAiNodeId));
+  $(path, insert, (void *) &end, 0);
+
+  for (GameAiNodeId from = end; from != start;) {
+    from = AI_NODE(aiNodes, from)->cameFrom;
+    $(path, insert, &from, 0);
+  }
+
+  return path;
+}
+
+/**
  * @see g_ai_node.h
  */
 Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const GameAiNodeId end, const float maxCost,
@@ -2712,19 +2741,15 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
     return NULL;
   }
 
-  struct GameAiHeap *queue = aiNodePathQueue;
   bool finished = false;
-
-  GameAiNodePriority *first = G_Ai_Node_AllocPathEntry();
-  *first = (GameAiNodePriority) { .id = start, .priority = 0.f };
-  G_Ai_HeapPush(queue, first->priority, first);
+  bool full = !G_Ai_Node_PushPath("Path search", start, 0.f, false);
 
   AI_NODE(aiNodes, start)->cost = 0;
   module.escape = G_Ai_Node_EscapesLava(cl, start);
   costsStarted[start / 32] |= (uint32_t) 1 << (start % 32);
 
-  for (bool full = false; !full;) {
-    const GameAiNodePriority *current = (GameAiNodePriority *) G_Ai_HeapPop(queue);
+  while (!full) {
+    const GameAiNodePriority *current = (GameAiNodePriority *) G_Ai_HeapPop(aiNodePathQueue);
     if (!current) {
       break;
     }
@@ -2764,17 +2789,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
         continue;
       }
 
-      GameAiNodePriority *e = G_Ai_Node_AllocPathEntry();
-      if (!e) {
-        G_Warn("Path search entry pool exhausted (capacity %zu)\n", heapCapacity);
-        full = true;
-        break;
-      }
-
-      *e = (GameAiNodePriority) { .id = link->id, .priority = newCost };
-
-      if (!G_Ai_HeapPush(queue, newCost, e)) {
-        G_Warn("Path search heap exhausted (capacity %zu)\n", heapCapacity);
+      if (!G_Ai_Node_PushPath("Path search", link->id, newCost, false)) {
         full = true;
         break;
       }
@@ -2785,16 +2800,10 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
     }
   }
 
-  Vector *returnPath = NULL;
+  Vector *path = NULL;
 
   if (finished) {
-    returnPath = $(alloc(Vector), initWithSize, sizeof(GameAiNodeId));
-    $(returnPath, insert, (void *) &end, 0);
-
-    for (GameAiNodeId from = end; from != start;) {
-      from = AI_NODE(aiNodes, from)->cameFrom;
-      $(returnPath, insert, &from, 0);
-    }
+    path = G_Ai_Node_FindPath_path(start, end);
 
     if (length) {
       *length = AI_NODE(aiNodes, end)->cost;
@@ -2804,7 +2813,7 @@ Vector *G_Ai_Node_FindPath(const GameClient *cl, const GameAiNodeId start, const
   module.escape = false;
 
   free(costsStarted);
-  return returnPath;
+  return path;
 }
 
 /**
@@ -2825,17 +2834,15 @@ bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float
     return false;
   }
 
-  struct GameAiHeap *queue = aiNodePathQueue;
-  GameAiNodePriority *e = G_Ai_Node_AllocPathEntry();
-  e->id = start;
-  e->priority = 0.f;
-  G_Ai_HeapPush(queue, 0.f, e);
+  if (!G_Ai_Node_PushPath("Travel cost", start, 0.f, false)) {
+    return false;
+  }
 
   costs[start] = 0.f;
   module.escape = G_Ai_Node_EscapesLava(cl, start);
 
   for (;;) {
-    const GameAiNodePriority *current = (GameAiNodePriority *) G_Ai_HeapPop(queue);
+    const GameAiNodePriority *current = (GameAiNodePriority *) G_Ai_HeapPop(aiNodePathQueue);
     if (!current) {
       break;
     }
@@ -2868,18 +2875,7 @@ bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float
 
       costs[link->id] = newCost;
 
-      GameAiNodePriority *next = G_Ai_Node_AllocPathEntry();
-      if (!next) {
-        G_Warn("Travel cost entry pool exhausted (capacity %zu)\n", heapCapacity);
-        module.escape = false;
-        return false;
-      }
-
-      next->id = link->id;
-      next->priority = newCost;
-
-      if (!G_Ai_HeapPush(queue, newCost, next)) {
-        G_Warn("Travel cost heap exhausted (capacity %zu)\n", heapCapacity);
+      if (!G_Ai_Node_PushPath("Travel cost", link->id, newCost, false)) {
         module.escape = false;
         return false;
       }
@@ -2892,16 +2888,10 @@ bool G_Ai_Node_TravelCosts(const GameClient *cl, const GameAiNodeId start, float
 }
 
 /**
- * @see g_ai_node.h
+ * @brief Sizes the arrays of `G_Ai_Node_GateCosts` for `count` nodes in each of its two phases,
+ * before and after the doors, and marks each node of both phases as not reached.
  */
-bool G_Ai_Node_GateCosts(const GameClient *cl, const float *costs, const GameAiNodeId *sources, const int32_t numSources,
-                         const char *doorName, const float window, const int32_t key, GameAiGateCost *gateCosts) {
-
-  const uint32_t count = G_Ai_Node_Count();
-
-  if (count == 0) {
-    return false;
-  }
+static void G_Ai_Node_GateCosts_alloc(const uint32_t count) {
 
   if (count > module.pressCount) {
     module.pressCosts = realloc(module.pressCosts, 2 * count * sizeof(float));
@@ -2918,13 +2908,15 @@ bool G_Ai_Node_GateCosts(const GameClient *cl, const float *costs, const GameAiN
   for (uint32_t i = 0; i < 2 * count; i++) {
     module.pressCosts[i] = FLT_MAX;
   }
+}
 
-  const size_t heapCapacity = (size_t) count * 8 + 16;
-  if (!G_Ai_Node_EnsurePathPool(heapCapacity)) {
-    return false;
-  }
-
-  struct GameAiHeap *queue = aiNodePathQueue;
+/**
+ * @brief Starts a path of `G_Ai_Node_GateCosts` at each of the `sources` that the client reaches,
+ * at the source's cost in `costs`, before the doors. A source listed twice starts once.
+ * @return False if the pathfinding pool or queue is full.
+ */
+static bool G_Ai_Node_GateCosts_seed(const float *costs, const GameAiNodeId *sources, const int32_t numSources,
+                                     const uint32_t count) {
 
   for (int32_t i = 0; i < numSources; i++) {
     const GameAiNodeId source = sources[i];
@@ -2936,22 +2928,39 @@ bool G_Ai_Node_GateCosts(const GameClient *cl, const float *costs, const GameAiN
     module.pressCosts[source] = module.pressStarts[source] = costs[source];
     module.pressSources[source] = source;
 
-    GameAiNodePriority *e = G_Ai_Node_AllocPathEntry();
-    if (!e) {
-      G_Warn("Gate cost entry pool exhausted (capacity %zu)\n", heapCapacity);
-      return false;
-    }
-
-    *e = (GameAiNodePriority) { .id = source, .priority = costs[source], .crossed = false };
-
-    if (!G_Ai_HeapPush(queue, e->priority, e)) {
-      G_Warn("Gate cost heap exhausted (capacity %zu)\n", heapCapacity);
+    if (!G_Ai_Node_PushPath("Gate cost", source, costs[source], false)) {
       return false;
     }
   }
 
+  return true;
+}
+
+/**
+ * @see g_ai_node.h
+ */
+bool G_Ai_Node_GateCosts(const GameClient *cl, const float *costs, const GameAiNodeId *sources, const int32_t numSources,
+                         const char *doorName, const float window, const int32_t key, GameAiGateCost *gateCosts) {
+
+  const uint32_t count = G_Ai_Node_Count();
+
+  if (count == 0) {
+    return false;
+  }
+
+  G_Ai_Node_GateCosts_alloc(count);
+
+  const size_t heapCapacity = (size_t) count * 8 + 16;
+  if (!G_Ai_Node_EnsurePathPool(heapCapacity)) {
+    return false;
+  }
+
+  if (!G_Ai_Node_GateCosts_seed(costs, sources, numSources, count)) {
+    return false;
+  }
+
   for (;;) {
-    const GameAiNodePriority *current = (GameAiNodePriority *) G_Ai_HeapPop(queue);
+    const GameAiNodePriority *current = (GameAiNodePriority *) G_Ai_HeapPop(aiNodePathQueue);
     if (!current) {
       break;
     }
@@ -3017,16 +3026,7 @@ bool G_Ai_Node_GateCosts(const GameClient *cl, const float *costs, const GameAiN
         gateCosts[link->id] = (GameAiGateCost) { .cost = newCost, .key = key, .source = source };
       }
 
-      GameAiNodePriority *e = G_Ai_Node_AllocPathEntry();
-      if (!e) {
-        G_Warn("Gate cost entry pool exhausted (capacity %zu)\n", heapCapacity);
-        return false;
-      }
-
-      *e = (GameAiNodePriority) { .id = link->id, .priority = newCost, .crossed = crosses };
-
-      if (!G_Ai_HeapPush(queue, newCost, e)) {
-        G_Warn("Gate cost heap exhausted (capacity %zu)\n", heapCapacity);
+      if (!G_Ai_Node_PushPath("Gate cost", link->id, newCost, crosses)) {
         return false;
       }
     }
