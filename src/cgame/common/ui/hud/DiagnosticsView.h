@@ -38,9 +38,9 @@ typedef struct DiagnosticsViewInterface DiagnosticsViewInterface;
 /**
  * @brief A two column table of counters: the player's position and speed, the frame, packet
  * and network rates, the view's draw statistics and the stage's channel count. While
- * `cg_drawAiNodes` is set, it shows the view's position and the navigation node nearest it instead,
- * with its links, from `Cg_DescribeAiNode`, whether `cg_drawDiagnostics` is set or not.
- * @details Shown only while `cg_drawDiagnostics` or `cg_drawAiNodes` is set, and refreshed a few
+ * `cg_drawNav` is set, it shows the view's position and the navigation node nearest it instead,
+ * with its links, from `Cg_DescribeNavNode`, whether `cg_drawDiagnostics` is set or not.
+ * @details Shown only while `cg_drawDiagnostics` or `cg_drawNav` is set, and refreshed a few
  * times a second.
  * The packet rate is the client's `packets` count, which this view reads and clears each second.
  * @extends TableView

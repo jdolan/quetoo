@@ -17,7 +17,7 @@ The parts are:
 | `src/tools/ai_probe.py run` | Runs a headless dedicated server on the tree's build, at `timeDemo 1`, adds bots by rcon, and stops the server cleanly. |
 | `src/tools/ai_probe.py summary`, `deaths`, `pushes`, `hazards` | Count and explain deaths, unplanned pushes, entries into lava or slime, pickups and stuck time. |
 | `src/tools/ai_probe.py node`, `near`, `path`, `routes` | Query the navigation graph that the game used. |
-| `cg_drawAiNodes`, `aiNodeInfo` (`src/cgame/common/cg_nav.c`) | Draw the graph in the client, and print the node nearest the view. |
+| `cg_drawNav`, `navInfo` (`src/cgame/common/cg_nav.c`) | Draw the graph in the client, and print the node nearest the view. |
 
 ## 1. Build
 
@@ -161,11 +161,11 @@ python3 src/tools/ai_probe.py kills "$LOG"                     # kills by attack
 To see what a player sees, run the client from the same stage, with the graph drawn:
 
 ```sh
-./src/main/quetoo -p "$OUT/stage" -w "$TMPDIR/client" +set s_volume 0 +set cg_drawAiNodes 1 +map longyard
+./src/main/quetoo -p "$OUT/stage" -w "$TMPDIR/client" +set s_volume 0 +set cg_drawNav 1 +map longyard
 ```
 
 - MUST pass `+set s_volume 0`.
-- `aiNodeInfo` prints the node nearest the view, with its links.
+- `navInfo` prints the node nearest the view, with its links.
 - The client draws the graph that `Nav_Build` makes. The game adds item, pad, teleporter and plat
   nodes after that, so ids at or above the build's node count appear only in the probe's graph.
 - Node colors: white normal, red crouch. Link colors: green walk, red crouch, grey ledge, yellow

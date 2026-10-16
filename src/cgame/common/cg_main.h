@@ -36,7 +36,7 @@ extern Cvar *cg_addLights;
 extern Cvar *cg_addSprites;
 extern Cvar *cg_addWeather;
 extern Cvar *cg_bob;
-extern Cvar *cg_drawAiNodes;
+extern Cvar *cg_drawNav;
 extern Cvar *cg_drawBlend;
 extern Cvar *cg_drawBlendDamage;
 extern Cvar *cg_drawBlendLiquid;

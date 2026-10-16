@@ -53,7 +53,7 @@ typedef struct {
    * onto it, and does not, nor does one that falls into the void.
    */
   bool lands;
-} CGameAiFlight;
+} CGameNavFlight;
 
 /**
  * @brief The navigation graph that the client game draws.
@@ -80,7 +80,7 @@ static struct {
   int32_t movers[MAX_MODELS];
 
   /**
-   * @brief The frame in which `Cg_AiMover` last searched for each inline model's entity, so that
+   * @brief The frame in which `Cg_NavMover` last searched for each inline model's entity, so that
    * a model that is not in the frame is searched for once a frame, not once a node.
    */
   int32_t moverFrames[MAX_MODELS];
@@ -88,13 +88,13 @@ static struct {
   /**
    * @brief The flight of each of the graph's pushes.
    */
-  CGameAiFlight *flights;
+  CGameNavFlight *flights;
 } module;
 
 /**
  * @see cg_nav.h
  */
-void Cg_FreeAiNodes(void) {
+void Cg_FreeNav(void) {
 
   Nav_Free(&module.graph);
 
@@ -111,7 +111,7 @@ void Cg_FreeAiNodes(void) {
  * @return The entity of the inline model in the current frame, or NULL. A model whose entity is
  * not in the frame is searched for at most once a frame.
  */
-static const ClientEntity *Cg_AiMover(const int32_t model) {
+static const ClientEntity *Cg_NavMover(const int32_t model) {
 
   if (model <= 0 || model >= MAX_MODELS) {
     return NULL;
@@ -153,10 +153,10 @@ static const ClientEntity *Cg_AiMover(const int32_t model) {
  * @return The position of the node: where it stands, or for a node on a model that moves, where the
  * model carries it now.
  */
-static Vec3 Cg_AiNodePosition(const NavNode *node) {
+static Vec3 Cg_NavNodePosition(const NavNode *node) {
 
   if (node->model) {
-    const ClientEntity *ent = Cg_AiMover(node->model);
+    const ClientEntity *ent = Cg_NavMover(node->model);
     if (ent) {
       return Mat4_Transform(Mat4_FromRotationTranslationScale(ent->angles, ent->origin, 1.f), node->local);
     }
@@ -166,9 +166,9 @@ static Vec3 Cg_AiNodePosition(const NavNode *node) {
 }
 
 /**
- * @return The name of the travel type, as `aiNodeInfo` prints it.
+ * @return The name of the travel type, as `navInfo` prints it.
  */
-static const char *Cg_AiTravelName(const NavTravelType type) {
+static const char *Cg_NavTravelName(const NavTravelType type) {
 
   switch (type) {
     case NAV_TRAVEL_WALK:
@@ -199,10 +199,10 @@ static const char *Cg_AiTravelName(const NavTravelType type) {
 /**
  * @see cg_nav.h
  */
-void Cg_DescribeAiNode(const Vec3 position, CGameAiNodeRowFunc row, void *data) {
+void Cg_DescribeNavNode(const Vec3 position, CGameNavRowFunc row, void *data) {
 
   if (!module.built) {
-    row(data, "ai node", "none: set cg_drawAiNodes 1 to build the graph");
+    row(data, "nav node", "none: set cg_drawNav 1 to build the graph");
     return;
   }
 
@@ -212,7 +212,7 @@ void Cg_DescribeAiNode(const Vec3 position, CGameAiNodeRowFunc row, void *data) 
   float distance = FLT_MAX;
 
   for (int32_t i = 0; i < graph->numNodes; i++) {
-    const float d = Vec3_Distance(Cg_AiNodePosition(&graph->nodes[i]), position);
+    const float d = Vec3_Distance(Cg_NavNodePosition(&graph->nodes[i]), position);
     if (d < distance) {
       distance = d;
       nearest = i;
@@ -220,14 +220,14 @@ void Cg_DescribeAiNode(const Vec3 position, CGameAiNodeRowFunc row, void *data) 
   }
 
   if (nearest == -1) {
-    row(data, "ai node", "none: the level has no nodes");
+    row(data, "nav node", "none: the level has no nodes");
     return;
   }
 
   const NavNode *node = &graph->nodes[nearest];
-  const Vec3 origin = Cg_AiNodePosition(node);
+  const Vec3 origin = Cg_NavNodePosition(node);
 
-  row(data, "ai node", va("^5%d^7 at %d %d %d, %d away%s%s%s%s%s", nearest,
+  row(data, "nav node", va("^5%d^7 at %d %d %d, %d away%s%s%s%s%s", nearest,
                           (int32_t) origin.x, (int32_t) origin.y, (int32_t) origin.z, (int32_t) distance,
                           node->crouch ? ", crouch" : "", (node->contents & CONTENTS_WATER) ? ", water" : "",
                           node->swim ? ", swim" : "", node->edge ? ", edge" : "",
@@ -235,14 +235,14 @@ void Cg_DescribeAiNode(const Vec3 position, CGameAiNodeRowFunc row, void *data) 
 
   for (int32_t i = 0; i < node->numLinks; i++) {
     const NavLink *link = &graph->links[node->firstLink + i];
-    const Vec3 to = Cg_AiNodePosition(&graph->nodes[link->node]);
+    const Vec3 to = Cg_NavNodePosition(&graph->nodes[link->node]);
 
-    row(data, va("  %s", Cg_AiTravelName(link->travelType)), va("%d at %d %d %d", link->node,
+    row(data, va("  %s", Cg_NavTravelName(link->travelType)), va("%d at %d %d %d", link->node,
                                                                   (int32_t) to.x, (int32_t) to.y, (int32_t) to.z));
   }
 
   for (int32_t i = 0; i < graph->numPushes; i++) {
-    const CGameAiFlight *flight = &module.flights[i];
+    const CGameNavFlight *flight = &module.flights[i];
 
     if (flight->numPoints < 2 || Vec3_Distance(flight->points[0], origin) > NAV_CELL_SIZE * 2.f) {
       continue;
@@ -256,37 +256,37 @@ void Cg_DescribeAiNode(const Vec3 position, CGameAiNodeRowFunc row, void *data) 
 }
 
 /**
- * @brief Prints one row of `Cg_DescribeAiNode` to the console.
+ * @brief Prints one row of `Cg_DescribeNavNode` to the console.
  */
-static void Cg_AiNodeInfo_row(void *data, const char *name, const char *value) {
+static void Cg_NavInfo_row(void *data, const char *name, const char *value) {
   cgi.Print("%s: %s\n", name, value);
 }
 
 /**
  * @brief Prints the view's position, and the node nearest it with its links.
  */
-static void Cg_AiNodeInfo_f(void) {
+static void Cg_NavInfo_f(void) {
 
   const Vec3 view = cgi.view->origin;
 
   cgi.Print("View at %d %d %d\n", (int32_t) view.x, (int32_t) view.y, (int32_t) view.z);
 
-  Cg_DescribeAiNode(view, Cg_AiNodeInfo_row, NULL);
+  Cg_DescribeNavNode(view, Cg_NavInfo_row, NULL);
 }
 
 /**
  * @see cg_nav.h
  */
-void Cg_InitAiNodes(void) {
+void Cg_InitNav(void) {
 
-  cgi.AddCmd("aiNodeInfo", Cg_AiNodeInfo_f, CMD_CGAME, "Prints the navigation node nearest the view, with its links");
+  cgi.AddCmd("navInfo", Cg_NavInfo_f, CMD_CGAME, "Prints the navigation node nearest the view, with its links");
 }
 
 /**
  * @return A bot's trace against the world only, which monster clip blocks, as the game flies
  * jump pads.
  */
-static CollisionTrace Cg_AiFlightTrace(const Vec3 start, const Vec3 end, const Box3 bounds) {
+static CollisionTrace Cg_NavFlightTrace(const Vec3 start, const Vec3 end, const Box3 bounds) {
   return cgi.BoxTrace(start, end, bounds, 0, CONTENTS_MASK_CLIP_MONSTER);
 }
 
@@ -294,18 +294,18 @@ static CollisionTrace Cg_AiFlightTrace(const Vec3 start, const Vec3 end, const B
  * @brief Flies each of the graph's pushes, as the game does to link them: from the floor under the
  * center of the pad, with the level's movement and no input.
  */
-static void Cg_PrepareAiFlights(const ClientFrame *frame) {
+static void Cg_PrepareNavFlights(const ClientFrame *frame) {
 
   const NavGraph *graph = &module.graph;
 
-  module.flights = calloc(Maxi(1, graph->numPushes), sizeof(CGameAiFlight));
+  module.flights = calloc(Maxi(1, graph->numPushes), sizeof(CGameNavFlight));
   if (!module.flights) {
     cgi.Error(__func__, "Failed to allocate %d flights\n", graph->numPushes);
   }
 
   for (int32_t i = 0; i < graph->numPushes; i++) {
     const NavPush *push = &graph->pushes[i];
-    CGameAiFlight *flight = &module.flights[i];
+    CGameNavFlight *flight = &module.flights[i];
 
     if (push->startOff || Vec3_Equal(push->velocity, Vec3_Zero())) {
       continue;
@@ -315,7 +315,7 @@ static void Cg_PrepareAiFlights(const ClientFrame *frame) {
     const Vec3 top = MakeVec3(center.x, center.y, push->bounds.maxs.z - PM_BOUNDS.mins.z);
     const Vec3 bottom = MakeVec3(center.x, center.y, push->bounds.mins.z - PM_BOUNDS.mins.z - PM_STEP_HEIGHT * 4.f);
 
-    const CollisionTrace drop = Cg_AiFlightTrace(top, bottom, PM_BOUNDS);
+    const CollisionTrace drop = Cg_NavFlightTrace(top, bottom, PM_BOUNDS);
     if (drop.startSolid || drop.fraction == 1.f) {
       continue;
     }
@@ -329,7 +329,7 @@ static void Cg_PrepareAiFlights(const ClientFrame *frame) {
 
     pm.PointContents = cgi.PointContents;
     pm.BoxContents = cgi.BoxContents;
-    pm.Trace = Cg_AiFlightTrace;
+    pm.Trace = Cg_NavFlightTrace;
 
     pm.Debug = cgi.Debug;
     pm.DebugMask = cgi.DebugMask;
@@ -343,9 +343,9 @@ static void Cg_PrepareAiFlights(const ClientFrame *frame) {
 /**
  * @see cg_nav.h
  */
-void Cg_PrepareAiNodes(const ClientFrame *frame) {
+void Cg_PrepareNav(const ClientFrame *frame) {
 
-  if (!cg_drawAiNodes->integer) {
+  if (!cg_drawNav->integer) {
     return;
   }
 
@@ -357,7 +357,7 @@ void Cg_PrepareAiNodes(const ClientFrame *frame) {
     if (Nav_SameMovement(&module.movement, &frame->ps.pmState.params)) {
       return;
     }
-    Cg_FreeAiNodes();
+    Cg_FreeNav();
   }
 
   module.movement = frame->ps.pmState.params;
@@ -375,7 +375,7 @@ void Cg_PrepareAiNodes(const ClientFrame *frame) {
   if (!Nav_Build(&params, &module.graph)) {
     Cg_Warn("This map has no floor to navigate\n");
   } else {
-    Cg_PrepareAiFlights(frame);
+    Cg_PrepareNavFlights(frame);
     cgi.Print("Built %d navigation nodes, %d links and %d jump pad flights\n", module.graph.numNodes,
               module.graph.numLinks, module.graph.numPushes);
   }
@@ -388,7 +388,7 @@ void Cg_PrepareAiNodes(const ClientFrame *frame) {
  * to crouch, as crouch nodes are, grey to fall, yellow and orange to jump, cyan to swim, and violet
  * to climb.
  */
-static Color Cg_AiLinkColor(const NavTravelType type) {
+static Color Cg_NavLinkColor(const NavTravelType type) {
 
   switch (type) {
     case NAV_TRAVEL_CROUCH:
@@ -412,7 +412,7 @@ static Color Cg_AiLinkColor(const NavTravelType type) {
  * @return True if `link`, out of node `from`, has a link back of the same type, which is drawn
  * with the other node instead.
  */
-static bool Cg_AiLinkIsReturn(const int32_t from, const NavLink *link) {
+static bool Cg_NavLinkIsReturn(const int32_t from, const NavLink *link) {
 
   if (link->node > from) {
     return false;
@@ -435,14 +435,14 @@ static bool Cg_AiLinkIsReturn(const int32_t from, const NavLink *link) {
  * blue marker at the pad and at the landing. A vertical pad's flight rises and falls back onto it,
  * so its arc is its column, up to its apex. A flight is drawn if its pad or its landing is near.
  */
-static void Cg_DrawAiFlights(void) {
+static void Cg_AddNavFlights(void) {
 
   const Vec3 view = cgi.view->origin;
   const Vec3 color = ColorHSV(COLOR_HUE_BLUE, .8f, 1.f).vec3;
   const float pulse = 6.f + 4.f * sinf(cgi.client->unclampedTime * .008f);
 
   for (int32_t i = 0; i < module.graph.numPushes; i++) {
-    const CGameAiFlight *flight = &module.flights[i];
+    const CGameNavFlight *flight = &module.flights[i];
 
     if (flight->numPoints < 2) {
       continue;
@@ -487,21 +487,21 @@ static void Cg_DrawAiFlights(void) {
 /**
  * @see cg_nav.h
  */
-void Cg_DrawAiNodes(const ClientFrame *frame) {
+void Cg_AddNav(const ClientFrame *frame) {
 
-  if (!cg_drawAiNodes->integer || !module.built) {
+  if (!cg_drawNav->integer || !module.built) {
     return;
   }
 
   const NavGraph *graph = &module.graph;
   const Vec3 view = cgi.view->origin;
 
-  Cg_DrawAiFlights();
+  Cg_AddNavFlights();
 
   for (int32_t i = 0; i < graph->numNodes; i++) {
     const NavNode *node = &graph->nodes[i];
 
-    const Vec3 position = Cg_AiNodePosition(node);
+    const Vec3 position = Cg_NavNodePosition(node);
 
     if (Vec3_Distance(position, view) > CG_NAV_DRAW_DISTANCE) {
       continue;
@@ -519,7 +519,7 @@ void Cg_DrawAiNodes(const ClientFrame *frame) {
     for (int32_t j = 0; j < node->numLinks; j++) {
       const NavLink *link = &graph->links[node->firstLink + j];
 
-      if (Cg_AiLinkIsReturn(i, link)) {
+      if (Cg_NavLinkIsReturn(i, link)) {
         continue;
       }
 
@@ -527,9 +527,9 @@ void Cg_DrawAiNodes(const ClientFrame *frame) {
         .type = SPRITE_BEAM,
         .image = cgameMedia.beams.line,
         .origin = position,
-        .termination = Cg_AiNodePosition(&graph->nodes[link->node]),
+        .termination = Cg_NavNodePosition(&graph->nodes[link->node]),
         .size = 1.5f,
-        .color = Cg_AiLinkColor(link->travelType).vec3,
+        .color = Cg_NavLinkColor(link->travelType).vec3,
       });
     }
   }

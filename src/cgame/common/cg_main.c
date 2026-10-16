@@ -31,7 +31,7 @@ Cvar *cg_addLights;
 Cvar *cg_addSprites;
 Cvar *cg_addWeather;
 Cvar *cg_bob;
-Cvar *cg_drawAiNodes;
+Cvar *cg_drawNav;
 Cvar *cg_drawBlend;
 Cvar *cg_drawBlendDamage;
 Cvar *cg_drawBlendLiquid;
@@ -107,7 +107,7 @@ static void Cg_Init(void) {
 
   Cg_InitInput();
 
-  Cg_InitAiNodes();
+  Cg_InitNav();
 
   cg_addAtmospheric = cgi.AddCvar("cg_addAtmospheric", "1", CVAR_ARCHIVE, "Controls the intensity of atmospheric effects.");
   cg_addDecals = cgi.AddCvar("cg_addDecals", "1", CVAR_ARCHIVE, "Controls decals (bullet holes, blood, etc.).");
@@ -117,7 +117,7 @@ static void Cg_Init(void) {
   cg_addSprites = cgi.AddCvar("cg_addSprites", "1", 0, "Toggles adding sprites to the scene.");
   cg_addWeather = cgi.AddCvar("cg_addWeather", "1", CVAR_ARCHIVE, "Controls the intensity of weather effects.");
   cg_bob = cgi.AddCvar("cg_bob", "1", CVAR_ARCHIVE, "Scales the view and weapon bob while moving, and the weapon's drop, raise and kick (0 to 2).");
-  cg_drawAiNodes = cgi.AddCvar("cg_drawAiNodes", "0", CVAR_DEVELOPER, "Draws the bots' navigation graph near the view, and the node nearest the view in the diagnostics table.");
+  cg_drawNav = cgi.AddCvar("cg_drawNav", "0", CVAR_DEVELOPER, "Draws the bots' navigation graph near the view, and the node nearest the view in the diagnostics table.");
   cg_drawBlend = cgi.AddCvar("cg_drawBlend", "1", CVAR_ARCHIVE, "Controls the intensity of screen alpha-blending.");
   cg_drawBlendDamage = cgi.AddCvar("cg_drawBlendDamage", "1", CVAR_ARCHIVE, "Controls the intensity of the blend flash effect when taking damage.");
   cg_drawBlendLiquid = cgi.AddCvar("cg_drawBlendLiquid", "1", CVAR_ARCHIVE, "Controls the intensity of the blend effect while in a liquid.");
@@ -508,7 +508,7 @@ static void Cg_ClearState(void) {
 
   Cg_FreeEditorEntities();
 
-  Cg_FreeAiNodes();
+  Cg_FreeNav();
 
   Cg_ClearHud();
 
@@ -536,7 +536,7 @@ static void Cg_PrepareScene(const ClientFrame *frame) {
 
   Cg_PrepareStage(frame);
 
-  Cg_PrepareAiNodes(frame);
+  Cg_PrepareNav(frame);
 }
 
 /**
@@ -552,7 +552,7 @@ static void Cg_PopulateScene(const ClientFrame *frame) {
 
   Cg_AddFlares();
 
-  Cg_DrawAiNodes(frame);
+  Cg_AddNav(frame);
 
   Cg_AddSprites();
 

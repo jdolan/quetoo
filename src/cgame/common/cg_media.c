@@ -294,7 +294,7 @@ void Cg_FreeMedia(void) {
 
   Cg_FreeFlares();
 
-  Cg_FreeAiNodes();
+  Cg_FreeNav();
 
   Cg_FreeSprites();
 

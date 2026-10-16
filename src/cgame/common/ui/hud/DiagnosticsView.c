@@ -53,14 +53,14 @@ static void addRow(DiagnosticsView *self, const char *name, const char *fmt, ...
 }
 
 /**
- * @brief Appends a row of `Cg_DescribeAiNode`.
+ * @brief Appends a row of `Cg_DescribeNavNode`.
  */
-static void addAiNodeRow(void *data, const char *name, const char *value) {
+static void addNavRow(void *data, const char *name, const char *value) {
   addRow((DiagnosticsView *) data, name, "%s", value);
 }
 
 /**
- * @brief Rebuilds the rows from the client, the view and the stage, or with `cg_drawAiNodes`, from
+ * @brief Rebuilds the rows from the client, the view and the stage, or with `cg_drawNav`, from
  * the navigation node nearest the view.
  */
 static void refresh(DiagnosticsView *self, const ClientFrame *frame) {
@@ -72,9 +72,9 @@ static void refresh(DiagnosticsView *self, const ClientFrame *frame) {
 
   self->numRows = 0;
 
-  if (cg_drawAiNodes->integer) {
+  if (cg_drawNav->integer) {
     addRow(self, "view", "%.0f %.0f %.0f", view->origin.x, view->origin.y, view->origin.z);
-    Cg_DescribeAiNode(view->origin, addAiNodeRow, self);
+    Cg_DescribeNavNode(view->origin, addNavRow, self);
     return;
   }
 
@@ -190,7 +190,7 @@ static void updateBindings(View *self, ident data) {
   DiagnosticsView *this = (DiagnosticsView *) self;
 
   $(self, setVisibility,
-    cg_drawDiagnostics->integer || cg_drawAiNodes->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
+    cg_drawDiagnostics->integer || cg_drawNav->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (data) {
     Client *cl = cgi.client;

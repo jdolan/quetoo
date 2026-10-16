@@ -28,41 +28,41 @@
 #if defined(__CG_LOCAL_H__)
 
 /**
- * @brief Registers the `aiNodeInfo` command, which prints the view's position, and the navigation
+ * @brief Registers the `navInfo` command, which prints the view's position, and the navigation
  * node nearest it with its links, to report a bad or missing node or link.
  */
-void Cg_InitAiNodes(void);
+void Cg_InitNav(void);
 
 /**
  * @brief Builds the navigation graph from the level, as the game does for its bots, and flies its
- * jump pads, the first time that `cg_drawAiNodes` is set on the level, once the frame carries the
+ * jump pads, the first time that `cg_drawNav` is set on the level, once the frame carries the
  * level's movement parameters, which the flights need. It builds them again if the movement
  * changes, as the game does (`Nav_SameMovement`).
  * @remarks This MUST run on the main thread, because the build can abort with `cgi.Error`.
  */
-void Cg_PrepareAiNodes(const ClientFrame *frame);
+void Cg_PrepareNav(const ClientFrame *frame);
 
 /**
- * @brief Draws the navigation graph near the view, if `cg_drawAiNodes` is set and it is built.
+ * @brief Draws the navigation graph near the view, if `cg_drawNav` is set and it is built.
  * @remarks This MUST run before `Cg_AddSprites`, which submits the sprites that it adds.
  */
-void Cg_DrawAiNodes(const ClientFrame *frame);
+void Cg_AddNav(const ClientFrame *frame);
 
 /**
- * @brief Receives one row of `Cg_DescribeAiNode`.
+ * @brief Receives one row of `Cg_DescribeNavNode`.
  */
-typedef void (*CGameAiNodeRowFunc)(void *data, const char *name, const char *value);
+typedef void (*CGameNavRowFunc)(void *data, const char *name, const char *value);
 
 /**
  * @brief Describes the navigation node nearest `position`, one row at a time: its number, position,
  * distance and flags, each of its links, and each push flight that starts within two cells of it.
- * `aiNodeInfo` prints the rows, and the diagnostics view shows them while `cg_drawAiNodes` is set.
+ * `navInfo` prints the rows, and the diagnostics view shows them while `cg_drawNav` is set.
  */
-void Cg_DescribeAiNode(const Vec3 position, CGameAiNodeRowFunc row, void *data);
+void Cg_DescribeNavNode(const Vec3 position, CGameNavRowFunc row, void *data);
 
 /**
  * @brief Frees the navigation graph, so that the next level builds its own.
  */
-void Cg_FreeAiNodes(void);
+void Cg_FreeNav(void);
 
 #endif
