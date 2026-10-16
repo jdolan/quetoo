@@ -189,16 +189,19 @@
     <ClInclude Include="..\src\cgame\common\ui\DialogViewController.h">
       <Filter>src\common\ui</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\controls\CommunicationCaptureViewController.h">
+      <Filter>src\common\ui\controls</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\controls\ControlsViewController.h">
+      <Filter>src\common\ui\controls</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\controls\CrosshairHudViewController.h">
       <Filter>src\common\ui\controls</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\controls\CrosshairPreviewView.h">
       <Filter>src\common\ui\controls</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\controls\MovementCombatViewController.h">
-      <Filter>src\common\ui\controls</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\common\ui\controls\ResponseServiceViewController.h">
       <Filter>src\common\ui\controls</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\hud\BlendView.h">
@@ -533,16 +536,19 @@
     <ClCompile Include="..\src\cgame\common\ui\DialogViewController.c">
       <Filter>src\common\ui</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\controls\CommunicationCaptureViewController.c">
+      <Filter>src\common\ui\controls</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\controls\ControlsViewController.c">
+      <Filter>src\common\ui\controls</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\controls\CrosshairHudViewController.c">
       <Filter>src\common\ui\controls</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\controls\CrosshairPreviewView.c">
       <Filter>src\common\ui\controls</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\controls\MovementCombatViewController.c">
-      <Filter>src\common\ui\controls</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\common\ui\controls\ResponseServiceViewController.c">
       <Filter>src\common\ui\controls</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\BlendView.c">

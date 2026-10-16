@@ -102,10 +102,11 @@ cgame_la_SOURCES = \
 	ui/CvarSlider.c \
 	ui/CvarTextView.c \
 	ui/DialogViewController.c \
+	ui/controls/CommunicationCaptureViewController.c \
 	ui/controls/ControlsViewController.c \
+	ui/controls/CrosshairHudViewController.c \
 	ui/controls/CrosshairPreviewView.c \
 	ui/controls/MovementCombatViewController.c \
-	ui/controls/ResponseServiceViewController.c \
 	ui/credits/CreditsViewController.c \
 	ui/editor/EditorViewController.c \
 	ui/editor/EntityView.c \

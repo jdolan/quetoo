@@ -23,7 +23,8 @@
 
 #include "ControlsViewController.h"
 
-#include "ResponseServiceViewController.h"
+#include "CommunicationCaptureViewController.h"
+#include "CrosshairHudViewController.h"
 #include "MovementCombatViewController.h"
 
 #define _Class _ControlsViewController
@@ -65,7 +66,11 @@ static void loadView(ViewController *self) {
   $(tabViewController, addChildViewController, viewController);
   release(viewController);
 
-  viewController = $((ViewController *) alloc(ResponseServiceViewController), init);
+  viewController = $((ViewController *) alloc(CrosshairHudViewController), init);
+  $(tabViewController, addChildViewController, viewController);
+  release(viewController);
+
+  viewController = $((ViewController *) alloc(CommunicationCaptureViewController), init);
   $(tabViewController, addChildViewController, viewController);
   release(viewController);
 

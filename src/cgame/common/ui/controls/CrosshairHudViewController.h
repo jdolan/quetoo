@@ -33,15 +33,15 @@
  * @brief Controls ViewController.
  */
 
-typedef struct ResponseServiceViewController ResponseServiceViewController;
-typedef struct ResponseServiceViewControllerInterface ResponseServiceViewControllerInterface;
+typedef struct CrosshairHudViewController CrosshairHudViewController;
+typedef struct CrosshairHudViewControllerInterface CrosshairHudViewControllerInterface;
 
 /**
- * @brief The ResponseServiceViewController type.
+ * @brief The CrosshairHudViewController type.
  * @extends ViewController
  * @ingroup ViewControllers
  */
-struct ResponseServiceViewController {
+struct CrosshairHudViewController {
 
   /**
    * @brief The superclass.
@@ -53,7 +53,7 @@ struct ResponseServiceViewController {
    * @brief The interface type.
    * @private
    */
-  ResponseServiceViewControllerInterface *interface[0];
+  CrosshairHudViewControllerInterface *interface[0];
 
   /**
    * @brief The crosshair HueColorPicker.
@@ -82,9 +82,9 @@ struct ResponseServiceViewController {
 };
 
 /**
- * @brief The ResponseServiceViewController interface.
+ * @brief The CrosshairHudViewController interface.
  */
-struct ResponseServiceViewControllerInterface {
+struct CrosshairHudViewControllerInterface {
 
   /**
    * @brief The superclass interface.
@@ -93,9 +93,9 @@ struct ResponseServiceViewControllerInterface {
 };
 
 /**
- * @fn Class *ResponseServiceViewController::_ResponseServiceViewController(void)
- * @brief The ResponseServiceViewController archetype.
- * @return The ResponseServiceViewController Class.
- * @memberof ResponseServiceViewController
+ * @fn Class *CrosshairHudViewController::_CrosshairHudViewController(void)
+ * @brief The CrosshairHudViewController archetype.
+ * @return The CrosshairHudViewController Class.
+ * @memberof CrosshairHudViewController
  */
-CGAME_EXPORT Class *_ResponseServiceViewController(void);
+CGAME_EXPORT Class *_CrosshairHudViewController(void);
