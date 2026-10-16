@@ -479,7 +479,9 @@ static void Sv_UpdatePings(void) {
  * @brief Once per second, gives all clients an allotment of 1000 milliseconds
  * for their movement commands which will be decremented as we receive
  * new information from them. If they drift by a significant margin
- * over the next interval, assume they are trying to cheat.
+ * over the next interval, assume they are trying to cheat. A client in this
+ * process, such as a bot, scales its commands by `timeScale`, as the server's
+ * clock does, so its allowed drift scales too.
  */
 static void Sv_CheckCommandTimes(void) {
   static uint32_t lastCheckTime;
@@ -499,9 +501,10 @@ static void Sv_CheckCommandTimes(void) {
       continue;
     }
 
-    if (sv_enforceTime->value) { // check them
+    if (sv_enforceTime->value && !timeDemo->value) { // check them
 
-      if (cl->cmdMsec > CMD_MSEC_ALLOWABLE_DRIFT) { // irregular movement
+      const float scale = cl->netChan.remoteAddress.type == NA_LOOP ? timeScale->value : 1.f;
+      if (cl->cmdMsec > CMD_MSEC_ALLOWABLE_DRIFT * scale) { // irregular movement
         cl->cmdMsecErrors++;
 
         Com_Debug(DEBUG_SERVER, "%s drifted %dms\n", Sv_NetaddrToString(cl), cl->cmdMsec);
@@ -884,7 +887,7 @@ void Sv_Frame(const uint32_t msec) {
     return;
   }
 
-  if (timeDemo->value && !dedicated->value) { // always run a frame
+  if (timeDemo->value) { // always run a frame
     frameDelta = QUETOO_TICK_MILLIS;
   } else { // keep simulation time in sync with reality
 

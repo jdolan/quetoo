@@ -50,6 +50,7 @@ extern Cvar *cg_drawCrosshairScale;
 extern Cvar *cg_drawDiagnostics;
 extern Cvar *cg_drawFps;
 extern Cvar *cg_drawHud;
+extern Cvar *cg_drawNav;
 extern Cvar *cg_drawPing;
 extern Cvar *cg_drawPingWarn;
 extern Cvar *cg_hud;

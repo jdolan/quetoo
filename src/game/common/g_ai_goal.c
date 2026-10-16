@@ -22,9 +22,10 @@
 #include "g_local.h"
 
 /**
- * @brief Setup base entity goal for the specified target.
+ * @brief Clears the goal, and sets its type and priority.
  */
-static inline void G_Ai_InitGoal(const GameClient *cl, GameAiGoal *goal, GameAiGoalType type, float priority) {
+static inline void G_Ai_InitGoal(const GameClient *cl, GameAiGoal *goal, GameAiGoalType type,
+                                 float priority) {
 
   G_Ai_ClearGoal(goal);
 
@@ -33,7 +34,7 @@ static inline void G_Ai_InitGoal(const GameClient *cl, GameAiGoal *goal, GameAiG
 }
 
 /**
- * @brief Setup entity goal for the specified target.
+ * @brief Sets a goal to move to the position.
  */
 void G_Ai_SetPositionGoal(const GameClient *cl, GameAiGoal *goal, float priority, const Vec3 pos) {
 
@@ -62,9 +63,10 @@ const GameEntity *G_Ai_ResolveGoalEntity(int32_t number) {
 #endif
 
 /**
- * @brief Setup entity goal for the specified target.
+ * @brief Sets a goal to move to the entity.
  */
-void G_Ai_SetEntityGoal(const GameClient *cl, GameAiGoal *goal, float priority, const GameEntity *entity) {
+void G_Ai_SetEntityGoal(const GameClient *cl, GameAiGoal *goal, float priority,
+                        const GameEntity *entity) {
 
   G_Ai_InitGoal(cl, goal, AI_GOAL_ENTITY, priority);
   
@@ -78,44 +80,98 @@ void G_Ai_SetEntityGoal(const GameClient *cl, GameAiGoal *goal, float priority, 
 }
 
 /**
- * @brief Setup entity goal for the specified target.
+ * @return True if the bot is on a ladder, on the ladder link of its move target's path.
+ * @param bottom The node at the start of the climb.
+ * @param top The node at its top.
  */
-void G_Ai_SetPathGoal(const GameClient *cl, GameAiGoal *goal, float priority, Vector *path, const GameEntity *pathTarget) {
+static bool G_Ai_IsOnClimb(const GameClient *cl, GameAiNodeId *bottom, GameAiNodeId *top) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (!(cl->ps.pmState.flags & PMF_ON_LADDER) || goal->type != AI_GOAL_PATH || !goal->path.path ||
+      goal->path.pathIndex == 0 || goal->path.pathIndex >= goal->path.path->count) {
+    return false;
+  }
+
+  *bottom = VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1);
+  *top = VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex);
+
+  const GameAiLink *link = G_Ai_PathLink(cl);
+
+  return link && link->travelType == NAV_TRAVEL_LADDER;
+}
+
+/**
+ * @see g_ai_goal.h
+ */
+GameAiNodeId G_Ai_PathStart(const GameClient *cl, const float maxDistance) {
+
+  GameAiNodeId bottom, top;
+
+  if (G_Ai_IsOnClimb(cl, &bottom, &top)) {
+    return top;
+  }
+
+  return G_Ai_Node_FindClosest(cl->entity->s.origin, maxDistance, true, true);
+}
+
+/**
+ * @brief Sets a goal to follow the path, toward `pathTarget` if it is not NULL. A bot that climbs a
+ * ladder keeps its climb in front of a new path that starts at the climb's top (`G_Ai_PathStart`),
+ * so that it does not let go of the ladder for a path from the node nearest it, as one in a pipe
+ * that the ladder passes.
+ * @remarks It clears the bot's strafe look-ahead, which `G_Ai_StrafeTarget` keys by the path's
+ * address, because the new path can reuse the address of one that was freed, and the strafe jump
+ * that `G_Ai_StrafeJumpIsSafe` found safe.
+ */
+void G_Ai_SetPathGoal(const GameClient *cl, GameAiGoal *goal, float priority, Vector *path,
+                      const GameEntity *pathTarget) {
+
+  GameAiNodeId bottom, top;
+  const bool climb = goal == &cl->ai->moveTarget && G_Ai_IsOnClimb(cl, &bottom, &top) &&
+                     path->count && VectorValue(path, GameAiNodeId, 0) == top;
 
   G_Ai_InitGoal(cl, goal, AI_GOAL_PATH, priority);
-  
-  goal->path.path = retain(path);
-  goal->path.pathIndex = 0;
 
-  const GameAiNodeId node = VectorValue(path, GameAiNodeId, 0);
-  const GameAiNodeId next = VectorValue(path, GameAiNodeId, Minz(path->count - 1, 1));
+  cl->ai->strafeLookTime = 0;
+  cl->ai->strafeSafeTime = 0;
+
+  if (climb) {
+    $(path, insert, &bottom, 0);
+  }
+
+  goal->path.path = retain(path);
+  goal->path.pathIndex = climb ? 1 : 0;
+
+  const GameAiNodeId node = VectorValue(path, GameAiNodeId, goal->path.pathIndex);
+  const GameAiNodeId next = VectorValue(path, GameAiNodeId,
+                                        Minz(path->count - 1, goal->path.pathIndex + 1));
   goal->path.pathPosition = G_Ai_Node_GetPosition(node);
   goal->path.nextPathPosition = G_Ai_Node_GetPosition(next);
   goal->path.pathTarget = pathTarget;
 
-#if AI_GOAL_HARDENING
   if (pathTarget) {
-    goal->path.pathTargetNumber = pathTarget->s.number;
     goal->path.pathTargetSpawnId = pathTarget->s.spawnId;
-  } else {
-    goal->path.pathTargetNumber = -1;
   }
-#else
-  if (path_target) {
-    goal->path.pathTargetSpawnId = path_target->s.spawnId;
-  }
+
+#if AI_GOAL_HARDENING
+  goal->path.pathTargetNumber = pathTarget ? pathTarget->s.number : -1;
 #endif
 
-  G_Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n", VectorValue(path, GameAiNodeId, 0), VectorValue(path, GameAiNodeId, path->count - 1), priority, etos(pathTarget));
+  G_Ai_Debug("New goal: path from %u -> %u (%f priority, heading for %s)\n",
+             VectorValue(path, GameAiNodeId, 0), VectorValue(path, GameAiNodeId, path->count - 1),
+             priority, etos(pathTarget));
 }
 
 /**
- * @brief Check if the goal references the same entity still
+ * @return True if the goal is the entity, or a path to it, and the entity has not respawned since.
  */
 bool G_Ai_GoalHasEntity(const GameAiGoal *goal, const GameEntity *ent) {
 
-  return (goal->type == AI_GOAL_ENTITY && goal->entity.ent == ent && goal->entity.spawnId == ent->s.spawnId) ||
-    (goal->type == AI_GOAL_PATH && goal->path.pathTarget == ent && goal->path.pathTargetSpawnId == ent->s.spawnId);
+  return (goal->type == AI_GOAL_ENTITY && goal->entity.ent == ent &&
+          goal->entity.spawnId == ent->s.spawnId) ||
+         (goal->type == AI_GOAL_PATH && goal->path.pathTarget == ent &&
+          goal->path.pathTargetSpawnId == ent->s.spawnId);
 }
 
 /**
@@ -132,7 +188,6 @@ void G_Ai_CopyGoal(const GameAiGoal *from, GameAiGoal *to) {
 
   switch (from->type) {
     case AI_GOAL_NONE:
-      to->wander.angle = from->wander.angle;
       break;
     case AI_GOAL_POSITION:
       to->position.pos = from->position.pos;
@@ -164,7 +219,7 @@ void G_Ai_CopyGoal(const GameAiGoal *from, GameAiGoal *to) {
 }
 
 /**
- * @brief Clear a goal
+ * @brief Releases the goal's path, if it has one, and clears the goal.
  */
 void G_Ai_ClearGoal(GameAiGoal *goal) {
   

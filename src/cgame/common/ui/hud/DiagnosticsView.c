@@ -53,7 +53,15 @@ static void addRow(DiagnosticsView *self, const char *name, const char *fmt, ...
 }
 
 /**
- * @brief Rebuilds the rows from the client, the view and the stage.
+ * @brief Appends a row of `Cg_DescribeNavNode`.
+ */
+static void addNavRow(void *data, const char *name, const char *value) {
+  addRow((DiagnosticsView *) data, name, "%s", value);
+}
+
+/**
+ * @brief Rebuilds the rows from the client, the view and the stage, or with `cg_drawNav`, from
+ * the navigation node nearest the view.
  */
 static void refresh(DiagnosticsView *self, const ClientFrame *frame) {
 
@@ -63,6 +71,12 @@ static void refresh(DiagnosticsView *self, const ClientFrame *frame) {
   const SoundDiagnostics *s = &cgi.stage->diagnostics;
 
   self->numRows = 0;
+
+  if (cg_drawNav->integer) {
+    addRow(self, "view", "%.0f %.0f %.0f", view->origin.x, view->origin.y, view->origin.z);
+    Cg_DescribeNavNode(view->origin, addNavRow, self);
+    return;
+  }
 
   const Vec3 origin = frame->ps.pmState.origin;
   addRow(self, "origin", "%.0f %.0f %.0f", origin.x, origin.y, origin.z);
@@ -176,7 +190,7 @@ static void updateBindings(View *self, ident data) {
   DiagnosticsView *this = (DiagnosticsView *) self;
 
   $(self, setVisibility,
-    cg_drawDiagnostics->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
+    cg_drawDiagnostics->integer || cg_drawNav->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
 
   if (data) {
     Client *cl = cgi.client;

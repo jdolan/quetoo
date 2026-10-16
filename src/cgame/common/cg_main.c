@@ -45,6 +45,7 @@ Cvar *cg_drawCrosshairScale;
 Cvar *cg_drawDiagnostics;
 Cvar *cg_drawFps;
 Cvar *cg_drawHud;
+Cvar *cg_drawNav;
 Cvar *cg_drawPing;
 Cvar *cg_drawPingWarn;
 Cvar *cg_hud;
@@ -106,6 +107,8 @@ static void Cg_Init(void) {
 
   Cg_InitInput();
 
+  Cg_InitNav();
+
   cg_addAtmospheric = cgi.AddCvar("cg_addAtmospheric", "1", CVAR_ARCHIVE, "Controls the intensity of atmospheric effects.");
   cg_addDecals = cgi.AddCvar("cg_addDecals", "1", CVAR_ARCHIVE, "Controls decals (bullet holes, blood, etc.).");
   cg_addEntities = cgi.AddCvar("cg_addEntities", "1", 0, "Toggles adding entities to the scene.");
@@ -128,6 +131,7 @@ static void Cg_Init(void) {
   cg_drawDiagnostics = cgi.AddCvar("cg_drawDiagnostics", "0", CVAR_DEVELOPER, "Draw the client, renderer and sound counters on the HUD");
   cg_drawFps = cgi.AddCvar("cg_drawFps", "1", CVAR_ARCHIVE, "Draw the frame rate on the HUD");
   cg_drawHud = cgi.AddCvar("cg_drawHud", "1", CVAR_ARCHIVE, "Render the Heads-Up-Display");
+  cg_drawNav = cgi.AddCvar("cg_drawNav", "0", CVAR_DEVELOPER, "Draws the bots' navigation graph near the view, and the node nearest the view in the diagnostics table.");
   cg_drawPing = cgi.AddCvar("cg_drawPing", "1", CVAR_ARCHIVE, "Draw the round trip time to the server on the HUD");
   cg_drawPingWarn = cgi.AddCvar("cg_drawPingWarn", "200", CVAR_ARCHIVE, "The round trip time, in milliseconds, above which the ping is drawn as lagging");
   cg_hud = cgi.AddCvar("cg_hud", "default", CVAR_ARCHIVE, "The HUD variant: the ui/hud/<name> directory its layout and style are read from (Default is default)");
@@ -330,9 +334,6 @@ static void Cg_UpdateConfigString(int32_t i) {
       return;
     }
 #endif
-    case CS_NAV_EDIT:
-      cgameState.navEdit = (int32_t) strtol(s, NULL, 10);
-      return;
   }
 
   if (i >= CS_CORPSES && i < CS_CORPSES + MAX_CORPSES) {
@@ -507,6 +508,8 @@ static void Cg_ClearState(void) {
 
   Cg_FreeEditorEntities();
 
+  Cg_FreeNav();
+
   Cg_ClearHud();
 
   Cg_ClearScores();
@@ -532,6 +535,8 @@ static void Cg_PrepareScene(const ClientFrame *frame) {
   Cg_PrepareView(frame);
 
   Cg_PrepareStage(frame);
+
+  Cg_PrepareNav(frame);
 }
 
 /**
@@ -546,6 +551,8 @@ static void Cg_PopulateScene(const ClientFrame *frame) {
   Cg_AddEffects();
 
   Cg_AddFlares();
+
+  Cg_AddNav(frame);
 
   Cg_AddSprites();
 
@@ -569,10 +576,7 @@ static void Cg_UpdateScreen(const ClientFrame *frame) {
 
   Cg_UpdateHud(frame);
 
-  // The HUD hides itself in nav edit and shows the instructions instead
-  if (!cgameState.navEdit) {
-    Cg_DrawHud(frame);
-  }
+  Cg_DrawHud(frame);
 
   Cg_CheckEditor();
 

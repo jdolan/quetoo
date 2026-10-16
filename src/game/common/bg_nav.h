@@ -1,0 +1,593 @@
+/*
+ * Copyright(c) 1997-2001 id Software, Inc.
+ * Copyright(c) 2002 The Quakeforge Project.
+ * Copyright(c) 2006 Quetoo.
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ */
+
+#pragma once
+
+#include "shared/shared.h"
+#include "collision/cm_types.h"
+#include "bg_pmove.h"
+
+/**
+ * @brief How a bot travels a link. The names follow the Quake III AAS travel types.
+ */
+typedef enum {
+  /**
+   * @brief A link that the game made to a node of its own, such as an item's.
+   */
+  NAV_TRAVEL_NONE,
+
+  /**
+   * @brief Walk to the target, stepping up or down at most `PM_STEP_HEIGHT`.
+   */
+  NAV_TRAVEL_WALK,
+
+  /**
+   * @brief Walk to the target while crouched, beneath a low ceiling.
+   */
+  NAV_TRAVEL_CROUCH,
+
+  /**
+   * @brief Walk off a ledge and fall to the target.
+   */
+  NAV_TRAVEL_WALK_OFF_LEDGE,
+
+  /**
+   * @brief Jump straight up onto a ledge that is too high to step onto.
+   */
+  NAV_TRAVEL_BARRIER_JUMP,
+
+  /**
+   * @brief Touch a teleporter.
+   */
+  NAV_TRAVEL_TELEPORT,
+
+  /**
+   * @brief Ride a `trigger_push`.
+   */
+  NAV_TRAVEL_PUSH,
+
+  /**
+   * @brief Ride a `func_plat` up.
+   */
+  NAV_TRAVEL_PLAT,
+
+  /**
+   * @brief Swim to the target: through water, or up to the surface and out onto a ledge.
+   */
+  NAV_TRAVEL_SWIM,
+
+  /**
+   * @brief Run and jump across a gap, from the edge of the floor.
+   */
+  NAV_TRAVEL_JUMP,
+
+  /**
+   * @brief Climb a ladder up to the floor over its top.
+   */
+  NAV_TRAVEL_LADDER,
+} NavTravelType;
+
+/**
+ * @brief The width of a navigation cell, in units. Each cell has one node at most.
+ */
+#define NAV_CELL_SIZE 64.f
+
+/**
+ * @brief The height of a navigation cell, in units, so that floors this far apart have their own
+ * nodes.
+ */
+#define NAV_CELL_HEIGHT 32.f
+
+/**
+ * @brief A node of the graph that `Nav_Build` makes.
+ */
+typedef struct {
+  /**
+   * @brief The player origin, standing or crouched, on the floor of the node's cell, or at its
+   * center for a swim node.
+   */
+  Vec3 position;
+
+  /**
+   * @brief The index of the cell whose floor the node stands on, or that a swim node floats in.
+   */
+  int32_t cell;
+
+  /**
+   * @brief The liquid contents at the node.
+   */
+  int32_t contents;
+
+  /**
+   * @brief True if only the crouched bounding box fits at the node.
+   */
+  bool crouch;
+
+  /**
+   * @brief True if the node floats in water, lava or slime in its cell, which has no floor. A swim
+   * node links only by swimming.
+   */
+  bool swim;
+
+  /**
+   * @brief True if the node stands near an edge with no floor below it within `NAV_MAX_DROP`, such
+   * as the edge of the void: a walk of `NAV_EDGE_DISTANCE` from it leaves the floor there.
+   */
+  bool edge;
+
+  /**
+   * @brief The inline model that the node stands on and that moves it, or 0 for a node that does
+   * not move.
+   */
+  int32_t model;
+
+  /**
+   * @brief The node's position in the space of `model`, by which the game and the client game move
+   * it with the model's entity.
+   */
+  Vec3 local;
+
+  /**
+   * @brief The index of the node's first link in `NavGraph::links`.
+   */
+  int32_t firstLink;
+
+  /**
+   * @brief The count of the node's links.
+   */
+  int32_t numLinks;
+} NavNode;
+
+/**
+ * @brief A link of the graph that `Nav_Build` makes.
+ */
+typedef struct {
+  /**
+   * @brief The index of the node that the link leads to.
+   */
+  int32_t node;
+
+  /**
+   * @brief The `NavTravelType`.
+   */
+  NavTravelType travelType;
+
+  /**
+   * @brief The time to travel the link, in milliseconds.
+   */
+  int32_t travelMillis;
+
+  /**
+   * @brief The inline model of the door whose doorway the walk, drop or jump crosses, or 0. The
+   * game lets a bot use the link only while the door is away from where the map places it.
+   */
+  int32_t gate;
+} NavLink;
+
+/**
+ * @brief A `trigger_push` of the level, as `Nav_Build` reads it from the entity, so that the game
+ * and the client game fly the same pads.
+ */
+typedef struct {
+  /**
+   * @brief The bounds of the trigger.
+   */
+  Box3 bounds;
+
+  /**
+   * @brief The velocity that the trigger gives a player in it: `speed`, 100 by default, times 10,
+   * along `angles` or `angle`, where an `angle` of -1 is up and -2 is down, as `G_SetMoveDir` reads
+   * them.
+   */
+  Vec3 velocity;
+
+  /**
+   * @brief True if the trigger starts off, and pushes only once something uses it.
+   */
+  bool startOff;
+} NavPush;
+
+/**
+ * @brief The face of a ladder that bots climb: a vertical face of the bounds of a group of ladder
+ * brushes that touch, across the ladder's widest horizontal extent, with at least one climb. A
+ * bot follows it in its own frame, along the face's normal, across the face and up, rather than
+ * from the nodes of its climb.
+ */
+typedef struct {
+  /**
+   * @brief The bounds of the ladder's brushes.
+   */
+  Box3 bounds;
+
+  /**
+   * @brief The outward normal of the face that bots climb, which is horizontal and axial.
+   */
+  Vec3 normal;
+
+  /**
+   * @brief The horizontal axis across the face.
+   */
+  Vec3 lateral;
+
+  /**
+   * @brief The player origin in front of the middle of the face, where the player's box touches
+   * it, at the height of the ladder's bottom.
+   */
+  Vec3 center;
+
+  /**
+   * @brief Half the width of the face, along `lateral`.
+   */
+  float halfWidth;
+
+  /**
+   * @brief The player origin's height at which the player's box clears the ladder's top.
+   */
+  float top;
+} NavLadder;
+
+/**
+ * @brief A climb of a ladder, which a ladder link makes.
+ */
+typedef struct {
+  /**
+   * @brief The index of the ladder in `NavGraph::ladders`.
+   */
+  int32_t ladder;
+
+  /**
+   * @brief The node at the ladder's foot, or the node from which a running jump grabs the ladder.
+   */
+  int32_t bottom;
+
+  /**
+   * @brief The node on the floor over the ladder's top.
+   */
+  int32_t top;
+
+  /**
+   * @brief The time of the climb in milliseconds.
+   */
+  int32_t millis;
+
+  /**
+   * @brief The player origin at the foot of the column beside the ladder that the build tested, or
+   * where a jump grabs the ladder. The nodes of the climb MAY stand beside that column.
+   */
+  Vec3 column;
+
+  /**
+   * @brief The player origin on the floor over the ladder's top, where the climb ends.
+   */
+  Vec3 landing;
+
+  /**
+   * @brief True if the climb starts with a running jump from `bottom` onto the ladder at `column`.
+   */
+  bool jump;
+
+  /**
+   * @brief For a climb that starts with a jump, the player origin `NAV_LADDER_RUN_UP` behind
+   * `bottom` on the line of the jump, from which a bot runs along the line to jump at speed.
+   */
+  Vec3 runUp;
+} NavLadderClimb;
+
+/**
+ * @brief The distance in units of clear floor behind the node of a jump onto a ladder, on the line
+ * of the jump, along which a bot that comes from another way gets up to speed.
+ */
+#define NAV_LADDER_RUN_UP 64.f
+
+/**
+ * @brief The navigation graph of the level.
+ */
+typedef struct {
+  /**
+   * @brief The origin of the cell grid, which covers the world model's bounds.
+   */
+  Vec3 mins;
+
+  /**
+   * @brief The cell grid's dimensions, in cells.
+   */
+  Vec3i size;
+
+  /**
+   * @brief The count of cells, `size.x * size.y * size.z`.
+   */
+  int32_t numCells;
+
+  /**
+   * @brief The nodes of the graph.
+   */
+  NavNode *nodes;
+
+  /**
+   * @brief The count of `nodes`.
+   */
+  int32_t numNodes;
+
+  /**
+   * @brief The links of the graph, those of each node together, from its `NavNode::firstLink`.
+   */
+  NavLink *links;
+
+  /**
+   * @brief The count of `links`.
+   */
+  int32_t numLinks;
+
+  /**
+   * @brief The node on the floor of each cell, or floating in it, or -1.
+   */
+  int32_t *cellNodes;
+
+  /**
+   * @brief The count of nodes found at an offset from their cell's center.
+   */
+  int32_t numOffset;
+
+  /**
+   * @brief The count of floors with no room for a player.
+   */
+  int32_t numNoFit;
+
+  /**
+   * @brief The count of floors in a `trigger_hurt` or a `trigger_push`.
+   */
+  int32_t numTrigger;
+
+  /**
+   * @brief The count of nodes at the edge of the void.
+   */
+  int32_t numEdge;
+
+  /**
+   * @brief The count of swim nodes.
+   */
+  int32_t numSwim;
+
+  /**
+   * @brief The level's `trigger_push` entities.
+   */
+  NavPush *pushes;
+
+  /**
+   * @brief The count of `pushes`.
+   */
+  int32_t numPushes;
+
+  /**
+   * @brief The count of links of each `NavTravelType`.
+   */
+  int32_t numTravel[NAV_TRAVEL_LADDER + 1];
+
+  /**
+   * @brief The count of walks and jumps through the doorway of a door.
+   */
+  int32_t numGated;
+
+  /**
+   * @brief The climbs of the level's ladders, one for each ladder link.
+   */
+  NavLadderClimb *climbs;
+
+  /**
+   * @brief The count of `climbs`.
+   */
+  int32_t numClimbs;
+
+  /**
+   * @brief The faces of the level's ladders that bots climb, which each climb names.
+   */
+  NavLadder *ladders;
+
+  /**
+   * @brief The count of `ladders`.
+   */
+  int32_t numLadders;
+} NavGraph;
+
+/**
+ * @brief What `Nav_Build` needs from the game or the client game. The graph depends on the BSP, its
+ * entities and the level's movement alone, so that both build the same graph.
+ */
+typedef struct {
+  /**
+   * @brief The level's collision model.
+   */
+  const CollisionBsp *bsp;
+
+  /**
+   * @brief The level's movement, with the level's gravity, by which the build tests jumps and
+   * climbs out of water. A movement or gravity that changes during the level does not rebuild the
+   * graph, whose jumps then MAY not match it.
+   */
+  PMoveParams movement;
+
+  /**
+   * @brief Traces a box against the given BSP head node.
+   */
+  CollisionTrace (*BoxTrace)(const Vec3 start, const Vec3 end, const Box3 bounds, int32_t headNode,
+                             int32_t contents);
+
+  /**
+   * @return True if `point` is inside `brush`.
+   */
+  bool (*PointInsideBrush)(const Vec3 point, const CollisionBrush *brush);
+
+  /**
+   * @return The value of the entity's key.
+   */
+  const Entity *(*EntityValue)(const Entity *entity, const char *key);
+
+  /**
+   * @brief Prints a warning.
+   */
+  void (*Warn)(const char *func, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
+
+  /**
+   * @brief Aborts with an error.
+   */
+  void (*Error)(const char *func, const char *fmt, ...)
+    __attribute__((noreturn, format(printf, 2, 3)));
+} NavParams;
+
+/**
+ * @brief Makes the level's navigation graph from its collision model and entities: a node on each
+ * floor that a player fits on in each cell, and a swim node in each cell with no floor that is in
+ * water, lava or slime, and the links between them: walks, crouches, barrier jumps, walks off
+ * ledges, running jumps across gaps, swims, and ladder climbs. It also reads the level's
+ * `trigger_push` entities, whose flights `Nav_FlyPush` follows, and the faces of its ladders.
+ * @return True if the graph has at least one node.
+ * @remarks The caller MUST free the graph with `Nav_Free`.
+ */
+bool Nav_Build(const NavParams *params, NavGraph *graph);
+
+/**
+ * @return The grid coordinate of the graph's cell that contains `point`, which MAY be outside the
+ * grid.
+ */
+Vec3i Nav_PointCoordinate(const NavGraph *graph, const Vec3 point);
+
+/**
+ * @return The node on the floor of the graph's cell at the grid coordinate `xyz`, or floating in
+ * it, or -1 if the cell has none or is outside the grid.
+ */
+int32_t Nav_CellNode(const NavGraph *graph, const Vec3i xyz);
+
+/**
+ * @return True if the graph that `Nav_Build` makes with the movement `a`, and the flights that
+ * `Nav_FlyPush` flies with it, are those for the movement `b`. The build reads only the gravity and
+ * the speeds of the run, the water, the crouch, the ladder, the jump and the water jump. A flight
+ * also reads the movement that `Pm_Move` runs, the friction in the air and in water, and the
+ * player's bounds.
+ */
+bool Nav_SameMovement(const PMoveParams *a, const PMoveParams *b);
+
+/**
+ * @brief The horizontal distance within which a node on a model that moves links to another node:
+ * a little more than a cell, so that one is always in reach as the model passes.
+ */
+#define NAV_MOVER_LINK_DISTANCE (NAV_CELL_SIZE * 1.25f)
+
+/**
+ * @brief The highest drop onto or off a model that moves, which a link of a mover spans.
+ */
+#define NAV_MOVER_DROP_HEIGHT 128.f
+
+/**
+ * @brief The spacing in units of the floor samples under a walk link of a mover.
+ */
+#define NAV_MOVER_FLOOR_SPACING 16.f
+
+/**
+ * @brief A trace against the world and the entities that block a player, which the game and the
+ * client game each provide for the links of the nodes on models that move.
+ */
+typedef CollisionTrace (*NavMoverTrace)(const Vec3 start, const Vec3 end, const Box3 bounds,
+                                        const int32_t contents);
+
+/**
+ * @return True if `b` is within a step of height and `NAV_MOVER_LINK_DISTANCE` across of `a`.
+ * @param distance Receives the distance across.
+ */
+bool Nav_MoverReach(const Vec3 a, const Vec3 b, float *distance);
+
+/**
+ * @return True if there is floor, and no liquid, under the player's box at each point
+ * `NAV_MOVER_FLOOR_SPACING` apart on the line from `a` to `b`, which are player origins on the same
+ * level. The box is as wide as the player, because a player stands where any part of it has floor,
+ * and does not fall through a seam between two models side by side. Where the box starts in a wall,
+ * a point is traced instead.
+ */
+bool Nav_MoverFloor(NavMoverTrace trace, const Vec3 a, const Vec3 b);
+
+/**
+ * @return True if a player walks from `a` to `b`, player origins of which one at least is on a
+ * model that moves: within `Nav_MoverReach`, with a clear line for the player's box raised by a
+ * step, and floor under the line (`Nav_MoverFloor`).
+ * @param bounds The player's box.
+ * @param distance Receives the distance across.
+ */
+bool Nav_MoverWalk(NavMoverTrace trace, const Vec3 a, const Vec3 b, const Box3 bounds,
+                   float *distance);
+
+/**
+ * @brief Finds the link between the node at `a`, on a model that moves, and the node at `b`, within
+ * `NAV_MOVER_LINK_DISTANCE` across: a walk both ways if `b` is on its level (`Nav_MoverWalk`), or a
+ * drop from the higher of the two to the lower, within `NAV_MOVER_DROP_HEIGHT`, with a clear line
+ * across at the higher level for the player's box raised by a step, and down onto the lower.
+ * @param bounds The player's box.
+ * @param cost Receives the cost of the link: the distance across, plus the height of a drop.
+ * @return `NAV_TRAVEL_WALK`, `NAV_TRAVEL_WALK_OFF_LEDGE` from the higher node, or
+ * `NAV_TRAVEL_NONE` if the nodes do not link.
+ */
+NavTravelType Nav_MoverLink(NavMoverTrace trace, const Vec3 a, const Vec3 b, const Box3 bounds,
+                            float *cost);
+
+/**
+ * @return The name of the travel type: the name of its `NavTravelType` constant, in lowercase and
+ * without the prefix, such as `walk_off_ledge`. `src/tools/ai_probe.py` uses the same names.
+ */
+const char *Nav_TravelName(const NavTravelType type);
+
+/**
+ * @brief The longest flight in milliseconds that `Nav_FlyPush` follows. It is an integer, so that
+ * an array sized by it is a constant array.
+ */
+#define NAV_FLIGHT_MILLIS 4000
+
+/**
+ * @brief The longest flight in seconds that `Nav_FlyPush` follows.
+ */
+#define NAV_FLIGHT_SECONDS (NAV_FLIGHT_MILLIS / 1000.f)
+
+/**
+ * @brief Flies a player from where `pm` stands on the push, with no input, as a bot rides one. The
+ * push sets the velocity again in each move that the player's box touches it, as
+ * `G_trigger_push_Push` does. One move is one server frame.
+ * @param push The push to fly.
+ * @param pm The move, with the level's movement parameters, the origin, and the trace and contents
+ * functions that the caller chooses. The flight moves it.
+ * @param points If not NULL, the player origin at the start of each move, up to `maxPoints`. The
+ * last is where the flight lands, if it lands.
+ * @param maxPoints The capacity of `points`.
+ * @param numPoints The count of points written, if `points` is not NULL.
+ * @param seconds The duration of the flight, written only if it lands.
+ * @return True if the flight lands within `NAV_FLIGHT_SECONDS`, at `pm->s.origin`.
+ */
+bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints,
+                 int32_t *numPoints, float *seconds);
+
+/**
+ * @brief Frees the nodes and links of a graph that `Nav_Build` made, and zeroes their counts. It
+ * keeps the cells, the pushes, the ladders and the climbs, whose node indices then refer to nodes
+ * that the graph no longer holds.
+ */
+void Nav_FreeNodes(NavGraph *graph);
+
+/**
+ * @brief Frees a graph that `Nav_Build` made.
+ */
+void Nav_Free(NavGraph *graph);
+

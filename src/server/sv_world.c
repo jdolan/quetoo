@@ -550,7 +550,8 @@ CollisionTrace Sv_Clip(const Vec3 start, const Vec3 end, const Box3 bounds,
 
   ServerTrace trace = {
     .trace = {
-      .fraction = 1.f
+      .fraction = 1.f,
+      .end = end
     },
     .start = start,
     .end = end,

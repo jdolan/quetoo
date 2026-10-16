@@ -172,6 +172,12 @@ Box3 Pm_Bounds(const PMoveParams *params, bool ducked);
 )
 
 /**
+ * @brief The time in milliseconds for which a `trigger_push` sets `PMF_TIME_PUSHED` on a player
+ * that it throws.
+ */
+#define PM_PUSH_MILLIS 240
+
+/**
  * @brief The maximum number of entities any single player movement can impact.
  */
 #define PM_MAX_TOUCHS 32

@@ -43,7 +43,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1060
+#define PROTOCOL_MINOR 1061
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -100,7 +100,6 @@ typedef enum {
 #define CS_TEAM_INFO (CS_GAME + 1)  // team info, separated by \ (name\color\name\color, etc)
 #define CS_TIME      (CS_GAME + 2)  // map time
 #define CS_NUM_TEAMS (CS_GAME + 3)  // number of teams (0 - MAX_TEAMS)
-#define CS_NAV_EDIT  (CS_GAME + 4)  // nav edit mode
 #define CS_ITEM_SET  (CS_GAME + 5)  // active item set (GameItems)
 #define CS_VOTE      (CS_GAME + 6)  // the vote in progress (bg_vote.h)
 #define CS_NEXT_MAP  (CS_GAME + 7)  // the intermission's map candidates and tally (bg_intermission.h)
@@ -192,9 +191,7 @@ typedef enum {
   TE_BFG,
   TE_GIB,
   TE_RIPPLE,
-  TE_NAIL,
-  TE_AI_NODE,
-  TE_AI_NODE_LINK
+  TE_NAIL
 } GameTempEntity;
 
 /**
@@ -1870,10 +1867,6 @@ struct GameEntity {
    */
   GameAiNodeId node;
 
-  /**
-   * @brief True if the entity should advance along the item path.
-   */
-  bool moveNode;
 };
 
 typedef struct GameEntity GameEntity;

@@ -336,8 +336,6 @@ typedef struct {
     RenderAtlasImage *waterRing;
     RenderAtlasImage *waterRing2;
     RenderAtlasImage *abstract01;
-    RenderAtlasImage *nodeWait;
-    RenderAtlasImage *nodeSlow;
 
     RenderAnimation *explosion;
     RenderAnimation *explosionRing02;
@@ -361,7 +359,6 @@ typedef struct {
 
   struct CGameMediaBeams {
     RenderImage *hook;
-    RenderImage *arrow;
     RenderImage *line;
     RenderImage *rail;
     RenderImage *lightning;
@@ -428,11 +425,6 @@ typedef struct {
    * @brief The current number of clients connected to the server.
    */
   int32_t numClients;
-
-  /**
-   * @brief Bot navitation node editor.
-   */
-  int32_t navEdit;
 
   /**
    * @brief Center print message state from `SV_CMD_CENTER_PRINT`.

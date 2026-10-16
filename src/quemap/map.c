@@ -449,7 +449,7 @@ static void SetMaterialFlags(MapBrushSide *side) {
     side->surface |= SURF_HINT;
   } else if (!Str_Compare(side->texture, "common/ladder")) {
     side->contents |= CONTENTS_LADDER | CONTENTS_PLAYER_CLIP;
-  } else if (!Str_Compare(side->texture, "common/monsterclip")) {
+  } else if (!Str_Compare(side->texture, "common/monster_clip")) {
     side->contents |= CONTENTS_MONSTER_CLIP;
   } else if (!Str_Compare(side->texture, "common/origin")) {
     side->contents |= CONTENTS_ORIGIN;

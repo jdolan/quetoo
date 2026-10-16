@@ -34,7 +34,7 @@ const Box3 PM_BOUNDS = {
 
 const Box3 PM_CROUCHED_BOUNDS = {
   .mins = { { -16.f, -16.f, -24.f } },
-  .maxs = { {  16.f,  16.f,  6.f } }
+  .maxs = { {  16.f,  16.f,  24.f } }
 };
 
 const Box3 PM_DEAD_BOUNDS = {

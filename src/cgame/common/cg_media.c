@@ -156,7 +156,6 @@ void Cg_LoadMedia(void) {
   Cg_FreeSprites();
 
   cgameMedia.beams.hook = cgi.LoadImage("sprites/rope", IMG_SPRITE);
-  cgameMedia.beams.arrow = cgi.LoadImage("sprites/arrow", IMG_SPRITE);
   cgameMedia.beams.line = cgi.LoadImage("sprites/line", IMG_SPRITE);
   cgameMedia.beams.rail = cgi.LoadImage("sprites/beam", IMG_SPRITE);
   cgameMedia.beams.lightning = cgi.LoadImage("sprites/lightning", IMG_SPRITE);
@@ -196,8 +195,6 @@ void Cg_LoadMedia(void) {
   cgameMedia.sprites.waterRing = cgi.LoadAtlasImage(spriteAtlas, "sprites/water/splash_01_ring", IMG_SPRITE);
   cgameMedia.sprites.waterRing2 = cgi.LoadAtlasImage(spriteAtlas, "sprites/water/splash_01_ring2", IMG_SPRITE);
   cgameMedia.sprites.abstract01 = cgi.LoadAtlasImage(spriteAtlas, "sprites/abstract/abstract_01", IMG_SPRITE);
-  cgameMedia.sprites.nodeWait = cgi.LoadAtlasImage(spriteAtlas, "pics/emoji/teamkill", IMG_SPRITE);
-  cgameMedia.sprites.nodeSlow = cgi.LoadAtlasImage(spriteAtlas, "pics/emoji/crush", IMG_SPRITE);
 
   cgameMedia.sprites.blasterRing = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/blast_01/blast_01_ring", "_%02" PRIu32, 1, 7);
   cgameMedia.sprites.explosion = Cg_LoadAnimatedSprite(spriteAtlas, "sprites/explosion_01/explosion_01", "_%02" PRIu32, 1, 36);
@@ -296,6 +293,8 @@ void Cg_FreeMedia(void) {
   Cg_FreeEditorEntities();
 
   Cg_FreeFlares();
+
+  Cg_FreeNav();
 
   Cg_FreeSprites();
 

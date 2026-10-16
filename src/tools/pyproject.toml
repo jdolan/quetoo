@@ -18,6 +18,7 @@ dependencies = [
 ]
 
 [project.scripts]
+ai-probe = "ai_probe:main"
 matfu = "matfu:main"
 unpak = "unpak:main"
 mdl2obj = "mdl2obj:main"
@@ -32,4 +33,4 @@ symbolicate-dmp = "symbolicate_dmp:main"
 verify-projects = "verify_projects:main"
 
 [tool.setuptools]
-py-modules = ["matfu", "unpak", "mdl2obj", "md22obj", "md32obj", "md3", "md3fu", "tintfu", "objfu", "playerfu", "skyfu", "symbolicate_dmp", "verify_projects"]
+py-modules = ["ai_probe", "matfu", "unpak", "mdl2obj", "md22obj", "md32obj", "md3", "md3fu", "tintfu", "objfu", "playerfu", "skyfu", "symbolicate_dmp", "verify_projects"]

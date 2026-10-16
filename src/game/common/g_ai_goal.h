@@ -27,6 +27,13 @@
 void G_Ai_SetPositionGoal(const GameClient *cl, GameAiGoal *goal, float priority, const Vec3 position);
 void G_Ai_SetEntityGoal(const GameClient *cl, GameAiGoal *goal, float priority, const GameEntity *entity);
 void G_Ai_SetPathGoal(const GameClient *cl, GameAiGoal *goal, float priority, Vector *path, const GameEntity *pathTarget);
+
+/**
+ * @return The node from which to plan the bot's path: the top of the climb of a bot on a ladder, so
+ * that it keeps climbing, or else the node nearest it, within `maxDistance`. A bot whose new goal
+ * lies below finishes the climb and drops back, because bots only climb up a ladder.
+ */
+GameAiNodeId G_Ai_PathStart(const GameClient *cl, const float maxDistance);
 void G_Ai_CopyGoal(const GameAiGoal *from, GameAiGoal *to);
 void G_Ai_ClearGoal(GameAiGoal *goal);
 bool G_Ai_GoalHasEntity(const GameAiGoal *goal, const GameEntity *ent);

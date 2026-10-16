@@ -199,7 +199,7 @@ const GameItemDef gameItemDefs[] = {
     .tag = WEAPON_RAILGUN,
     .effectColor = { { 0.040f, 0.082f, 0.587f, 1.f } },
     .flags = WF_HITSCAN | WF_LONG_RANGE,
-    .priority = 0.60,
+    .priority = 0.66,
     .precaches = "weapons/railgun/fire.wav"
   },
 

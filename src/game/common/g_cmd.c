@@ -291,11 +291,6 @@ static void G_Use_f(GameClient *cl) {
     return;
   }
 
-  if (G_Ai_InDeveloperMode()) {
-    cl->entity->moveNode = true;
-    return;
-  }
-
   const char *s = gi.Args();
   const GameItem *it;
   

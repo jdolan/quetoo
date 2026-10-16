@@ -247,13 +247,6 @@ static void AddEntities(void) {
 }
 
 /**
- * @brief Adds the navigation file.
- */
-static void AddNavigation(void) {
-	Add(va("maps/%s.nav", mapBase));
-}
-
-/**
  * @brief Adds the location file.
  */
 static void AddLocation(void) {
@@ -301,7 +294,6 @@ int32_t WriteManifest(void) {
 
 	AddBspMaterials();
 	AddEntities();
-	AddNavigation();
 	AddLocation();
 	AddDocumentation();
 	AddMapshots();

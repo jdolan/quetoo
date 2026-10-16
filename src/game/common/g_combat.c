@@ -469,6 +469,10 @@ void G_Damage(const GameDamage *dmg) {
 
   const bool wasDead = target->dead;
 
+  if (!wasDead) {
+    G_Ai_Damaged(target, attacker);
+  }
+
   // do the damage
   if (damageHealth && (target->health || target->dead)) {
     if (G_IsMeat(target)) {
@@ -496,7 +500,7 @@ void G_Damage(const GameDamage *dmg) {
     }
 
     // kill target if he has *excessive blood loss*
-    if (target->health <= 0 && !G_Ai_InDeveloperMode()) {
+    if (target->health <= 0) {
       target->dead = true;
 
       if (attacker->client && target->client) {

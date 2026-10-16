@@ -598,82 +598,109 @@ const GameArmorInfo *G_ArmorInfo(const GameItem *armor) {
 }
 
 /**
- * @brief Handles pickup of an armor item, merging with or replacing the client's existing armor.
+ * @brief Resolves an armor pickup without applying it: the client loses `drop`, and has `count`
+ * of `give`. A shard is always taken, even at the cap, which still limits it: it adds to the
+ * client's armor, or gives jacket armor. A client with no armor takes any. Quake armor replaces the
+ * client's armor, with no salvage, only if its protection times its quantity is greater (Quake's
+ * effective score). Quake II armor that protects more replaces it, and keeps the old armor in
+ * proportion to their protections, as q2pro does. Quake II armor that protects as much or less adds
+ * to the client's armor in proportion to their protections, if that adds anything below the
+ * armor's maximum and the client's cap.
+ * @return True if the client takes the armor.
  */
-static bool G_PickupArmor(GameClient *cl, GameEntity *ent) {
+bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const GameItem **drop,
+                          const GameItem **give, int16_t *count) {
 
-  const GameItem *newArmor = ent->item;
   const GameItem *currentArmor = G_ClientArmor(cl);
 
   const GameArmorInfo *newInfo = G_ArmorInfo(newArmor);
   const GameArmorInfo *currentInfo = G_ArmorInfo(currentArmor);
 
-  bool taken = false;
+  *drop = NULL;
+  *give = NULL;
+  *count = 0;
 
-  if (newArmor->def.tag == ARMOR_SHARD) { // always take it, ignoring cap
+  if (newArmor->def.tag == ARMOR_SHARD) {
     if (currentArmor) {
-      cl->inventory[currentArmor->def.tag] =
-          Clampf(cl->inventory[currentArmor->def.tag] + newArmor->def.quantity,
-                0, cl->maxArmor);
+      *give = currentArmor;
+      *count = Clampf(cl->inventory[currentArmor->def.tag] + newArmor->def.quantity, 0,
+                      cl->maxArmor);
     } else {
-      cl->inventory[ARMOR_JACKET] =
-          Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
+      *give = &gameItems[ARMOR_JACKET];
+      *count = Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
     }
 
-    taken = true;
-  } else if (!currentArmor) { // no current armor, take it
-    cl->inventory[newArmor->def.tag] =
-        Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
+    return true;
+  }
 
-    taken = true;
-  } else if (newArmor->def.tag >= ARMOR_QUAKE_JACKET) {
-    // Quake-family armor uses Q1 effective-score logic: full swap, no salvage.
-    // A pickup is only accepted if it strictly improves the player's effective score.
+  if (!currentArmor) {
+    *give = newArmor;
+    *count = Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
+
+    return true;
+  }
+
+  if (newArmor->def.tag >= ARMOR_QUAKE_JACKET) {
     const float currentScore = currentInfo->normalProtection * cl->inventory[currentArmor->def.tag];
     const float newScore = newInfo->normalProtection * newArmor->def.quantity;
 
     if (newScore > currentScore) {
-      cl->inventory[currentArmor->def.tag] = 0;
-      cl->inventory[newArmor->def.tag] = Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
-      taken = true;
+      *drop = currentArmor;
+      *give = newArmor;
+      *count = Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
+      return true;
     }
-  } else {
-    // Q2-family armor uses salvage-conversion logic.
-    // we picked up stronger armor than we currently had
-    if (newInfo->normalProtection > currentInfo->normalProtection) {
 
-      // get the ratio between the new and old armor to add a portion to
-      // new armor pickup. Ganked from q2pro (thanks skuller)
-      const float salvage = currentInfo->normalProtection / newInfo->normalProtection;
-      const int16_t salvageCount = salvage * cl->inventory[currentArmor->def.tag];
+    return false;
+  }
 
-      const int16_t newCount = Clampf(salvageCount + newArmor->def.quantity, 0, newArmor->def.max);
+  if (newInfo->normalProtection > currentInfo->normalProtection) {
+    const float salvage = currentInfo->normalProtection / newInfo->normalProtection;
+    const int16_t salvageCount = salvage * cl->inventory[currentArmor->def.tag];
 
-      if (newCount < cl->maxArmor) {
-        cl->inventory[currentArmor->def.tag] = 0;
+    const int16_t newCount = Clampf(salvageCount + newArmor->def.quantity, 0, newArmor->def.max);
 
-        cl->inventory[newArmor->def.tag] =
-            Clampf(newCount, 0, cl->maxArmor);
-      }
+    *drop = currentArmor;
+    *give = newArmor;
+    *count = Clampf(newCount, 0, cl->maxArmor);
 
-      taken = true;
-    } else {
-      // we picked up the same, or weaker
-      const float salvage = newInfo->normalProtection / currentInfo->normalProtection;
-      const int16_t salvageCount = salvage * newArmor->def.quantity;
+    return true;
+  }
 
-      int16_t newCount = salvageCount + cl->inventory[currentArmor->def.tag];
-      newCount = Clampf(newCount, 0, currentArmor->def.max);
+  const float salvage = newInfo->normalProtection / currentInfo->normalProtection;
+  const int16_t salvageCount = salvage * newArmor->def.quantity;
 
-      // take it
-      if (cl->inventory[currentArmor->def.tag] < newCount &&
-              cl->inventory[currentArmor->def.tag] < cl->maxArmor) {
-        cl->inventory[currentArmor->def.tag] =
-            Clampf(newCount, 0, cl->maxArmor);
+  int16_t newCount = salvageCount + cl->inventory[currentArmor->def.tag];
+  newCount = Clampf(newCount, 0, currentArmor->def.max);
 
-        taken = true;
-      }
-    }
+  if (cl->inventory[currentArmor->def.tag] < newCount &&
+          cl->inventory[currentArmor->def.tag] < cl->maxArmor) {
+    *give = currentArmor;
+    *count = Clampf(newCount, 0, cl->maxArmor);
+    return true;
+  }
+
+  return false;
+}
+
+/**
+ * @brief Handles pickup of an armor item, merging with or replacing the client's existing armor.
+ */
+static bool G_PickupArmor(GameClient *cl, GameEntity *ent) {
+
+  const GameItem *newArmor = ent->item;
+
+  const GameItem *drop, *give;
+  int16_t count;
+
+  const bool taken = G_ResolveArmorPickup(cl, newArmor, &drop, &give, &count);
+
+  if (drop) {
+    cl->inventory[drop->def.tag] = 0;
+  }
+
+  if (give) {
+    cl->inventory[give->def.tag] = count;
   }
 
   if (taken && !(ent->spawnFlags & SF_ITEM_DROPPED)) {
@@ -763,10 +790,6 @@ static void G_DropItem_Think(GameEntity *ent) {
  */
 void G_TouchItem(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
-  if (G_Ai_InDeveloperMode()) {
-    return;
-  }
-
   // an item that was dropped ignores whoever dropped it for a moment; one that
   // nobody dropped ignores everybody, so an item placed by the game cannot be
   // taken the instant it appears
@@ -797,6 +820,9 @@ void G_TouchItem(GameEntity *ent, GameEntity *other, const CollisionTrace *trace
 
   const bool pickup = ent->item->Pickup(cl, ent);
   if (pickup) {
+    G_Ai_Hear(other, AI_HEAR_PICKUP_DISTANCE);
+    G_Ai_ItemTaken(ent, other);
+
     // show icon and name on status bar
     uint16_t tag = ent->item->def.tag;
 
@@ -1091,7 +1117,7 @@ static void G_ItemDropToFloor(GameEntity *ent) {
   G_ResetItem(ent);
 
   if (dropNode) {
-    G_Ai_DropItemLikeNode(ent);
+    G_Ai_Node_AddEntity(ent);
   }
 }
 

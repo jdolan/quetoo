@@ -137,9 +137,26 @@ static void G_misc_teleporter_Touch(GameEntity *ent, GameEntity *other, const Co
 }
 
 /**
- * @brief Creates bot node links
+ * @return Where a player stands to touch the teleporter: its origin, or for the brush form,
+ * which has no origin, the center of its bottom.
+ */
+static Vec3 G_misc_teleporter_Origin(const GameEntity *ent) {
+
+  if (!ent->model) {
+    return ent->s.origin;
+  }
+
+  const Vec3 center = Box3_Center(ent->absBounds);
+  return MakeVec3(center.x, center.y, Minf(center.z, ent->absBounds.mins.z - PM_BOUNDS.mins.z));
+}
+
+/**
+ * @brief Creates bot node links: a node where a player touches the teleporter, linked to the node
+ * nearest its destination. It runs one frame after the teleporter spawns, once the level's
+ * navigation graph is loaded.
  */
 static void G_misc_teleporter_Think(GameEntity *ent) {
+
   const GameEntity *dest = G_Find(NULL, EOFS(targetName), ent->target);
 
   if (!dest) {
@@ -147,22 +164,29 @@ static void G_misc_teleporter_Think(GameEntity *ent) {
     return;
   }
 
+  const Vec3 origin = G_misc_teleporter_Origin(ent);
+
   // find nodes closest to src and dst
-  const GameAiNodeId srcNode = G_Ai_Node_FindClosest(ent->s.origin, 512.f, true, true);
-  const GameAiNodeId dstNode = G_Ai_Node_FindClosest(dest->s.origin, 512.f, true, true);
+  const GameAiNodeId srcNode = G_Ai_Node_FindClosestStatic(origin, 512.f, true, true);
+  const GameAiNodeId dstNode = G_Ai_Node_FindClosestStatic(dest->s.origin, 512.f, true, true);
 
   if (srcNode != AI_NODE_INVALID && dstNode != AI_NODE_INVALID) {
 
     // make a new node on top of src so we touch the teleporter, connect
     // it to dst with a small cost
 
-    const GameAiNodeId newNode = G_Ai_Node_Create(ent->s.origin);
+    const GameAiNodeId newNode = G_Ai_Node_Create(origin);
+
+    if (newNode == AI_NODE_INVALID) {
+      G_Warn("No room for a navigation node at %s\n", vtos(origin));
+      return;
+    }
 
     // use default cost for the entrance
-    G_Ai_Node_Link(srcNode, newNode, Vec3_Distance(G_Ai_Node_GetPosition(srcNode), ent->s.origin));
+    G_Ai_Node_Link(srcNode, newNode, Vec3_Distance(G_Ai_Node_GetPosition(srcNode), origin));
 
     // small cost for teleport node
-    G_Ai_Node_Link(newNode, dstNode, 1.f);
+    G_Ai_Node_LinkTravel(newNode, dstNode, 1.f, NAV_TRAVEL_TELEPORT);
 
     ent->node = srcNode;
   }
@@ -215,11 +239,8 @@ void G_misc_teleporter(GameEntity *ent) {
     gi.SoundIndex(customSound);
   }
   
-  // create link to destination
-  if (!G_Ai_InDeveloperMode()) {
-    ent->Think = G_misc_teleporter_Think;
-    ent->nextThink = gameLevel.time + 1;
-  }
+  ent->Think = G_misc_teleporter_Think;
+  ent->nextThink = gameLevel.time + 1;
 
   gi.LinkEntity(ent);
 }

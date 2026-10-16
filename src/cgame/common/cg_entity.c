@@ -189,13 +189,6 @@ ClientEntity *Cg_Self(void) {
 }
 
 /**
- * @brief The player bounding box under the movement parameters the server sent.
- */
-Box3 Cg_PlayerBounds(bool ducked) {
-  return Pm_Bounds(&cgi.client->frame.ps.pmState.params, ducked);
-}
-
-/**
  * @return True if the entity is ducking, false otherwise.
  */
 bool Cg_IsDucking(const ClientEntity *ent) {

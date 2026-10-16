@@ -53,7 +53,9 @@
     <ClInclude Include="..\src\cgame\common\cg_media.h" />
     <ClInclude Include="..\src\cgame\common\cg_module.h" />
     <ClCompile Include="..\src\cgame\common\cg_muzzle_flash.c" />
+    <ClCompile Include="..\src\cgame\common\cg_nav.c" />
     <ClInclude Include="..\src\cgame\common\cg_muzzle_flash.h" />
+    <ClInclude Include="..\src\cgame\common\cg_nav.h" />
     <ClCompile Include="..\src\cgame\common\cg_portal.c" />
     <ClInclude Include="..\src\cgame\common\cg_portal.h" />
     <ClCompile Include="..\src\cgame\common\cg_predict.c" />
@@ -175,8 +177,6 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\TeamBannerView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\FpsView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\FpsView.h" />
-    <ClCompile Include="..\src\cgame\common\ui\hud\NavEditView.c" />
-    <ClInclude Include="..\src\cgame\common\ui\hud\NavEditView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\TimeView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\TimeView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\VoteView.c" />

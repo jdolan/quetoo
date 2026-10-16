@@ -23,33 +23,16 @@
 #include "bg_pmove.h"
 
 /**
- * @brief Distance within which an unarmed or retreating bot will still fight back.
- */
-#define AI_SELF_DEFENSE_DISTANCE 512.f
-
-/**
- * @brief A bot that should retreat disengages beyond this multiple of its self-defense distance,
- * so that an enemy near that distance does not start and end a fight every frame.
- */
-#define AI_DISENGAGE_SCALE 1.25f
-
-/**
  * @brief Returns true if the given entity is a valid (enemy, alive, boxed) target for the AI.
  */
 static inline bool G_Ai_IsTargetable(const GameClient *cl, const GameEntity *other) {
 
-  if (other->client && other->client != cl && other->solid == SOLID_BOX && !G_OnSameTeam(cl, other->client)) {
+  if (other->client && other->client != cl && other->solid == SOLID_BOX &&
+      !G_OnSameTeam(cl, other->client)) {
     return true;
   }
 
   return false;
-}
-
-/**
- * @brief Returns true if the AI can both target and see the given entity.
- */
-static inline bool G_Ai_CanTarget(const GameClient *cl, const GameEntity *other) {
-  return G_Ai_IsTargetable(cl, other) && G_Ai_CanSee(cl, other);
 }
 
 /**
@@ -88,7 +71,8 @@ static void G_Ai_PickWeapon(GameClient *cl) {
   GameAiRange targRange;
 
   if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
-    targRange = G_Ai_GetRange(Vec3_Distance(cl->entity->s.origin, cl->ai->combatTarget.entity.ent->s.origin));
+    const GameEntity *target = cl->ai->combatTarget.entity.ent;
+    targRange = G_Ai_GetRange(Vec3_Distance(cl->entity->s.origin, target->s.origin));
   } else {
     targRange = RANGE_DONT_CARE;
   }
@@ -201,7 +185,8 @@ static void G_Ai_PickWeapon(GameClient *cl) {
 /**
  * @brief Calculate a priority for the specified target.
  */
-static float G_Ai_EnemyPriority(const GameClient *cl, const GameEntity *target, const bool visible) {
+static float G_Ai_EnemyPriority(const GameClient *cl, const GameEntity *target,
+                                const bool visible) {
 
   float priority = 1.f;
 
@@ -211,6 +196,10 @@ static float G_Ai_EnemyPriority(const GameClient *cl, const GameEntity *target, 
 
   // low health enemies are higher priority
   if (target->health < 50) {
+    priority += 2.f;
+  }
+
+  if (G_Ai_IsAttacker(cl, target)) {
     priority += 2.f;
   }
 
@@ -231,46 +220,6 @@ static float G_Ai_EnemyPriority(const GameClient *cl, const GameEntity *target, 
 }
 
 /**
- * @brief Figure out if we should chase the enemy and close in on them.
- */
-static bool G_Ai_ChaseEnemy(const GameClient *cl, const GameEntity *target) {
-
-  if (target->solid == SOLID_DEAD || (target->serverFlags & SVF_NO_CLIENT)) {
-    return false;
-  }
-
-  if (!target->client) {
-    return false;
-  }
-
-  // base chance is our weapon's weight
-  const GameItem *const weapon = cl->weapon;
-  float chance = weapon->def.priority;
-
-  // if they're low health, higher chance
-  if (target->health < 50) {
-    chance *= 1.5f;
-  }
-
-#if defined(G_CTF)
-  // if they have a flag, higher chance
-  const int16_t *inventory = target->client->inventory;
-
-  for (GameItemTag t = FLAG_FIRST; t < FLAG_LAST; t++) {
-    if (inventory[t]) {
-      chance *= 2.0f;
-      break;
-    }
-  }
-#endif
-
-  // aggressive bots are more willing to chase
-  chance *= Mixf(.6f, 1.4f, cl->ai->personality.aggression);
-
-  return Randomf() < chance;
-}
-
-/**
  * @brief The time in milliseconds that a bot keeps an enemy as its target after losing sight of it,
  * so that a brief occlusion does not swing its view away and back.
  */
@@ -282,102 +231,140 @@ static bool G_Ai_ChaseEnemy(const GameClient *cl, const GameEntity *target) {
 #define AI_TARGET_SEEN_MILLIS 100
 
 /**
- * @brief Funcgoal that controls the AI's lust for blood
+ * @return True if the bot sees the enemy, or the enemy hurt it recently and nothing lies between
+ * them, so that a bot shot from behind turns and fights back.
  */
-uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
+static bool G_Ai_Perceives(const GameClient *cl, const GameEntity *other) {
+
+  if (!G_Ai_IsTargetable(cl, other)) {
+    return false;
+  }
+
+  if (G_Ai_CanSee(cl, other)) {
+    return true;
+  }
+
+  return G_Ai_IsAttacker(cl, other) && G_Ai_HasLineOfSight(cl, other);
+}
+
+/**
+ * @brief The distance within which an unarmed bot takes an enemy that has not attacked it as its
+ * target. The Blaster is a sidearm: a bot fires it to defend itself, not at an enemy across the
+ * map.
+ */
+#define AI_SIDEARM_RANGE 256.f
+
+/**
+ * @brief The multiple of `AI_SIDEARM_RANGE` within which an unarmed bot keeps its target, so that
+ * an enemy near the range is not dropped and taken again at each think, which restarts the aim.
+ */
+#define AI_SIDEARM_KEEP_SCALE 1.5f
+
+/**
+ * @return True if the bot would take the enemy as its target: any enemy if the bot is armed, and if
+ * it is not, only one that attacked it within `AI_ATTACKER_MILLIS` or stands within
+ * `AI_SIDEARM_RANGE`, or `AI_SIDEARM_KEEP_SCALE` of it to `keep` its current target. An unarmed bot
+ * that targets an enemy far away turns to aim at it, and so cannot strafe jump to the weapon that
+ * it needs, and fires a Blaster that will not kill it.
+ */
+static bool G_Ai_WouldTarget(const GameClient *cl, const GameEntity *enemy, const bool keep) {
+
+  if (G_Ai_IsArmed(cl) || G_Ai_IsAttacker(cl, enemy)) {
+    return true;
+  }
+
+  const float range = keep ? AI_SIDEARM_RANGE * AI_SIDEARM_KEEP_SCALE : AI_SIDEARM_RANGE;
+
+  return Vec3_Distance(cl->entity->s.origin, enemy->s.origin) <= range;
+}
+
+/**
+ * @brief Readies the aim at a new combat target: the flick error of the turn toward it, the lead
+ * error, the weapon, the combat style and the reaction time before the bot may fire. Aggressive
+ * bots prefer close combat, and cautious bots flank or wander. Skilled bots react faster: from 100
+ * to 400 milliseconds, against 500 to 1200 for the least skilled.
+ */
+static void G_Ai_AcquireTarget(GameClient *cl, const GameEntity *enemy, const float priority) {
+
+  G_Ai_SetEntityGoal(cl, &cl->ai->combatTarget, priority, enemy);
+  cl->ai->combatTargetSeenTime = gameLevel.time;
+  cl->ai->combatTargetSeenPosition = enemy->s.origin;
+  cl->ai->combatTargetLost = false;
+
+  const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+  const Vec3 toEnemy = Vec3_Normalize(Vec3_Subtract(Box3_Center(enemy->absBounds), eyeOrigin));
+  const float flick = Degrees(acosf(Clampf(Vec3_Dot(cl->forward, toEnemy), -1.f, 1.f))) *
+                      Mixf(.25f, .08f, cl->ai->personality.skill);
+  const float direction = RandomRadian();
+
+  cl->ai->perceivedVelocity = Vec3_Zero();
+  cl->ai->aimError = MakeVec2(sinf(direction) * flick * .6f, cosf(direction) * flick);
+
+  const float leadSpread = Mixf(.3f, .05f, cl->ai->personality.skill);
+  cl->ai->leadError = RandomRangef(-leadSpread, leadSpread);
+
+  G_Ai_PickWeapon(cl);
+
+  if (cl->ai->personality.aggression > .6f) {
+    cl->ai->combatTarget.entity.combatType = Randomb() ? AI_COMBAT_CLOSE :
+                                             RandomRangei(AI_COMBAT_CLOSE, AI_COMBAT_TOTAL);
+  } else if (cl->ai->personality.aggression < .3f) {
+    cl->ai->combatTarget.entity.combatType = Randomb() ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
+  } else {
+    cl->ai->combatTarget.entity.combatType = RandomRangei(AI_COMBAT_CLOSE, AI_COMBAT_TOTAL);
+  }
+
+  const uint32_t lockMin = (uint32_t) Mixf(500.f, 100.f, cl->ai->personality.skill);
+  const uint32_t lockMax = (uint32_t) Mixf(1200.f, 400.f, cl->ai->personality.skill);
+  cl->ai->combatTarget.entity.lockOnTime = gameLevel.time + RandomRangeu(lockMin, lockMax);
+
+  if (cl->ai->combatTarget.entity.combatType == AI_COMBAT_FLANK) {
+    cl->ai->combatTarget.entity.flankAngle = Randomb() ? -90 : 90;
+  }
+}
+
+/**
+ * @brief Funcgoal that chooses the bot's combat target. It does not move the bot: the state
+ * machine decides whether to fight, chase or retreat. A bot keeps a target that it loses sight of
+ * for `AI_TARGET_MEMORY_MILLIS`, and takes a target even when it retreats, so that it fires back.
+ * An unarmed bot takes only the targets of `G_Ai_WouldTarget`.
+ */
+uint32_t G_Ai_Target(GameClient *cl, PMoveCmd *cmd) {
 
   if (G_IsMeat(cl->entity) && cl->entity->dead) {
     return 1;
   }
 
-
-  if (g_aiNoTarget->integer || g_aiNodeDev->integer) {
-
-    if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
-      G_Ai_ClearGoal(&cl->ai->combatTarget);
-    }
-
-    if (cl->ai->moveTarget.type == AI_GOAL_ENTITY && cl->ai->moveTarget.entity.ent->client) {
-      G_Ai_ClearGoal(&cl->ai->moveTarget);
-    }
-
+  if (g_aiNoTarget->integer) {
+    G_Ai_ClearGoal(&cl->ai->combatTarget);
     return 1;
   }
 
-  // disengage if we're unarmed or low health (except self-defense)
-  const bool armed = G_Ai_IsArmed(cl);
-  const bool retreat = G_Ai_ShouldRetreat(cl);
-
-  // keep fighting if they're right on top of us (aggressive bots fight at longer range)
-  const float defenseDist = AI_SELF_DEFENSE_DISTANCE * Mixf(.5f, 1.5f, cl->ai->personality.aggression);
-
-  if (!armed || retreat) {
-
-    if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
-      const float dist = Vec3_Distance(cl->entity->s.origin,
-          cl->ai->combatTarget.entity.ent->s.origin);
-
-      if (dist > defenseDist * AI_DISENGAGE_SCALE) {
-
-        if (cl->ai->moveTarget.type == AI_GOAL_ENTITY &&
-          cl->ai->moveTarget.entity.ent == cl->ai->combatTarget.entity.ent) {
-          G_Ai_ClearGoal(&cl->ai->moveTarget);
-        }
-
-        G_Ai_ClearGoal(&cl->ai->combatTarget);
-        G_Ai_Debug("%s: disengaging\n", !armed ? "Unarmed" : "Retreating");
-        return 50;
-      }
-    } else {
-      // don't acquire new targets; focus on items
-      return 50;
-    }
-  }
-
-  // see if we're already hunting
   if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
 
     const GameEntity *enemy = cl->ai->combatTarget.entity.ent;
 
-    if (G_Ai_CanTarget(cl, enemy)) {
-      cl->ai->combatTargetSeenTime = gameLevel.time;
-    } else if (!G_Ai_IsTargetable(cl, enemy) || gameLevel.time - cl->ai->combatTargetSeenTime > AI_TARGET_MEMORY_MILLIS) {
-
-      // enemy dead/out of LOS/disconnected; chase them!
-      if (!G_Ai_IsSeekingItem(cl) && !G_Ai_IsOutgunned(cl, enemy) && G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
-
-        const Vec3 whereTo = cl->ai->combatTarget.entity.ent->s.origin;
-        
-        const GameAiNodeId closest = G_Ai_Node_FindClosest(cl->entity->s.origin, 128.f, true, true);
-        const GameAiNodeId closestToTarget = G_Ai_Node_FindClosest(whereTo, 128.f, true, true);
-        Vector *path = G_Ai_Node_FindPath(cl, closest, closestToTarget, G_Ai_Node_Heuristic, 0.f, NULL);
-
-        if (path) {
-          G_Ai_SetPathGoal(cl, &cl->ai->moveTarget, 0.7f, path, cl->ai->combatTarget.entity.ent);
-          release(path);
-          G_Ai_Debug("Enemy out of sight & chasing\n");
-        }
-      }
-      
-      // if we had a move target still set on hunting that entity, reset to wander.
-      if (cl->ai->moveTarget.type == AI_GOAL_ENTITY && cl->ai->moveTarget.entity.ent == cl->ai->combatTarget.entity.ent) {
-        G_Ai_ClearGoal(&cl->ai->moveTarget);
-      }
-
+    if (!G_Ai_WouldTarget(cl, enemy, true)) {
       G_Ai_ClearGoal(&cl->ai->combatTarget);
+      cl->ai->combatTargetLost = false;
+    } else if (G_Ai_Perceives(cl, enemy)) {
+      cl->ai->combatTargetSeenTime = gameLevel.time;
+      cl->ai->combatTargetSeenPosition = enemy->s.origin;
+    } else if (!G_Ai_IsTargetable(cl, enemy)) {
+      G_Ai_ClearGoal(&cl->ai->combatTarget);
+      cl->ai->combatTargetLost = false;
+    } else if (gameLevel.time - cl->ai->combatTargetSeenTime > AI_TARGET_MEMORY_MILLIS) {
+      G_Ai_ClearGoal(&cl->ai->combatTarget);
+      cl->ai->combatTargetLost = true;
     }
   }
 
-  // scan for the best visible enemy, even if we already have a target
   GameEntity *bestEnemy = NULL;
   float bestPriority = 0.f;
 
   G_ForEachEntity(ent, {
-    if (G_Ai_CanTarget(cl, ent)) {
-
-      if (G_Ai_IsOutgunned(cl, ent) && Vec3_Distance(cl->entity->s.origin, ent->s.origin) > defenseDist) {
-        continue;
-      }
+    const bool current = ent == cl->ai->combatTarget.entity.ent;
+    if (G_Ai_Perceives(cl, ent) && G_Ai_WouldTarget(cl, ent, current)) {
 
       const float priority = G_Ai_EnemyPriority(cl, ent, true);
       if (priority > bestPriority) {
@@ -387,84 +374,18 @@ uint32_t G_Ai_Hunt(GameClient *cl, PMoveCmd *cmd) {
     }
   });
 
-  // switch targets if we found a significantly better one
   if (bestEnemy) {
-    const float currentPriority = cl->ai->combatTarget.type == AI_GOAL_ENTITY && cl->ai->combatTargetSeenTime == gameLevel.time
+    const float currentPriority = cl->ai->combatTarget.type == AI_GOAL_ENTITY &&
+                                  cl->ai->combatTargetSeenTime == gameLevel.time
         ? G_Ai_EnemyPriority(cl, cl->ai->combatTarget.entity.ent, true)
         : 0.f;
 
     if (bestPriority > currentPriority + 1.f || cl->ai->combatTarget.type != AI_GOAL_ENTITY) {
-
-      G_Ai_SetEntityGoal(cl, &cl->ai->combatTarget, bestPriority, bestEnemy);
-      cl->ai->combatTargetSeenTime = gameLevel.time;
-
-      const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
-      const Vec3 toEnemy = Vec3_Normalize(Vec3_Subtract(Box3_Center(bestEnemy->absBounds), eyeOrigin));
-      const float flick = Degrees(acosf(Clampf(Vec3_Dot(cl->forward, toEnemy), -1.f, 1.f))) * Mixf(.25f, .08f, cl->ai->personality.skill);
-      const float direction = RandomRadian();
-
-      cl->ai->perceivedVelocity = Vec3_Zero();
-      cl->ai->aimError = MakeVec2(sinf(direction) * flick * .6f, cosf(direction) * flick);
-
-      const float leadSpread = Mixf(.3f, .05f, cl->ai->personality.skill);
-      cl->ai->leadError = RandomRangef(-leadSpread, leadSpread);
-
-      G_Ai_PickWeapon(cl);
-
-      // aggressive bots prefer close combat; cautious bots flank/wander
-      if (cl->ai->personality.aggression > .6f) {
-        cl->ai->combatTarget.entity.combatType = Randomb() ? AI_COMBAT_CLOSE : RandomRangei(AI_COMBAT_CLOSE, AI_COMBAT_TOTAL);
-      } else if (cl->ai->personality.aggression < .3f) {
-        cl->ai->combatTarget.entity.combatType = Randomb() ? AI_COMBAT_FLANK : AI_COMBAT_WANDER;
-      } else {
-        cl->ai->combatTarget.entity.combatType = RandomRangei(AI_COMBAT_CLOSE, AI_COMBAT_TOTAL);
-      }
-
-      // skilled bots react faster (100-400ms vs 500-1200ms)
-      const uint32_t lockMin = (uint32_t) Mixf(500.f, 100.f, cl->ai->personality.skill);
-      const uint32_t lockMax = (uint32_t) Mixf(1200.f, 400.f, cl->ai->personality.skill);
-      cl->ai->combatTarget.entity.lockOnTime = gameLevel.time + RandomRangeu(lockMin, lockMax);
-
-      if (cl->ai->combatTarget.entity.combatType == AI_COMBAT_FLANK) {
-        cl->ai->combatTarget.entity.flankAngle = Randomb() ? -90 : 90;
-      }
+      G_Ai_AcquireTarget(cl, bestEnemy, bestPriority);
     }
   }
 
-  // we have somebody to kill; go get'em!
-  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY && !G_Ai_GoalHasEntity(&cl->ai->moveTarget, cl->ai->combatTarget.entity.ent) && !G_Ai_IsSeekingItem(cl) && G_Ai_ChaseEnemy(cl, cl->ai->combatTarget.entity.ent)) {
-
-    const GameEntity *enemy = cl->ai->combatTarget.entity.ent;
-    const float dist = Vec3_Distance(cl->entity->s.origin, enemy->s.origin);
-
-    // try to find a safe path to the enemy via navigation nodes
-    const GameAiNodeId myNode = G_Ai_Node_FindClosest(cl->entity->s.origin, 128.f, true, true);
-    const GameAiNodeId enemyNode = G_Ai_Node_FindClosest(enemy->s.origin, 128.f, true, true);
-    bool pathed = false;
-
-    if (myNode != AI_NODE_INVALID && enemyNode != AI_NODE_INVALID && myNode != enemyNode) {
-      Vector *path = G_Ai_Node_FindPath(cl, myNode, enemyNode, G_Ai_Node_Heuristic, 0.f, NULL);
-      if (path) {
-        G_Ai_SetPathGoal(cl, &cl->ai->moveTarget, 0.7f, path, enemy);
-        release(path);
-        pathed = true;
-        G_Ai_Debug("Chasing enemy via path\n");
-      }
-    }
-
-    // fall back to direct movement only at close range
-    if (!pathed && dist < 256.f) {
-      G_Ai_CopyGoal(&cl->ai->combatTarget, &cl->ai->moveTarget);
-      G_Ai_Debug("Chasing enemy directly (close range)\n");
-    }
-  }
-
-  // still have an enemy
-  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
-    return 50;
-  }
-
-  return 100;
+  return 50;
 }
 
 /**
@@ -544,7 +465,8 @@ static const GameItem *G_Ai_SpamWeapon(const GameClient *cl) {
  * @param holdMillis For hand grenades, the time to hold the grenade so that it flies far enough.
  * @return True if a grenade can reach the point.
  */
-static bool G_Ai_SpamAngles(const GameClient *cl, const GameItem *weapon, const Vec3 point, Vec3 *angles, uint32_t *holdMillis) {
+static bool G_Ai_SpamAngles(const GameClient *cl, const GameItem *weapon, const Vec3 point,
+                            Vec3 *angles, uint32_t *holdMillis) {
 
   const Vec3 eye = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
   const float gravity = G_LevelGravity();
@@ -568,13 +490,15 @@ static bool G_Ai_SpamAngles(const GameClient *cl, const GameItem *weapon, const 
 
   const float launch = sqrtf(speed * speed + loft * loft);
   const float launchSquared = launch * launch;
-  const float discriminant = launchSquared * launchSquared - gravity * (gravity * distance * distance + 2.f * height * launchSquared);
+  const float lift = gravity * distance * distance + 2.f * height * launchSquared;
+  const float discriminant = launchSquared * launchSquared - gravity * lift;
 
   if (discriminant < 0.f) {
     return false;
   }
 
-  const float elevation = atanf((launchSquared - sqrtf(discriminant)) / (gravity * distance)) - atan2f(loft, speed);
+  const float elevation = atanf((launchSquared - sqrtf(discriminant)) / (gravity * distance)) -
+                          atan2f(loft, speed);
   const Vec3 dir = Vec3_Normalize(Vec3_Subtract(point, eye));
 
   *angles = MakeVec3(-Degrees(elevation), Vec3_Euler(dir).y, 0.f);
@@ -657,7 +581,8 @@ static inline bool G_Ai_IsSpamming(const GameClient *cl) {
  */
 static void G_Ai_EndSpam(GameClient *cl) {
 
-  const float cooldown = Mixf(15000.f, 5000.f, cl->ai->personality.aggression) * RandomRangef(.75f, 1.25f);
+  const float cooldown = Mixf(15000.f, 5000.f, cl->ai->personality.aggression) *
+                         RandomRangef(.75f, 1.25f);
 
   cl->ai->spamAmmo = 0;
   cl->ai->spamTime = gameLevel.time + (uint32_t) cooldown;
@@ -749,7 +674,125 @@ static void G_Ai_Weaponry_spam(GameClient *cl, PMoveCmd *cmd) {
 }
 
 /**
- * @brief Funcgoal that controls the AI's weaponry.
+ * @return True if the weapon lobs its projectile in an arc: the grenade launchers and hand
+ * grenades.
+ */
+static bool G_Ai_IsLobbed(const GameItem *weapon) {
+  return weapon == &gameItems[WEAPON_GRENADE_LAUNCHER] ||
+         weapon == &gameItems[WEAPON_QUAKE_GRENADE_LAUNCHER] ||
+         weapon == &gameItems[WEAPON_HAND_GRENADE];
+}
+
+/**
+ * @brief The time step in seconds of the arc that `G_Ai_LobTrace` follows.
+ */
+#define AI_LOB_STEP .05f
+
+/**
+ * @brief The longest flight in seconds that `G_Ai_LobTrace` follows.
+ */
+#define AI_LOB_SECONDS 2.f
+
+/**
+ * @return The trace of the bot's grenade from its eye along its view, on the arc that gravity
+ * bends, to where it first strikes: the launch speed and loft of `G_Ai_SpamAngles`, with the hand
+ * grenade's speed from `aimHoldMillis`, as `G_FireHandGrenade` throws it.
+ */
+static CollisionTrace G_Ai_LobTrace(const GameClient *cl) {
+
+  const bool timed = (cl->weapon->def.flags & WF_TIMED) != 0;
+  const float speed = timed ? Clampf(cl->ai->aimHoldMillis * .5f, 500.f, 1200.f) :
+                              G_Ai_ProjectileSpeed(cl->weapon);
+  const float loft = timed ? AI_HAND_GRENADE_LOFT : AI_GRENADE_LOFT;
+  const float gravity = G_LevelGravity();
+
+  Vec3 origin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+  Vec3 velocity = Vec3_Fmaf(MakeVec3(0.f, 0.f, loft), speed, cl->forward);
+
+  CollisionTrace trace = { .fraction = 1.f, .end = origin };
+
+  for (float t = 0.f; t < AI_LOB_SECONDS; t += AI_LOB_STEP) {
+
+    velocity.z -= gravity * AI_LOB_STEP;
+    const Vec3 next = Vec3_Fmaf(origin, AI_LOB_STEP, velocity);
+
+    trace = gi.Trace(origin, next, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+    if (trace.fraction < 1.f) {
+      break;
+    }
+
+    origin = next;
+  }
+
+  return trace;
+}
+
+/**
+ * @brief The distance within which a bot holds fire with an explosive weapon, so that its own
+ * splash does not hit it.
+ */
+#define AI_SELF_SPLASH_DISTANCE 160.f
+
+/**
+ * @return True if the bot's line of fire is clear: no teammate is in it, and an explosive weapon
+ * would not burst within `AI_SELF_SPLASH_DISTANCE` of the bot, on a wall or on the enemy. A lobbed
+ * weapon's line of fire is its arc.
+ */
+static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
+
+  const Vec3 eye = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+  const Vec3 end = Vec3_Fmaf(eye, MAX_WORLD_DIST, cl->forward);
+
+  const CollisionTrace trace = G_Ai_IsLobbed(cl->weapon) ? G_Ai_LobTrace(cl) :
+                               gi.Trace(eye, end, Box3_Zero(), cl->entity,
+                                        CONTENTS_MASK_CLIP_PROJECTILE);
+
+  const GameEntity *hit = trace.ent;
+
+  if (hit && hit != enemy && hit->client && G_OnSameTeam(cl, hit->client)) {
+    return false;
+  }
+
+  if ((cl->weapon->def.flags & WF_EXPLOSIVE) &&
+      Vec3_Distance(eye, trace.end) < AI_SELF_SPLASH_DISTANCE) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @brief The view error in degrees within which a bot fires at its shoot target.
+ */
+#define AI_SHOOT_AIM_DEGREES 4.f
+
+/**
+ * @brief Fires at the bot's shoot target, a button that is pressed by a shot, once the view is on
+ * it, with no grenade, and with no splash near the bot.
+ */
+static void G_Ai_Weaponry_shoot(GameClient *cl, PMoveCmd *cmd) {
+
+  const GameEntity *target = cl->ai->shootTarget;
+
+  if (!cl->weapon || G_Ai_IsLobbed(cl->weapon)) {
+    return;
+  }
+
+  Vec3 angles;
+  G_Ai_ShootViewAngles(cl, &angles);
+
+  if (fabsf(G_Ai_AngleDelta(cl->angles.x, angles.x)) < AI_SHOOT_AIM_DEGREES &&
+      fabsf(G_Ai_AngleDelta(cl->angles.y, angles.y)) < AI_SHOOT_AIM_DEGREES &&
+      G_Ai_ClearToFire(cl, target)) {
+    cmd->buttons |= BUTTON_ATTACK;
+  }
+}
+
+/**
+ * @brief Funcgoal that controls the AI's weaponry. A bot committed to a climb
+ * (`G_Ai_IsCommittedToClimb`) does not fire, spam or change its weapon. It keeps a grenade that it
+ * holds for its usual hold time, so that the grenade does not go off in its hand, and then throws
+ * it where it faces.
  */
 uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
 
@@ -762,8 +805,19 @@ uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
     return 1;
   }
 
+  if (G_Ai_IsCommittedToClimb(cl)) {
+    if (G_Ai_IsSpamming(cl)) {
+      G_Ai_EndSpam(cl);
+    }
 
-  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
+    const uint32_t holdMillis = cl->ai->aimHoldMillis ?: RandomRangeu(1500, 2500);
+    if (cl->grenadeHoldTime && gameLevel.time - cl->grenadeHoldTime < holdMillis) {
+      cmd->buttons |= BUTTON_ATTACK;
+    }
+    return 1;
+  }
+
+  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY || cl->ai->shootTarget) {
     if (G_Ai_IsSpamming(cl)) {
       G_Ai_EndSpam(cl);
     }
@@ -771,7 +825,11 @@ uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
     G_Ai_Weaponry_spam(cl, cmd);
   }
 
-  if (!G_Ai_IsSpamming(cl) && cl->ai->weaponCheckTime < gameLevel.time) { // check for a new weapon every once in a while
+  if (cl->ai->combatTarget.type != AI_GOAL_ENTITY && cl->ai->shootTarget) {
+    G_Ai_Weaponry_shoot(cl, cmd);
+  }
+
+  if (!G_Ai_IsSpamming(cl) && cl->ai->weaponCheckTime < gameLevel.time) {
     G_Ai_PickWeapon(cl);
   }
 
@@ -781,18 +839,23 @@ uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
         gameLevel.time - cl->ai->combatTargetSeenTime <= AI_TARGET_SEEN_MILLIS) {
 
       const Vec3 eyeOrigin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
-      const Vec3 toEnemy = Vec3_Normalize(Vec3_Subtract(
+      Vec3 toEnemy = Vec3_Normalize(Vec3_Subtract(
           Box3_Center(cl->ai->combatTarget.entity.ent->absBounds), eyeOrigin));
+
+      if (G_Ai_IsLobbed(cl->weapon)) {
+        Vec3_Vectors(cl->ai->aimAngles, &toEnemy, NULL, NULL);
+      }
 
       // skilled bots fire with tighter aim cone (10° to 25°)
       const float fireCone = Mixf(25.f, 10.f, cl->ai->personality.skill);
       if (Vec3_Dot(cl->forward, toEnemy) > cosf(Radians(fireCone))) {
         const uint32_t grenadeHoldTime = cl->grenadeHoldTime;
         if (grenadeHoldTime) {
-          if (gameLevel.time - grenadeHoldTime < RandomRangeu(1500, 2500)) {
+          const uint32_t holdMillis = cl->ai->aimHoldMillis ?: RandomRangeu(1500, 2500);
+          if (gameLevel.time - grenadeHoldTime < holdMillis) {
             cmd->buttons |= BUTTON_ATTACK;
           }
-        } else {
+        } else if (G_Ai_ClearToFire(cl, cl->ai->combatTarget.entity.ent)) {
           cmd->buttons |= BUTTON_ATTACK;
         }
       }
@@ -800,6 +863,45 @@ uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
   }
 
   return 1;
+}
+
+/**
+ * @brief The distance around a bot that must have floor, for it to jump to dodge.
+ */
+#define AI_DODGE_FLOOR_DISTANCE 96.f
+
+/**
+ * @brief The height above the bot's origin at which it checks for floor around it, about the top of
+ * the arc of a jump.
+ */
+#define AI_DODGE_HEIGHT 48.f
+
+/**
+ * @return True if each of eight directions around the bot has floor within
+ * `AI_DODGE_FLOOR_DISTANCE`, or before a wall that stands above the arc of a jump. A jump to dodge
+ * checks only its own arc, but the bot keeps moving while in the air, so it MUST NOT dodge near a
+ * ledge, on a bridge, or beside a rail that it would jump over.
+ */
+static bool G_Ai_HasFloorAround(const GameEntity *ent) {
+
+  const Vec3 start = Vec3_Add(ent->s.origin, MakeVec3(0.f, 0.f, AI_DODGE_HEIGHT));
+
+  for (int32_t i = 0; i < 8; i++) {
+    const float angle = Radians(i * 45.f);
+    const Vec3 end = Vec3_Add(start, MakeVec3(cosf(angle) * AI_DODGE_FLOOR_DISTANCE,
+                                              sinf(angle) * AI_DODGE_FLOOR_DISTANCE, 0.f));
+
+    const CollisionTrace tr = gi.Trace(start, end, Box3_Zero(), ent, ent->clipMask);
+    const Vec3 point = Vec3_Fmaf(tr.end, -1.f, Vec3_Normalize(Vec3_Subtract(end, start)));
+    const Vec3 below = Vec3_Subtract(point,
+                                     MakeVec3(0.f, 0.f, AI_DODGE_HEIGHT + PM_STEP_HEIGHT * 4.f));
+
+    if (gi.Trace(point, below, Box3_Zero(), ent, CONTENTS_MASK_SOLID).fraction == 1.f) {
+      return false;
+    }
+  }
+
+  return true;
 }
 
 /**
@@ -812,7 +914,7 @@ uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd) {
   }
 
 
-  if (cl->ai->combatTarget.type != AI_GOAL_ENTITY) {
+  if (cl->ai->combatTarget.type != AI_GOAL_ENTITY || G_Ai_IsClimbing(cl)) {
     return 200;
   }
 
@@ -833,8 +935,8 @@ uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd) {
 
       if ((RandomRangeu(0, crouchFreq)) == 0) { // randomly crouch
         cmd->up = -PM_SPEED_JUMP;
-      } else if ((RandomRangeu(0, jumpFreq)) == 0 &&
-                 !G_Ai_FallsToVoid(cl, cl->entity->s.origin, G_Ai_JumpVelocity(cl))) { // randomly pop
+      } else if ((RandomRangeu(0, jumpFreq)) == 0 && G_Ai_HasFloorAround(cl->entity) &&
+                 !G_Ai_FallsToHazard(cl, cl->entity->s.origin, G_Ai_JumpVelocity(cl))) {
         cmd->up = PM_SPEED_JUMP;
       }
     }
@@ -852,8 +954,30 @@ uint32_t G_Ai_Acrobatics(GameClient *cl, PMoveCmd *cmd) {
 #define AI_AIM_RATE_SECONDS .05f
 
 /**
+ * @brief The aim error scales of hitscan weapons. A hitscan weapon hits the instant that it fires,
+ * with no lead to misjudge, so a bot aims it worse than a projectile weapon. A weapon made only for
+ * long range, the railgun, does the most damage in one hit, so it scales most.
+ */
+#define AI_AIM_HITSCAN_SCALE 1.5f
+#define AI_AIM_SNIPER_SCALE 3.f
+
+/**
+ * @return The aim error scale of the weapon.
+ */
+static float G_Ai_AimScale(const GameItem *weapon) {
+
+  const uint32_t flags = weapon ? weapon->def.flags : 0;
+
+  if (!(flags & WF_HITSCAN)) {
+    return 1.f;
+  }
+
+  return (flags & (WF_SHORT_RANGE | WF_MED_RANGE)) ? AI_AIM_HITSCAN_SCALE : AI_AIM_SNIPER_SCALE;
+}
+
+/**
  * @brief Advances the aim error, a random walk toward zero that widens with the target's angular
- * rate and narrows with skill.
+ * rate and with the weapon's aim scale, and narrows with skill.
  * @param rate The angular rate of the aim point in degrees per second.
  */
 static void G_Ai_UpdateAimError(GameClient *cl, const Vec3 rate, const float seconds) {
@@ -862,7 +986,8 @@ static void G_Ai_UpdateAimError(GameClient *cl, const Vec3 rate, const float sec
   const float correction = .35f;
 
   const float angularSpeed = sqrtf(rate.x * rate.x + rate.y * rate.y);
-  const float deviation = Mixf(4.f, .4f, skill) + Mixf(.1f, .015f, skill) * angularSpeed;
+  const float deviation = (Mixf(4.f, .4f, skill) + Mixf(.1f, .015f, skill) * angularSpeed) *
+                          G_Ai_AimScale(cl->weapon);
   const float diffusion = deviation * sqrtf(2.f * seconds / correction);
 
   Vec2 *error = &cl->ai->aimError;
@@ -887,6 +1012,27 @@ void G_Ai_SpamViewAngles(const GameClient *cl, Vec3 *angles) {
 }
 
 /**
+ * @see g_ai_combat.h
+ */
+void G_Ai_ShootViewAngles(const GameClient *cl, Vec3 *angles) {
+
+  if (!cl->ai->shootTarget) {
+    return;
+  }
+
+  const Vec3 eye = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+
+  const Vec3 center = Box3_Center(cl->ai->shootTarget->absBounds);
+  *angles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(center, eye)));
+  angles->z = 0.f;
+}
+
+/**
+ * @brief The skill above which a bot aims explosive weapons at the feet of a grounded target.
+ */
+#define AI_SPLASH_AIM_SKILL .5f
+
+/**
  * @brief Resolves the view angles and their rate of change that aim at the combat target. The
  * aim point lags the target's changes in velocity by the bot's reaction time, plus the aim error.
  */
@@ -897,23 +1043,48 @@ void G_Ai_CombatAngles(GameClient *cl, const float seconds, Vec3 *angles, Vec3 *
   const Vec3 enemyCenter = Box3_Center(enemy->absBounds);
 
   const float reaction = Mixf(.25f, .05f, cl->ai->personality.skill);
-  cl->ai->perceivedVelocity = Vec3_Mix(cl->ai->perceivedVelocity, enemy->velocity, 1.f - expf(-seconds / reaction));
+  cl->ai->perceivedVelocity = Vec3_Mix(cl->ai->perceivedVelocity, enemy->velocity,
+                                       1.f - expf(-seconds / reaction));
 
-  Vec3 aimPoint = Vec3_Fmaf(enemyCenter, reaction, Vec3_Subtract(cl->ai->perceivedVelocity, enemy->velocity));
+  Vec3 aimPoint = Vec3_Fmaf(enemyCenter, reaction,
+                            Vec3_Subtract(cl->ai->perceivedVelocity, enemy->velocity));
 
   const GameItem *const weapon = cl->weapon;
 
   if (weapon->def.flags & WF_PROJECTILE) {
     const float dist = Vec3_Distance(eyeOrigin, enemyCenter);
     const float speed = G_Ai_ProjectileSpeed(weapon);
-    aimPoint = Vec3_Fmaf(aimPoint, dist / (speed * (1.f + cl->ai->leadError)), cl->ai->perceivedVelocity);
+    aimPoint = Vec3_Fmaf(aimPoint, dist / (speed * (1.f + cl->ai->leadError)),
+                         cl->ai->perceivedVelocity);
   }
 
-  *angles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(aimPoint, eyeOrigin)));
+  if ((weapon->def.flags & WF_EXPLOSIVE) && enemy->ground.ent &&
+      cl->ai->personality.skill > AI_SPLASH_AIM_SKILL) {
+    const float footZ = aimPoint.z - (enemyCenter.z - enemy->absBounds.mins.z);
+    const Vec3 feet = MakeVec3(aimPoint.x, aimPoint.y, footZ + 2.f);
+    if (gi.Trace(eyeOrigin, feet, Box3_Zero(), cl->entity, CONTENTS_MASK_SOLID).fraction == 1.f) {
+      aimPoint = feet;
+    }
+  }
+
+  uint32_t holdMillis = 0;
+  const bool lobbed = G_Ai_IsLobbed(weapon) &&
+                      G_Ai_SpamAngles(cl, weapon, aimPoint, angles, &holdMillis);
+  if (!lobbed) {
+    *angles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(aimPoint, eyeOrigin)));
+  }
+
+  cl->ai->aimAngles = *angles;
+  cl->ai->aimHoldMillis = holdMillis;
 
   const Vec3 relativeVelocity = Vec3_Subtract(cl->ai->perceivedVelocity, cl->entity->velocity);
   const Vec3 nextAimPoint = Vec3_Fmaf(aimPoint, AI_AIM_RATE_SECONDS, relativeVelocity);
-  const Vec3 nextAngles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(nextAimPoint, eyeOrigin)));
+
+  Vec3 nextAngles;
+  uint32_t nextHoldMillis;
+  if (!lobbed || !G_Ai_SpamAngles(cl, weapon, nextAimPoint, &nextAngles, &nextHoldMillis)) {
+    nextAngles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(nextAimPoint, eyeOrigin)));
+  }
 
   for (int32_t i = 0; i < 2; i++) {
     rate->xyz[i] = G_Ai_AngleDelta(angles->xyz[i], nextAngles.xyz[i]) / AI_AIM_RATE_SECONDS;

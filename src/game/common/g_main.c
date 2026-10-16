@@ -737,10 +737,6 @@ static void G_CheckRules(void) {
     return;
   }
 
-  if (G_Ai_InDeveloperMode()) {
-    return;
-  }
-
   G_RunTimers();
 
   if (G_CheckWinner()) {

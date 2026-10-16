@@ -63,10 +63,17 @@ Vec3 Cg_ClientEffectColor(const int32_t client, float *hue, const float defaultH
 
 /**
  * @brief Adds an inactive player indicator sprite above the entity's position.
+ * @remarks A chasing spectator's own entity follows its target, so the spectator's console MUST
+ * NOT mark the target.
  */
 static void Cg_InactiveEffect(ClientEntity *ent, const Vec3 org) {
 
   if (ent == cgi.client->entity && Cg_ViewIsSelf()) {
+    return;
+  }
+
+  const PlayerState *ps = &cgi.client->frame.ps;
+  if (ps->stats[STAT_CHASE] && ent == cgi.client->entities + ps->entity) {
     return;
   }
 

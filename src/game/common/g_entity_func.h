@@ -30,11 +30,22 @@ void G_func_conveyor(GameEntity *ent);
 void G_func_door(GameEntity *ent);
 void G_func_door_rotating(GameEntity *ent);
 void G_func_door_secret(GameEntity *ent);
-void G_func_killbox(GameEntity *ent);
 void G_func_plat(GameEntity *ent);
 void G_func_rotating(GameEntity *ent);
 void G_func_timer(GameEntity *ent);
 void G_func_train(GameEntity *ent);
 void G_func_wall(GameEntity *ent);
 void G_func_water(GameEntity *ent);
+
+/**
+ * @return True if the door is activated: it moves toward, or rests at, the end of its travel to
+ * which a use sends it.
+ */
+bool G_func_door_IsActivated(const GameEntity *ent);
+
+/**
+ * @return True if the door moves toward, or rests at, the end of its travel away from where the map
+ * places it. A door that spawns open starts there.
+ */
+bool G_func_door_IsAway(const GameEntity *ent);
 #endif

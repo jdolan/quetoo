@@ -105,11 +105,6 @@ typedef struct {
   float distress;
 
   /**
-   * @brief Previous distress value, used for debug logging.
-   */
-  float lastDistress;
-
-  /**
    * @brief Last recorded distance to the goal destination.
    */
   float lastDistance;
@@ -120,14 +115,6 @@ typedef struct {
   bool distressExtension;
   
   union {
-    struct {
-
-      /**
-       * @brief Wander direction angle in degrees.
-       */
-      float angle;
-    } wander;
-
     struct {
 
       /**
@@ -233,15 +220,73 @@ typedef uint32_t (*GameAiGoalFunc)(GameClient *cl, PMoveCmd *cmd);
  * @brief Functional AI goal slot IDs, one per periodic decision function.
  */
 typedef enum {
-  AI_FUNC_GOAL_LONGRANGE,
-  AI_FUNC_GOAL_HUNT,
+  AI_FUNC_GOAL_TARGET,
+  AI_FUNC_GOAL_STATE,
   AI_FUNC_GOAL_WEAPONRY,
   AI_FUNC_GOAL_ACROBATICS,
-  AI_FUNC_GOAL_FINDITEMS,
   AI_FUNC_GOAL_TURN,
   AI_FUNC_GOAL_MOVE,
   AI_FUNC_GOAL_TOTAL
 } GameAiFuncGoal;
+
+/**
+ * @brief The states of a bot's decision state machine. Only the active state sets the bot's move
+ * target.
+ */
+typedef enum {
+  /**
+   * @brief Go to the item of most value for its travel time.
+   */
+  AI_STATE_COLLECT,
+
+  /**
+   * @brief Go to a distant node, because no item has value to the bot.
+   */
+  AI_STATE_ROAM,
+
+  /**
+   * @brief Take an item that adds little travel time to the route to the objective, then resume it.
+   */
+  AI_STATE_DETOUR,
+
+  /**
+   * @brief Fight the combat target.
+   */
+  AI_STATE_FIGHT,
+
+  /**
+   * @brief Go to where the bot last saw the combat target that it lost.
+   */
+  AI_STATE_CHASE,
+
+  /**
+   * @brief Go to health, armor or a weapon, away from the combat target, and fire back.
+   */
+  AI_STATE_RETREAT,
+
+  /**
+   * @brief Go to where the bot heard an enemy, or was shot from.
+   */
+  AI_STATE_INVESTIGATE,
+
+  /**
+   * @brief Press the button that opens the way to the item to collect, then collect it.
+   */
+  AI_STATE_ACTIVATE,
+
+  /**
+   * @brief Leave the lava that the bot is in, by the nearest way out.
+   */
+  AI_STATE_ESCAPE,
+
+  /**
+   * @brief Climb the ladder that the bot holds, and nothing else: no fight, no fire, no new
+   * objective.
+   */
+  AI_STATE_CLIMB,
+
+  AI_STATE_TOTAL
+} GameAiStateId;
 
 /**
  * @brief Static bot definition from the roster.
@@ -299,6 +344,101 @@ typedef struct {
 } GameAiPersonality;
 
 /**
+ * @brief The most item respawns that a bot remembers.
+ */
+#define AI_ITEM_TIMINGS 16
+
+/**
+ * @brief An item that a bot saw or heard taken, and when it returns.
+ */
+typedef struct {
+  /**
+   * @brief The item's entity number.
+   */
+  int32_t number;
+
+  /**
+   * @brief Level time at which the item respawns.
+   */
+  uint32_t respawnTime;
+} GameAiItemTiming;
+
+/**
+ * @brief Why a bot on a path does not strafe jump, as `G_Ai_StrafeJump` last found, for the probe.
+ */
+typedef enum {
+  /**
+   * @brief The bot strafe jumps.
+   */
+  AI_STRAFE_BLOCK_NONE,
+
+  /**
+   * @brief The bot's skill is too low, or the level's movement has no strafe jumping.
+   */
+  AI_STRAFE_BLOCK_SKILL,
+
+  /**
+   * @brief The bot is in water, on a mover, crouched, on a ladder, pushed, teleported, trick
+   * jumping or water jumping, or its path leads onto a mover that is not there.
+   */
+  AI_STRAFE_BLOCK_STATE,
+
+  /**
+   * @brief No node ahead passes the turn, floor and trigger tests of `G_Ai_StrafeTarget`.
+   */
+  AI_STRAFE_BLOCK_TURN,
+
+  /**
+   * @brief The path ahead is too short for the bot's skill: see `AI_STRAFE_RUN_MAX` and
+   * `AI_STRAFE_RUN_MIN`.
+   */
+  AI_STRAFE_BLOCK_SHORT,
+
+  /**
+   * @brief The simulated jump does not land safely.
+   */
+  AI_STRAFE_BLOCK_UNSAFE,
+
+  /**
+   * @brief The bot is in the air, but not strafe jumping: after a drop, a jump link, or a strafe
+   * jump that it gave up in flight.
+   */
+  AI_STRAFE_BLOCK_FALL,
+
+  AI_STRAFE_BLOCK_TOTAL
+} GameAiStrafeBlock;
+
+/**
+ * @brief The most items that a bot avoids at once.
+ */
+#define AI_AVOIDS 8
+
+/**
+ * @brief The most positions that a bot remembers on its trail.
+ */
+#define AI_TRAIL 12
+
+/**
+ * @brief An item that a bot took, or failed to reach, and so avoids for a time.
+ */
+typedef struct {
+  /**
+   * @brief The item's entity number.
+   */
+  int32_t number;
+
+  /**
+   * @brief The item's spawn ID, because a dropped item's entity number is reused once it is taken.
+   */
+  uint8_t spawnId;
+
+  /**
+   * @brief Level time at which the bot began to avoid the item.
+   */
+  uint32_t time;
+} GameAiAvoid;
+
+/**
  * @brief AI-specific per-client state.
  */
 typedef struct GameAi {
@@ -330,14 +470,124 @@ typedef struct GameAi {
   GameAiGoal moveTarget;
 
   /**
-   * @brief Saved movement goal, restored after a detour.
-   */
-  GameAiGoal backupMoveTarget;
-
-  /**
    * @brief Current combat/enemy goal.
    */
   GameAiGoal combatTarget;
+
+  /**
+   * @brief The active state of the decision state machine.
+   */
+  GameAiStateId state;
+
+  /**
+   * @brief The state that `AI_STATE_CLIMB` interrupted, to which the bot returns, with its path,
+   * off the ladder.
+   */
+  GameAiStateId climbState;
+
+  /**
+   * @brief The `stateTime` of `climbState`. The bot returns to it later by the time of the climb,
+   * so that the climb does not count against the timeouts of the state.
+   */
+  uint32_t climbStateTime;
+
+  /**
+   * @brief Level time until which the bot leaves the ladder on which its climb was blocked.
+   */
+  uint32_t ladderLeaveTime;
+
+  /**
+   * @brief The direction in which the bot leaves that ladder: the normal of its face.
+   */
+  Vec3 ladderLeaveDir;
+
+  /**
+   * @brief Level time at which the bot entered its state.
+   */
+  uint32_t stateTime;
+
+  /**
+   * @brief Level time at which the state next reviews the bot's choice of objective, item or
+   * approach.
+   */
+  uint32_t reviewTime;
+
+  /**
+   * @brief Level time at which the state last reviewed the choices of the bot with no move target,
+   * or 0 if its last review was with one.
+   */
+  uint32_t reviewedTime;
+
+  /**
+   * @brief True once a chase or an investigation has planned its path.
+   */
+  bool statePathed;
+
+  /**
+   * @brief The entity number of the item to collect, or -1 for none.
+   */
+  int32_t objectiveNumber;
+
+  /**
+   * @brief The spawn ID of the item to collect, to detect entity reuse.
+   */
+  uint8_t objectiveSpawnId;
+
+  /**
+   * @brief The node of the item to collect, or of the roam point, or `AI_NODE_INVALID` for none.
+   * A detour returns to it.
+   */
+  GameAiNodeId objectiveNode;
+
+  /**
+   * @brief The index of the gate through which the bot goes to its objective, or -1. It stays set
+   * after `AI_STATE_ACTIVATE`, until the bot takes an item or chooses another.
+   */
+  int32_t gate;
+
+  /**
+   * @brief In `AI_STATE_ACTIVATE`, the index of the gate's button that the bot presses.
+   */
+  int32_t gateButton;
+
+  /**
+   * @brief In `AI_STATE_ACTIVATE`, the node from which the bot presses the button.
+   */
+  GameAiNodeId gateNode;
+
+  /**
+   * @brief In `AI_STATE_ACTIVATE`, the level time at which the bot found the activated doors at
+   * rest, with no path to the item, or 0.
+   */
+  uint32_t gateRestTime;
+
+  /**
+   * @brief True if the bot lost sight of its last combat target, rather than killed it or lost it
+   * to death or disconnect.
+   */
+  bool combatTargetLost;
+
+  /**
+   * @brief The items that the bot avoids, so that it roams the map rather than circles a few items.
+   */
+  GameAiAvoid avoids[AI_AVOIDS];
+
+  /**
+   * @brief Where the bot was recently, one position each `AI_TRAIL_MILLIS`, so that it roams to
+   * somewhere new rather than back to where it came from.
+   */
+  Vec3 trail[AI_TRAIL];
+
+  /**
+   * @brief The count of positions that the bot added to its trail. The newest is at
+   * `trailCount - 1`, modulo `AI_TRAIL`.
+   */
+  uint32_t trailCount;
+
+  /**
+   * @brief Level time at which the bot last added a position to its trail.
+   */
+  uint32_t trailTime;
 
   /**
    * @brief Next level time to re-evaluate weapon selection.
@@ -345,9 +595,16 @@ typedef struct GameAi {
   uint32_t weaponCheckTime;
 
   /**
-   * @brief Level time before the bot attempts to reacquire a goal.
+   * @brief Level time until which the bot, once it has no move target, avoids the objective of a
+   * path that ended in distress, and chooses another.
    */
   uint32_t reacquireTime;
+
+  /**
+   * @brief Level time at which the bot began to wait at its objective for it to respawn, or 0 while
+   * it does not wait.
+   */
+  uint32_t waitTime;
 
   /**
    * @brief Random per-bot offset applied to distress jump timing.
@@ -360,8 +617,9 @@ typedef struct GameAi {
   uint32_t lookaheadFrame;
 
   /**
-   * @brief Cached lookahead result: true if the bot will lose ground 100ms ahead.
-   * Valid only when `lookaheadFrame == gameLevel.frameNum`.
+   * @brief Cached lookahead result: true if the bot will lose ground 100ms ahead, other than to
+   * the ladder of its climb, which it grabs, and which is not an edge. Valid only when
+   * `lookaheadFrame == gameLevel.frameNum`.
    */
   bool lookaheadNoGround;
 
@@ -384,15 +642,43 @@ typedef struct GameAi {
   Vec3 groundPosition;
 
   /**
-   * @brief Frame number for which `fallsToVoid` was computed.
+   * @brief Frame number for which `fallsToHazard` was computed.
    */
   uint32_t fallFrame;
 
   /**
-   * @brief Cached result of `G_Ai_FallsToVoid` for the bot's own fall. Valid only when
-   * `fallFrame == gameLevel.frameNum`.
+   * @brief True if the bot is in the air, and `G_Ai_FallsToHazard` ends its fall in a hazard.
+   * Valid only when `fallFrame == gameLevel.frameNum`.
    */
-  bool fallsToVoid;
+  bool fallsToHazard;
+
+  /**
+   * @brief True if the bot falls toward a hazard, and `G_Ai_SimulateDrop` lands it safely if it
+   * steers toward its next path node. Valid only when `fallFrame == gameLevel.frameNum`.
+   */
+  bool fallToNode;
+
+  /**
+   * @brief The frame of the last `G_Ai_SimulateDrop`, whose result `dropSafe` holds for
+   * `dropTarget` from `dropOrigin`.
+   */
+  uint32_t dropFrame;
+
+  /**
+   * @brief The origin of the bot at the last `G_Ai_SimulateDrop`. The bot moves between the passes
+   * of `G_Ai_ClientThink` in one frame.
+   */
+  Vec3 dropOrigin;
+
+  /**
+   * @brief The target of the last `G_Ai_SimulateDrop`.
+   */
+  Vec3 dropTarget;
+
+  /**
+   * @brief The result of the last `G_Ai_SimulateDrop`.
+   */
+  bool dropSafe;
 
   /**
    * @brief Level time before the bot may turn again while it wanders.
@@ -400,9 +686,22 @@ typedef struct GameAi {
   uint32_t wanderTurnTime;
 
   /**
+   * @brief The yaw in degrees that the bot wanders toward with no move goal. It is not in the union
+   * of `GameAiGoal`, whose entity pointer it shares memory with, because `G_Ai_Wander` turns it
+   * while the move goal is the enemy.
+   */
+  float wanderAngle;
+
+  /**
    * @brief Level time at which the bot last saw its combat target.
    */
   uint32_t combatTargetSeenTime;
+
+  /**
+   * @brief Where the bot last saw its combat target. A bot that loses sight of its target chases
+   * this position, not the target's true one.
+   */
+  Vec3 combatTargetSeenPosition;
 
   /**
    * @brief The angular velocity of the view in degrees per second, so that turns ease in and out.
@@ -421,6 +720,17 @@ typedef struct GameAi {
   Vec2 aimError;
 
   /**
+   * @brief The view angles, before the aim error, at which the bot aims at its combat target: along
+   * the arc for a lobbed weapon.
+   */
+  Vec3 aimAngles;
+
+  /**
+   * @brief The time in milliseconds to hold a hand grenade, so that it flies to the combat target.
+   */
+  uint32_t aimHoldMillis;
+
+  /**
    * @brief The fractional error in the bot's estimate of its projectile speed. It is fixed for
    * each combat target, so that the lead is consistently wrong rather than jittery.
    */
@@ -432,6 +742,11 @@ typedef struct GameAi {
   Vec3 spamPoint;
 
   /**
+   * @brief A button that the bot shoots to press it, while it has no combat target, or NULL.
+   */
+  const GameEntity *shootTarget;
+
+  /**
    * @brief Level time at which the current burst of grenade spam ends, or, between bursts, at
    * which the next may start.
    */
@@ -441,6 +756,99 @@ typedef struct GameAi {
    * @brief The ammo count at which the current burst of grenade spam ends, or 0 between bursts.
    */
   int32_t spamAmmo;
+
+  /**
+   * @brief The map control items that the bot saw or heard taken, so that it can be there when
+   * they return.
+   */
+  GameAiItemTiming itemTimings[AI_ITEM_TIMINGS];
+
+  /**
+   * @brief Level time at which the bot may next reverse its circle strafe around its target.
+   */
+  uint32_t circleStrafeTime;
+
+  /**
+   * @brief Where the bot last heard an enemy, or was shot from.
+   */
+  Vec3 alertPosition;
+
+  /**
+   * @brief Level time of the alert, or 0 for none.
+   */
+  uint32_t alertTime;
+
+  /**
+   * @brief True once the bot has decided whether to investigate the alert.
+   */
+  bool alertInvestigated;
+
+  /**
+   * @brief The entity number of the last enemy that hurt the bot.
+   */
+  int32_t attacker;
+
+  /**
+   * @brief Level time at which `attacker` last hurt the bot.
+   */
+  uint32_t attackedTime;
+
+  /**
+   * @brief True from the takeoff of a strafe jump until the bot lands and does not jump again.
+   */
+  bool strafeJumping;
+
+  /**
+   * @brief True from the takeoff of a jump onto a ladder until the bot lands, grabs the ladder or
+   * leaves the link.
+   */
+  bool ladderJumping;
+
+  /**
+   * @brief Why the bot did not strafe jump on its last move along a path, for the probe.
+   */
+  GameAiStrafeBlock strafeBlock;
+
+  /**
+   * @brief Level time until which `strafeLookIndex` and `strafeLookRun` are valid, for
+   * `strafeLookPath` at `strafeLookPathIndex`.
+   */
+  uint32_t strafeLookTime;
+
+  /**
+   * @brief The path for which `strafeLookIndex` was found.
+   */
+  const Vector *strafeLookPath;
+
+  /**
+   * @brief The path index for which `strafeLookIndex` was found.
+   */
+  uint32_t strafeLookPathIndex;
+
+  /**
+   * @brief The index of the path node that a strafe jumping bot steers to, or -1 for none.
+   */
+  int32_t strafeLookIndex;
+
+  /**
+   * @brief The distance along the path to the node at `strafeLookIndex`.
+   */
+  float strafeLookRun;
+
+  /**
+   * @brief Level time until which `strafeSafe` is valid.
+   */
+  uint32_t strafeSafeTime;
+
+  /**
+   * @brief True if the strafe jump that `G_Ai_SimulateStrafeJump` last followed lands safely.
+   */
+  bool strafeSafe;
+
+  /**
+   * @brief The target of the strafe jump for which `strafeSafe` was found.
+   */
+  Vec3 strafeSafeTarget;
 } GameAi;
 
 #endif

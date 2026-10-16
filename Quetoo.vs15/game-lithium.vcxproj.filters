@@ -78,7 +78,16 @@
     <ClInclude Include="..\src\game\common\g_ai_main.h">
       <Filter>src\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\game\common\bg_nav.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\game\common\g_ai_node.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_ai_probe.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\game\common\g_ai_state.h">
       <Filter>src\common</Filter>
     </ClInclude>
     <ClInclude Include="..\src\game\common\g_ai_types.h">
@@ -182,7 +191,16 @@
     <ClCompile Include="..\src\game\common\g_ai_main.c">
       <Filter>src\common</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\game\common\bg_nav.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\game\common\g_ai_node.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_ai_probe.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_ai_state.c">
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\common\g_ballistics.c">

@@ -329,6 +329,7 @@ void Cl_InitCgame(void) {
   import.PointInsideBrush = Cm_PointInsideBrush;
   import.Trace = Cl_Trace;
   import.TraceToBrush = Cm_TraceToBrush;
+  import.BoxTrace = Cm_BoxTrace;
   import.PointLeafnum = Cm_PointLeafnum;
 
   import.LoadSample = S_LoadSample;
