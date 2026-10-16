@@ -3584,6 +3584,99 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
 #define AI_LOOK_MIN_DISTANCE 96.f
 
 /**
+ * @return The point at which a bot looks as it follows its move goal. On a path: the landing of a
+ * trick jump, the aim of its climb, or its next node, or else the node after it, if the path runs
+ * both ways there and the bot is on land or the next node is out of liquid, which looks more
+ * natural. A bot on land, off any ladder and not trick jumping, whose next node is no more than a
+ * step above it, looks past a point nearer than `AI_LOOK_MIN_DISTANCE` to the node after it, and
+ * holds its yaw if that is near too. Else the goal's position or entity.
+ * @param ladder How the bot follows the ladder of its climb (`G_Ai_LadderMove`).
+ * @param holdYaw Set to true if the bot holds its yaw.
+ */
+static Vec3 G_Ai_Turn_aim(const GameClient *cl, const GameAiLadderMove *ladder, bool *holdYaw) {
+
+  const GameEntity *ent = cl->entity;
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  Vec3 aim = Vec3_Zero();
+  *holdYaw = false;
+
+  if (goal->type == AI_GOAL_PATH) {
+
+    if (goal->path.trickJump) {
+      aim = goal->path.trickPosition;
+    } else if (ladder->phase != AI_LADDER_NONE) {
+      aim = ladder->aim;
+    } else if (((ent->waterLevel < WATER_WAIST && !(cl->ps.pmState.flags & PMF_ON_LADDER)) ||
+                !(gi.PointContents(goal->path.pathPosition) & CONTENTS_MASK_LIQUID)) &&
+               goal->path.pathIndex &&
+               G_Ai_Path_IsLinked(goal->path.path, goal->path.pathIndex, goal->path.pathIndex - 1)) {
+      aim = goal->path.nextPathPosition;
+    } else {
+      aim = goal->path.pathPosition;
+    }
+
+    if (!goal->path.trickJump && !(cl->ps.pmState.flags & PMF_ON_LADDER) && ent->waterLevel < WATER_WAIST &&
+        goal->path.pathPosition.z - ent->s.origin.z <= PM_STEP_HEIGHT) {
+
+      if (Vec2_Distance(Vec3_XY(aim), Vec3_XY(ent->s.origin)) < AI_LOOK_MIN_DISTANCE) {
+        aim = goal->path.nextPathPosition;
+      }
+
+      *holdYaw = Vec2_Distance(Vec3_XY(aim), Vec3_XY(ent->s.origin)) < AI_LOOK_MIN_DISTANCE;
+    }
+  } else if (goal->type == AI_GOAL_POSITION) {
+    aim = goal->position.pos;
+  } else if (goal->type == AI_GOAL_ENTITY) {
+    aim = goal->entity.ent->s.origin;
+  } else {
+    assert(false);
+  }
+
+  return aim;
+}
+
+/**
+ * @return The view angles with which a bot follows its move goal: toward `G_Ai_Turn_aim`, with no
+ * roll. A bot on a ladder takes the pitch of its climb, or with no climb, looks down to climb down
+ * to a node more than its height below it, and else up. A bot in water to the waist faces the aim
+ * point, and any other bot looks level, because the player move gives a jump less forward speed if
+ * the view looks up or down.
+ */
+static Vec3 G_Ai_Turn_goal(const GameClient *cl) {
+
+  const GameEntity *ent = cl->entity;
+  const GameAiLadderMove ladder = G_Ai_LadderMove(cl);
+
+  bool holdYaw;
+  const Vec3 aim = G_Ai_Turn_aim(cl, &ladder, &holdYaw);
+
+  Vec3 angles = Vec3_Euler(Vec3_Normalize(Vec3_Subtract(aim, ent->s.origin)));
+  angles.z = 0.f;
+
+  if (holdYaw) {
+    angles.y = cl->angles.y;
+  }
+
+  if (cl->ps.pmState.flags & PMF_ON_LADDER) {
+    const float height = Box3_Size(Pm_Bounds(&cl->ps.pmState.params, false)).z;
+
+    if (ladder.phase != AI_LADDER_NONE) {
+      angles.x = ladder.pitch;
+    } else if (cl->ai->moveTarget.path.pathPosition.z - ent->s.origin.z < -height) {
+      angles.x = AI_LADDER_PITCH;
+    } else {
+      angles.x = -AI_LADDER_PITCH;
+    }
+    G_Ai_Debug("Clamping X to %f\n", angles.x);
+  } else if (ent->waterLevel < WATER_WAIST) {
+    angles.x = 0.f;
+  }
+
+  return angles;
+}
+
+/**
  * @brief Turns the view toward the current target with a critically damped spring. In combat, the
  * aim point lags the target's changes in velocity by the bot's reaction time, plus the aim error.
  */
@@ -3605,77 +3698,7 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
     if (cl->ai->moveTarget.type == AI_GOAL_NONE) {
       idealAngles = MakeVec3(0.0, cl->ai->wanderAngle, 0.0);
     } else {
-      Vec3 aimTarget = Vec3_Zero();
-      bool holdYaw = false;
-
-      if (cl->ai->moveTarget.type == AI_GOAL_PATH) {
-
-        // if we're trick-jumping, aim towards where we intend to land
-        if (cl->ai->moveTarget.path.trickJump) {
-          aimTarget = cl->ai->moveTarget.path.trickPosition;
-        } else if (G_Ai_LadderClimb(cl)) {
-          aimTarget = G_Ai_LadderMove(cl).aim;
-        // if we're above ground & on-land, and our next path is bidirectional, assume it's normal
-        // pathing; aim towards our *next* target to look a bit more natural.
-        } else if (((ent->waterLevel < WATER_WAIST
-                     && !(cl->ps.pmState.flags & PMF_ON_LADDER))
-                     || !(gi.PointContents(cl->ai->moveTarget.path.pathPosition) & CONTENTS_MASK_LIQUID))
-                   && cl->ai->moveTarget.path.pathIndex
-                   && G_Ai_Path_IsLinked(cl->ai->moveTarget.path.path,
-                                       cl->ai->moveTarget.path.pathIndex,
-                                       cl->ai->moveTarget.path.pathIndex - 1)) {
-          aimTarget = cl->ai->moveTarget.path.nextPathPosition;
-        // otherwise, aim directly at the next position
-        } else {
-          aimTarget = cl->ai->moveTarget.path.pathPosition;
-        }
-
-        const GameAiGoal *path = &cl->ai->moveTarget;
-
-        if (!path->path.trickJump && !(cl->ps.pmState.flags & PMF_ON_LADDER) && ent->waterLevel < WATER_WAIST &&
-            path->path.pathPosition.z - ent->s.origin.z <= PM_STEP_HEIGHT) {
-
-          if (Vec2_Distance(Vec3_XY(aimTarget), Vec3_XY(ent->s.origin)) < AI_LOOK_MIN_DISTANCE) {
-            aimTarget = path->path.nextPathPosition;
-          }
-
-          holdYaw = Vec2_Distance(Vec3_XY(aimTarget), Vec3_XY(ent->s.origin)) < AI_LOOK_MIN_DISTANCE;
-        }
-      } else if (cl->ai->moveTarget.type == AI_GOAL_POSITION) {
-        aimTarget = cl->ai->moveTarget.position.pos;
-      } else if (cl->ai->moveTarget.type == AI_GOAL_ENTITY) {
-        aimTarget = cl->ai->moveTarget.entity.ent->s.origin;
-      } else {
-        assert(false);
-      }
-
-      const Vec3 aimDirection = Vec3_Normalize(Vec3_Subtract(aimTarget, cl->entity->s.origin));
-      idealAngles = Vec3_Euler(aimDirection);
-      idealAngles.z = 0.f;
-
-      if (holdYaw) {
-        idealAngles.y = cl->angles.y;
-      }
-
-      // if underwater or in air we have to directly face our target, otherwise
-      // just yaw us.
-      // FIXME: bug in PMove prevents this from working for *all* in air situations
-      // (you get less forward momentum on a jump if you are looking up/down)
-      // so for now this is hardcoded to ladders
-      if (cl->ps.pmState.flags & PMF_ON_LADDER) {
-        const GameAiLadderMove ladder = G_Ai_LadderMove(cl);
-
-        if (ladder.phase != AI_LADDER_NONE) {
-          idealAngles.x = ladder.pitch;
-        } else if ((cl->ai->moveTarget.path.pathPosition.z - cl->entity->s.origin.z) < -Box3_Size(Pm_Bounds(&cl->ps.pmState.params, false)).z) {
-          idealAngles.x = AI_LADDER_PITCH;
-        } else {
-          idealAngles.x = -AI_LADDER_PITCH;
-        }
-        G_Ai_Debug("Clamping X to %f\n", idealAngles.x);
-      } else if (ent->waterLevel < WATER_WAIST) {
-        idealAngles.x = 0.f;
-      }
+      idealAngles = G_Ai_Turn_goal(cl);
     }
 
     if (!climbing) {
