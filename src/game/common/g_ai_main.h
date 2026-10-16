@@ -43,14 +43,11 @@ extern Cvar *g_aiNoTarget;
 
 void G_Ai_Disconnect(GameClient *cl);
 void G_Ai_InvalidateReferences(GameAi *ai, const GameEntity *ent);
-void G_Ai_Think(GameClient *cl, PMoveCmd *cmd);
 void G_Ai_Respawn(GameClient *cl);
-void G_Ai_Begin(GameClient *cl);
 void G_Ai_Init(void);
 void G_Ai_Frame(void);
 void G_Ai_Load(void);
 void G_Ai_Shutdown(void);
-bool G_Ai_ShouldSlowDrop(const GameAiNodeId fromNode, const GameAiNodeId toNode);
 bool G_Ai_IsArmed(const GameClient *cl);
 
 /**
@@ -126,11 +123,6 @@ bool G_Ai_IsItemKnown(const GameClient *cl, const GameEntity *ent, const bool co
  */
 float G_Ai_PreferredRange(const GameClient *cl);
 
-/**
- * @brief Ends the bot's path, because it reached the end or cannot follow it, and lets the state
- * machine choose the next one at once.
- */
-void G_Ai_EndPath(GameClient *cl);
 bool G_Ai_CanSee(const GameClient *cl, const GameEntity *other);
 bool G_Ai_FallsToHazard(const GameClient *cl, Vec3 origin, Vec3 velocity);
 Vec3 G_Ai_JumpVelocity(const GameClient *cl);

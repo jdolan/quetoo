@@ -419,9 +419,10 @@ bool G_Ai_IsItemKnown(const GameClient *cl, const GameEntity *ent, const bool co
 }
 
 /**
- * @see g_ai_main.h
+ * @brief Ends the bot's path, because it reached the end or cannot follow it, and lets the state
+ * machine choose the next one at once.
  */
-void G_Ai_EndPath(GameClient *cl) {
+static void G_Ai_EndPath(GameClient *cl) {
 
   G_Ai_ClearGoal(&cl->ai->moveTarget);
   cl->ai->funcGoalNextThinks[AI_FUNC_GOAL_STATE] = 0;
@@ -1321,7 +1322,7 @@ static bool G_Ai_FacingTarget(const GameClient *cl, const Vec3 target) {
  * @brief A slow-drop occurs when a connection is mono-directional, not far horizontally
  * but far vertically.
  */
-bool G_Ai_ShouldSlowDrop(const GameAiNodeId fromNode, const GameAiNodeId toNode) {
+static bool G_Ai_ShouldSlowDrop(const GameAiNodeId fromNode, const GameAiNodeId toNode) {
   static const float minDrop = 128.f;
   static const float maxDrop = 512.f;
 
@@ -3639,7 +3640,7 @@ static void G_Ai_ValidateEntityGoal(const GameClient *cl, const char *field, Gam
 /**
  * @brief Called every frame for every AI.
  */
-void G_Ai_Think(GameClient *cl, PMoveCmd *cmd) {
+static void G_Ai_Think(GameClient *cl, PMoveCmd *cmd) {
 
   if (G_IsMeat(cl->entity) && cl->entity->dead) {
     G_Ai_ClearGoal(&cl->ai->combatTarget);
@@ -3730,7 +3731,7 @@ void G_Ai_Respawn(GameClient *cl) {
 /**
  * @brief Called when an AI is first spawned and is ready to go.
  */
-void G_Ai_Begin(GameClient *cl) {
+static void G_Ai_Begin(GameClient *cl) {
 
   const GameAiRoster *r = cl->ai->roster;
 
