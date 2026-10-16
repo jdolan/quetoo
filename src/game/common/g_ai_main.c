@@ -592,6 +592,32 @@ static CollisionTrace G_Ai_MoveTrace(const Vec3 start, const Vec3 end, const Box
 }
 
 /**
+ * @return The link into the node at `index` of the path, or NULL at the start of the path.
+ */
+static const GameAiLink *G_Ai_Path_GetLink(const Vector *path, const uint32_t index) {
+
+  if (index == 0) {
+    return NULL;
+  }
+
+  return G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index - 1), VectorValue(path, GameAiNodeId, index));
+}
+
+/**
+ * @see g_ai_main.h
+ */
+const GameAiLink *G_Ai_PathLink(const GameClient *cl) {
+
+  const GameAiGoal *goal = &cl->ai->moveTarget;
+
+  if (goal->type != AI_GOAL_PATH) {
+    return NULL;
+  }
+
+  return G_Ai_Path_GetLink(goal->path.path, goal->path.pathIndex);
+}
+
+/**
  * @brief Moves the goal to the next node of its path.
  * @return False if the path has no node left.
  */
@@ -778,8 +804,7 @@ static Vec3 G_Ai_PushDestination(const GameClient *cl, const Vec3 dest) {
 
   const Vec3 from = G_Ai_Node_GetPosition(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1));
 
-  const GameAiLink *pathLink = G_Ai_Node_GetLink(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
-                                                 VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex));
+  const GameAiLink *pathLink = G_Ai_PathLink(cl);
   const bool pad = pathLink && pathLink->travelType == NAV_TRAVEL_PUSH;
 
   if (!pad && Vec2_Distance(Vec3_XY(from), Vec3_XY(goal->path.pathPosition)) < AI_PUSH_LINK_DISTANCE) {
@@ -1185,8 +1210,7 @@ static bool G_Ai_IsPushedOffNode(const GameClient *cl, const GameAiGoal *goal, c
     return false;
   }
 
-  const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index),
-                                             VectorValue(path, GameAiNodeId, index + 1));
+  const GameAiLink *link = G_Ai_Path_GetLink(path, index + 1);
 
   if (!link || link->travelType != NAV_TRAVEL_PUSH) {
     return false;
@@ -1355,20 +1379,11 @@ static bool G_Ai_IsRidingMover(const GameEntity *ent) {
 /**
  * @return True if the bot is on the ground, within `AI_BARRIER_JUMP_DISTANCE` of the target of a
  * barrier jump link on its path.
+ * @param link The link into the node that the bot moves to (`G_Ai_PathLink`).
  */
-static bool G_Ai_ShouldBarrierJump(const GameClient *cl) {
+static bool G_Ai_ShouldBarrierJump(const GameClient *cl, const GameAiLink *link) {
 
-  if (!cl->entity->ground.ent || cl->ai->moveTarget.path.pathIndex == 0) {
-    return false;
-  }
-
-  const Vector *path = cl->ai->moveTarget.path.path;
-  const uint32_t index = cl->ai->moveTarget.path.pathIndex;
-
-  const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index - 1),
-                                             VectorValue(path, GameAiNodeId, index));
-
-  if (!link || link->travelType != NAV_TRAVEL_BARRIER_JUMP) {
+  if (!cl->entity->ground.ent || !link || link->travelType != NAV_TRAVEL_BARRIER_JUMP) {
     return false;
   }
 
@@ -1402,21 +1417,6 @@ static bool G_Ai_ShouldBarrierJump(const GameClient *cl) {
 #define AI_LEDGE_SPEED .5f
 
 /**
- * @return The link into the node that the bot moves to, or NULL at the start of its path.
- */
-static const GameAiLink *G_Ai_PathLink(const GameClient *cl) {
-
-  const GameAiGoal *goal = &cl->ai->moveTarget;
-
-  if (goal->type != AI_GOAL_PATH || goal->path.pathIndex == 0) {
-    return NULL;
-  }
-
-  return G_Ai_Node_GetLink(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
-                           VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex));
-}
-
-/**
  * @return The horizontal distance from the bot to the line of the link into the node that it moves
  * to.
  */
@@ -1436,6 +1436,17 @@ static float G_Ai_PathLinkDistance(const GameClient *cl) {
 }
 
 /**
+ * @return The climb of the ladder link from node `a` to node `b`, if the climb starts with a jump
+ * onto the ladder, or NULL.
+ */
+static const NavLadderClimb *G_Ai_LadderJump(const GameAiNodeId a, const GameAiNodeId b) {
+
+  const NavLadderClimb *climb = G_Ai_Node_GetClimb(a, b);
+
+  return climb && climb->jump ? climb : NULL;
+}
+
+/**
  * @return The climb of the bot's ladder link, if the climb starts with a jump, or NULL.
  */
 static const NavLadderClimb *G_Ai_JumpClimb(const GameClient *cl) {
@@ -1446,10 +1457,8 @@ static const NavLadderClimb *G_Ai_JumpClimb(const GameClient *cl) {
     return NULL;
   }
 
-  const NavLadderClimb *climb = G_Ai_Node_GetClimb(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
-                                             VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex));
-
-  return climb && climb->jump ? climb : NULL;
+  return G_Ai_LadderJump(VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1),
+                         VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex));
 }
 
 /**
@@ -1513,9 +1522,9 @@ static bool G_Ai_IsJump(const GameAiNodeId a, const GameAiNodeId b, Vec3 *target
     return false;
   }
 
-  const NavLadderClimb *climb = G_Ai_Node_GetClimb(a, b);
+  const NavLadderClimb *climb = G_Ai_LadderJump(a, b);
 
-  if (!climb || !climb->jump) {
+  if (!climb) {
     return false;
   }
 
@@ -1617,23 +1626,6 @@ static bool G_Ai_IsJumpSpeed(const GameClient *cl) {
 #define AI_JUMP_TURN_DISTANCE 96.f
 
 /**
- * @return True if the link from node `a` to node `b` is a ladder link whose climb starts with a
- * jump onto the ladder.
- * @param target Where the jump grabs the ladder.
- */
-static bool G_Ai_IsLadderJump(const GameAiNodeId a, const GameAiNodeId b, Vec3 *target) {
-
-  const NavLadderClimb *climb = G_Ai_Node_GetClimb(a, b);
-
-  if (!climb || !climb->jump) {
-    return false;
-  }
-
-  *target = climb->column;
-  return true;
-}
-
-/**
  * @return True if the bot runs on the ground near the source node of a jump onto a ladder, on the
  * link to it or on the jump's own link, within `AI_JUMP_TURN_DISTANCE` of it, and does not move
  * along the jump's line, faster than `AI_LEDGE_SPEED`. It slows down to turn onto the line, so that
@@ -1653,20 +1645,22 @@ static bool G_Ai_ShouldSlowForJump(const GameClient *cl) {
   const Vector *path = goal->path.path;
   const uint32_t index = goal->path.pathIndex;
 
+  const GameAiLink *link = G_Ai_PathLink(cl);
+  const NavLadderClimb *climb = G_Ai_JumpClimb(cl);
   GameAiNodeId source = AI_NODE_INVALID;
-  Vec3 target;
 
-  if (index > 0 && G_Ai_IsLadderJump(VectorValue(path, GameAiNodeId, index - 1), VectorValue(path, GameAiNodeId, index), &target)) {
+  if (climb) {
     source = VectorValue(path, GameAiNodeId, index - 1);
-  } else if (index + 1 < path->count && (!G_Ai_PathLink(cl) || G_Ai_PathLink(cl)->travelType <= NAV_TRAVEL_CROUCH) &&
-             G_Ai_IsLadderJump(VectorValue(path, GameAiNodeId, index), VectorValue(path, GameAiNodeId, index + 1), &target)) {
+  } else if (index + 1 < path->count && (!link || link->travelType <= NAV_TRAVEL_CROUCH)) {
+    climb = G_Ai_LadderJump(VectorValue(path, GameAiNodeId, index), VectorValue(path, GameAiNodeId, index + 1));
     source = VectorValue(path, GameAiNodeId, index);
   }
 
-  if (source == AI_NODE_INVALID) {
+  if (!climb) {
     return false;
   }
 
+  const Vec3 target = climb->column;
   const Vec3 position = G_Ai_Node_GetPosition(source);
 
   if (Vec2_Distance(Vec3_XY(position), Vec3_XY(cl->entity->s.origin)) > AI_JUMP_TURN_DISTANCE) {
@@ -2298,8 +2292,7 @@ static bool G_Ai_IsRunLink(const Vector *path, const uint32_t index) {
     return true;
   }
 
-  const GameAiLink *link = G_Ai_Node_GetLink(VectorValue(path, GameAiNodeId, index - 1),
-                                             VectorValue(path, GameAiNodeId, index));
+  const GameAiLink *link = G_Ai_Path_GetLink(path, index);
 
   return link && (link->travelType == NAV_TRAVEL_NONE || link->travelType == NAV_TRAVEL_WALK);
 }
@@ -3157,7 +3150,7 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
       } else {
         cmd->up = 0;
       }
-    } else if (G_Ai_ShouldBarrierJump(cl)) {
+    } else if (G_Ai_ShouldBarrierJump(cl, G_Ai_PathLink(cl))) {
       cmd->up = PM_SPEED_JUMP;
       G_Ai_Debug("Barrier jump to %s\n", vtos(cl->ai->moveTarget.path.pathPosition));
     } else if (G_Ai_PathLink(cl) && G_Ai_PathLink(cl)->travelType == NAV_TRAVEL_CROUCH) {

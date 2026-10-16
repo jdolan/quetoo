@@ -51,6 +51,12 @@ void G_Ai_Shutdown(void);
 bool G_Ai_IsArmed(const GameClient *cl);
 
 /**
+ * @return The link into the node that the bot moves to, or NULL if it has no path or is at the
+ * start of its path.
+ */
+const GameAiLink *G_Ai_PathLink(const GameClient *cl);
+
+/**
  * @return The name of what the bot does about the ladder of its climb, for the probe.
  */
 const char *G_Ai_LadderPhaseName(const GameClient *cl);

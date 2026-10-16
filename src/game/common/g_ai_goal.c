@@ -94,7 +94,7 @@ static bool G_Ai_IsOnClimb(const GameClient *cl, GameAiNodeId *bottom, GameAiNod
   *bottom = VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex - 1);
   *top = VectorValue(goal->path.path, GameAiNodeId, goal->path.pathIndex);
 
-  const GameAiLink *link = G_Ai_Node_GetLink(*bottom, *top);
+  const GameAiLink *link = G_Ai_PathLink(cl);
 
   return link && link->travelType == NAV_TRAVEL_LADDER;
 }
