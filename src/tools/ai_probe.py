@@ -30,14 +30,14 @@ Usage:
 touches the user directory. The `node`, `near`, `path` and `routes` commands need a log that was
 recorded with `--graph`. Their path costs approximate `G_Ai_Node_StepCost`: the link cost, plus
 the penalty for a drop over 128 units, the falling damage that a full-health bot takes, and the
-penalty for a node at the edge of the void.
+penalty for a node at the edge of the void. The game also multiplies the cost of a link into water
+by AI_WATER_EXPOSURE (1.5); the log does not say which nodes are in water, so these costs do not.
 """
 
 import argparse
 import collections
 import heapq
 import math
-import os
 import re
 import signal
 import socket
@@ -313,6 +313,12 @@ def add_bot(port, bot):
         sys.exit(f'`{command}` failed: {reply.strip()}')
 
 
+def print_by_link(pairs, count=10):
+    """Print the commonest (link, travel type) pairs, with their counts."""
+    for (link, travel), n in collections.Counter(pairs).most_common(count):
+        print(f'    {n:>5}  {link} {travel}')
+
+
 def summarize(path, events):
     seconds = game_seconds(events)
     names = {}
@@ -337,20 +343,14 @@ def summarize(path, events):
 
     per_minute = 60.0 / seconds if seconds else 0.0
     print(f'  deaths: {len(deaths)} ({len(deaths) * per_minute:.2f} a minute)')
-    by_link = collections.Counter(last_link(d, s) for d, s in deaths)
-    for (link, travel), count in by_link.most_common(10):
-        print(f'    {count:>5}  {link} {travel}')
+    print_by_link(last_link(d, s) for d, s in deaths)
 
     print(f'  unplanned pushes: {len(pushes)}')
-    by_link = collections.Counter((p.link(), TRAVEL.get(int(p['type']), '?')) for p, s in pushes)
-    for (link, travel), count in by_link.most_common(10):
-        print(f'    {count:>5}  {link} {travel}')
+    print_by_link((p.link(), TRAVEL.get(int(p['type']), '?')) for p, s in pushes)
 
     hazards = histories(events, 'hazard')
     print(f'  entries into lava or slime: {len(hazards)}')
-    by_link = collections.Counter(last_link(h, s) for h, s in hazards)
-    for (link, travel), count in by_link.most_common(10):
-        print(f'    {count:>5}  {link} {travel}')
+    print_by_link(last_link(h, s) for h, s in hazards)
     print(f'  pickups: {sum(pickups.values())}')
     for item, count in pickups.most_common(12):
         print(f'    {count:>5}  {item}')
