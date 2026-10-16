@@ -523,7 +523,6 @@ static void G_Race_SetMode(GameClient *cl, GameRaceMode mode) {
 
   if (mode == RACE_MODE_SPECTATOR) {
     G_TossInventory(cl); // which resets the run
-    cl->persistent.spectator = true;
     cl->persistent.raceSpawn.set = false;
   } else {
     G_Race_Reset(cl);
@@ -537,7 +536,11 @@ static void G_Race_SetMode(GameClient *cl, GameRaceMode mode) {
     gi.ClientPrint(cl, PRINT_HIGH, "Nothing counts while practicing. ^2store^7 remembers where you are; ^2kill^7 takes you back\n");
   }
 
-  G_ClientRespawn(cl, false);
+  if (mode == RACE_MODE_SPECTATOR) {
+    G_ClientSpectate(cl, false);
+  } else {
+    G_ClientRespawn(cl, false);
+  }
 }
 
 /**

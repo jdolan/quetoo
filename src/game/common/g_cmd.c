@@ -648,6 +648,9 @@ static void G_Spectate_f(GameClient *cl) {
     gi.WriteByte(MZ_LOGOUT);
     gi.Multicast(cl->entity->s.origin, MULTICAST_PHS);
 
+    G_ClientSpectate(cl, true);
+    return;
+
   } else if (!Str_Compare(gi.Argv(0), "join")) {
 
     if (!cl->persistent.spectator) {
@@ -665,7 +668,7 @@ static void G_Spectate_f(GameClient *cl) {
     }
   }
 
-  cl->persistent.spectator = !cl->persistent.spectator;
+  cl->persistent.spectator = false;
   G_ClientRespawn(cl, true);
 }
 

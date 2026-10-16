@@ -1658,6 +1658,24 @@ void G_ClientRespawn(GameClient *cl, bool voluntary) {
 }
 
 /**
+ * @brief Makes the client a spectator where their view is now, rather than at a spawn point.
+ * @remarks The view angles are the client's own, and a spectator's angles are not snapped, so
+ * only the origin needs to be carried over.
+ */
+void G_ClientSpectate(GameClient *cl, bool voluntary) {
+
+  const Vec3 eye = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+
+  cl->persistent.spectator = true;
+  G_ClientRespawn(cl, voluntary);
+
+  cl->entity->s.origin = eye;
+  cl->ps.pmState.origin = eye;
+
+  gi.LinkEntity(cl->entity);
+}
+
+/**
  * @brief Called when a client has finished connecting, and is ready
  * to be placed into the game. This will happen every level load.
  */

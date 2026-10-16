@@ -192,8 +192,7 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
     GameClient *target = G_Vote_ClientByName(arg);
     if (target && !target->persistent.spectator) {
       G_TossInventory(target);
-      target->persistent.spectator = true;
-      G_ClientRespawn(target, false);
+      G_ClientSpectate(target, false);
     }
     return true;
   }
