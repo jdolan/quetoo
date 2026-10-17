@@ -814,6 +814,10 @@ static void G_MutePlayer_f(GameClient *cl, bool mute) {
 
 void G_ClientCommand(GameClient *cl) {
 
+  if (cl->entity == NULL) {
+    return;
+  }
+
   const char *cmd = gi.Argv(0);
 
   if (G_HandleClientCommand(cl, cmd)) {
