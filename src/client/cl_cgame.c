@@ -321,6 +321,7 @@ void Cl_InitCgame(void) {
   import.FreeEntity = Entity_Free;
   import.ParseEntity = Entity_Parse;
   import.SetEntityKeyValue = Entity_SetKeyValue;
+  import.SetEntityPair = Entity_SetPair;
   import.EntityToInfoString = Entity_ToInfoString;
   import.EntityFromInfoString = Entity_FromInfoString;
   import.LoadEntities = Entity_LoadAll;

@@ -721,6 +721,15 @@ typedef struct {
   Entity *(*SetEntityKeyValue)(Entity *entity, const char *key, EntityParsed field, const void *value);
 
   /**
+   * @brief Sets the key and the value of a single entity pair, and parses the value.
+   * @param pair The pair.
+   * @param key The key.
+   * @param string The value.
+   * @return The pair.
+   */
+  Entity *(*SetEntityPair)(Entity *pair, const char *key, const char *string);
+
+  /**
    * @brief Serializes the entity to an info string.
    * @param entity The entity.
    * @return The info string. The caller must free this.

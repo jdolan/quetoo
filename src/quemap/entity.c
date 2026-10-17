@@ -22,23 +22,35 @@
 #include "entity.h"
 
 /**
+ * @brief Allocates a key-value pair, with copies of the key and the value that are freed with it.
+ */
+MapEntityKeyValue *AllocKeyValue(const char *key, const char *value) {
+
+  MapEntityKeyValue *e = Mem_TagMalloc(sizeof(*e), (MemTag) MEM_TAG_EPAIR);
+
+  e->key = Mem_Link(Mem_TagCopyString(key, (MemTag) MEM_TAG_EPAIR), e);
+  e->value = Mem_Link(Mem_TagCopyString(value, (MemTag) MEM_TAG_EPAIR), e);
+
+  return e;
+}
+
+/**
  * @brief Sets or creates the key-value pair with the given key on the entity.
  */
 void SetValueForKey(MapEntity *ent, const char *key, const char *value) {
 
   for (MapEntityKeyValue *e = ent->values; e; e = e->next) {
     if (!Str_Compare(e->key, key)) {
-      Str_Copy(e->value, value, sizeof(e->value));
+      char *copy = Mem_Link(Mem_TagCopyString(value, (MemTag) MEM_TAG_EPAIR), e);
+      Mem_Free(e->value);
+      e->value = copy;
       return;
     }
   }
 
-  MapEntityKeyValue *e = Mem_TagMalloc(sizeof(*e), (MemTag) MEM_TAG_EPAIR);
+  MapEntityKeyValue *e = AllocKeyValue(key, value);
   e->next = ent->values;
   ent->values = e;
-
-  Str_Copy(e->key, key, sizeof(e->key));
-  Str_Copy(e->value, value, sizeof(e->value));
 }
 
 /**

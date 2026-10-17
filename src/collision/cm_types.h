@@ -139,15 +139,18 @@ typedef struct Entity {
   EntityParsed parsed;
 
   /**
-   * @brief The entity pair key.
+   * @brief The entity pair key, allocated with and freed with the pair. Set it with
+   * `Entity_SetPair`.
+   * @remarks This will always be a null-terminated C string.
    */
-  char key[MAX_BSP_ENTITY_KEY];
+  char *key;
 
   /**
-   * @brief The entity pair value, as a string.
-   * @remarks This will always be a null-termianted C string.
+   * @brief The entity pair value, as a string, allocated with and freed with the pair. Set it with
+   * `Entity_SetPair`.
+   * @remarks This will always be a null-terminated C string.
    */
-  char string[MAX_BSP_ENTITY_VALUE];
+  char *string;
 
   /**
    * @brief The entity pair value, as a nullable string pointer.

@@ -71,7 +71,7 @@ START_TEST(check_Entity_ToInfoString) {
 
 } END_TEST
 
-START_TEST(check_Entity_LoadAll_overrun) {
+START_TEST(check_Entity_LoadAll_longValue) {
 
   char value[MAX_BSP_ENTITY_VALUE * 2];
   memset(value, 'x', sizeof(value) - 1);
@@ -92,7 +92,7 @@ START_TEST(check_Entity_LoadAll_overrun) {
   const Entity *second = entities->head->next->element;
 
   ck_assert_str_eq(Entity_Value(first, "name")->string, "first");
-  ck_assert_int_eq(strlen(Entity_Value(first, "ai")->string), MAX_BSP_ENTITY_VALUE - 1);
+  ck_assert_str_eq(Entity_Value(first, "ai")->string, value);
 
   ck_assert_str_eq(Entity_Value(second, "name")->string, "second");
   ck_assert_str_eq(Entity_Value(second, "ai")->string, "Gork");
@@ -140,7 +140,7 @@ int32_t main(int32_t argc, char **argv) {
     TCase *tcase = tcase_create("Entity_FromInfoString");
     tcase_add_checked_fixture(tcase, setup, teardown);
     tcase_add_test(tcase, check_Entity_FromInfoString);
-    tcase_add_test(tcase, check_Entity_LoadAll_overrun);
+    tcase_add_test(tcase, check_Entity_LoadAll_longValue);
 
     suite_add_tcase(suite, tcase);
   }

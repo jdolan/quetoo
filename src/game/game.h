@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 46
+#define GAME_API_VERSION 47
 
 /**
  * @brief Server flags for `GameEntity`.
