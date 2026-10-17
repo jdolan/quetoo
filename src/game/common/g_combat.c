@@ -472,7 +472,7 @@ void G_Damage(const GameDamage *dmg) {
   if (!wasDead) {
     G_Ai_Damaged(target, attacker);
 
-    if (client) {
+    if (client && !((target->flags & FL_GOD_MODE) && !(dflags & DMG_NO_GOD))) {
       G_ClientDamageStats(attacker, target, damageArmor + Mini(damageHealth, Maxi(target->health, 0)), mod);
     }
   }

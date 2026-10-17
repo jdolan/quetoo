@@ -183,6 +183,8 @@ void G_ClientKillStats(const GameEntity *attacker, const GameEntity *target, Gam
 
 /**
  * @brief Sends the client their damage totals, and the stats of each weapon that they used.
+ * @remarks This goes with the scores through the intermission, so that a client game reloaded
+ * by `r_restart` gets them again.
  */
 static void G_ClientMatchStats(GameClient *cl) {
 
@@ -256,8 +258,6 @@ void G_ClientToIntermission(GameClient *cl) {
 
   cl->ammoIndex = 0;
   cl->pickupMsgTime = 0;
-
-  G_ClientMatchStats(cl);
 }
 
 /**
@@ -389,6 +389,10 @@ void G_ClientScores(GameClient *cl) {
   gi.WriteData((const void *) (scores + j), len);
   gi.WriteByte(1); // sequence is complete
   gi.Unicast(cl, true);
+
+  if (gameLevel.intermissionTime) {
+    G_ClientMatchStats(cl);
+  }
 }
 
 /**

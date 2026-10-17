@@ -109,33 +109,41 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
  */
 void Cg_Intermission_ParseMatchStats(void) {
 
-  CGameMatchStats *stats = &cgameState.matchStats;
+  CGameMatchStats stats;
+  memset(&stats, 0, sizeof(stats));
 
-  memset(stats, 0, sizeof(*stats));
-
-  stats->damageDealt = (uint32_t) cgi.ReadLong();
-  stats->damageTaken = (uint32_t) cgi.ReadLong();
+  stats.damageDealt = (uint32_t) cgi.ReadLong();
+  stats.damageTaken = (uint32_t) cgi.ReadLong();
 
   const int32_t count = cgi.ReadByte();
 
   for (int32_t i = 0; i < count; i++) {
-    CGameWeaponStats weapon = {
-      .tag = cgi.ReadByte(),
-      .shots = (uint32_t) cgi.ReadLong(),
-      .hits = (uint32_t) cgi.ReadLong(),
-      .damage = (uint32_t) cgi.ReadLong(),
-      .kills = (uint16_t) cgi.ReadShort(),
-    };
+    const int32_t tag = cgi.ReadByte();
+    const uint32_t shots = (uint32_t) cgi.ReadLong();
+    const uint32_t hits = (uint32_t) cgi.ReadLong();
+    const uint32_t damage = (uint32_t) cgi.ReadLong();
+    const uint16_t kills = (uint16_t) cgi.ReadShort();
 
-    if (weapon.tag < WEAPON_FIRST || weapon.tag >= WEAPON_LAST || stats->numWeapons == WEAPON_TOTAL) {
-      Cg_Warn("Invalid weapon stats for item %d\n", weapon.tag);
+    if (tag < WEAPON_FIRST || tag >= WEAPON_LAST || stats.numWeapons == WEAPON_TOTAL) {
+      Cg_Warn("Invalid weapon stats for item %d\n", tag);
       continue;
     }
 
-    stats->weapons[stats->numWeapons++] = weapon;
+    CGameWeaponStats *weapon = &stats.weapons[stats.numWeapons++];
+
+    weapon->tag = tag;
+    weapon->shots = shots;
+    weapon->hits = hits;
+    weapon->damage = damage;
+    weapon->kills = kills;
   }
 
-  stats->generation = ++matchStatsGeneration;
+  stats.generation = cgameState.matchStats.generation;
+
+  if (memcmp(&stats, &cgameState.matchStats, sizeof(stats))) {
+    cgameState.matchStats = stats;
+    cgameState.matchStats.generation = ++matchStatsGeneration;
+  }
 }
 
 /**
