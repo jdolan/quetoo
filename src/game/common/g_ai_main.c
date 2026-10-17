@@ -3769,6 +3769,8 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
 
   if (cl->ai->ladderLeaveTime > gameLevel.time) {
     idealAngles = MakeVec3(0.f, Vec3_Euler(cl->ai->ladderLeaveDir).y, 0.f);
+  } else if (cl->ai->shootTarget && !climbing) {
+    G_Ai_ShootViewAngles(cl, &idealAngles);
   } else if (combatTarget->type != AI_GOAL_ENTITY || climbing) {
     if (cl->ai->moveTarget.type == AI_GOAL_NONE) {
       idealAngles = MakeVec3(0.0, cl->ai->wanderAngle, 0.0);
@@ -3784,7 +3786,6 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
       }
 
       G_Ai_SpamViewAngles(cl, &idealAngles);
-      G_Ai_ShootViewAngles(cl, &idealAngles);
     }
   } else {
     G_Ai_CombatAngles(cl, seconds, &idealAngles, &idealRate);

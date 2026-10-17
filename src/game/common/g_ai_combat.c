@@ -825,7 +825,7 @@ uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
     G_Ai_Weaponry_spam(cl, cmd);
   }
 
-  if (cl->ai->combatTarget.type != AI_GOAL_ENTITY && cl->ai->shootTarget) {
+  if (cl->ai->shootTarget) {
     G_Ai_Weaponry_shoot(cl, cmd);
   }
 
