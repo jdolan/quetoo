@@ -808,7 +808,7 @@ static void ParseKeyValues(Parser *parser, MapEntity *entity, int32_t number) {
 
   while (true) {
 
-    if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_PEEK, token, sizeof(token))) {
+    if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_PEEK | PARSE_ALLOW_OVERRUN, token, sizeof(token))) {
       Com_Error(ERROR_FATAL, "EOF without closing entity\n");
     }
 
