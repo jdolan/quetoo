@@ -38,6 +38,21 @@ START_TEST(check_Str_HasToken) {
   ck_assert(!Str_HasToken("dm", NULL));
 } END_TEST
 
+START_TEST(check_Parse_Token_overrun) {
+
+  Parser parser = Parse_Init("\"abcdefghijklmnop\" next", PARSER_NO_COMMENTS);
+
+  char token[8];
+  memset(token, 'z', sizeof(token));
+
+  ck_assert(Parse_Token(&parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, token, sizeof(token)));
+  ck_assert_str_eq(token, "abcdefg");
+
+  ck_assert(Parse_Token(&parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, token, sizeof(token)));
+  ck_assert_str_eq(token, "next");
+
+} END_TEST
+
 START_TEST(check_InfoString_Get) {
   const char *info =
     "\\g_gameplayMode\\deathmatch"
@@ -85,6 +100,7 @@ int32_t main(int32_t argc, char **argv) {
   TCase *tcase = tcase_create("check_shared");
   tcase_add_test(tcase, check_Str_HasToken);
   tcase_add_test(tcase, check_InfoString_Get);
+  tcase_add_test(tcase, check_Parse_Token_overrun);
 
   Suite *suite = suite_create("check_shared");
   suite_add_tcase(suite, tcase);

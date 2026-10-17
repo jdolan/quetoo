@@ -105,6 +105,38 @@ START_TEST(check_Entity_LoadAll_longValue) {
 
 } END_TEST
 
+START_TEST(check_Entity_LoadAll_longKey) {
+
+  char key[301];
+  memset(key, 'k', sizeof(key) - 1);
+  key[sizeof(key) - 1] = '\0';
+
+  const char *format = "{\n\tname first\n\t\"%s\" value\n}\n{\n\tname second\n}\n";
+  const size_t len = strlen(format) + strlen(key) + 1;
+  char *string = malloc(len);
+  ck_assert_ptr_nonnull(string);
+  snprintf(string, len, format, key);
+
+  List *entities = Entity_LoadAll(string);
+  free(string);
+
+  ck_assert_int_eq(entities->count, 2);
+
+  const Entity *first = entities->head->element;
+  const Entity *second = entities->head->next->element;
+
+  ck_assert_str_eq(Entity_Value(first, "name")->string, "first");
+  ck_assert_str_eq(Entity_Value(first, key)->string, "value");
+  ck_assert_str_eq(Entity_Value(second, "name")->string, "second");
+
+  for (const ListNode *node = entities->head; node; node = node->next) {
+    Entity_Free(node->element);
+  }
+
+  release(entities);
+
+} END_TEST
+
 START_TEST(check_Entity_FromInfoString) {
 
   const char *info = "classname\\light\\color\\1 1 0\\origin\\128 256 512";
@@ -141,6 +173,7 @@ int32_t main(int32_t argc, char **argv) {
     tcase_add_checked_fixture(tcase, setup, teardown);
     tcase_add_test(tcase, check_Entity_FromInfoString);
     tcase_add_test(tcase, check_Entity_LoadAll_longValue);
+    tcase_add_test(tcase, check_Entity_LoadAll_longKey);
 
     suite_add_tcase(suite, tcase);
   }
