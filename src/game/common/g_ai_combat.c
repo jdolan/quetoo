@@ -767,6 +767,21 @@ static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
 #define AI_SHOOT_AIM_DEGREES 4.f
 
 /**
+ * @see g_ai_combat.h
+ */
+bool G_Ai_CanShootButton(const GameClient *cl, const GameEntity *button) {
+
+  if (!cl->weapon || G_Ai_IsLobbed(cl->weapon)) {
+    return false;
+  }
+
+  const Vec3 eye = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+
+  return !(cl->weapon->def.flags & WF_EXPLOSIVE) ||
+         Vec3_Distance(eye, Box3_Center(button->absBounds)) >= AI_SELF_SPLASH_DISTANCE;
+}
+
+/**
  * @brief Fires at the bot's shoot target, a button that is pressed by a shot, once the view is on
  * it, with no grenade, and with no splash near the bot.
  */

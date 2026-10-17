@@ -1553,53 +1553,49 @@ static void G_Ai_State_detour(GameClient *cl) {
 }
 
 /**
- * @return True if the mover slides from `pos1` to `pos2`, so that it sweeps the space between them:
- * a door, a platform or a body of water.
- */
-static bool G_Ai_IsLinearMover(const GameEntity *mover) {
-  return !Str_Compare(mover->classname, "func_door") ||
-         !Str_Compare(mover->classname, "func_plat") ||
-         !Str_Compare(mover->classname, "func_water");
-}
-
-/**
- * @return True if the entity is in the space that the linear mover sweeps from its rest position
- * to its other position: where water rises, or a crusher comes down.
+ * @return True if the entity is in the space into which the trap's mover comes when it is sprung:
+ * where water rises, a crusher comes down, or a wall appears. The space is shrunk by a margin, so
+ * that an entity which only touches it, such as one on the floor beside a sliding floor, is not in
+ * it.
  */
 static bool G_Ai_IsInMoverPath(const GameEntity *ent, const GameEntity *mover) {
 
-  if (!G_Ai_IsLinearMover(mover)) {
+  Box3 path;
+
+  if (!Str_Compare(mover->classname, "func_wall")) {
+    if (mover->solid != SOLID_NOT) {
+      return false;
+    }
+    path = mover->absBounds;
+  } else if (!Str_Compare(mover->classname, "func_door") ||
+             !Str_Compare(mover->classname, "func_water")) {
+    const Box3 rest = Box3_Translate(mover->absBounds, Vec3_Subtract(mover->pos1, mover->s.origin));
+    path = Box3_Union(rest, Box3_Translate(rest, Vec3_Subtract(mover->pos2, mover->pos1)));
+  } else {
     return false;
   }
 
-  const Box3 rest = Box3_Translate(mover->absBounds, Vec3_Subtract(mover->pos1, mover->s.origin));
-  const Box3 path = Box3_Union(rest, Box3_Translate(rest, Vec3_Subtract(mover->pos2, mover->pos1)));
-
-  return Box3_Intersects(ent->absBounds, path);
+  return Box3_Intersects(ent->absBounds, Box3_Expand(path, -2.f * BOX_EPSILON));
 }
 
 /**
- * @return The trap under the entity: the trap whose mover it stands on, or into whose path it
- * stands, or NULL.
+ * @return True if the entity is under the trap: it stands on one of the trap's movers, or in the
+ * path of one.
  */
-static const GameAiTrap *G_Ai_TrapUnder(const GameEntity *ent) {
+static bool G_Ai_IsUnderTrap(const GameEntity *ent, const GameAiTrap *trap) {
 
-  for (int32_t i = 0; i < module.numTraps; i++) {
-    const GameAiTrap *trap = &module.traps[i];
-
-    for (int32_t j = 0; j < trap->numMovers; j++) {
-      if (trap->movers[j] == ent->ground.ent || G_Ai_IsInMoverPath(ent, trap->movers[j])) {
-        return trap;
-      }
+  for (int32_t i = 0; i < trap->numMovers; i++) {
+    if (trap->movers[i] == ent->ground.ent || G_Ai_IsInMoverPath(ent, trap->movers[i])) {
+      return true;
     }
   }
 
-  return NULL;
+  return false;
 }
 
 /**
  * @return True if the trap's mover is at rest, set to be sprung: a door or a body of water at its
- * first position, a secret door shut, a platform up and idle, a wall present and able to be used.
+ * first position, a secret door shut, a platform up and idle, a wall that can still be used.
  */
 static bool G_Ai_IsTrapSet(const GameEntity *mover) {
 
@@ -1612,7 +1608,7 @@ static bool G_Ai_IsTrapSet(const GameEntity *mover) {
   }
 
   if (!Str_Compare(mover->classname, "func_wall")) {
-    return mover->solid == SOLID_BSP && mover->Use;
+    return mover->Use != NULL;
   }
 
   return mover->moveInfo.state == MOVE_STATE_BOTTOM;
@@ -1623,27 +1619,11 @@ static bool G_Ai_SeesButton(const Vec3 origin, const float height, const GameEnt
 static bool G_Ai_IsShotButton(const GameEntity *button);
 
 /**
- * @brief Springs the trap under the enemy with its nearest button, if the bot does not stand on
- * the trap itself, and the trap's movers are set. The bot shoots a button that a shot presses, if
- * it sees it within `AI_SHOOT_REACH`, and walks into one that it touches, if it is within
- * `AI_TRAP_REACH` with a clear line for its box, raised by a step.
- * @return True if the bot goes to spring the trap.
+ * @return The trap's nearest button that the bot presses from where it stands, or NULL: one that a
+ * shot presses, which it sees within `AI_SHOOT_REACH` and which its weapon can shoot, or one that it
+ * touches, within `AI_TRAP_REACH` with a clear line for its box, raised by a step.
  */
-static bool G_Ai_SpringTrap(GameClient *cl, const GameEntity *enemy) {
-
-  cl->ai->shootTarget = NULL;
-
-  const GameAiTrap *trap = G_Ai_TrapUnder(enemy);
-
-  if (!trap || G_Ai_TrapUnder(cl->entity) == trap) {
-    return false;
-  }
-
-  for (int32_t i = 0; i < trap->numMovers; i++) {
-    if (!G_Ai_IsTrapSet(trap->movers[i])) {
-      return false;
-    }
-  }
+static const GameEntity *G_Ai_SpringTrap_button(const GameClient *cl, const GameAiTrap *trap) {
 
   const GameEntity *nearest = NULL;
   float nearestDistance = FLT_MAX;
@@ -1661,7 +1641,8 @@ static bool G_Ai_SpringTrap(GameClient *cl, const GameEntity *enemy) {
     }
 
     if (G_Ai_IsShotButton(button)) {
-      if (!G_Ai_SeesButton(cl->entity->s.origin, cl->ps.pmState.viewOffset.z, button,
+      if (!G_Ai_CanShootButton(cl, button) ||
+          !G_Ai_SeesButton(cl->entity->s.origin, cl->ps.pmState.viewOffset.z, button,
                            AI_SHOOT_REACH)) {
         continue;
       }
@@ -1681,21 +1662,54 @@ static bool G_Ai_SpringTrap(GameClient *cl, const GameEntity *enemy) {
     nearestDistance = distance;
   }
 
-  if (!nearest) {
-    return false;
+  return nearest;
+}
+
+/**
+ * @brief Springs a trap under the enemy, one that the bot is not under itself and whose movers are
+ * all set, with its nearest button that the bot presses from where it stands. The bot shoots a
+ * button that a shot presses, and walks into one that it touches.
+ * @return True if the bot goes to spring a trap.
+ */
+static bool G_Ai_SpringTrap(GameClient *cl, const GameEntity *enemy) {
+
+  cl->ai->shootTarget = NULL;
+
+  for (int32_t i = 0; i < module.numTraps; i++) {
+    const GameAiTrap *trap = &module.traps[i];
+
+    if (!G_Ai_IsUnderTrap(enemy, trap) || G_Ai_IsUnderTrap(cl->entity, trap)) {
+      continue;
+    }
+
+    int32_t j = 0;
+    while (j < trap->numMovers && G_Ai_IsTrapSet(trap->movers[j])) {
+      j++;
+    }
+
+    if (j < trap->numMovers) {
+      continue;
+    }
+
+    const GameEntity *button = G_Ai_SpringTrap_button(cl, trap);
+    if (!button) {
+      continue;
+    }
+
+    G_Ai_Debug("%s springs a trap under %s\n", cl->persistent.netName,
+               enemy->client ? enemy->client->persistent.netName : "?");
+
+    if (G_Ai_IsShotButton(button)) {
+      cl->ai->shootTarget = button;
+    } else {
+      G_Ai_SetPositionGoal(cl, &cl->ai->moveTarget, AI_PURSUE_PRIORITY,
+                           Box3_Center(button->absBounds));
+    }
+
+    return true;
   }
 
-  G_Ai_Debug("%s springs a trap under %s\n", cl->persistent.netName,
-             enemy->client ? enemy->client->persistent.netName : "?");
-
-  if (G_Ai_IsShotButton(nearest)) {
-    cl->ai->shootTarget = nearest;
-  } else {
-    G_Ai_SetPositionGoal(cl, &cl->ai->moveTarget, AI_PURSUE_PRIORITY,
-                         Box3_Center(nearest->absBounds));
-  }
-
-  return true;
+  return false;
 }
 
 /**
@@ -2004,7 +2018,8 @@ static void G_Ai_State_activate(GameClient *cl) {
       return;
     }
   } else if (G_Ai_IsShotButton(target)) {
-    ai->shootTarget = G_Ai_SeesButton(cl->entity->s.origin, cl->ps.pmState.viewOffset.z, target,
+    ai->shootTarget = G_Ai_CanShootButton(cl, target) &&
+                      G_Ai_SeesButton(cl->entity->s.origin, cl->ps.pmState.viewOffset.z, target,
                                       AI_SHOOT_REACH) ? target : NULL;
   } else if (G_Ai_CanTouchButton(cl->entity->s.origin, target)) {
     G_Ai_SetPositionGoal(cl, &ai->moveTarget, AI_PURSUE_PRIORITY, button);
