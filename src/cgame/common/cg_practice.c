@@ -22,6 +22,7 @@
 #include "cg_local.h"
 
 Cvar *cg_practice;
+Cvar *cg_practiceLadder;
 
 /**
  * @brief An entry the player has cleared, under the gameplay they cleared it in.
@@ -33,6 +34,9 @@ typedef struct {
 } CGamePracticeClear;
 
 static struct {
+  char ladderPath[MAX_QPATH];
+  char progressPath[MAX_QPATH];
+
   CGamePracticeEntry *ladder;
   size_t ladderLength;
   int32_t maxClients;
@@ -91,8 +95,9 @@ static void Cg_Practice_LoadLadder(void) {
   module.ladderLength = 0;
   module.maxClients = 0;
 
-  List *entities = Cg_Practice_LoadEntities(PRACTICE_LADDER);
+  List *entities = Cg_Practice_LoadEntities(module.ladderPath);
   if (entities == NULL) {
+    Cg_Warn("Failed to load practice ladder %s\n", module.ladderPath);
     return;
   }
 
@@ -111,7 +116,7 @@ static void Cg_Practice_LoadLadder(void) {
     entry->timeLimit = Cg_Practice_Integer(entity, "time_limit");
 
     if (entry->tier < 1 || !*entry->name || !*entry->ai) {
-      Cg_Warn("Skipping %s entry with no tier, map or AI players\n", PRACTICE_LADDER);
+      Cg_Warn("Skipping %s entry with no tier, map or AI players\n", module.ladderPath);
       continue;
     }
 
@@ -139,7 +144,7 @@ static void Cg_Practice_LoadProgress(void) {
   module.clears = NULL;
   module.numClears = 0;
 
-  List *entities = Cg_Practice_LoadEntities(PRACTICE_PROGRESS);
+  List *entities = Cg_Practice_LoadEntities(module.progressPath);
   if (entities == NULL) {
     return;
   }
@@ -165,9 +170,9 @@ static void Cg_Practice_LoadProgress(void) {
  */
 static void Cg_Practice_WriteProgress(void) {
 
-  File *file = cgi.OpenFileWrite(PRACTICE_PROGRESS);
+  File *file = cgi.OpenFileWrite(module.progressPath);
   if (file == NULL) {
-    Cg_Warn("Failed to open %s\n", PRACTICE_PROGRESS);
+    Cg_Warn("Failed to open %s\n", module.progressPath);
     return;
   }
 
@@ -181,11 +186,30 @@ static void Cg_Practice_WriteProgress(void) {
   }
 
   if (cgi.WriteFile(file, string->chars, string->length, 1) == -1) {
-    Cg_Warn("Failed to write %s\n", PRACTICE_PROGRESS);
+    Cg_Warn("Failed to write %s\n", module.progressPath);
   }
 
   release(string);
   cgi.CloseFile(file);
+}
+
+/**
+ * @brief Loads the ladder that `cg_practiceLadder` names, and the player's progress through it,
+ * if they are not loaded yet.
+ */
+static void Cg_Practice_Update(void) {
+
+  if (!cg_practiceLadder->modified) {
+    return;
+  }
+
+  cg_practiceLadder->modified = false;
+
+  snprintf(module.ladderPath, sizeof(module.ladderPath), PRACTICE_LADDER, cg_practiceLadder->string);
+  snprintf(module.progressPath, sizeof(module.progressPath), PRACTICE_PROGRESS, cg_practiceLadder->string);
+
+  Cg_Practice_LoadLadder();
+  Cg_Practice_LoadProgress();
 }
 
 /**
@@ -270,6 +294,8 @@ void Cg_Practice_Start(const CGamePracticeEntry *entry, const char *gameplay) {
  */
 const CGamePracticeEntry *Cg_Practice_Ladder(size_t *count) {
 
+  Cg_Practice_Update();
+
   *count = module.ladderLength;
   return module.ladder;
 }
@@ -278,6 +304,8 @@ const CGamePracticeEntry *Cg_Practice_Ladder(size_t *count) {
  * @brief True if the player has cleared `entry` under `gameplay`.
  */
 bool Cg_Practice_IsCleared(const CGamePracticeEntry *entry, const char *gameplay) {
+
+  Cg_Practice_Update();
 
   for (size_t i = 0; i < module.numClears; i++) {
     const CGamePracticeClear *clear = &module.clears[i];
@@ -301,6 +329,8 @@ const CGamePracticeEntry *Cg_Practice_Current(void) {
   if (!cgameState.nextMap.practice) {
     return NULL;
   }
+
+  Cg_Practice_Update();
 
   const int32_t index = cg_practice->integer;
   if (index < 0 || (size_t) index >= module.ladderLength) {
@@ -416,10 +446,12 @@ void Cg_Practice_Exit(void) {
 }
 
 /**
- * @brief Plays the ladder entry with the number given, from 1, under the gameplay given, or
- * deathmatch.
+ * @brief Plays the entry of the `cg_practiceLadder` ladder with the number given, from 1, under
+ * the gameplay given, or deathmatch.
  */
 static void Cg_Practice_f(void) {
+
+  Cg_Practice_Update();
 
   if (!*cgi.Argv(1)) {
     for (size_t i = 0; i < module.ladderLength; i++) {
@@ -440,17 +472,20 @@ static void Cg_Practice_f(void) {
 }
 
 /**
- * @brief Loads the ladder and the player's progress, and adds the practice command.
+ * @brief Loads the ladder and the player's progress, and adds the practice command and cvars.
  */
 void Cg_Practice_Init(void) {
 
   cg_practice = cgi.AddCvar("cg_practice", "-1", 0,
                             "The ladder entry this practice match plays, or -1 for none");
 
+  cg_practiceLadder = cgi.AddCvar("cg_practiceLadder", "default", CVAR_ARCHIVE,
+                                  "The ladder that practice matches come from, by name");
+  cg_practiceLadder->modified = true;
+
   cgi.AddCmd("practice", Cg_Practice_f, CMD_CGAME, "Practice against AI players: practice <number> [gameplay]");
 
-  Cg_Practice_LoadLadder();
-  Cg_Practice_LoadProgress();
+  Cg_Practice_Update();
 }
 
 /**

@@ -29,14 +29,15 @@
  */
 
 /**
- * @brief The ladder: every practice match by tier, in the map list's entity format.
+ * @brief A ladder, by name: every practice match by tier, in the map list's entity format.
  */
-#define PRACTICE_LADDER "practice.lst"
+#define PRACTICE_LADDER "practice-%s.lst"
 
 /**
- * @brief The ladder entries the player has cleared, written to the module's user directory.
+ * @brief The entries of a ladder, by name, that the player has cleared, written to the module's
+ * user directory.
  */
-#define PRACTICE_PROGRESS "progress.lst"
+#define PRACTICE_PROGRESS "progress-%s.lst"
 
 /**
  * @brief One match of the ladder.
@@ -65,6 +66,7 @@ typedef struct {
 
 #if defined(__CG_LOCAL_H__)
 extern Cvar *cg_practice;
+extern Cvar *cg_practiceLadder;
 
 void Cg_Practice_Init(void);
 void Cg_Practice_Shutdown(void);
