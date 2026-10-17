@@ -58,6 +58,8 @@
     <ClInclude Include="..\src\cgame\common\cg_nav.h" />
     <ClCompile Include="..\src\cgame\common\cg_portal.c" />
     <ClInclude Include="..\src\cgame\common\cg_portal.h" />
+    <ClCompile Include="..\src\cgame\common\cg_practice.c" />
+    <ClInclude Include="..\src\cgame\common\cg_practice.h" />
     <ClCompile Include="..\src\cgame\common\cg_predict.c" />
     <ClInclude Include="..\src\cgame\common\cg_predict.h" />
     <ClCompile Include="..\src\cgame\common\cg_sound.c" />

@@ -52,13 +52,14 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
   char was[MAX_NEXT_MAPS][MAX_QPATH];
   memcpy(was, nextMap->maps, sizeof(was));
   const int32_t numWas = nextMap->numMaps;
+  const bool votingWas = nextMap->voting, practiceWas = nextMap->practice;
 
   const char *s = cgi.ConfigString(index);
 
   memset(nextMap, 0, sizeof(*nextMap));
 
   if (!*s) {
-    nextMap->generation = numWas ? ++nextMapGeneration : nextMapGeneration;
+    nextMap->generation = numWas || practiceWas ? ++nextMapGeneration : nextMapGeneration;
     return true;
   }
 
@@ -80,13 +81,17 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
     c = sep + 1;
   }
 
-  if (count < NEXT_MAP_CS_FIELDS_FOR(1) || (count - NEXT_MAP_CS_MAPS) % 2) {
+  const GameNextMapMode mode = (GameNextMapMode) strtol(fields[NEXT_MAP_CS_MODE], NULL, 10);
+  const size_t minimum = NEXT_MAP_CS_FIELDS_FOR(mode == NEXT_MAP_PRACTICE ? 0 : 1);
+
+  if (count < minimum || (count - NEXT_MAP_CS_MAPS) % 2) {
     Cg_Warn("Invalid next map: %s\n", s);
     return true;
   }
 
   nextMap->active = true;
-  nextMap->voting = *fields[NEXT_MAP_CS_VOTING] == '1';
+  nextMap->voting = mode == NEXT_MAP_VOTE;
+  nextMap->practice = mode == NEXT_MAP_PRACTICE;
   nextMap->numMaps = (int32_t) (count - NEXT_MAP_CS_MAPS) / 2;
 
   for (int32_t i = 0; i < nextMap->numMaps; i++) {
@@ -94,8 +99,9 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
     nextMap->votes[i] = (int32_t) strtol(fields[NEXT_MAP_CS_MAPS + i * 2 + 1], NULL, 10);
   }
 
-  // only the names cost anything to show, so the tally moving is not a redraw
-  if (nextMap->numMaps != numWas || memcmp(was, nextMap->maps, sizeof(was))) {
+  // only the names and the mode cost anything to show, so the tally moving is not a redraw
+  if (nextMap->numMaps != numWas || memcmp(was, nextMap->maps, sizeof(was)) ||
+      nextMap->voting != votingWas || nextMap->practice != practiceWas) {
     nextMapGeneration++;
   }
 
@@ -154,6 +160,26 @@ void Cg_Intermission_Vote(int32_t map) {
 }
 
 /**
+ * @brief Acts on the practice choice for the key that the player pressed, from 0.
+ * @return True if the key is a choice.
+ */
+static bool Cg_Intermission_Practice(int32_t choice) {
+
+  switch (choice) {
+    case 0:
+      return Cg_Practice_PlayNext();
+    case 1:
+      Cg_Practice_Retry();
+      return true;
+    case 2:
+      Cg_Practice_Exit();
+      return true;
+    default:
+      return false;
+  }
+}
+
+/**
  * @see cg_intermission.h
  */
 bool Cg_Intermission_HandleEvent(const SDL_Event *event) {
@@ -162,7 +188,7 @@ bool Cg_Intermission_HandleEvent(const SDL_Event *event) {
     return false;
   }
 
-  if (!cgameState.nextMap.active || !cgameState.nextMap.voting) {
+  if (!cgameState.nextMap.active || !(cgameState.nextMap.voting || cgameState.nextMap.practice)) {
     return false;
   }
 
@@ -170,6 +196,10 @@ bool Cg_Intermission_HandleEvent(const SDL_Event *event) {
   // cast a ballot for anyone typing a digit
   if (cgi.GetKeyDest() != KEY_GAME) {
     return false;
+  }
+
+  if (cgameState.nextMap.practice) {
+    return Cg_Intermission_Practice((int32_t) (event->key.key - SDLK_1));
   }
 
   const int32_t map = (int32_t) (event->key.key - SDLK_1);

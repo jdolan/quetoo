@@ -84,6 +84,7 @@ cgame_la_SOURCES = \
 	cg_muzzle_flash.c \
 	cg_nav.c \
 	cg_portal.c \
+	cg_practice.c \
 	cg_predict.c \
 	cg_score.c \
 	cg_sound.c \

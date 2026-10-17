@@ -875,6 +875,9 @@ static void G_worldspawn(GameEntity *ent) {
     Str_Copy(gameLevel.ai, gi.EntityValue(ent->def, "ai")->string, sizeof(gameLevel.ai));
   }
 
+  const Entity *practiceMap = G_MapListEntryValue("practice");
+  gameLevel.practice = practiceMap && (practiceMap->parsed & ENTITY_INTEGER) && practiceMap->integer;
+
   const Entity *musicMap = G_MapListEntryValue("music");
   if (musicMap && *musicMap->string) { // prefer map metadata music
     Str_Copy(gameLevel.music, musicMap->string, sizeof(gameLevel.music));

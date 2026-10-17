@@ -102,6 +102,12 @@ typedef struct {
   bool voting;
 
   /**
+   * @brief Whether this is a practice match, which offers no maps and holds until the player
+   * chooses what to play next.
+   */
+  bool practice;
+
+  /**
    * @brief The candidates, and the tally each has drawn.
    */
   char maps[MAX_NEXT_MAPS][MAX_QPATH];

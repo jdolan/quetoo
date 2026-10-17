@@ -45,7 +45,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1064
+#define PROTOCOL_MINOR 1065
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -1068,6 +1068,12 @@ typedef struct {
    * fills to `minClients`.
    */
   char ai[MAX_STRING_CHARS];
+
+  /**
+   * @brief True if the map list entry asks for a practice match, which holds the intermission
+   * until the player chooses what to play next.
+   */
+  bool practice;
 
   /**
    * @brief Frag limit; game ends when a player reaches this.

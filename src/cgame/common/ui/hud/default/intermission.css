@@ -24,6 +24,13 @@ IntermissionView > .strip {
   padding-bottom: 40;
 }
 
+/* the result of a practice match, over its choices */
+IntermissionView .result {
+  alignment: top-center;
+  font-family: Share Tech Mono;
+  font-size: 36;
+}
+
 IntermissionView .prompt {
   alignment: top-center;
 }

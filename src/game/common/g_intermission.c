@@ -43,6 +43,7 @@ static struct {
   GameFrameDidEndHook FrameDidEnd;
   GameClientWillDisconnectHook ClientWillDisconnect;
   GameConfigureLevelHook ConfigureLevel;
+  GameAllowNextMapHook AllowNextMap;
 } previous;
 
 static bool installed;
@@ -190,7 +191,10 @@ static void G_Intermission_Publish(void) {
   memcpy(module.published, votes, sizeof(votes));
 
   char string[MAX_STRING_CHARS];
-  Str_Format(string, sizeof(string), "%d", module.voting ? 1 : 0);
+  const GameNextMapMode mode = gameLevel.practice ? NEXT_MAP_PRACTICE
+    : module.voting ? NEXT_MAP_VOTE : NEXT_MAP_ANNOUNCE;
+
+  Str_Format(string, sizeof(string), "%d", mode);
 
   for (int32_t i = 0; i < module.numMaps; i++) {
     Str_Append(string, va("\\%s\\%d", module.maps[i], votes[i]), sizeof(string));
@@ -219,13 +223,15 @@ static void G_Intermission_PublishTime(void) {
 static void G_Intermission_Begin(void) {
 
   module.active = true;
-  module.voting = g_voteNextMap->integer;
+  module.voting = g_voteNextMap->integer && !gameLevel.practice;
 
   for (int32_t i = 0; i < MAX_CLIENTS; i++) {
     module.ballots[i] = BALLOT_NONE;
   }
 
-  G_Intermission_SelectMaps();
+  if (!gameLevel.practice) {
+    G_Intermission_SelectMaps();
+  }
 
   // before the maps, since publishing those is what shows the view, and the clock it
   // reads still holds the match time until the next tick
@@ -259,7 +265,7 @@ static void G_Intermission_End(void) {
                       module.maps[winner], votes[winner], cast);
   }
 
-  if (module.indices[winner] >= 0) {
+  if (module.numMaps && module.indices[winner] >= 0) {
     gi.SetNextMap(module.indices[winner]);
   }
 
@@ -365,6 +371,19 @@ static void G_ClientWillDisconnect_Intermission(GameClient *cl) {
 }
 
 /**
+ * @brief A practice match holds until the player chooses what to play next, which the client
+ * game does by writing the map list and running `nextMap`.
+ */
+static bool G_AllowNextMap_Intermission(void) {
+
+  if (gameLevel.practice) {
+    return false;
+  }
+
+  return previous.AllowNextMap();
+}
+
+/**
  * @brief An intermission does not outlive its level.
  */
 static void G_ConfigureLevel_Intermission(void) {
@@ -400,5 +419,8 @@ void G_Intermission_Init(void) {
 
     previous.ConfigureLevel = G_ConfigureLevel;
     G_ConfigureLevel = G_ConfigureLevel_Intermission;
+
+    previous.AllowNextMap = G_AllowNextMap;
+    G_AllowNextMap = G_AllowNextMap_Intermission;
   }
 }
