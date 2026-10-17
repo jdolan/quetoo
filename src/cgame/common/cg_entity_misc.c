@@ -178,11 +178,13 @@ static void Cg_misc_dust_Init(CGameEntity *self) {
   Entity *def = cgi.EntityAssign(self->def, preset);
   cgi.FreeEntity(preset);
 
-  if (!Str_Compare(type, "fizz")) {
+  const bool custom = cgi.EntityValue(self->def, "sprite")->nullableString != NULL;
+
+  if (!custom && !Str_Compare(type, "fizz")) {
     dust->sprite.animation = cgameMedia.sprites.fizz01;
-  } else if (!Str_Compare(type, "flame")) {
+  } else if (!custom && !Str_Compare(type, "flame")) {
     dust->sprite.atlasImage = cgameMedia.sprites.flame;
-  } else if (!Str_Compare(type, "steam")) {
+  } else if (!custom && !Str_Compare(type, "steam")) {
     dust->sprite.atlasImage = cgameMedia.sprites.steam;
   } else {
     const char *name = cgi.EntityValue(def, "sprite")->nullableString ?: "particle";
