@@ -495,7 +495,7 @@ Entity *Entity_FromInfoString(const char *str) {
     const char *s = str;
 
     do {
-      char key[MAX_INFO_STRING_KEY], value[MAX_INFO_STRING_VALUE];
+      char key[MAX_INFO_STRING_KEY] = "", value[MAX_INFO_STRING_VALUE] = "";
 
       s = InfoString_Next(s, key, value);
 
