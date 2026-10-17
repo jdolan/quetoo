@@ -12,8 +12,19 @@ Box > Label {
   background-color: #0c1f27;
 }
 
+/* A form row fills its Box, and its text field or list takes the width that the label leaves */
+
+Box > .contentView > Input {
+  autoresizing-mask: contain | width;
+}
+
 Box > .contentView > Input > Label {
   min-width: 200;
+}
+
+Box > .contentView > Input > Select,
+Box > .contentView > Input > TextView {
+  stretch: true;
 }
 
 Checkbox > Control {
@@ -110,8 +121,8 @@ TextView {
 }
 
 .settingsTab .columns > .column {
-  min-width: 700;
-  max-width: 700;
+  min-width: 702;
+  max-width: 702;
 }
 
 .settingsTab .column Input {
@@ -159,16 +170,19 @@ CaptureLevelView .outputCaption {
   spacing: 12;
 }
 
+/* A menu page is 1440 wide with 12 of padding, so three columns, or a column and a column-2,
+   fill its 1416 */
+
 .columns > .column {
   autoresizing-mask: contain;
-  min-width: 460;
-  max-width: 460;
+  min-width: 464;
+  max-width: 464;
 }
 
 .columns > .column-2 {
   autoresizing-mask: contain;
-  min-width: 920;
-  max-width: 920;
+  min-width: 940;
+  max-width: 940;
 }
 
 .column Box,

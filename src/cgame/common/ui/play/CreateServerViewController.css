@@ -7,14 +7,14 @@ AiCollectionView {
   axis: horizontal;
   item-size: 112 152;
   selection: multiple;
-  width: 900;
+  width: 920;
   height: 176;
 }
 
 MapListCollectionView {
-  item-size: 420 236;
+  item-size: 430 242;
   selection: multiple;
-  width: 900;
+  width: 920;
   height: 420;
 }
 
