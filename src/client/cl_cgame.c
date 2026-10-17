@@ -323,6 +323,7 @@ void Cl_InitCgame(void) {
   import.SetEntityKeyValue = Entity_SetKeyValue;
   import.EntityToInfoString = Entity_ToInfoString;
   import.EntityFromInfoString = Entity_FromInfoString;
+  import.LoadEntities = Entity_LoadAll;
   import.PointContents = Cl_PointContents;
   import.BoxContents = Cl_BoxContents;
   import.BoxLeafnums = Cm_BoxLeafnums;
