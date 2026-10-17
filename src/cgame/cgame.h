@@ -705,12 +705,6 @@ typedef struct {
   void (*FreeEntity)(Entity *entity);
 
   /**
-   * @brief Parses the key/value pairs of the specified entity.
-   * @param entity The entity to parse.
-   */
-  void (*ParseEntity)(Entity *entity);
-
-  /**
    * @brief Sets a key/value pair on the specified entity.
    * @param entity The entity, or `NULL` to allocate a new entity.
    * @param key The key.
