@@ -22,9 +22,10 @@ MapListCollectionView {
    The child selectors keep these rules off the image views inside each ProgressBar */
 
 AiCollectionItemView > ImageView {
-  alignment: top-center;
+  alignment: center;
   autoresizing-mask: none;
   height: 56;
+  top: 6;
   width: 56;
 }
 
