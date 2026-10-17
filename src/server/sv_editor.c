@@ -217,9 +217,9 @@ void Sv_SaveEditorMap_f(void) {
 
     for (const Entity *e = ent->def; e; e = e->next) {
       Fs_Write(file, "\"", 1, 1);
-      Fs_Write(file, e->key, strlen(e->key), 1);
+      Fs_Write(file, e->key, 1, strlen(e->key));
       Fs_Write(file, "\" \"", 3, 1);
-      Fs_Write(file, e->string, strlen(e->string), 1);
+      Fs_Write(file, e->string, 1, strlen(e->string));
       Fs_Write(file, "\"\n", 2, 1);
     }
 
