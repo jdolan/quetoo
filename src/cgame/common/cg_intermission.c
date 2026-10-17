@@ -48,18 +48,14 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
   }
 
   CGameNextMapState *nextMap = &cgameState.nextMap;
-
-  char was[MAX_NEXT_MAPS][MAX_QPATH];
-  memcpy(was, nextMap->maps, sizeof(was));
-  const int32_t numWas = nextMap->numMaps;
-  const bool votingWas = nextMap->voting, practiceWas = nextMap->practice;
+  CGameNextMapState was = *nextMap;
 
   const char *s = cgi.ConfigString(index);
 
   memset(nextMap, 0, sizeof(*nextMap));
 
   if (!*s) {
-    nextMap->generation = numWas || practiceWas ? ++nextMapGeneration : nextMapGeneration;
+    nextMap->generation = was.numMaps || was.practice ? ++nextMapGeneration : nextMapGeneration;
     return true;
   }
 
@@ -100,12 +96,14 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
   }
 
   // only the names and the mode cost anything to show, so the tally moving is not a redraw
-  if (nextMap->numMaps != numWas || memcmp(was, nextMap->maps, sizeof(was)) ||
-      nextMap->voting != votingWas || nextMap->practice != practiceWas) {
+  if (nextMap->numMaps != was.numMaps
+      || memcmp(was.maps, nextMap->maps, sizeof(was.maps))
+      || nextMap->voting != was.voting
+      || nextMap->practice != was.practice) {
     nextMapGeneration++;
   }
 
-  if (nextMap->practice && !practiceWas) {
+  if (nextMap->practice && !was.practice) {
     Cg_Practice_ResetResult();
   }
 
