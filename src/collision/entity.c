@@ -222,6 +222,37 @@ Entity *Entity_Sort(Entity *entity) {
 }
 
 /**
+ * @brief Parses the next token into `out`, reading to the token's end even when it is longer
+ * than `size`, so that parsing resumes after it. A token that does not fit is truncated, with a
+ * warning that names the entity and the key.
+ * @return False at the end of the input.
+ */
+static bool Entity_LoadAll_token(Parser *parser, char *out, size_t size, int32_t number,
+                                 const char *key) {
+
+  char token[MAX_STRING_CHARS];
+
+  if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, token, sizeof(token))) {
+    return false;
+  }
+
+  const size_t length = strlen(token);
+  if (length >= size) {
+    const char *more = length == sizeof(token) - 1 ? " or more" : "";
+    if (key) {
+      Com_Warn("Entity %d: value of \"%s\" is %zu%s characters, truncated to %zu\n",
+               number, key, length, more, size - 1);
+    } else {
+      Com_Warn("Entity %d: key \"%.*s\" is %zu%s characters, truncated to %zu\n",
+               number, (int) (size - 1), token, length, more, size - 1);
+    }
+  }
+
+  Str_Copy(out, token, size);
+  return true;
+}
+
+/**
  * @brief Loads the BSP entity string lump.
  */
 List *Entity_LoadAll(const char *entityString) {
@@ -246,11 +277,13 @@ List *Entity_LoadAll(const char *entityString) {
 
         Entity *pair = Entity_Alloc();
 
-        if (!Parse_Token(&parser, PARSE_DEFAULT, pair->key, sizeof(pair->key))) {
+        const int32_t number = (int32_t) entities->count;
+
+        if (!Entity_LoadAll_token(&parser, pair->key, sizeof(pair->key), number, NULL)) {
           Entity_Free(pair);
           break;
         }
-        Parse_Token(&parser, PARSE_DEFAULT, pair->string, sizeof(pair->string));
+        Entity_LoadAll_token(&parser, pair->string, sizeof(pair->string), number, pair->key);
 
         Entity_Parse(pair);
 
