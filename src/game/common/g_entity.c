@@ -780,6 +780,7 @@ The map list's entry for the level takes precedence over the gameplay, movement,
  movement : The player movement, one of quetoo, race, quake, quake2, quake3 (default quetoo, or race in the race module).
  items : The item set for this map: "default" (Quetoo weapons) or "quake" (Quake weapons).
  min_clients : The number of clients, humans and AI, the game fills to; unset, 0.
+ ai : The AI players, by name and separated by spaces, that the game adds first when it fills to min_clients. Any others are picked at random.
  frag_limit : The frag limit; unset, 30.
  capture_limit : The capture limit, in CTF; unset, 8.
  time_limit : The time limit in minutes; unset, 20.
@@ -864,6 +865,13 @@ static void G_worldspawn(GameEntity *ent) {
   gameLevel.captureLimit = G_RequestSetting(ent, g_captureLimit, "capture_limit", 8.f, &gameLevel.requested.captureLimit);
 #endif
   gameLevel.timeLimit = G_RequestSetting(ent, g_timeLimit, "time_limit", 20.f, &gameLevel.requested.timeLimit) * 60 * 1000;
+
+  const Entity *aiMap = G_MapListEntryValue("ai");
+  if (aiMap && *aiMap->string) {
+    Str_Copy(gameLevel.ai, aiMap->string, sizeof(gameLevel.ai));
+  } else {
+    Str_Copy(gameLevel.ai, gi.EntityValue(ent->def, "ai")->string, sizeof(gameLevel.ai));
+  }
 
   const Entity *musicMap = G_MapListEntryValue("music");
   if (musicMap && *musicMap->string) { // prefer map metadata music

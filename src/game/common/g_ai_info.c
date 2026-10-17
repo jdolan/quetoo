@@ -19,49 +19,34 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <Objectively/List.h>
+
 #include "g_local.h"
 
 static Cvar *g_aiNamePrefix;
 
 /**
- * @brief The static roster of bot definitions.
+ * @brief The roster file, in the map list format: one entity of keys for each AI player.
  */
-static const GameAiRoster aiRoster[] = {
-  // name          skin                  guid                                    skill  aggr   aware
-  { "Enforcer",    "enforcer/default",    "ccbb7ca1-03af-448d-b0ab-b9a496472d86", .75f,  .75f,  .75f },
-  { "Guard",       "guard/default",       "19d4d35d-e19c-43b7-9bbf-cd3ecbbf88d4", .65f,  .60f,  .55f },
-  { "Gunner",      "guard/mgss",          "42a7c448-4c4a-434a-9274-69f700b2f8b6", .70f,  .45f,  .70f },
-  { "Stroggo",     "guard/sggrd",         "80baa7ff-2ea6-4d8e-b111-caaaf2147e8b", .45f,  .30f,  .75f },
-  { "Gork",        "gork/default",        "9fa691aa-dc2d-49b4-a4b4-0c0fad4d755b", .40f,  .85f,  .30f },
-  { "Dragoon",     "dragoon/default",     "c4ad0a99-5251-42fc-bc63-2f705ce6f363", .55f,  .70f,  .45f },
-  { "Baron",       "dragoon/baron",       "1ba330d3-6ee3-473c-9d18-bd21d29ec262", .80f,  .75f,  .60f },
-  { "Bastard",     "dragoon/bastard",     "cbb2fb55-72fc-4242-aa5b-ff9d5f056883", .99f,  .99f,  .99f },
-  { "Bunker",      "bunker/default",      "c83474c1-422c-44cd-a93b-918390435187", .60f,  .40f,  .65f },
-  { "Hax",         "bunker/hax",          "a66cc25d-e234-4f8d-98b5-7cc4d34ea067", .35f,  .80f,  .35f },
-  { "Fidget",      "bunker/fidget",       "cbbe6216-801e-4c53-84bc-f2de6fcc3e1c", .55f,  .65f,  .40f },
-  { "Bldseekr",    "bloodseeker/default", "928314d3-7eff-463a-ba7b-a0e5348034df", .65f,  .80f,  .70f },
-  { "Caustic",     "caustic/default",     "44e9f329-78b8-48cf-82b2-6b2deab9a7e2", .60f,  .40f,  .80f },
-  { "Creech",      "creech/default",      "5c314256-99bc-4acf-a1aa-cca6c8628504", .40f,  .75f,  .35f },
-  { "Cruentus",    "cruentus/default",    "9c28ccc7-485c-4f64-9114-e1b3fbf5a927", .50f,  .85f,  .30f },
-  { "Gammy",       "gammy/default",       "62b66b49-3413-4551-8a78-31b829d3d9c0", .65f,  .55f,  .80f },
-  { "Gaunt",       "gaunt/default",       "c302fa4a-5e87-44ba-ad2f-bb5c7c4c3d56", .65f,  .70f,  .85f },
-  { "Gladiator",   "gladiator/default",   "b905851b-c639-4535-aaa6-cb6360ac8633", .65f,  .65f,  .55f },
-  { "Magdalena",   "magdalena/default",   "2feaddd0-47f6-4457-9311-745774913ea4", .70f,  .45f,  .75f },
-  { "Mantis",      "mantis/default",      "c1100255-64db-4e34-aec7-bffc0c772a19", .70f,  .70f,  .50f },
-  { "Merc",        "merc/default",        "9a25c51a-7b1b-496b-8316-e506b6122ec3", .75f,  .55f,  .70f },
-  { "Nitro",       "nitro/default",       "f8fdb0a8-b25c-411a-b2c2-b59b4933eea2", .45f,  .90f,  .25f },
-  { "Captain",     "captain/default",     "f1867a5c-75cd-4825-be08-2f036d2325d5", .50f,  .70f,  .45f },
-  { "Violator",    "violator/default",    "17a3bcbb-e622-4736-a0c0-6c6ce64a9ee4", .80f,  .60f,  .65f },
-};
+#define AI_ROSTER_FILE "ai.lst"
 
-static const uint32_t aiRosterCount = lengthof(aiRoster);
+/**
+ * @brief The AI players of `ai.lst`, which live as long as the game module, because each AI
+ * client points to its own.
+ */
+static GameAiRoster *aiRoster;
+
+/**
+ * @brief The number of AI players in `aiRoster`.
+ */
+static uint32_t aiRosterCount;
 
 /**
  * @brief Shuffled order in which roster entries are handed out. Reshuffled
  * each time it is exhausted so that every entry is used exactly once per
  * cycle, in a random order, before any entry repeats.
  */
-static uint32_t aiRosterOrder[lengthof(aiRoster)];
+static uint32_t *aiRosterOrder;
 
 /**
  * @brief Index of the next entry to hand out from aiRosterOrder.
@@ -77,7 +62,7 @@ static void G_Ai_ShuffleRoster(void) {
     aiRosterOrder[i] = i;
   }
 
-  for (uint32_t i = aiRosterCount - 1; i > 0; i--) {
+  for (uint32_t i = aiRosterCount - 1; i > 0 && i < aiRosterCount; i--) {
     const uint32_t j = RandomRangeu(0, i + 1);
     const uint32_t tmp = aiRosterOrder[i];
     aiRosterOrder[i] = aiRosterOrder[j];
@@ -85,6 +70,134 @@ static void G_Ai_ShuffleRoster(void) {
   }
 
   aiRosterIndex = 0;
+}
+
+/**
+ * @return True if the string is a tint: six hex digits.
+ */
+static bool G_Ai_IsTint(const char *s) {
+  return strlen(s) == 6 && strspn(s, "0123456789abcdefABCDEF") == 6;
+}
+
+/**
+ * @brief Copies the entry's optional tint or hue key into `out`, if it is valid, and warns of one
+ * that is not, which is then left empty, so that the AI player gets a random one.
+ */
+static void G_Ai_LoadRoster_color(const Entity *e, const char *name, const char *key, char *out,
+                                  size_t size) {
+
+  const char *value = gi.EntityValue(e, key)->string;
+  if (!*value) {
+    return;
+  }
+
+  if (!Str_Compare(key, "color")) {
+    char *end;
+    const long hue = strtol(value, &end, 10);
+    if (end == value || *end || hue < 0 || hue > 360) {
+      G_Warn("%s: %s has %s \"%s\", which is not a hue from 0 to 360; it is random\n",
+             AI_ROSTER_FILE, name, key, value);
+      return;
+    }
+    Str_Format(out, size, "%ld", hue);
+    return;
+  }
+
+  if (!G_Ai_IsTint(value)) {
+    G_Warn("%s: %s has %s \"%s\", which is not six hex digits; it is random\n", AI_ROSTER_FILE,
+           name, key, value);
+    return;
+  }
+
+  Str_Copy(out, value, size);
+}
+
+/**
+ * @brief Loads the roster from `ai.lst`. An entry without a name or skin, or with a trait that is
+ * not a number from 0 to 1, is skipped with a warning.
+ */
+static void G_Ai_LoadRoster(void) {
+
+  aiRoster = NULL;
+  aiRosterOrder = NULL;
+  aiRosterCount = 0;
+
+  void *buffer;
+  if (gi.LoadFile(AI_ROSTER_FILE, &buffer) == -1) {
+    G_Warn("Couldn't load %s: no AI players can join\n", AI_ROSTER_FILE);
+    return;
+  }
+
+  List *entities = gi.LoadEntities(buffer);
+  gi.FreeFile(buffer);
+
+  aiRoster = gi.Malloc(sizeof(GameAiRoster) * Maxi(1, (int32_t) entities->count), MEM_TAG_AI);
+  aiRosterOrder = gi.Malloc(sizeof(uint32_t) * Maxi(1, (int32_t) entities->count), MEM_TAG_AI);
+
+  int32_t index = 0;
+  for (const ListNode *node = entities->head; node; node = node->next, index++) {
+    const Entity *e = node->element;
+
+    const char *name = gi.EntityValue(e, "name")->string;
+    const char *skin = gi.EntityValue(e, "skin")->string;
+
+    if (!*name || !*skin) {
+      G_Warn("%s: entry %d has no name or no skin, and is skipped\n", AI_ROSTER_FILE, index);
+      continue;
+    }
+
+    GameAiRoster *entry = &aiRoster[aiRosterCount];
+    memset(entry, 0, sizeof(*entry));
+
+    Str_Copy(entry->name, name, sizeof(entry->name));
+    Str_Copy(entry->skin, skin, sizeof(entry->skin));
+    Str_Copy(entry->guid, gi.EntityValue(e, "guid")->string, sizeof(entry->guid));
+
+    const char *traits[] = { "skill", "aggression", "awareness" };
+    float *values[] = { &entry->skill, &entry->aggression, &entry->awareness };
+
+    bool valid = true;
+    for (size_t i = 0; i < lengthof(traits); i++) {
+      const char *string = gi.EntityValue(e, traits[i])->string;
+      char *end;
+      const float value = strtof(string, &end);
+      if (end == string || *end || !(value >= 0.f && value <= 1.f)) {
+        G_Warn("%s: %s has %s \"%s\", which is not a number from 0 to 1, and is skipped\n",
+               AI_ROSTER_FILE, name, traits[i], string);
+        valid = false;
+        break;
+      }
+      *values[i] = value;
+    }
+
+    if (!valid) {
+      continue;
+    }
+
+    G_Ai_LoadRoster_color(e, name, "color", entry->color, sizeof(entry->color));
+    G_Ai_LoadRoster_color(e, name, "helmet", entry->helmet, sizeof(entry->helmet));
+    G_Ai_LoadRoster_color(e, name, "shirt", entry->shirt, sizeof(entry->shirt));
+    G_Ai_LoadRoster_color(e, name, "pants", entry->pants, sizeof(entry->pants));
+
+    aiRosterCount++;
+  }
+
+  for (const ListNode *node = entities->head; node; node = node->next) {
+    gi.FreeEntity(node->element);
+  }
+
+  release(entities);
+
+  if (aiRosterCount == 0) {
+    G_Warn("%s has no valid AI players: no AI players can join\n", AI_ROSTER_FILE);
+  }
+}
+
+/**
+ * @return The number of AI players in the roster.
+ */
+uint32_t G_Ai_RosterCount(void) {
+  return aiRosterCount;
 }
 
 /**
@@ -107,22 +220,30 @@ static _Bool G_Ai_NameInUse(const GameClient *cl, const char *name) {
 }
 
 /**
+ * @return A random tint: six hex digits.
+ */
+static const char *G_Ai_RandomTint(void) {
+  return va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256));
+}
+
+/**
  * @brief Create the user info for the specified bot from the given roster entry.
  *
- * @details If the base name is already taken by another connected client, appends
- * " 1", " 2", etc. until a unique name is found.
+ * @details The entry's hue and tints apply where it sets them, and random ones elsewhere. If the
+ * base name is already taken by another connected client, appends " 1", " 2", etc. until a unique
+ * name is found.
  */
 void G_Ai_GetRosterInfo(const GameClient *cl, const GameAiRoster *entry, char *info) {
 
-  Str_Copy(info, DEFAULT_BOT_INFO, MAX_INFO_STRING_STRING);
+  Str_Copy(info, DEFAULT_AI_INFO, MAX_INFO_STRING_STRING);
 
   InfoString_Set(info, "skin", entry->skin);
   InfoString_Set(info, "guid", entry->guid);
-  InfoString_Set(info, "color", va("%u", RandomRangeu(0, 360)));
+  InfoString_Set(info, "color", *entry->color ? entry->color : va("%u", RandomRangeu(0, 360)));
   InfoString_Set(info, "hand", va("%u", RandomRangeu(0, 3)));
-  InfoString_Set(info, "head", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
-  InfoString_Set(info, "shirt", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
-  InfoString_Set(info, "pants", va("%02x%02x%02x", RandomRangeu(0, 256), RandomRangeu(0, 256), RandomRangeu(0, 256)));
+  InfoString_Set(info, "helmet", *entry->helmet ? entry->helmet : G_Ai_RandomTint());
+  InfoString_Set(info, "shirt", *entry->shirt ? entry->shirt : G_Ai_RandomTint());
+  InfoString_Set(info, "pants", *entry->pants ? entry->pants : G_Ai_RandomTint());
 
   char name[MAX_INFO_STRING_VALUE];
   Str_Format(name, sizeof(name), "%s%s", g_aiNamePrefix->string, entry->name);
@@ -134,21 +255,72 @@ void G_Ai_GetRosterInfo(const GameClient *cl, const GameAiRoster *entry, char *i
 }
 
 /**
+ * @return True if a connected AI player has the roster entry.
+ */
+static bool G_Ai_RosterInGame(const GameAiRoster *entry) {
+
+  G_ForEachClient(cl, {
+    if (cl->ai && cl->ai->roster == entry) {
+      return true;
+    }
+  });
+
+  return false;
+}
+
+/**
+ * @return The level's first AI player, by the `ai` key, that is not in the game, or NULL.
+ */
+static const GameAiRoster *G_Ai_GetRoster_level(void) {
+
+  char names[MAX_STRING_CHARS];
+  Str_Copy(names, gameLevel.ai, sizeof(names));
+
+  char *save;
+  for (char *name = Str_Tokenize(names, " \t", &save); name; name = Str_Tokenize(NULL, " \t", &save)) {
+    const GameAiRoster *entry = G_Ai_FindRoster(name);
+    if (entry && !G_Ai_RosterInGame(entry)) {
+      return entry;
+    }
+  }
+
+  return NULL;
+}
+
+/**
  * @brief Create the user info for the specified bot and return its roster entry.
  *
- * @details Assigns the next roster entry from a shuffled order, so that entries
- * are handed out in a random sequence without repeating until every entry has
- * been used, at which point the order is reshuffled.
+ * @details Assigns the level's first AI player, by the `ai` key, that is not in the game. Once
+ * none is left, assigns the next roster entry from a shuffled order that is not in the game, so
+ * that entries are handed out in a random sequence without repeating until every entry has been
+ * used, at which point the order is reshuffled. If every entry is in the game, one repeats.
+ * @return The roster entry, or NULL if the roster is empty.
  */
 const GameAiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
 
-  if (aiRosterIndex == aiRosterCount) {
-    G_Ai_ShuffleRoster();
+  if (aiRosterCount == 0) {
+    return NULL;
   }
 
-  const GameAiRoster *entry = &aiRoster[aiRosterOrder[aiRosterIndex]];
+  const GameAiRoster *entry = G_Ai_GetRoster_level();
 
-  aiRosterIndex++;
+  bool reshuffled = false;
+
+  for (uint32_t i = 0; !entry && i < aiRosterCount; i++) {
+    if (aiRosterIndex == aiRosterCount) {
+      G_Ai_ShuffleRoster();
+      if (!reshuffled) {
+        reshuffled = true;
+        i = 0;
+      }
+    }
+
+    const GameAiRoster *next = &aiRoster[aiRosterOrder[aiRosterIndex++]];
+
+    if (!G_Ai_RosterInGame(next) || i == aiRosterCount - 1) {
+      entry = next;
+    }
+  }
 
   G_Ai_GetRosterInfo(cl, entry, info);
 
@@ -170,9 +342,49 @@ const GameAiRoster *G_Ai_FindRoster(const char *name) {
 }
 
 /**
+ * @return True if the level's `ai` key names the roster entry.
+ */
+bool G_Ai_IsLevelRoster(const GameAiRoster *entry) {
+
+  char names[MAX_STRING_CHARS];
+  Str_Copy(names, gameLevel.ai, sizeof(names));
+
+  char *save;
+  for (char *name = Str_Tokenize(names, " \t", &save); name; name = Str_Tokenize(NULL, " \t", &save)) {
+    if (G_Ai_FindRoster(name) == entry) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @brief Warns of each name in the level's `ai` key that the roster does not have.
+ */
+void G_Ai_CheckLevelRoster(void) {
+
+  char names[MAX_STRING_CHARS];
+  Str_Copy(names, gameLevel.ai, sizeof(names));
+
+  char *save;
+  for (char *name = Str_Tokenize(names, " \t", &save); name; name = Str_Tokenize(NULL, " \t", &save)) {
+    if (!G_Ai_FindRoster(name)) {
+      G_Warn("%s names AI player \"%s\", which %s does not have\n", gameLevel.name, name,
+             AI_ROSTER_FILE);
+    }
+  }
+}
+
+/**
  * @brief Prints the name and traits of each roster entry.
  */
 void G_Ai_PrintRoster(void) {
+
+  if (aiRosterCount == 0) {
+    gi.Print("No AI roster is loaded: see %s\n", AI_ROSTER_FILE);
+    return;
+  }
 
   gi.Print("  name         skill  aggression  awareness\n");
 
@@ -183,15 +395,20 @@ void G_Ai_PrintRoster(void) {
 }
 
 /**
- * @brief Initializes the AI name prefix console variable.
+ * @brief Initializes the AI name prefix console variable, and loads the roster.
  */
 void G_Ai_InitSkins(void) {
   g_aiNamePrefix = gi.AddCvar("g_aiNamePrefix", "^0[^1BOT^0] ^7", 0, NULL);
+  G_Ai_LoadRoster();
   G_Ai_ShuffleRoster();
 }
 
 /**
- * @brief Shuts down AI skin and name resources.
+ * @brief Shuts down AI skin and name resources. `G_Ai_Shutdown` frees the roster with the rest of
+ * `MEM_TAG_AI`.
  */
 void G_Ai_ShutdownSkins(void) {
+  aiRoster = NULL;
+  aiRosterOrder = NULL;
+  aiRosterCount = 0;
 }

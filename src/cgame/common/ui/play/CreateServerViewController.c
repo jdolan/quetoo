@@ -29,11 +29,11 @@
 #pragma mark - Delegates
 
 /**
- * @brief TextViewDelegate for the Bots field.
+ * @brief TextViewDelegate for the AI count field.
  * Stores (entered value + 1) into sv_minClients, accounting for the
  * player themselves occupying one client slot. An empty field defers to the level.
  */
-static void botsDidEndEditing(TextView *textView) {
+static void aiCountDidEndEditing(TextView *textView) {
 
   const String *string = (String *) textView->attributedText;
   if (string->length) {
@@ -108,7 +108,7 @@ static void loadView(ViewController *self) {
 
   Outlet outlets[] = MakeOutlets(
     MakeOutlet("hostname", &this->hostname),
-    MakeOutlet("bots", &this->bots),
+    MakeOutlet("aiCount", &this->aiCount),
     MakeOutlet("gameplay", &this->gameplay),
     MakeOutlet("gameplayInput", &gameplayInput),
     MakeOutlet("movement", &this->movement),
@@ -134,10 +134,10 @@ static void loadView(ViewController *self) {
 
   const Cvar *svMinClients = cgi.GetCvar("sv_minClients");
   if (svMinClients && Str_Compare(svMinClients->string, "default")) {
-    $(this->bots, setDefaultText, va("%d", Maxi(0, svMinClients->integer - 1)));
+    $(this->aiCount, setDefaultText, va("%d", Maxi(0, svMinClients->integer - 1)));
   }
 
-  this->bots->delegate.didEndEditing = botsDidEndEditing;
+  this->aiCount->delegate.didEndEditing = aiCountDidEndEditing;
 
   $(this->gameplay, addOption, "Default", "default");
 
