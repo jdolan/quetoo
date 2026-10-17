@@ -21,6 +21,197 @@
 
 #include "g_local.h"
 
+_Static_assert(MAX_CLIENTS <= 64, "GameWeaponStats::hitClients must have a bit for each client");
+
+/**
+ * @brief The weapon that fires a means of death, or 0 if no player weapon fires it.
+ */
+static GameItemTag G_WeaponTagForMod(GameMeansOfDeath mod) {
+
+  switch (mod & ~MOD_FRIENDLY_FIRE) {
+    case MOD_BLASTER:
+      return WEAPON_BLASTER;
+    case MOD_SHOTGUN:
+      return WEAPON_SHOTGUN;
+    case MOD_SUPER_SHOTGUN:
+      return WEAPON_SUPER_SHOTGUN;
+    case MOD_MACHINEGUN:
+      return WEAPON_MACHINEGUN;
+    case MOD_HANDGRENADE:
+    case MOD_HANDGRENADE_SPLASH:
+    case MOD_HANDGRENADE_SUICIDE:
+    case MOD_HANDGRENADE_KAMIKAZE:
+      return WEAPON_HAND_GRENADE;
+    case MOD_GRENADE:
+    case MOD_GRENADE_SPLASH:
+      return WEAPON_GRENADE_LAUNCHER;
+    case MOD_ROCKET:
+    case MOD_ROCKET_SPLASH:
+      return WEAPON_ROCKET_LAUNCHER;
+    case MOD_HYPERBLASTER:
+    case MOD_HYPERBLASTER_CLIMB:
+      return WEAPON_HYPERBLASTER;
+    case MOD_LIGHTNING:
+    case MOD_LIGHTNING_DISCHARGE:
+      return WEAPON_LIGHTNING;
+    case MOD_RAILGUN:
+      return WEAPON_RAILGUN;
+    case MOD_BFG_LASER:
+    case MOD_BFG_BLAST:
+      return WEAPON_BFG10K;
+    case MOD_QUAKE_SHOTGUN:
+      return WEAPON_QUAKE_SHOTGUN;
+    case MOD_QUAKE_SUPER_SHOTGUN:
+      return WEAPON_QUAKE_SUPER_SHOTGUN;
+    case MOD_QUAKE_NAILGUN:
+      return WEAPON_QUAKE_NAILGUN;
+    case MOD_QUAKE_SUPER_NAILGUN:
+      return WEAPON_QUAKE_SUPER_NAILGUN;
+    case MOD_QUAKE_GRENADE:
+    case MOD_QUAKE_GRENADE_SPLASH:
+      return WEAPON_QUAKE_GRENADE_LAUNCHER;
+    case MOD_QUAKE_ROCKET:
+    case MOD_QUAKE_ROCKET_SPLASH:
+      return WEAPON_QUAKE_ROCKET_LAUNCHER;
+    case MOD_QUAKE_THUNDERBOLT:
+    case MOD_QUAKE_THUNDERBOLT_DISCHARGE:
+      return WEAPON_QUAKE_THUNDERBOLT;
+    default:
+      return 0;
+  }
+}
+
+/**
+ * @brief The client's stats for the weapon with the given tag, or `NULL` if the tag is not a weapon.
+ */
+static GameWeaponStats *G_WeaponStats(GameClient *cl, GameItemTag tag) {
+
+  if (tag < WEAPON_FIRST || tag >= WEAPON_LAST) {
+    return NULL;
+  }
+
+  return &cl->persistent.weaponStats[tag - WEAPON_FIRST];
+}
+
+/**
+ * @brief True if the attacker is a client, and the target is a client on another team.
+ */
+static bool G_IsEnemy(const GameEntity *attacker, const GameEntity *target) {
+
+  if (!attacker->client || !target->client || attacker == target) {
+    return false;
+  }
+
+  return !G_OnSameTeam(attacker->client, target->client);
+}
+
+/**
+ * @brief Clears the client's match stats.
+ */
+void G_ClientResetStats(GameClient *cl) {
+
+  memset(cl->persistent.weaponStats, 0, sizeof(cl->persistent.weaponStats));
+
+  cl->persistent.damageDealt = 0;
+  cl->persistent.damageTaken = 0;
+}
+
+/**
+ * @brief Counts a shot of the client's current weapon.
+ */
+void G_ClientShotStats(GameClient *cl) {
+
+  GameWeaponStats *stats = G_WeaponStats(cl, cl->weapon ? cl->weapon->def.tag : 0);
+  if (stats) {
+    stats->shots++;
+  }
+}
+
+/**
+ * @brief Counts damage to a living client: taken by the target, and dealt and hit by an enemy attacker.
+ * @remarks A weapon counts one hit for each enemy that it damages in a frame, so that the pellets
+ * of one blast or the splash of one rocket count once for each enemy they reach.
+ */
+void G_ClientDamageStats(const GameEntity *attacker, const GameEntity *target, int32_t damage, GameMeansOfDeath mod) {
+
+  target->client->persistent.damageTaken += damage;
+
+  if (!G_IsEnemy(attacker, target)) {
+    return;
+  }
+
+  attacker->client->persistent.damageDealt += damage;
+
+  GameWeaponStats *stats = G_WeaponStats(attacker->client, G_WeaponTagForMod(mod));
+  if (stats == NULL) {
+    return;
+  }
+
+  stats->damage += damage;
+
+  if (stats->hitFrame != gameLevel.frameNum) {
+    stats->hitFrame = gameLevel.frameNum;
+    stats->hitClients = 0;
+  }
+
+  const uint64_t bit = 1ull << target->client->ps.client;
+  if (!(stats->hitClients & bit)) {
+    stats->hitClients |= bit;
+    stats->hits++;
+  }
+}
+
+/**
+ * @brief Counts a kill by an enemy attacker for the weapon that made it.
+ */
+void G_ClientKillStats(const GameEntity *attacker, const GameEntity *target, GameMeansOfDeath mod) {
+
+  if (!G_IsEnemy(attacker, target)) {
+    return;
+  }
+
+  GameWeaponStats *stats = G_WeaponStats(attacker->client, G_WeaponTagForMod(mod));
+  if (stats) {
+    stats->kills++;
+  }
+}
+
+/**
+ * @brief Sends the client their damage totals, and the stats of each weapon that they used.
+ */
+static void G_ClientMatchStats(GameClient *cl) {
+
+  if (cl->ai) {
+    return;
+  }
+
+  uint8_t count = 0;
+  for (int32_t i = 0; i < WEAPON_TOTAL; i++) {
+    const GameWeaponStats *stats = &cl->persistent.weaponStats[i];
+    if (stats->shots || stats->damage || stats->kills) {
+      count++;
+    }
+  }
+
+  gi.WriteByte(SV_CMD_MATCH_STATS);
+  gi.WriteLong((int32_t) cl->persistent.damageDealt);
+  gi.WriteLong((int32_t) cl->persistent.damageTaken);
+  gi.WriteByte(count);
+
+  for (int32_t i = 0; i < WEAPON_TOTAL; i++) {
+    const GameWeaponStats *stats = &cl->persistent.weaponStats[i];
+    if (stats->shots || stats->damage || stats->kills) {
+      gi.WriteByte(WEAPON_FIRST + i);
+      gi.WriteLong((int32_t) stats->shots);
+      gi.WriteLong((int32_t) stats->hits);
+      gi.WriteLong((int32_t) stats->damage);
+      gi.WriteShort((int32_t) Mini(stats->kills, INT16_MAX));
+    }
+  }
+
+  gi.Unicast(cl, true);
+}
+
 /**
  * @brief Moves a client to the intermission position and freezes their input.
  */
@@ -60,6 +251,8 @@ void G_ClientToIntermission(GameClient *cl) {
 
   cl->ammoIndex = 0;
   cl->pickupMsgTime = 0;
+
+  G_ClientMatchStats(cl);
 }
 
 /**

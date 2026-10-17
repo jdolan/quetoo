@@ -34,6 +34,11 @@ static struct {
 static uint32_t nextMapGeneration;
 
 /**
+ * @brief Bumped whenever the match stats arrive or clear, never reset, for the same reason.
+ */
+static uint32_t matchStatsGeneration;
+
+/**
  * @brief Reads `CS_NEXT_MAP` into `cgameState.nextMap`.
  */
 static bool Cg_ParseConfigString_Intermission(int32_t index) {
@@ -102,6 +107,40 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
 /**
  * @see cg_intermission.h
  */
+void Cg_Intermission_ParseMatchStats(void) {
+
+  CGameMatchStats *stats = &cgameState.matchStats;
+
+  memset(stats, 0, sizeof(*stats));
+
+  stats->damageDealt = (uint32_t) cgi.ReadLong();
+  stats->damageTaken = (uint32_t) cgi.ReadLong();
+
+  const int32_t count = cgi.ReadByte();
+
+  for (int32_t i = 0; i < count; i++) {
+    CGameWeaponStats weapon = {
+      .tag = cgi.ReadByte(),
+      .shots = (uint32_t) cgi.ReadLong(),
+      .hits = (uint32_t) cgi.ReadLong(),
+      .damage = (uint32_t) cgi.ReadLong(),
+      .kills = (uint16_t) cgi.ReadShort(),
+    };
+
+    if (weapon.tag < WEAPON_FIRST || weapon.tag >= WEAPON_LAST || stats->numWeapons == WEAPON_TOTAL) {
+      Cg_Warn("Invalid weapon stats for item %d\n", weapon.tag);
+      continue;
+    }
+
+    stats->weapons[stats->numWeapons++] = weapon;
+  }
+
+  stats->generation = ++matchStatsGeneration;
+}
+
+/**
+ * @see cg_intermission.h
+ */
 void Cg_Intermission_Vote(int32_t map) {
   cgi.Cbuf(va("voteMap %d\n", map + 1));
 }
@@ -142,6 +181,9 @@ bool Cg_Intermission_HandleEvent(const SDL_Event *event) {
 static void Cg_StateDidClear_Intermission(void) {
 
   memset(&cgameState.nextMap, 0, sizeof(cgameState.nextMap));
+
+  memset(&cgameState.matchStats, 0, sizeof(cgameState.matchStats));
+  cgameState.matchStats.generation = ++matchStatsGeneration;
 
   previous.StateDidClear();
 }

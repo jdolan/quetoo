@@ -55,3 +55,63 @@ IntermissionView > .countdown {
   font-size: 28;
   padding-bottom: 12;
 }
+
+/* the local player's match stats, beside the scoreboard */
+IntermissionView > .stats {
+  alignment: middle;
+  left: 24;
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 14;
+  background-color: #0b0f1299;
+  padding: 14 14 14 14;
+}
+
+IntermissionView .totals {
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 18;
+}
+
+IntermissionView .total {
+  autoresizing-mask: contain;
+  axis: vertical;
+}
+
+IntermissionView .total > .value {
+  font-family: Rajdhani;
+  font-size: 24;
+}
+
+IntermissionView .total > .caption,
+IntermissionView .weapon:first-child > Text {
+  color: #6fb3cc;
+  text-transform: uppercase;
+}
+
+IntermissionView .weapons {
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 3;
+}
+
+IntermissionView .weapon {
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 10;
+}
+
+IntermissionView .weapon > .icon {
+  width: 22;
+  height: 22;
+}
+
+IntermissionView .weapon > .weaponName {
+  min-width: 170;
+}
+
+IntermissionView .weapon > .accuracy,
+IntermissionView .weapon > .damage,
+IntermissionView .weapon > .kills {
+  min-width: 80;
+}

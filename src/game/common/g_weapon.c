@@ -321,6 +321,8 @@ static void G_WeaponFired(GameClient *cl, uint32_t interval, uint32_t ammoNeeded
   cl->weaponFireTime = gameLevel.time + interval;
   cl->weaponFiredTime = gameLevel.time;
 
+  G_ClientShotStats(cl);
+
   // and decrease their inventory
   if ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) != GAMEPLAY_INSTAGIB) {
     if (cl->ammoIndex) {

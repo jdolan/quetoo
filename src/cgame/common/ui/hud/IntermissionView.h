@@ -28,14 +28,16 @@
 
 /**
  * @file
- * @brief What follows this level: the countdown, and the map it is counting down to.
+ * @brief What follows this level: the local player's match stats, the countdown, and the
+ * map it is counting down to.
  */
 
 typedef struct IntermissionView IntermissionView;
 typedef struct IntermissionViewInterface IntermissionViewInterface;
 
 /**
- * @brief What follows this level: the countdown, and the map it is counting down to.
+ * @brief What follows this level: the local player's match stats, the countdown, and the
+ * map it is counting down to.
  * @details One tile per candidate, each a thumbnail over the map's name. With a vote
  * running the tiles carry the key that picks them and the tally they have drawn; with
  * none, the single tile just says what is next.
@@ -75,6 +77,16 @@ struct IntermissionView {
    * @brief The candidates the tiles were built for.
    */
   uint32_t generation;
+
+  /**
+   * @brief The local player's match stats: the totals, then a row for each weapon.
+   */
+  StackView *stats;
+
+  /**
+   * @brief The match stats the panel was built for.
+   */
+  uint32_t statsGeneration;
 };
 
 struct IntermissionViewInterface {
@@ -90,6 +102,13 @@ struct IntermissionViewInterface {
    * @memberof IntermissionView
    */
   void (*rebuild)(IntermissionView *self);
+
+  /**
+   * @fn void IntermissionView::rebuildStats(IntermissionView *self)
+   * @brief Rebuilds the stats panel for the match stats now received.
+   * @memberof IntermissionView
+   */
+  void (*rebuildStats)(IntermissionView *self);
 };
 
 CGAME_EXPORT Class *_IntermissionView(void);

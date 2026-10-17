@@ -23,6 +23,7 @@
 
 #include "cg_local.h"
 
+#include "HudViewController.h"
 #include "IntermissionView.h"
 
 #define _Class _IntermissionView
@@ -38,6 +39,7 @@ static void dealloc(Object *self) {
 
   release(this->maps);
   release(this->countdown);
+  release(this->stats);
 
   super(Object, self, dealloc);
 }
@@ -122,7 +124,152 @@ static void addMap(IntermissionView *self, int32_t index) {
   release(tile);
 }
 
+#pragma mark - Stats
+
+/**
+ * @brief Hits per shot as a percentage, or a dash for a weapon never fired.
+ */
+static const char *accuracy(uint32_t hits, uint32_t shots) {
+  return shots ? va("%.1f%%", hits * 100.f / shots) : "-";
+}
+
+/**
+ * @brief Orders weapons by damage dealt, then by kills, most first.
+ */
+static int32_t weaponStatsComparator(const void *a, const void *b) {
+
+  const CGameWeaponStats *wa = a, *wb = b;
+
+  if (wa->damage != wb->damage) {
+    return wa->damage > wb->damage ? -1 : 1;
+  }
+
+  return (int32_t) wb->kills - (int32_t) wa->kills;
+}
+
+/**
+ * @brief Appends a Text with the given class name to the view.
+ */
+static void addText(View *view, const char *className, const char *text) {
+
+  Text *label = $(alloc(Text), initWithText, text, NULL);
+  assert(label);
+
+  $((View *) label, addClassName, className);
+  $(view, addSubview, (View *) label);
+  release(label);
+}
+
+/**
+ * @brief Appends a total: its value over its caption.
+ */
+static void addTotal(View *totals, const char *caption, const char *value) {
+
+  StackView *total = $(alloc(StackView), initWithFrame, NULL);
+  assert(total);
+
+  $((View *) total, addClassName, "total");
+
+  addText((View *) total, "value", value);
+  addText((View *) total, "caption", caption);
+
+  $(totals, addSubview, (View *) total);
+  release(total);
+}
+
+/**
+ * @brief Appends a row of cells to the weapon table.
+ */
+static void addWeapon(View *weapons, const char *icon, const char *name, const char *accuracy,
+                      const char *damage, const char *kills) {
+
+  StackView *row = $(alloc(StackView), initWithFrame, NULL);
+  assert(row);
+
+  $((View *) row, addClassName, "weapon");
+
+  ImageView *image = $(alloc(ImageView), initWithFrame, NULL);
+  assert(image);
+
+  if (icon) {
+    $(image, setImage, (Image *) Cg_HudImage(icon));
+  }
+
+  $((View *) image, addClassName, "icon");
+  $((View *) row, addSubview, (View *) image);
+  release(image);
+
+  addText((View *) row, "weaponName", name);
+  addText((View *) row, "accuracy", accuracy);
+  addText((View *) row, "damage", damage);
+  addText((View *) row, "kills", kills);
+
+  $(weapons, addSubview, (View *) row);
+  release(row);
+}
+
 #pragma mark - IntermissionView
+
+/**
+ * @fn void IntermissionView::rebuildStats(IntermissionView *self)
+ * @memberof IntermissionView
+ */
+static void rebuildStats(IntermissionView *self) {
+
+  const CGameMatchStats *stats = &cgameState.matchStats;
+
+  $((View *) self->stats, removeAllSubviews);
+
+  if (stats->numWeapons == 0 && stats->damageDealt == 0 && stats->damageTaken == 0) {
+    $((View *) self->stats, setVisibility, ViewVisibilityHidden);
+    return;
+  }
+
+  $((View *) self->stats, setVisibility, ViewVisibilityVisible);
+
+  CGameWeaponStats weapons[WEAPON_TOTAL];
+  memcpy(weapons, stats->weapons, sizeof(weapons));
+  qsort(weapons, stats->numWeapons, sizeof(CGameWeaponStats), weaponStatsComparator);
+
+  uint32_t shots = 0, hits = 0;
+  for (int32_t i = 0; i < stats->numWeapons; i++) {
+    shots += weapons[i].shots;
+    hits += weapons[i].hits;
+  }
+
+  const bool favorite = stats->numWeapons && weapons[0].damage;
+
+  StackView *totals = $(alloc(StackView), initWithFrame, NULL);
+  assert(totals);
+
+  $((View *) totals, addClassName, "totals");
+
+  addTotal((View *) totals, "damage dealt", va("%u", stats->damageDealt));
+  addTotal((View *) totals, "damage taken", va("%u", stats->damageTaken));
+  addTotal((View *) totals, "accuracy", accuracy(hits, shots));
+  addTotal((View *) totals, "favorite", favorite ? gameItemDefs[weapons[0].tag].name : "-");
+
+  $((View *) self->stats, addSubview, (View *) totals);
+  release(totals);
+
+  if (stats->numWeapons) {
+    StackView *table = $(alloc(StackView), initWithFrame, NULL);
+    assert(table);
+
+    $((View *) table, addClassName, "weapons");
+
+    addWeapon((View *) table, NULL, "weapon", "accuracy", "damage", "kills");
+
+    for (int32_t i = 0; i < stats->numWeapons; i++) {
+      const CGameWeaponStats *w = &weapons[i];
+      addWeapon((View *) table, gameItemDefs[w->tag].icon, gameItemDefs[w->tag].name,
+                accuracy(w->hits, w->shots), va("%u", w->damage), va("%u", w->kills));
+    }
+
+    $((View *) self->stats, addSubview, (View *) table);
+    release(table);
+  }
+}
 
 /**
  * @fn void IntermissionView::rebuild(IntermissionView *self)
@@ -161,6 +308,13 @@ static View *init(View *self) {
 
     $((View *) this->countdown, addClassName, "countdown");
     $(self, addSubview, (View *) this->countdown);
+
+    this->stats = $(alloc(StackView), initWithFrame, NULL);
+    assert(this->stats);
+
+    $((View *) this->stats, addClassName, "stats");
+    $(self, addSubview, (View *) this->stats);
+    $((View *) this->stats, setVisibility, ViewVisibilityHidden);
   }
 
   return self;
@@ -182,6 +336,12 @@ static void updateBindings(View *self, ident data) {
       this->generation = nextMap->generation;
 
       $(this, rebuild);
+    }
+
+    if (cgameState.matchStats.generation != this->statsGeneration) {
+      this->statsGeneration = cgameState.matchStats.generation;
+
+      $(this, rebuildStats);
     }
 
     for (int32_t i = 0; i < nextMap->numMaps; i++) {
@@ -215,6 +375,7 @@ static void initialize(Class *clazz) {
   ((ViewInterface *) clazz->interface)->updateBindings = updateBindings;
 
   ((IntermissionViewInterface *) clazz->interface)->rebuild = rebuild;
+  ((IntermissionViewInterface *) clazz->interface)->rebuildStats = rebuildStats;
 }
 
 /**

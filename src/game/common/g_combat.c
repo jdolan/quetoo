@@ -471,6 +471,10 @@ void G_Damage(const GameDamage *dmg) {
 
   if (!wasDead) {
     G_Ai_Damaged(target, attacker);
+
+    if (client) {
+      G_ClientDamageStats(attacker, target, damageArmor + Mini(damageHealth, Maxi(target->health, 0)), mod);
+    }
   }
 
   // do the damage
@@ -502,6 +506,10 @@ void G_Damage(const GameDamage *dmg) {
     // kill target if he has *excessive blood loss*
     if (target->health <= 0) {
       target->dead = true;
+
+      if (!wasDead && client) {
+        G_ClientKillStats(attacker, target, mod);
+      }
 
       if (attacker->client && target->client) {
         const bool attackerAi = attacker->client->ai != NULL;
