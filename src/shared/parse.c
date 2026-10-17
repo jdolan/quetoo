@@ -392,6 +392,10 @@ bool Parse_Token(Parser *parser, const ParseFlags flags, char *output, const siz
     return false;
   }
 
+  if (output && outputLen && i >= outputLen - 1) {
+    output[outputLen - 1] = '\0';
+  }
+
   if (flags & PARSE_PEEK) {
     parser->position = oldPosition;
   }

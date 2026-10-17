@@ -44,10 +44,7 @@ static void didEndEditing(TextView *textView) {
   const char *key = self->key->attributedText->chars;
   const char *value = self->value->attributedText->chars;
 
-  Str_Copy(e->key, key ?: "", sizeof(e->key));
-  Str_Copy(e->string, value ?: "", sizeof(e->string));
-
-  cgi.ParseEntity(e);
+  cgi.SetEntityPair(e, key ?: "", value ?: "");
 
   self->delegate.didEditEntity(self, e);
 

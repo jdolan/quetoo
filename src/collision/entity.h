@@ -55,6 +55,15 @@ Entity *Entity_Assign(const Entity *dst, const Entity *src);
 void Entity_Parse(Entity *pair);
 
 /**
+ * @brief Sets the key and the value of a single entity pair, and parses the value.
+ * @param pair The pair.
+ * @param key The key.
+ * @param string The value.
+ * @return The pair.
+ */
+Entity *Entity_SetPair(Entity *pair, const char *key, const char *string);
+
+/**
  * @brief Sorts the entity key-value pairs, placing classname first.
  */
 Entity *Entity_Sort(Entity *entity);

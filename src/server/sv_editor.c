@@ -216,7 +216,11 @@ void Sv_SaveEditorMap_f(void) {
     Fs_Print(file, "{\n");
 
     for (const Entity *e = ent->def; e; e = e->next) {
-      Fs_Print(file, "\"%s\" \"%s\"\n", e->key, e->string);
+      Fs_Write(file, "\"", 1, 1);
+      Fs_Write(file, e->key, 1, strlen(e->key));
+      Fs_Write(file, "\" \"", 3, 1);
+      Fs_Write(file, e->string, 1, strlen(e->string));
+      Fs_Write(file, "\"\n", 2, 1);
     }
 
     const char *brushes = "";

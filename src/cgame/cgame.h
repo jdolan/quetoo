@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 70
+#define CGAME_API_VERSION 71
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -705,12 +705,6 @@ typedef struct {
   void (*FreeEntity)(Entity *entity);
 
   /**
-   * @brief Parses the key/value pairs of the specified entity.
-   * @param entity The entity to parse.
-   */
-  void (*ParseEntity)(Entity *entity);
-
-  /**
    * @brief Sets a key/value pair on the specified entity.
    * @param entity The entity, or `NULL` to allocate a new entity.
    * @param key The key.
@@ -719,6 +713,15 @@ typedef struct {
    * @return The entity.
    */
   Entity *(*SetEntityKeyValue)(Entity *entity, const char *key, EntityParsed field, const void *value);
+
+  /**
+   * @brief Sets the key and the value of a single entity pair, and parses the value.
+   * @param pair The pair.
+   * @param key The key.
+   * @param string The value.
+   * @return The pair.
+   */
+  Entity *(*SetEntityPair)(Entity *pair, const char *key, const char *string);
 
   /**
    * @brief Serializes the entity to an info string.

@@ -803,9 +803,12 @@ static void MovePatchesToWorld(MapEntity *ent) {
 static void ParseKeyValues(Parser *parser, MapEntity *entity, int32_t number) {
   char token[MAX_TOKEN_CHARS];
 
+  char *key = Mem_TagMalloc(MAX_BSP_ENTITIES_SIZE, (MemTag) MEM_TAG_EPAIR);
+  char *value = Mem_TagMalloc(MAX_BSP_ENTITIES_SIZE, (MemTag) MEM_TAG_EPAIR);
+
   while (true) {
 
-    if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_PEEK, token, sizeof(token))) {
+    if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_PEEK | PARSE_ALLOW_OVERRUN, token, sizeof(token))) {
       Com_Error(ERROR_FATAL, "EOF without closing entity\n");
     }
 
@@ -813,17 +816,23 @@ static void ParseKeyValues(Parser *parser, MapEntity *entity, int32_t number) {
       break;
     }
 
-    MapEntityKeyValue *e = Mem_TagMalloc(sizeof(*e), (MemTag) MEM_TAG_EPAIR);
-
-    if (!Parse_Token(parser, PARSE_DEFAULT, e->key, sizeof(e->key))) {
+    if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, key, MAX_BSP_ENTITIES_SIZE)) {
       Com_Error(ERROR_FATAL, "Invalid entity key in entity %d\n", number);
     }
 
-    Parse_Token(parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, e->value, sizeof(e->value));
+    Parse_Token(parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, value, MAX_BSP_ENTITIES_SIZE);
 
+    if (strlen(value) == MAX_BSP_ENTITIES_SIZE - 1) {
+      Com_Warn("Entity %d: value of \"%s\" is longer than the entity lump, truncated\n", number, key);
+    }
+
+    MapEntityKeyValue *e = AllocKeyValue(key, value);
     e->next = entity->values;
     entity->values = e;
   }
+
+  Mem_Free(key);
+  Mem_Free(value);
 }
 
 /**

@@ -28,8 +28,8 @@
  */
 typedef struct MapEntityKeyValue {
   struct MapEntityKeyValue *next;
-  char key[MAX_BSP_ENTITY_KEY];
-  char value[MAX_BSP_ENTITY_VALUE];
+  char *key;
+  char *value;
 } MapEntityKeyValue;
 
 /**
@@ -52,6 +52,7 @@ typedef struct {
 
 } MapEntity;
 
+MapEntityKeyValue *AllocKeyValue(const char *key, const char *value);
 void SetValueForKey(MapEntity *ent, const char *key, const char *value);
 const char *ValueForKey(const MapEntity *ent, const char *key, const char *def);
 Vec3 VectorForKey(const MapEntity *ent, const char *key, const Vec3 def);

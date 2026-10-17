@@ -21,13 +21,54 @@
 
 #include "cm_local.h"
 
-static const Entity nullEntity = { 0 };
+static const Entity nullEntity = { .key = "", .string = "" };
 
 /**
  * @brief Allocates and returns a new zeroed entity key-value pair.
  */
 Entity *Entity_Alloc(void) {
-  return Mem_TagMalloc(sizeof(Entity), MEM_TAG_COLLISION);
+
+  Entity *pair = Mem_TagMalloc(sizeof(Entity), MEM_TAG_COLLISION);
+
+  pair->key = Mem_Link(Mem_TagCopyString("", MEM_TAG_COLLISION), pair);
+  pair->string = Mem_Link(Mem_TagCopyString("", MEM_TAG_COLLISION), pair);
+
+  return pair;
+}
+
+/**
+ * @brief Replaces one of the pair's strings with a copy of `value`, freed with the pair.
+ */
+static void Entity_SetPair_string(Entity *pair, char **field, const char *value) {
+
+  char *copy = Mem_Link(Mem_TagCopyString(value ?: "", MEM_TAG_COLLISION), pair);
+
+  if (*field) {
+    Mem_Free(*field);
+  }
+
+  *field = copy;
+}
+
+/**
+ * @brief Sets the key and the value of a single entity pair, and parses the value.
+ */
+Entity *Entity_SetPair(Entity *pair, const char *key, const char *string) {
+
+  assert(pair);
+  assert(pair != &nullEntity);
+
+  if (key != pair->key) {
+    Entity_SetPair_string(pair, &pair->key, key);
+  }
+
+  if (string != pair->string) {
+    Entity_SetPair_string(pair, &pair->string, string);
+  }
+
+  Entity_Parse(pair);
+
+  return pair;
 }
 
 /**
@@ -55,12 +96,7 @@ Entity *Entity_Copy(const Entity *entity) {
   Entity *copy = NULL;
   for (const Entity *in = entity; in; in = in->next) {
 
-    Entity *out = Entity_Alloc();
-
-    Str_Copy(out->key, in->key, sizeof(out->key));
-    Str_Copy(out->string, in->string, sizeof(out->string));
-
-    Entity_Parse(out);
+    Entity *out = Entity_SetPair(Entity_Alloc(), in->key, in->string);
 
     if (in->brushes) {
       out->brushes = Mem_TagCopyString(in->brushes, MEM_TAG_COLLISION);
@@ -93,12 +129,7 @@ Entity *Entity_Assign(const Entity *dst, const Entity *src) {
       continue;
     }
 
-    Entity *pair = Entity_Alloc();
-
-    Str_Copy(pair->key, s->key, sizeof(pair->key));
-    Str_Copy(pair->string, s->string, sizeof(pair->string));
-
-    Entity_Parse(pair);
+    Entity *pair = Entity_SetPair(Entity_Alloc(), s->key, s->string);
 
     pair->next = out;
     if (out) {
@@ -117,6 +148,9 @@ void Entity_Parse(Entity *pair) {
 
   assert(pair);
   assert(pair->string);
+
+  pair->parsed = 0;
+  pair->nullableString = NULL;
 
   if (Str_Length(pair->string)) {
     pair->parsed |= ENTITY_STRING;
@@ -222,11 +256,45 @@ Entity *Entity_Sort(Entity *entity) {
 }
 
 /**
+ * @brief The longest key or value that `Entity_LoadAll` reads. The whole entity lump of a BSP is
+ * smaller than this, so in practice no key or value is truncated.
+ */
+#define ENTITY_TOKEN_SIZE MAX_BSP_ENTITIES_SIZE
+
+/**
+ * @brief Parses the next token into `token`, reading to the token's end even when it is longer
+ * than `ENTITY_TOKEN_SIZE`, so that parsing resumes after it. A token that does not fit is
+ * truncated, with a warning that names the entity and the key.
+ * @return False at the end of the input.
+ */
+static bool Entity_LoadAll_token(Parser *parser, char *token, int32_t number, const char *key) {
+
+  if (!Parse_Token(parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, token, ENTITY_TOKEN_SIZE)) {
+    return false;
+  }
+
+  const size_t length = strlen(token);
+  if (length == ENTITY_TOKEN_SIZE - 1) {
+    if (key) {
+      Com_Warn("Entity %d: value of \"%s\" is %zu or more characters, truncated\n",
+               number, key, length);
+    } else {
+      Com_Warn("Entity %d: a key is %zu or more characters, truncated\n", number, length);
+    }
+  }
+
+  return true;
+}
+
+/**
  * @brief Loads the BSP entity string lump.
  */
 List *Entity_LoadAll(const char *entityString) {
 
   List *entities = $(alloc(List), init);
+
+  char *key = Mem_TagMalloc(ENTITY_TOKEN_SIZE, MEM_TAG_COLLISION);
+  char *value = Mem_TagMalloc(ENTITY_TOKEN_SIZE, MEM_TAG_COLLISION);
 
   Parser parser = Parse_Init(entityString, PARSER_ALL_COMMENTS);
 
@@ -234,7 +302,7 @@ List *Entity_LoadAll(const char *entityString) {
 
     char token[MAX_BSP_ENTITY_VALUE];
 
-    if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+    if (!Parse_Token(&parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, token, sizeof(token))) {
       break;
     }
 
@@ -246,13 +314,18 @@ List *Entity_LoadAll(const char *entityString) {
 
         Entity *pair = Entity_Alloc();
 
-        if (!Parse_Token(&parser, PARSE_DEFAULT, pair->key, sizeof(pair->key))) {
+        const int32_t number = (int32_t) entities->count;
+
+        if (!Entity_LoadAll_token(&parser, key, number, NULL)) {
           Entity_Free(pair);
           break;
         }
-        Parse_Token(&parser, PARSE_DEFAULT, pair->string, sizeof(pair->string));
 
-        Entity_Parse(pair);
+        if (!Entity_LoadAll_token(&parser, value, number, key)) {
+          *value = '\0';
+        }
+
+        Entity_SetPair(pair, key, value);
 
         pair->next = entity;
         if (entity) {
@@ -260,7 +333,7 @@ List *Entity_LoadAll(const char *entityString) {
         }
         entity = pair;
 
-        Parse_PeekToken(&parser, PARSE_DEFAULT, token, sizeof(token));
+        Parse_PeekToken(&parser, PARSE_DEFAULT | PARSE_ALLOW_OVERRUN, token, sizeof(token));
 
         if (!Str_Compare("}", token)) {
           break;
@@ -274,6 +347,9 @@ List *Entity_LoadAll(const char *entityString) {
       $(entities, append, entity);
     }
   }
+
+  Mem_Free(key);
+  Mem_Free(value);
 
   return entities;
 }
@@ -337,37 +413,42 @@ Entity *Entity_SetKeyValue(Entity *entity, const char *key, EntityParsed field, 
     }
   }
 
-  Str_Copy(target->key, key, sizeof(target->key));
+  const char *string = "";
+  char number[MAX_STRING_CHARS];
 
   switch (field) {
     case ENTITY_STRING:
-      Str_Copy(target->string, (const char *) value, sizeof(entity->string));
+      string = (const char *) value;
       break;
     case ENTITY_INTEGER:
-      Str_Format(target->string, sizeof(entity->string), "%d", *(int32_t *) value);
+      Str_Format(number, sizeof(number), "%d", *(int32_t *) value);
+      string = number;
       break;
     case ENTITY_FLOAT:
-      Str_Format(target->string, sizeof(entity->string), "%g", *(float *) value);
+      Str_Format(number, sizeof(number), "%g", *(float *) value);
+      string = number;
       break;
     case ENTITY_VEC2: {
       const Vec2 v = *(Vec2 *) value;
-      Str_Format(target->string, sizeof(entity->string), "%g %g", v.x, v.y);
+      Str_Format(number, sizeof(number), "%g %g", v.x, v.y);
+      string = number;
       break;
     }
     case ENTITY_VEC3: {
       const Vec3 v = *(Vec3 *) value;
-      Str_Format(target->string, sizeof(entity->string), "%g %g %g", v.x, v.y, v.z);
+      Str_Format(number, sizeof(number), "%g %g %g", v.x, v.y, v.z);
+      string = number;
       break;
     }
     case ENTITY_VEC4: {
       const Vec4 v = *(Vec4 *) value;
-      Str_Format(target->string, sizeof(entity->string), "%g %g %g %g", v.x, v.y, v.z, v.w);
+      Str_Format(number, sizeof(number), "%g %g %g %g", v.x, v.y, v.z, v.w);
+      string = number;
       break;
     }
   }
 
-  Entity_Parse(target);
-  return target;
+  return Entity_SetPair(target, key, string);
 }
 
 /**
@@ -395,7 +476,9 @@ char *Entity_ToInfoString(const Entity *entity) {
   char *str = Mem_TagMalloc(MAX_INFO_STRING_STRING, MEM_TAG_COLLISION);
 
   for (const Entity *e = entity; e; e = e->next) {
-    InfoString_Set(str, e->key, e->string);
+    if (!InfoString_Set(str, e->key, e->string)) {
+      Com_Warn("\"%s\" is too long for an info string, and is left out\n", e->key);
+    }
   }
 
   return str;
@@ -412,11 +495,11 @@ Entity *Entity_FromInfoString(const char *str) {
     const char *s = str;
 
     do {
-      Entity *pair = Entity_Alloc();
+      char key[MAX_INFO_STRING_KEY] = "", value[MAX_INFO_STRING_VALUE] = "";
 
-      s = InfoString_Next(s, pair->key, pair->string);
+      s = InfoString_Next(s, key, value);
 
-      Entity_Parse(pair);
+      Entity *pair = Entity_SetPair(Entity_Alloc(), key, value);
 
       pair->next = entity;
       if (entity) {

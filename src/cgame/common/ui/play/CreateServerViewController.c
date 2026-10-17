@@ -58,12 +58,6 @@ static void createServer(Button *button) {
 
   for (size_t i = 0; i < selectedAi->count; i++) {
     const AiItemInfo *info = $(selectedAi, get, i);
-
-    if (ai->length + (i ? 1 : 0) + strlen(info->name) >= MAX_BSP_ENTITY_VALUE) {
-      cgi.Print("Too many AI players to name: %s and later ones join at random\n", info->name);
-      break;
-    }
-
     $(ai, appendFormat, "%s%s", i ? " " : "", info->name);
   }
 
