@@ -36,6 +36,7 @@ typedef struct {
 static struct {
   char ladderPath[MAX_QPATH];
   char progressPath[MAX_QPATH];
+  char startedLadder[MAX_QPATH];
 
   CGamePracticeEntry *ladder;
   size_t ladderLength;
@@ -195,7 +196,7 @@ static void Cg_Practice_WriteProgress(void) {
 
 /**
  * @brief Loads the ladder that `cg_practiceLadder` names, and the player's progress through it,
- * if they are not loaded yet.
+ * and loads them again when `cg_practiceLadder` changes.
  */
 static void Cg_Practice_Update(void) {
 
@@ -285,6 +286,7 @@ void Cg_Practice_Start(const CGamePracticeEntry *entry, const char *gameplay) {
   cgi.SetCvarInteger("sv_maxClients", module.maxClients);
   cgi.SetCvarString("sv_mapList", MAP_LIST_UI);
   cgi.SetCvarInteger(cg_practice->name, (int32_t) (entry - module.ladder));
+  Str_Copy(module.startedLadder, cg_practiceLadder->string, sizeof(module.startedLadder));
 
   cgi.Cbuf("nextMap\n");
 }
@@ -322,7 +324,7 @@ bool Cg_Practice_IsCleared(const CGamePracticeEntry *entry, const char *gameplay
 
 /**
  * @brief The entry this practice match plays, or `NULL` if this is not a practice match from
- * the ladder.
+ * the ladder, or if `cg_practiceLadder` changed since it started.
  */
 const CGamePracticeEntry *Cg_Practice_Current(void) {
 
@@ -331,6 +333,10 @@ const CGamePracticeEntry *Cg_Practice_Current(void) {
   }
 
   Cg_Practice_Update();
+
+  if (Str_Compare(module.startedLadder, cg_practiceLadder->string)) {
+    return NULL;
+  }
 
   const int32_t index = cg_practice->integer;
   if (index < 0 || (size_t) index >= module.ladderLength) {
