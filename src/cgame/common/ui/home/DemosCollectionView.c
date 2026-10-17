@@ -25,13 +25,6 @@
 
 #define _Class _DemosCollectionView
 
-/**
- * @brief Mapshots are scaled once, on the loading thread, to the item size `item-size` in
- * DemosViewController.css gives each item, so that every demo tile is the same shape.
- */
-#define DEMO_MAPSHOT_WIDTH  448
-#define DEMO_MAPSHOT_HEIGHT 252
-
 #pragma mark CollectionViewDataSource
 
 /**
@@ -141,25 +134,6 @@ static void enumerateDemos(const char *path, void *data) {
   }
 
   cgi.CloseFile(file);
-
-  List *mapshots = cgi.Mapshots(info->map);
-
-  const uint32_t len = mapshots ? (uint32_t) mapshots->count : 0;
-  if (len) {
-    const ListNode *node = mapshots->head;
-    for (size_t i = 0, index = RandomRangeu(0, len); node && i < index; i++) {
-      node = node->next;
-    }
-
-    SDL_Surface *surf = node ? cgi.LoadSurface(node->element) : NULL;
-    if (surf) {
-      info->mapshot = SDL_CreateSurface(DEMO_MAPSHOT_WIDTH, DEMO_MAPSHOT_HEIGHT, SDL_PIXELFORMAT_RGB24);
-      SDL_BlitSurfaceScaled(surf, NULL, info->mapshot, NULL, SDL_SCALEMODE_LINEAR);
-      SDL_DestroySurface(surf);
-    }
-  }
-
-  release(mapshots);
 
   $(demos, add, info);
 }

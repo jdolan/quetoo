@@ -27,7 +27,7 @@
 
 #include "common/installer.h"
 
-#include "HeroImageList.h"
+#include "ImageQueue.h"
 
 /**
  * @file
@@ -65,7 +65,7 @@ struct UpdateViewController {
 	/**
 	 * @brief Hero images fetched by the background thread, then added to slideShow on the main thread.
 	 */
-	HeroImageList *heroImages;
+	ImageQueue *heroImages;
 
 	/**
 	 * @brief The Quetoo logo.

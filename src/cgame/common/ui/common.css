@@ -199,8 +199,18 @@ DiagnosticsView {
 
 CollectionItemView,
 CollectionItemView > ImageView,
+CollectionItemView > MapshotThumbnailView ImageView,
 CollectionItemView > .selectionOverlay {
   border-radius: 6;
+}
+
+CollectionItemView > MapshotThumbnailView {
+  autoresizing-mask: fill;
+}
+
+/* its images fill it exactly, so a scissor for each of a list's thumbnails would only break batching */
+MapshotThumbnailView > SlideShowView {
+  clips-subviews: false;
 }
 
 CollectionItemView:selected {

@@ -186,6 +186,12 @@
     <ClInclude Include="..\src\cgame\common\ui\DialogViewController.h">
       <Filter>src\common\ui</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\ImageQueue.h">
+      <Filter>src\common\ui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\MapshotThumbnailView.h">
+      <Filter>src\common\ui</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\controls\CommunicationCaptureViewController.h">
       <Filter>src\common\ui\controls</Filter>
     </ClInclude>
@@ -329,9 +335,6 @@
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\home\StatsViewController.h">
       <Filter>src\common\ui\home</Filter>
-    </ClInclude>
-    <ClInclude Include="..\src\cgame\common\ui\main\HeroImageList.h">
-      <Filter>src\common\ui\main</Filter>
     </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\main\LoadingViewController.h">
       <Filter>src\common\ui\main</Filter>
@@ -545,6 +548,12 @@
     <ClCompile Include="..\src\cgame\common\ui\DialogViewController.c">
       <Filter>src\common\ui</Filter>
     </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\ImageQueue.c">
+      <Filter>src\common\ui</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\MapshotThumbnailView.c">
+      <Filter>src\common\ui</Filter>
+    </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\controls\CommunicationCaptureViewController.c">
       <Filter>src\common\ui\controls</Filter>
     </ClCompile>
@@ -688,9 +697,6 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\home\StatsViewController.c">
       <Filter>src\common\ui\home</Filter>
-    </ClCompile>
-    <ClCompile Include="..\src\cgame\common\ui\main\HeroImageList.c">
-      <Filter>src\common\ui\main</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\main\LoadingViewController.c">
       <Filter>src\common\ui\main</Filter>

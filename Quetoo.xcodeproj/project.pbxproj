@@ -68,7 +68,8 @@
 		0748101724F775645A77CED3 /* StageView.c in Sources */ = {isa = PBXBuildFile; fileRef = C412F8050FB26E0D40018D29 /* StageView.c */; };
 		08962C395D0FB0E620F78625 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = 7966EA6596003F9303BC00FA /* bg_item.c */; };
 		091C43A66A7972053AD1C8E7 /* box.c in Sources */ = {isa = PBXBuildFile; fileRef = 8542813678DB3B7BECEEF939 /* box.c */; };
-		0A3AFEF82E92A6D7EDE49205 /* HeroImageList.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */; };
+		0A3AFEF82E92A6D7EDE49205 /* ImageQueue.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* ImageQueue.c */; };
+		D9816524D26FA7B3BF330098 /* MapshotThumbnailView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2ED568F0033A530D0DF9F821 /* MapshotThumbnailView.c */; };
 		0B59BE03B414411797329FD1 /* NotifyView.c in Sources */ = {isa = PBXBuildFile; fileRef = EB4A4D641AA8495FB08D9F0E /* NotifyView.c */; };
 		0BF82540ADD285E5DF358C72 /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
 		0D717FD0F554D48A47A4C2A9 /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
@@ -97,7 +98,8 @@
 		2F1258894A585916F6D8F513 /* DemoList.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F2DF6B726C775FE05708017 /* DemoList.c */; };
 		2F75825314B0423B86868ACC /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
 		2FAD5FD12BD7CC3AC13E4E10 /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
-		30FD45E54A43D864398BD530 /* HeroImageList.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */; };
+		30FD45E54A43D864398BD530 /* ImageQueue.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* ImageQueue.c */; };
+		94DEBD5E92C444900C307EA3 /* MapshotThumbnailView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2ED568F0033A530D0DF9F821 /* MapshotThumbnailView.c */; };
 		31BF67401CBF4B95BDBDCC83 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		322BAB812EFDDA99BA25575E /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 848E81C81F875F4403EAE1EE /* scoreboard.json */; };
 		332CAA47FF0E8521C12DF852 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
@@ -194,11 +196,13 @@
 		9C1E56948C90F9D9DD714DF6 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		9C43D41506579A6ED4EE80F5 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		9E1C83CE11AE376D9174B271 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 027C4ADD65DCCCEBCEB3D462 /* hud.json */; };
-		9E1CC554403DDDF30E7936EF /* HeroImageList.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */; };
+		9E1CC554403DDDF30E7936EF /* ImageQueue.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* ImageQueue.c */; };
+		D50232F9CDF29B0561A0A5F1 /* MapshotThumbnailView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2ED568F0033A530D0DF9F821 /* MapshotThumbnailView.c */; };
 		9EBBE79D07E30BB784FC188F /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
 		9F948D38BAB2AE44F4A87F61 /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
 		9FBD809C130636B15E78DFC4 /* r_subview.h in Headers */ = {isa = PBXBuildFile; fileRef = 5939175D43577D9AF4903198 /* r_subview.h */; };
-		A04BD89F5AAC7CE024786A3C /* HeroImageList.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */; };
+		A04BD89F5AAC7CE024786A3C /* ImageQueue.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* ImageQueue.c */; };
+		D892B7966CA5B28DD9D790A1 /* MapshotThumbnailView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2ED568F0033A530D0DF9F821 /* MapshotThumbnailView.c */; };
 		A1F809FD3D4907D862309E48 /* PickupView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E9A665C836946BF25073235 /* PickupView.json */; };
 		A2E677309CBD4262ADCE7EA5 /* ConsoleViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 9352803A21064843A7D64A86 /* ConsoleViewController.c */; };
 		A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */; };
@@ -2308,7 +2312,7 @@
 		63EC6B30290B4C7899E5F6AC /* DiagnosticsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DiagnosticsView.h; sourceTree = "<group>"; };
 		64E652EE2F700EFB737AEA30 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = hud.json; sourceTree = "<group>"; };
 		671265A640259697D1AA363E /* ScoreView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ScoreView.h; sourceTree = "<group>"; };
-		6B77DE24754DEF2A64422733 /* HeroImageList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = HeroImageList.h; sourceTree = "<group>"; };
+		6B77DE24754DEF2A64422733 /* ImageQueue.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ImageQueue.h; sourceTree = "<group>"; };
 		6F9DDB2DBBC915AE10C66CB1 /* BlendView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BlendView.h; sourceTree = "<group>"; };
 		6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_fs.glsl; sourceTree = "<group>"; };
 		73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DemosCollectionView.c; sourceTree = "<group>"; };
@@ -2356,7 +2360,9 @@
 		AC727F6BFFF40568A39B2DF0 /* ChaseView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ChaseView.h; sourceTree = "<group>"; };
 		AF339E8DC908A7FE1C759AEA /* VoteView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VoteView.h; sourceTree = "<group>"; };
 		B00A6FD23FF3A3B4F77B3694 /* StatView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = StatView.h; sourceTree = "<group>"; };
-		B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = HeroImageList.c; sourceTree = "<group>"; };
+		B0D6F39C720CF8C8006B8E67 /* ImageQueue.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ImageQueue.c; sourceTree = "<group>"; };
+		2ED568F0033A530D0DF9F821 /* MapshotThumbnailView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MapshotThumbnailView.c; sourceTree = "<group>"; };
+		B2E16C0958E1D740E74F5216 /* MapshotThumbnailView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapshotThumbnailView.h; sourceTree = "<group>"; };
 		B2BB7E5AE1E2CA9AF9C61681 /* BarlowCondensed-OFL.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "BarlowCondensed-OFL.txt"; sourceTree = "<group>"; };
 		B73290DBC38EE6D335FC9BB9 /* MPlusU-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "MPlusU-Bold.ttf"; sourceTree = "<group>"; };
 		B76C2B2AE24E2511ACC08DEF /* MapList.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapList.h; sourceTree = "<group>"; };
@@ -4843,6 +4849,10 @@
 				CE8819581F882D9F000D5AB7 /* DialogViewController.c */,
 				CE7D2C2A2030F269004BC58E /* DialogViewController.css */,
 				CE7D2C292030F25B004BC58E /* DialogViewController.json */,
+				6B77DE24754DEF2A64422733 /* ImageQueue.h */,
+				B0D6F39C720CF8C8006B8E67 /* ImageQueue.c */,
+				B2E16C0958E1D740E74F5216 /* MapshotThumbnailView.h */,
+				2ED568F0033A530D0DF9F821 /* MapshotThumbnailView.c */,
 				CEAD8FCD2F9650560087A850 /* loading.png */,
 				CEA400012F9800000087B100 /* logo.png */,
 				CEAD8FCF2F9650560087A850 /* progress_bar.png */,
@@ -4911,8 +4921,6 @@
 				CE7D2C0D202F6134004BC58E /* MainView.json */,
 				CE5870991F5CE7D2004CAAB2 /* MainViewController.h */,
 				CE5870981F5CE7D2004CAAB2 /* MainViewController.c */,
-				6B77DE24754DEF2A64422733 /* HeroImageList.h */,
-				B0D6F39C720CF8C8006B8E67 /* HeroImageList.c */,
 				CEAD8FB72F93A4990087A850 /* UpdateViewController.h */,
 				CEAD8FB82F93A4990087A850 /* UpdateViewController.c */,
 				CEAD8FB92F93A4990087A850 /* UpdateViewController.css */,
@@ -7025,7 +7033,8 @@
 				CE05B3F030224900C0DE003D /* TeamsViewController.c in Sources */,
 				D1A5B0000000000000000206 /* VoteViewController.c in Sources */,
 				CE05B3F030224900C0DE003E /* TeamView.c in Sources */,
-				0A3AFEF82E92A6D7EDE49205 /* HeroImageList.c in Sources */,
+				0A3AFEF82E92A6D7EDE49205 /* ImageQueue.c in Sources */,
+				D9816524D26FA7B3BF330098 /* MapshotThumbnailView.c in Sources */,
 				CE05B3F030224900C0DE003F /* UpdateViewController.c in Sources */,
 				CE05B3F030224900C0DE0001 /* bg_item.c in Sources */,
 				CE05B3F030224900C0DE0002 /* bg_pmove.c in Sources */,
@@ -7203,7 +7212,8 @@
 				CEAA781A2775337300EAC853 /* TeamsViewController.c in Sources */,
 				D1A5B0000000000000000207 /* VoteViewController.c in Sources */,
 				CEAA78ED2775388700EAC853 /* TeamView.c in Sources */,
-				9E1CC554403DDDF30E7936EF /* HeroImageList.c in Sources */,
+				9E1CC554403DDDF30E7936EF /* ImageQueue.c in Sources */,
+				D50232F9CDF29B0561A0A5F1 /* MapshotThumbnailView.c in Sources */,
 				CEAD8FBC2F93A4990087A850 /* UpdateViewController.c in Sources */,
 				CEFEED000000000000000004 /* bg_item.c in Sources */,
 				CEFEED000000000000000002 /* bg_pmove.c in Sources */,
@@ -7694,7 +7704,8 @@
 				CEC0FF00202601030000019E /* TeamsViewController.c in Sources */,
 				D1A5B0000000000000000208 /* VoteViewController.c in Sources */,
 				CEC0FF00202601030000019D /* TeamView.c in Sources */,
-				30FD45E54A43D864398BD530 /* HeroImageList.c in Sources */,
+				30FD45E54A43D864398BD530 /* ImageQueue.c in Sources */,
+				94DEBD5E92C444900C307EA3 /* MapshotThumbnailView.c in Sources */,
 				CEC0FF00202601030000019F /* UpdateViewController.c in Sources */,
 				CEFEED000000000000000005 /* bg_item.c in Sources */,
 				CEFEED000000000000000003 /* bg_pmove.c in Sources */,
@@ -7927,7 +7938,8 @@
 				D2A5C1000000000000000081 /* TeamsViewController.c in Sources */,
 				D2A5C1000000000000000082 /* VoteViewController.c in Sources */,
 				D2A5C1000000000000000083 /* TeamView.c in Sources */,
-				A04BD89F5AAC7CE024786A3C /* HeroImageList.c in Sources */,
+				A04BD89F5AAC7CE024786A3C /* ImageQueue.c in Sources */,
+				D892B7966CA5B28DD9D790A1 /* MapshotThumbnailView.c in Sources */,
 				D2A5C1000000000000000084 /* UpdateViewController.c in Sources */,
 				D2A5C1000000000000000085 /* bg_item.c in Sources */,
 				D2A5C1000000000000000086 /* bg_pmove.c in Sources */,

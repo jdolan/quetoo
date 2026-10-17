@@ -164,25 +164,16 @@ static void setDetailsPopulated(JoinServerViewController *self, const bool popul
  */
 static void refreshMapshot(JoinServerViewController *self, const ClientServerInfo *server) {
 
-  SDL_Surface *surface = NULL;
+  bool found = false;
 
   if (server && *server->name) {
     List *mapshots = cgi.Mapshots(server->name);
-
-    if (mapshots->count) {
-      surface = cgi.LoadSurface(mapshots->head->element);
-    }
-
+    found = mapshots->count > 0;
     release(mapshots);
   }
 
-  $(self->mapshotView, setImageWithSurface, surface);
-  $((View *) self->mapshotView, setVisibility,
-    surface == NULL ? ViewVisibilityHidden : ViewVisibilityVisible);
-
-  if (surface) {
-    SDL_DestroySurface(surface);
-  }
+  $(self->mapshotView, setMap, found ? server->name : NULL);
+  $((View *) self->mapshotView, setVisibility, found ? ViewVisibilityVisible : ViewVisibilityHidden);
 }
 
 /**

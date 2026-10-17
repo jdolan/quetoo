@@ -157,6 +157,13 @@ static DemosCollectionItemView *initWithFrame(DemosCollectionItemView *self, con
   self = (DemosCollectionItemView *) super(CollectionItemView, self, initWithFrame, frame);
   if (self) {
 
+    self->mapshot = $(alloc(MapshotThumbnailView), initWithFrame, NULL);
+    assert(self->mapshot);
+
+    CollectionItemView *item = (CollectionItemView *) self;
+    $((View *) self, addSubviewRelativeTo, (View *) self->mapshot, (View *) item->imageView, ViewPositionAfter);
+    release(self->mapshot);
+
     StackView *actions = $(alloc(StackView), initWithFrame, NULL);
     assert(actions);
 
@@ -207,7 +214,8 @@ static void setDemoListItemInfo(DemosCollectionItemView *self, DemoListItemInfo 
   self->info = info;
 
   $(item->text, setText, NULL);
-  $(item->imageView, setImage, NULL);
+
+  $(self->mapshot, setMap, info ? info->map : NULL);
 
   if (info) {
 
@@ -219,10 +227,6 @@ static void setDemoListItemInfo(DemosCollectionItemView *self, DemoListItemInfo 
     strftime(date, sizeof(date), "%Y-%m-%d %H:%M", tm);
 
     $(item->text, setText, va("%s\n%d:%02d", date, seconds / 60, seconds % 60));
-
-    if (info->mapshot) {
-      $(item->imageView, setImageWithSurface, info->mapshot);
-    }
   }
 
   $(self->titleView, setDefaultText, info ? DemoListItemName(info) : NULL);

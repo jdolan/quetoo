@@ -91,6 +91,10 @@
     <ClInclude Include="..\src\cgame\common\ui\CvarTextView.h" />
     <ClCompile Include="..\src\cgame\common\ui\DialogViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\DialogViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\ImageQueue.c" />
+    <ClInclude Include="..\src\cgame\common\ui\ImageQueue.h" />
+    <ClCompile Include="..\src\cgame\common\ui\MapshotThumbnailView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\MapshotThumbnailView.h" />
     <ClCompile Include="..\src\cgame\common\ui\controls\CommunicationCaptureViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\controls\CommunicationCaptureViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\controls\ControlsViewController.c" />
@@ -187,8 +191,6 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\VoteView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\WeaponBarView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\WeaponBarView.h" />
-    <ClCompile Include="..\src\cgame\common\ui\main\HeroImageList.c" />
-    <ClInclude Include="..\src\cgame\common\ui\main\HeroImageList.h" />
     <ClCompile Include="..\src\cgame\common\ui\main\LoadingViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\main\LoadingViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\main\MainView.c" />

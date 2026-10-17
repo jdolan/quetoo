@@ -27,6 +27,8 @@
 
 #include "cg_types.h"
 
+#include "MapshotThumbnailView.h"
+
 /**
  * @file
  * @brief The DemosCollectionItemView type.
@@ -43,7 +45,6 @@ typedef struct {
   int32_t duration;
   bool favorite;
   int64_t modified;
-  SDL_Surface *mapshot;
 } DemoListItemInfo;
 
 const char *DemoListItemName(const DemoListItemInfo *info);
@@ -90,6 +91,11 @@ struct DemosCollectionItemView {
    * @brief The demo's name, editable in place to retitle the demo.
    */
   TextView *titleView;
+
+  /**
+   * @brief The demo's map's mapshots, over the item's ImageView.
+   */
+  MapshotThumbnailView *mapshot;
 };
 
 /**

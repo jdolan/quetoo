@@ -30,9 +30,6 @@
  */
 static void freeMapListItemInfo(void *p) {
   MapListItemInfo *info = p;
-  if (info->mapshot) {
-    SDL_DestroySurface(info->mapshot);
-  }
   free(info);
 }
 

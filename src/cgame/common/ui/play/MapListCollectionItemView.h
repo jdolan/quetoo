@@ -26,6 +26,8 @@
 
 #include "cg_types.h"
 
+#include "MapshotThumbnailView.h"
+
 /**
  * @file
  * @brief The MapListCollectionItemView type.
@@ -35,7 +37,6 @@ typedef struct MapListItemInfo {
   char mapname[MAX_QPATH];
   char message[MAX_TOKEN_CHARS];
   char games[MAX_TOKEN_CHARS];
-  SDL_Surface *mapshot;
 } MapListItemInfo;
 
 typedef struct MapListCollectionItemView MapListCollectionItemView;
@@ -64,6 +65,11 @@ struct MapListCollectionItemView {
    * corner by CSS. Only attached to this item while it holds at least one badge.
    */
   StackView *games;
+
+  /**
+   * @brief The map's mapshots, over the item's ImageView.
+   */
+  MapshotThumbnailView *mapshot;
 };
 
 /**
