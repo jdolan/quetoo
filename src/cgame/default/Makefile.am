@@ -307,6 +307,8 @@ cgame_la_SOURCES = \
 	ui/main/MainView.c \
 	ui/main/MainViewController.c \
 	ui/main/UpdateViewController.c \
+	ui/play/AiCollectionItemView.c \
+	ui/play/AiCollectionView.c \
 	ui/play/CreateServerViewController.c \
 	ui/play/JoinServerViewController.c \
 	ui/play/MapList.c \

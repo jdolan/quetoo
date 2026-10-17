@@ -348,6 +348,12 @@
     <ClInclude Include="..\src\cgame\common\ui\main\UpdateViewController.h">
       <Filter>src\common\ui\main</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\play\AiCollectionItemView.h">
+      <Filter>src\common\ui\play</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\play\AiCollectionView.h">
+      <Filter>src\common\ui\play</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\play\CreateServerViewController.h">
       <Filter>src\common\ui\play</Filter>
     </ClInclude>
@@ -697,6 +703,12 @@
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\main\UpdateViewController.c">
       <Filter>src\common\ui\main</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\play\AiCollectionItemView.c">
+      <Filter>src\common\ui\play</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\play\AiCollectionView.c">
+      <Filter>src\common\ui\play</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\play\CreateServerViewController.c">
       <Filter>src\common\ui\play</Filter>

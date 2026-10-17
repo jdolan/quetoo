@@ -235,6 +235,22 @@
                   "class": "Box",
                   "label": {
                     "text": {
+                      "text": "AI players"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "AiCollectionView",
+                        "identifier": "aiList"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
                       "text": "Map list"
                     }
                   },

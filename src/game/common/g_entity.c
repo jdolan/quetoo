@@ -769,7 +769,7 @@ static void G_worldspawn_Music(void) {
 /*QUAKED worldspawn (0 0 0) ?
  The worldspawn entity defines global conditions and behavior for the entire level. All brushes not belonging to an explicit entity implicitly belong to worldspawn.
 
-The map list's entry for the level takes precedence over the gameplay, movement, gravity, min_clients, frag_limit, capture_limit, time_limit and music given here. A server setting other than "default" takes precedence over both, except for music, which has no server setting.
+The map list's entry for the level takes precedence over the gameplay, movement, gravity, min_clients, ai, frag_limit, capture_limit, time_limit and music given here. A server setting other than "default" takes precedence over both, except for ai and music, which have no server setting.
  -------- KEYS --------
  message : The map title.
  games : Space-delimited games this map is made for, one or more of dm, tdm, duel, ctf, instagib, race (default dm). Shown and filtered in the Create Server map browser.
@@ -780,7 +780,7 @@ The map list's entry for the level takes precedence over the gameplay, movement,
  movement : The player movement, one of quetoo, race, quake, quake2, quake3 (default quetoo, or race in the race module).
  items : The item set for this map: "default" (Quetoo weapons) or "quake" (Quake weapons).
  min_clients : The number of clients, humans and AI, the game fills to; unset, 0.
- ai : The AI players, by name and separated by spaces, that the game adds first when it fills to min_clients. Any others are picked at random.
+ ai : The AI players, by name and separated by spaces, that join the level first. They always join, even beyond min_clients; any others that min_clients asks for are picked at random.
  frag_limit : The frag limit; unset, 30.
  capture_limit : The capture limit, in CTF; unset, 8.
  time_limit : The time limit in minutes; unset, 20.

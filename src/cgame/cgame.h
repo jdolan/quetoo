@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 69
+#define CGAME_API_VERSION 70
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -733,6 +733,13 @@ typedef struct {
    * @return A newly allocated entity. The caller must free this with FreeEntity.
    */
   Entity *(*EntityFromInfoString)(const char *str);
+
+  /**
+   * @brief Parses entity definitions, such as the map list format of `maps.lst` or `ai.lst`.
+   * @param entityString The entity definitions.
+   * @return A list of `Entity *`, each to be freed with `FreeEntity`.
+   */
+  List *(*LoadEntities)(const char *entityString);
 
   /**
    * @return The contents mask at the specified point.

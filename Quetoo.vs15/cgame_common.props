@@ -197,6 +197,10 @@
     <ClInclude Include="..\src\cgame\common\ui\main\MainViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\main\UpdateViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\main\UpdateViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\play\AiCollectionItemView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\play\AiCollectionItemView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\play\AiCollectionView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\play\AiCollectionView.h" />
     <ClCompile Include="..\src\cgame\common\ui\play\CreateServerViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\play\CreateServerViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\play\JoinServerViewController.c" />

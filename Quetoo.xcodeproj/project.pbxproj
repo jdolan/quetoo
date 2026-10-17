@@ -427,6 +427,8 @@
 		CE05B3F030224900C0DE002F /* MainView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AC1F5CE98D004CAAB2 /* MainView.c */; };
 		CE05B3F030224900C0DE0030 /* MainViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870981F5CE7D2004CAAB2 /* MainViewController.c */; };
 		CE05B3F030224900C0DE0031 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
+		A1C0FFEE0000000000000005 /* AiCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000000000001 /* AiCollectionItemView.c */; };
+		A1C0FFEE0000000000000006 /* AiCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000000000003 /* AiCollectionView.c */; };
 		CE05B3F030224900C0DE0032 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
 		CE05B3F030224900C0DE0033 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000E2F9100000000C00E /* MaterialViewController.c */; };
 		CE05B3F030224900C0DE0034 /* StageViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* StageViewController.c */; };
@@ -679,6 +681,8 @@
 		CE6EE3E11F720D9A00FBC830 /* CreateServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58707F1F5CDFE0004CAAB2 /* CreateServerViewController.c */; };
 		CE6EE3E21F720D9A00FBC830 /* JoinServerViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870811F5CDFE0004CAAB2 /* JoinServerViewController.c */; };
 		CE6EE3E31F720D9A00FBC830 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
+		A1C0FFEE0000000000000007 /* AiCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000000000001 /* AiCollectionItemView.c */; };
+		A1C0FFEE0000000000000008 /* AiCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000000000003 /* AiCollectionView.c */; };
 		CE6EE3E41F720D9A00FBC830 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
 		CE6EE3E51F720D9A00FBC830 /* PlayViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870831F5CDFE0004CAAB2 /* PlayViewController.c */; };
 		CE6EE3ED1F720D9A00FBC830 /* SettingsViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE58708D1F5CDFE0004CAAB2 /* SettingsViewController.c */; };
@@ -1037,6 +1041,8 @@
 		CEC0FF00202601030000018F /* MainView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AC1F5CE98D004CAAB2 /* MainView.c */; };
 		CEC0FF002026010300000190 /* MainViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870981F5CE7D2004CAAB2 /* MainViewController.c */; };
 		CEC0FF002026010300000191 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
+		A1C0FFEE0000000000000009 /* AiCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000000000001 /* AiCollectionItemView.c */; };
+		A1C0FFEE000000000000000A /* AiCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000000000003 /* AiCollectionView.c */; };
 		CEC0FF002026010300000192 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
 		CEC0FF002026010300000193 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000E2F9100000000C00E /* MaterialViewController.c */; };
 		CEC0FF002026010300000194 /* StageViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* StageViewController.c */; };
@@ -1372,6 +1378,8 @@
 		D2A5C1000000000000000073 /* MainView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AC1F5CE98D004CAAB2 /* MainView.c */; };
 		D2A5C1000000000000000074 /* MainViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870981F5CE7D2004CAAB2 /* MainViewController.c */; };
 		D2A5C1000000000000000075 /* MapListCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */; };
+		A1C0FFEE000000000000000B /* AiCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000000000001 /* AiCollectionItemView.c */; };
+		A1C0FFEE000000000000000C /* AiCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = A1C0FFEE0000000000000003 /* AiCollectionView.c */; };
 		D2A5C1000000000000000076 /* MapListCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */; };
 		D2A5C1000000000000000077 /* MaterialViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA0000E2F9100000000C00E /* MaterialViewController.c */; };
 		D2A5C1000000000000000078 /* StageViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CFA000122F9100000000C025 /* StageViewController.c */; };
@@ -2886,6 +2894,10 @@
 		CE5870A31F5CE97C004CAAB2 /* CvarTextView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CvarTextView.h; sourceTree = "<group>"; };
 		CE5870AC1F5CE98D004CAAB2 /* MainView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MainView.c; sourceTree = "<group>"; };
 		CE5870AD1F5CE98D004CAAB2 /* MainView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MainView.h; sourceTree = "<group>"; };
+		A1C0FFEE0000000000000001 /* AiCollectionItemView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = AiCollectionItemView.c; sourceTree = "<group>"; };
+		A1C0FFEE0000000000000002 /* AiCollectionItemView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AiCollectionItemView.h; sourceTree = "<group>"; };
+		A1C0FFEE0000000000000003 /* AiCollectionView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = AiCollectionView.c; sourceTree = "<group>"; };
+		A1C0FFEE0000000000000004 /* AiCollectionView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AiCollectionView.h; sourceTree = "<group>"; };
 		CE5870AE1F5CE99C004CAAB2 /* MapListCollectionItemView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MapListCollectionItemView.c; sourceTree = "<group>"; };
 		CE5870AF1F5CE99C004CAAB2 /* MapListCollectionItemView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MapListCollectionItemView.h; sourceTree = "<group>"; };
 		CE5870B01F5CE99C004CAAB2 /* MapListCollectionView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = MapListCollectionView.c; sourceTree = "<group>"; };
@@ -4841,6 +4853,10 @@
 		CE58707E1F5CDFE0004CAAB2 /* play */ = {
 			isa = PBXGroup;
 			children = (
+				A1C0FFEE0000000000000002 /* AiCollectionItemView.h */,
+				A1C0FFEE0000000000000001 /* AiCollectionItemView.c */,
+				A1C0FFEE0000000000000004 /* AiCollectionView.h */,
+				A1C0FFEE0000000000000003 /* AiCollectionView.c */,
 				CE5870801F5CDFE0004CAAB2 /* CreateServerViewController.h */,
 				CE58707F1F5CDFE0004CAAB2 /* CreateServerViewController.c */,
 				CE4E07C420267EE8000B276C /* CreateServerViewController.css */,
@@ -6936,6 +6952,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1C0FFEE0000000000000005 /* AiCollectionItemView.c in Sources */,
+				A1C0FFEE0000000000000006 /* AiCollectionView.c in Sources */,
 				CE05B3F030224900C0DE0003 /* BindTextView.c in Sources */,
 				CE05B3F030224900C0DE001F /* ControlsViewController.c in Sources */,
 				CE05B3F030224900C0DE0020 /* CreateServerViewController.c in Sources */,
@@ -7112,6 +7130,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1C0FFEE0000000000000007 /* AiCollectionItemView.c in Sources */,
+				A1C0FFEE0000000000000008 /* AiCollectionView.c in Sources */,
 				CE32529D1F760D3F00512523 /* BindTextView.c in Sources */,
 				CE1A28401F75FEB1005F62A9 /* ControlsViewController.c in Sources */,
 				CE6EE3E11F720D9A00FBC830 /* CreateServerViewController.c in Sources */,
@@ -7601,6 +7621,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1C0FFEE0000000000000009 /* AiCollectionItemView.c in Sources */,
+				A1C0FFEE000000000000000A /* AiCollectionView.c in Sources */,
 				CEC0FF00202601030000017E /* BindTextView.c in Sources */,
 				CEC0FF00202601030000017F /* ControlsViewController.c in Sources */,
 				CEC0FF002026010300000180 /* CreateServerViewController.c in Sources */,
@@ -7832,6 +7854,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1C0FFEE000000000000000B /* AiCollectionItemView.c in Sources */,
+				A1C0FFEE000000000000000C /* AiCollectionView.c in Sources */,
 				D2A5C1000000000000000062 /* BindTextView.c in Sources */,
 				D2A5C1000000000000000063 /* ControlsViewController.c in Sources */,
 				D2A5C1000000000000000064 /* CreateServerViewController.c in Sources */,

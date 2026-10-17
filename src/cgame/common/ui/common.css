@@ -195,6 +195,23 @@ DiagnosticsView {
   autoresizing-mask: contain;
 }
 
+/* Every collection rounds its items, and tints the selected ones with the theme's accent */
+
+CollectionItemView,
+CollectionItemView > ImageView,
+CollectionItemView > .selectionOverlay {
+  border-radius: 6;
+}
+
+CollectionItemView:selected {
+  border-color: #8fc7dc;
+  border-width: 2;
+}
+
+CollectionItemView:selected > .selectionOverlay {
+  background-color: #2a7fa055;
+}
+
 MapListCollectionItemView Text {
   alignment: bottom-center;
 }
