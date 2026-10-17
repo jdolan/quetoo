@@ -660,6 +660,11 @@ static void Sv_SyncGameClients(void) {
         memset(client, 0, sizeof(*client));
         client->lastFrame = -1;
         client->gclient = gclient;
+      } else if (cl->ai && Str_Compare(client->userInfo, cl->userInfo)) { // another ai took the slot
+        Str_Copy(client->userInfo, cl->userInfo, sizeof(client->userInfo));
+        if (!Sv_UserInfoChanged(client)) {
+          Com_Warn("Rejected user_info from ai client %d\n", i);
+        }
       }
     }
   }

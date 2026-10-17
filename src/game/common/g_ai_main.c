@@ -4142,6 +4142,82 @@ static void G_Ai_ReloadNodes(void) {
 }
 
 /**
+ * @brief Counts the humans who play, and the AI players that fill the level, which excludes
+ * those added by `addAi`.
+ */
+static void G_Ai_CountClients(int32_t *humanClients, int32_t *aiClients) {
+
+  *humanClients = *aiClients = 0;
+
+  G_ForEachClient(cl, {
+    if (cl->ai) {
+      *aiClients += cl->ai->added ? 0 : 1;
+    } else if (!cl->persistent.spectator) {
+      (*humanClients)++;
+    }
+  });
+}
+
+/**
+ * @brief The number of playing clients the level wants: its humans and the AI players it
+ * names, at least `minClients` except in a practice match, and at most `sv_maxClients`.
+ */
+static int32_t G_Ai_DesiredClients(int32_t humanClients) {
+
+  const int32_t minClients = gameLevel.practice ? 0 : Maxi(0, gameLevel.minClients);
+  const int32_t maxClients = Maxi(0, sv_maxClients->integer);
+
+  const int32_t namedClients = humanClients + G_Ai_LevelRosterCount();
+
+  return Mini(Maxi(minClients, namedClients), maxClients);
+}
+
+/**
+ * @brief Sets up the level's AI players all at once as it spawns, before any client connects, so
+ * that every client loads their models with the level rather than in play. The AI players that
+ * the level names stay or connect, and those it does not want leave.
+ */
+static void G_Ai_Populate(void) {
+
+  if (G_Ai_RosterCount() == 0) {
+    return;
+  }
+
+  int32_t humanClients, aiClients;
+  G_Ai_CountClients(&humanClients, &aiClients);
+
+  const int32_t wanted = Maxi(0, G_Ai_DesiredClients(humanClients) - humanClients);
+
+  int32_t named = 0;
+  G_ForEachClient(cl, {
+    if (cl->ai && !cl->ai->added && G_Ai_IsLevelRoster(cl->ai->roster)) {
+      named++;
+    }
+  });
+
+  int32_t keepNamed = Mini(named, wanted);
+  int32_t keepOthers = Maxi(0, wanted - G_Ai_LevelRosterCount());
+
+  G_ForEachClient(cl, {
+    if (cl->ai && !cl->ai->added) {
+      if (G_Ai_IsLevelRoster(cl->ai->roster) ? keepNamed-- > 0 : keepOthers-- > 0) {
+        continue;
+      }
+      G_ClientDisconnect(cl);
+    }
+  });
+
+  G_Ai_CountClients(&humanClients, &aiClients);
+
+  for (int32_t i = aiClients; i < wanted; i++) {
+    G_ForEachFreeClient(cl, {
+      G_Ai_Connect(cl, NULL);
+      break;
+    });
+  }
+}
+
+/**
  * @brief Manages the bot population and runs each bot's think function every frame.
  */
 void G_Ai_Frame(void) {
@@ -4163,23 +4239,11 @@ void G_Ai_Frame(void) {
 
   if (gameLevel.time % 1000 == 0) {
 
-    int32_t humanClients = 0;
-    int32_t aiClients = 0;
-    G_ForEachClient(cl, {
-      if (cl->ai) {
-        aiClients += cl->ai->added ? 0 : 1;
-      } else if (!cl->persistent.spectator) {
-        humanClients++;
-      }
-    });
+    int32_t humanClients, aiClients;
+    G_Ai_CountClients(&humanClients, &aiClients);
 
     const int32_t activeClients = humanClients + aiClients;
-
-    const int32_t minClients = Maxi(0, gameLevel.minClients);
-    const int32_t maxClients = Maxi(0, sv_maxClients->integer);
-
-    const int32_t namedClients = humanClients + G_Ai_LevelRosterCount();
-    const int32_t desiredClients = Mini(Maxi(minClients, namedClients), maxClients);
+    const int32_t desiredClients = G_Ai_DesiredClients(humanClients);
 
     if (activeClients < desiredClients && G_Ai_RosterCount()) {
       G_ForEachFreeClient(cl, {
@@ -4281,6 +4345,8 @@ void G_Ai_Load(void) {
   G_Ai_State_Unload();
 
   G_Ai_Node_Init();
+
+  G_Ai_Populate();
 }
 
 /**

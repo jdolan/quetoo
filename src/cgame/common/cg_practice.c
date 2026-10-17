@@ -250,7 +250,7 @@ void Cg_Practice_Start(const CGamePracticeEntry *entry, const char *gameplay) {
   }
 
   static const char *levelCvars[] = {
-    "sv_minClients", "g_fragLimit", "g_timeLimit", "g_captureLimit", "g_gravity", "g_gameplay"
+    "g_fragLimit", "g_timeLimit", "g_captureLimit", "g_gravity", "g_gameplay"
   };
 
   for (size_t i = 0; i < lengthof(levelCvars); i++) {
