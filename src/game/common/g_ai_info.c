@@ -91,13 +91,21 @@ static void G_Ai_LoadRoster_color(const Entity *e, const char *name, const char 
     return;
   }
 
-  const bool hue = !Str_Compare(key, "color");
-  const Entity *v = gi.EntityValue(e, key);
-  const bool valid = hue ? strspn(value, "0123456789") == strlen(value) && v->integer <= 360 :
-                           G_Ai_IsTint(value);
-  if (!valid) {
-    G_Warn("%s: %s has %s \"%s\", which is not %s; it is random\n", AI_ROSTER_FILE, name, key, value,
-           hue ? "a hue from 0 to 360" : "six hex digits");
+  if (!Str_Compare(key, "color")) {
+    char *end;
+    const long hue = strtol(value, &end, 10);
+    if (end == value || *end || hue < 0 || hue > 360) {
+      G_Warn("%s: %s has %s \"%s\", which is not a hue from 0 to 360; it is random\n",
+             AI_ROSTER_FILE, name, key, value);
+      return;
+    }
+    Str_Format(out, size, "%ld", hue);
+    return;
+  }
+
+  if (!G_Ai_IsTint(value)) {
+    G_Warn("%s: %s has %s \"%s\", which is not six hex digits; it is random\n", AI_ROSTER_FILE,
+           name, key, value);
     return;
   }
 
@@ -150,14 +158,16 @@ static void G_Ai_LoadRoster(void) {
 
     bool valid = true;
     for (size_t i = 0; i < lengthof(traits); i++) {
-      const Entity *trait = gi.EntityValue(e, traits[i]);
-      if (!(trait->parsed & ENTITY_FLOAT) || !(trait->value >= 0.f && trait->value <= 1.f)) {
+      const char *string = gi.EntityValue(e, traits[i])->string;
+      char *end;
+      const float value = strtof(string, &end);
+      if (end == string || *end || !(value >= 0.f && value <= 1.f)) {
         G_Warn("%s: %s has %s \"%s\", which is not a number from 0 to 1, and is skipped\n",
-               AI_ROSTER_FILE, name, traits[i], trait->string);
+               AI_ROSTER_FILE, name, traits[i], string);
         valid = false;
         break;
       }
-      *values[i] = trait->value;
+      *values[i] = value;
     }
 
     if (!valid) {
@@ -294,9 +304,15 @@ const GameAiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
 
   const GameAiRoster *entry = G_Ai_GetRoster_level();
 
+  bool reshuffled = false;
+
   for (uint32_t i = 0; !entry && i < aiRosterCount; i++) {
     if (aiRosterIndex == aiRosterCount) {
       G_Ai_ShuffleRoster();
+      if (!reshuffled) {
+        reshuffled = true;
+        i = 0;
+      }
     }
 
     const GameAiRoster *next = &aiRoster[aiRosterOrder[aiRosterIndex++]];
