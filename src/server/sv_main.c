@@ -977,7 +977,7 @@ static void Sv_InitLocal(void) {
   sv_master = Cvar_Add("sv_master", HOST_MASTER, CVAR_NO_SET, "The master server hostname.");
   sv_maxClients = Cvar_Add("sv_maxClients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow.");
   sv_maxEntities = Cvar_Add("sv_maxEntities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow.");
-  sv_minClients = Cvar_Add("sv_minClients", "0", CVAR_SERVER_INFO, "The minimum number of clients the server will allow.");
+  sv_minClients = Cvar_Add("sv_minClients", "default", CVAR_SERVER_INFO, "The number of clients, humans and AI, the game fills to: \"default\" defers to the level, else 0.");
   sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server.");
   sv_statsUrl = Cvar_Add("sv_statsUrl", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST per-match stats to. Requires sv_public 1. Set to 0 to disable.");
   char uuid[37];

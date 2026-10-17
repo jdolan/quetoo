@@ -169,7 +169,7 @@ static bool G_CheckCvars_Ctf(void) {
 
   if (g_captureLimit->modified) {
     g_captureLimit->modified = false;
-    gameLevel.captureLimit = g_captureLimit->integer;
+    gameLevel.captureLimit = G_LevelSetting(g_captureLimit, gameLevel.requested.captureLimit, NULL);
 
     gi.BroadcastPrint(PRINT_HIGH, "Capture limit has been changed to %d\n", gameLevel.captureLimit);
   }
@@ -486,7 +486,7 @@ void G_Ctf_Init(void) {
     G_InitMedia = G_InitMedia_Ctf;
   }
 
-  g_captureLimit = gi.AddCvar("g_captureLimit", "8", CVAR_SERVER_INFO, "The capture limit per level.");
+  g_captureLimit = gi.AddCvar("g_captureLimit", "default", CVAR_SERVER_INFO, "The capture limit per level: \"default\" defers to the level, else 8.");
 
   g_captureLimit->modified = false;
 }

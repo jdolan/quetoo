@@ -43,6 +43,7 @@ extern GameMedia gameMedia;
 
 char *G_FormatTime(uint32_t time);
 PMoveParams G_MovementParams(void);
+float G_LevelSetting(const Cvar *cvar, float requested, const char **source);
 float G_LevelGravity(void);
 PMovement G_ResolveMovement(const char *name);
 GamePlayId G_ResolveGamePlay(const char *name);

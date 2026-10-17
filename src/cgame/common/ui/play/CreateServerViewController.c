@@ -31,12 +31,17 @@
 /**
  * @brief TextViewDelegate for the Bots field.
  * Stores (entered value + 1) into sv_minClients, accounting for the
- * player themselves occupying one client slot.
+ * player themselves occupying one client slot. An empty field defers to the level.
  */
 static void botsDidEndEditing(TextView *textView) {
 
   const String *string = (String *) textView->attributedText;
-  cgi.SetCvarInteger("sv_minClients", atoi(string->chars) + 1);
+  if (string->length) {
+    cgi.SetCvarInteger("sv_minClients", atoi(string->chars) + 1);
+  } else {
+    cgi.SetCvarString("sv_minClients", "default");
+    $(textView, setDefaultText, NULL);
+  }
 }
 
 /**
@@ -128,8 +133,9 @@ static void loadView(ViewController *self) {
   assert(self->view->stylesheet);
 
   const Cvar *svMinClients = cgi.GetCvar("sv_minClients");
-  const int32_t bots = svMinClients ? Maxi(0, svMinClients->integer - 1) : 0;
-  $(this->bots, setDefaultText, va("%d", bots));
+  if (svMinClients && Str_Compare(svMinClients->string, "default")) {
+    $(this->bots, setDefaultText, va("%d", Maxi(0, svMinClients->integer - 1)));
+  }
 
   this->bots->delegate.didEndEditing = botsDidEndEditing;
 
