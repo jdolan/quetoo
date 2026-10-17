@@ -650,7 +650,7 @@ int32_t Cl_InstallerFrame(const InstallerStatus *in) {
 
   S_RenderStage(&clientStage);
 
-  R_Screenshot(&clientView);
+  R_Screenshot();
 
   return res;
 }
@@ -757,7 +757,7 @@ void Cl_Frame(const uint32_t msec) {
 
   R_EndFrame();
 
-  R_Screenshot(&clientView);
+  R_Screenshot();
 
   cls.cgame->UpdateDiscord();
 

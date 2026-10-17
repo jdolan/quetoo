@@ -24,7 +24,8 @@
 #include "r_types.h"
 
 RenderImage *R_LoadImage(const char *name, RenderImageType type);
-void R_Screenshot(RenderView *view);
+bool R_ViewScreenshotPending(void);
+void R_Screenshot(void);
 
 #if defined(__R_LOCAL_H__)
 void R_Screenshot_f(void);

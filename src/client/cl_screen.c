@@ -61,6 +61,10 @@ void Cl_UpdateScreen(void) {
       break;
 
     case CL_ACTIVE:
+      if (R_ViewScreenshotPending()) {
+        break;
+      }
+
       if (cls.keyState.dest != KEY_UI || editor->integer) {
         cls.cgame->UpdateScreen(&cl.frame);
       }

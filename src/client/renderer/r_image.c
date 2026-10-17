@@ -153,9 +153,17 @@ static SDL_Surface *R_ReadTexture(const Texture *texture) {
 }
 
 /**
+ * @brief Returns true if a screenshot of the view, without 2D, is pending this frame.
+ */
+bool R_ViewScreenshotPending(void) {
+
+  return pendingScreenshot == SCREENSHOT_VIEW;
+}
+
+/**
  * @brief Captures the resolved color buffer if a screenshot is pending.
  */
-void R_Screenshot(RenderView *view) {
+void R_Screenshot(void) {
 
   if (pendingScreenshot == SCREENSHOT_NONE) {
     return;
