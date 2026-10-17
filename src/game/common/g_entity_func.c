@@ -1608,6 +1608,7 @@ static void G_func_door_Touch(GameEntity *ent, GameEntity *other, const Collisio
  sounds : The sound set for the door (0 default, 1 stone, -1 silent).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
+ ai_hint : Set to "trap" to mark the door as a trap, such as a floor that slides away over lava, or a crusher. The door needs a targetname. A bot in a fight walks into a touched func_button that targets it while its enemy stands on the door. A bot never opens a trap door to get past it.
 
  -------- Spawn flags --------
  start_open : The door to moves to its destination when spawned, and operates in reverse.
@@ -1739,10 +1740,11 @@ bool G_func_door_IsAway(const GameEntity *ent) {
  health : If set, door must take damage to open.
  speed : The speed with which the door opens (default 100).
  rotation : The rotation the door will open, in degrees (default 90).
- wait : wait before returning (3 default, -1 = never return).
+ wait : Seconds before the door returns (3 default, -1 = never return). Ignored when toggle is set.
  sounds : The sound set for the door (0 default, 1 stone, -1 silent).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
+ ai_hint : Set to "trap" to mark the door as a trap, such as a floor that slides away over lava, or a crusher. The door needs a targetname. A bot in a fight walks into a touched func_button that targets it while its enemy stands on the door. A bot never opens a trap door to get past it.
 
  -------- Spawn flags --------
  start_open : The door to moves to its destination when spawned, and operates in reverse.
@@ -2039,7 +2041,7 @@ static void G_func_door_secret_Die(GameEntity *ent, GameEntity *attacker, uint32
  message : An optional string printed when the door is first touched.
  health : If set, door must take damage to open.
  speed : The speed with which the door opens (default 100).
- wait : wait before returning (3 default, -1 = never return).
+ wait : Seconds before the door returns (3 default, -1 = never return).
  lip : The lip remaining at end of move (default 8 units).
  sounds : The sound set for the door (0 default, 1 stone, -1 silent).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
@@ -2651,8 +2653,8 @@ static void G_func_train_Use(GameEntity *ent, GameEntity *other,
  target : The next corner in the route. Point the last corner back at the first to loop.
 
  -------- Path corner spawn flags --------
- teleport : The train jumps to this corner rather than travelling to it, restoring the corner's
- angles, and carries straight on to the corner's own target. Combine with a looping route to send
+ teleport : The train jumps to this corner rather than travelling to it, taking the corner's angles
+ if it has them, or else facing its next corner, and carries straight on to the corner's own target. Combine with a looping route to send
  a train back to its start: flag the first corner `teleport` + `no_effects`, and give the last
  corner a `wait` and a `target` back to that first corner. Riders are not carried through the
  jump, and the mapper is responsible for hiding both corners from view.
