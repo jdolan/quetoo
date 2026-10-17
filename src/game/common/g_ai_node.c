@@ -958,21 +958,17 @@ void G_Ai_Node_Init(void) {
   const NavGraph *graph = &module.graph;
 
   if (graph->numNodes >= AI_NODE_INVALID) {
-    G_Warn("This map has %d navigation nodes, more than %d; bots will be dumb!\n", graph->numNodes,
-           AI_NODE_INVALID - 1);
+    G_Warn("Failed to build nav graph; bots will be dumb!\n");
     Nav_Free(&module.graph);
     return;
   }
 
-  gi.Print("  Built %d navigation nodes, %d at an offset, %d at the edge of the void and %d in "
-           "open water, and found %d floors with no room for a player and %d in a hurt or push "
-           "trigger\n", graph->numNodes, graph->numOffset, graph->numEdge, graph->numSwim,
-           graph->numNoFit, graph->numTrigger);
-  gi.Print("  Built %d walk, %d crouch, %d barrier jump, %d walk off ledge, %d swim, %d jump and "
-           "%d ladder links, %d of them through a doorway\n", graph->numTravel[NAV_TRAVEL_WALK],
-           graph->numTravel[NAV_TRAVEL_CROUCH], graph->numTravel[NAV_TRAVEL_BARRIER_JUMP],
-           graph->numTravel[NAV_TRAVEL_WALK_OFF_LEDGE], graph->numTravel[NAV_TRAVEL_SWIM],
-           graph->numTravel[NAV_TRAVEL_JUMP], graph->numTravel[NAV_TRAVEL_LADDER], graph->numGated);
+  gi.Print("  Built %d navigation nodes\n", graph->numNodes);
+  gi.Print("  Built %d walk, %d swim, %d jump and %d ladder links\n",
+           graph->numTravel[NAV_TRAVEL_WALK],
+           graph->numTravel[NAV_TRAVEL_SWIM],
+           graph->numTravel[NAV_TRAVEL_JUMP] + graph->numTravel[NAV_TRAVEL_BARRIER_JUMP],
+           graph->numTravel[NAV_TRAVEL_LADDER]);
 
   module.nodes = $(alloc(Vector), initWithSize, sizeof(GameAiNode));
 
@@ -1010,8 +1006,7 @@ void G_Ai_Node_Init(void) {
 
         const GameAiLink out = {
           .id = link->node,
-          .cost = Maxf(distance,
-                       link->travelMillis * Maxf(1.f, module.movement.speedGround) / 1000.f),
+          .cost = Maxf(distance, link->travelMillis * Maxf(1.f, module.movement.speedGround) / 1000.f),
           .travelType = link->travelType,
           .gate = link->gate
         };
@@ -1048,9 +1043,7 @@ static void G_Ai_Node_CheckItems(void) {
       continue;
     }
 
-    const GameAiNodeId node = G_Ai_Node_FindClosest(ent->s.origin, AI_NODE_ITEM_DISTANCE, true,
-                                                    false);
-
+    const GameAiNodeId node = G_Ai_Node_FindClosest(ent->s.origin, AI_NODE_ITEM_DISTANCE, true, false);
     if (node == AI_NODE_INVALID) {
       G_Ai_Debug("Entity %s @ %s appears to be unreachable by nodes\n", ent->classname,
                  vtos(ent->s.origin));
