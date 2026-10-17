@@ -336,28 +336,6 @@ SDL_Scancode Cl_KeyForBind(SDL_Scancode from, const char *binding) {
 }
 
 /**
- * @brief Detects a bind whose arguments were eaten by the defect in #1068.
- * @details Quetoo v1.0.106 through v1.0.108 rebuilt a bind over a pointer into
- * the buffer they were rebuilding, so `use blaster` became `use ` and was then
- * written back to the config. The weapon is not recoverable, but the shape is
- * unmistakable: nothing else leaves a bind ending in whitespace. Discarding
- * such a line leaves the key unbound, for its default bind to fill.
- */
-static bool Cl_IsTruncatedBind(const char *bind) {
-
-  const size_t length = Str_Length(bind);
-  if (length == 0 || bind[length - 1] != ' ') {
-    return false;
-  }
-
-  char name[MAX_STRING_CHARS];
-  Str_Copy(name, bind, sizeof(name));
-  name[length - 1] = '\0';
-
-  return Str_FindChar(name, ' ') == NULL && Cmd_Get(name) != NULL;
-}
-
-/**
  * @brief Binds the specified key to the given command.
  */
 void Cl_Bind(SDL_Scancode key, const char *bind) {
@@ -495,11 +473,6 @@ static void Cl_Bind_f(void) {
   // check for compound bindings
   if (Str_FindChar(cmd, ';')) {
     Com_Print("Complex bind \"%s\" ignored; use 'alias' instead\n", cmd);
-    return;
-  }
-
-  if (Cl_IsTruncatedBind(cmd)) {
-    Com_Warn("Discarding \"%s %s\", which lost its arguments to #1068\n", Cmd_Argv(0), cmd);
     return;
   }
 

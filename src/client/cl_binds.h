@@ -28,7 +28,7 @@
 static const char *DEFAULT_BINDS =
     "bind f9 record\n"
     "bind f10 stop\n"
-    "bind f11 r_screenshot view\n"
+    "bind f11 \"r_screenshot view\"\n"
     "bind f12 r_screenshot\n"
 
     "exec quetoo.cfg\n"
