@@ -46,7 +46,7 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Player model"
+                            "text": "Model"
                           }
                         },
                         "control": {
@@ -58,7 +58,7 @@
                         "class": "Input",
                         "label": {
                           "text": {
-                            "text": "Player skin"
+                            "text": "Skin"
                           }
                         },
                         "control": {
