@@ -60,7 +60,7 @@ const GameEntity *G_Ai_State_Objective(const GameClient *cl);
 
 /**
  * @brief Finds the gates, the doors that buttons move and whose doorways navigation links cross,
- * with their buttons, and the doors marked `"ai_hint" "trap"`, with their buttons. Called once the
+ * with their buttons, and the movers marked `"ai_hint" "trap"`, with their buttons. Called once the
  * level's entities and their nodes exist.
  */
 void G_Ai_State_Load(void);

@@ -33,4 +33,11 @@ void G_Ai_SpamViewAngles(const GameClient *cl, Vec3 *angles);
  * @brief Turns the view toward the bot's shoot target, if it has one.
  */
 void G_Ai_ShootViewAngles(const GameClient *cl, Vec3 *angles);
+
+/**
+ * @return True if the bot's weapon can shoot the button from where it stands: a weapon that does
+ * not lob, whose beam, if it is lightning, reaches the button, and whose first impact, if it
+ * explodes, is beyond the distance at which its splash hits the bot.
+ */
+bool G_Ai_CanShootButton(const GameClient *cl, const GameEntity *button);
 #endif
