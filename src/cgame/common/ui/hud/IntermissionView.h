@@ -59,6 +59,16 @@ struct IntermissionView {
   IntermissionViewInterface *interface[0];
 
   /**
+   * @brief The vote prompt and the tiles beneath it, along the bottom of the screen.
+   */
+  StackView *strip;
+
+  /**
+   * @brief The keys that cast a ballot, shown only while a vote runs.
+   */
+  Text *prompt;
+
+  /**
    * @brief The tiles, one per candidate.
    */
   StackView *maps;

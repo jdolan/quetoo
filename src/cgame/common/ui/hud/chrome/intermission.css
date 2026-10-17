@@ -17,12 +17,23 @@ IntermissionView Text {
   color: #f2f5f6;
 }
 
-IntermissionView > .maps {
+IntermissionView > .strip {
   alignment: bottom-center;
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 8;
+  padding-bottom: 44;
+}
+
+IntermissionView .prompt {
+  alignment: top-center;
+  text-transform: uppercase;
+}
+
+IntermissionView .maps {
   autoresizing-mask: contain;
   axis: horizontal;
   spacing: 16;
-  padding-bottom: 44;
 }
 
 IntermissionView .map {

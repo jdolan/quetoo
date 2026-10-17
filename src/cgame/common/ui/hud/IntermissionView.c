@@ -37,6 +37,8 @@ static void dealloc(Object *self) {
 
   IntermissionView *this = (IntermissionView *) self;
 
+  release(this->strip);
+  release(this->prompt);
   release(this->maps);
   release(this->countdown);
   release(this->stats);
@@ -284,6 +286,13 @@ static void rebuild(IntermissionView *self) {
   for (int32_t i = 0; i < cgameState.nextMap.numMaps; i++) {
     addMap(self, i);
   }
+
+  if (cgameState.nextMap.voting) {
+    $(self->prompt, setText, va("Press 1 - %d to vote for the next map", cgameState.nextMap.numMaps));
+    $((View *) self->prompt, setVisibility, ViewVisibilityVisible);
+  } else {
+    $((View *) self->prompt, setVisibility, ViewVisibilityHidden);
+  }
 }
 
 #pragma mark - View
@@ -297,11 +306,24 @@ static View *init(View *self) {
   if (self) {
     IntermissionView *this = (IntermissionView *) self;
 
+    this->strip = $(alloc(StackView), initWithFrame, NULL);
+    assert(this->strip);
+
+    $((View *) this->strip, addClassName, "strip");
+    $(self, addSubview, (View *) this->strip);
+
+    this->prompt = $(alloc(Text), initWithText, "", NULL);
+    assert(this->prompt);
+
+    $((View *) this->prompt, addClassName, "prompt");
+    $((View *) this->strip, addSubview, (View *) this->prompt);
+    $((View *) this->prompt, setVisibility, ViewVisibilityHidden);
+
     this->maps = $(alloc(StackView), initWithFrame, NULL);
     assert(this->maps);
 
     $((View *) this->maps, addClassName, "maps");
-    $(self, addSubview, (View *) this->maps);
+    $((View *) this->strip, addSubview, (View *) this->maps);
 
     this->countdown = $(alloc(Text), initWithText, "", NULL);
     assert(this->countdown);

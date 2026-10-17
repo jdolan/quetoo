@@ -232,11 +232,6 @@ static void G_Intermission_Begin(void) {
   G_Intermission_PublishTime();
 
   G_Intermission_Publish();
-
-  if (module.voting) {
-    gi.BroadcastPrint(PRINT_HIGH, "Press 1 - %d to vote for the next map\n",
-                      module.numMaps);
-  }
 }
 
 /**
