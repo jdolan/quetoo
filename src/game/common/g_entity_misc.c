@@ -246,7 +246,7 @@ void G_misc_teleporter(GameEntity *ent) {
 }
 
 /*QUAKED misc_portal (0 .5 .8) ?
- A brush entity showing the world as seen from the point it targets. Give the face the player
+ A brush entity showing the world as seen from the point it names. Give the face the player
  looks at a material declaring `surface "portal"`; the remaining faces are drawn normally.
 
  The portal is not solid. To let players travel through it, place a trigger_teleporter behind
