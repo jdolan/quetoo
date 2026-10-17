@@ -1635,6 +1635,8 @@ void G_ClientRespawn(GameClient *cl, bool voluntary) {
 #if defined(G_CTF)
     cl->persistent.captures = 0;
 #endif
+
+    G_ClientResetStats(cl);
   }
 
   cl->respawnTime = gameLevel.time;

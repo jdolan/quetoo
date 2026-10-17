@@ -16,12 +16,22 @@ IntermissionView Text {
   color: #ffffff;
 }
 
-IntermissionView > .maps {
+IntermissionView > .strip {
   alignment: bottom-center;
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 8;
+  padding-bottom: 40;
+}
+
+IntermissionView .prompt {
+  alignment: top-center;
+}
+
+IntermissionView .maps {
   autoresizing-mask: contain;
   axis: horizontal;
   spacing: 12;
-  padding-bottom: 40;
 }
 
 IntermissionView .map {
@@ -55,4 +65,63 @@ IntermissionView > .countdown {
   font-style: regular;
   font-size: 24;
   padding-bottom: 12;
+}
+
+/* the local player's match stats, beside the scoreboard */
+IntermissionView > .stats {
+  alignment: middle;
+  left: 24;
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 12;
+  background-color: #08151a99;
+  border-radius: 4;
+  padding: 12 12 12 12;
+}
+
+IntermissionView .totals {
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 16;
+}
+
+IntermissionView .total {
+  autoresizing-mask: contain;
+  axis: vertical;
+}
+
+IntermissionView .total > .value {
+  font-size: 20;
+}
+
+IntermissionView .total > .caption,
+IntermissionView .weapon:first-child > Text {
+  color: #8fc7dc;
+}
+
+IntermissionView .weapons {
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 2;
+}
+
+IntermissionView .weapon {
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 8;
+}
+
+IntermissionView .weapon > .icon {
+  width: 20;
+  height: 20;
+}
+
+IntermissionView .weapon > .weaponName {
+  min-width: 160;
+}
+
+IntermissionView .weapon > .accuracy,
+IntermissionView .weapon > .damage,
+IntermissionView .weapon > .kills {
+  min-width: 72;
 }

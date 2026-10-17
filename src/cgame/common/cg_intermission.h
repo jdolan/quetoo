@@ -26,6 +26,8 @@
 #if defined(__CG_LOCAL_H__)
 void Cg_Intermission_Init(void);
 
+void Cg_Intermission_ParseMatchStats(void);
+
 void Cg_Intermission_Vote(int32_t map);
 bool Cg_Intermission_HandleEvent(const SDL_Event *event);
 #endif

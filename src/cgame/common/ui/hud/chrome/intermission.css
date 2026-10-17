@@ -17,24 +17,40 @@ IntermissionView Text {
   color: #f2f5f6;
 }
 
-IntermissionView > .maps {
+IntermissionView > .strip {
   alignment: bottom-center;
   autoresizing-mask: contain;
-  axis: horizontal;
-  spacing: 16;
+  axis: vertical;
+  spacing: 8;
   padding-bottom: 44;
 }
 
+IntermissionView .prompt {
+  alignment: top-center;
+  text-transform: uppercase;
+}
+
+IntermissionView .maps {
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 16;
+}
+
+/* each candidate on the cards' gradient, fading upward from the bottom edge */
 IntermissionView .map {
   autoresizing-mask: contain;
   axis: vertical;
   spacing: 3;
   padding: 5 5 5 5;
+  background-color: #08151ae6;
+  background-gradient-color: #08151a9e;
+  background-gradient-angle: 180;
 }
 
 IntermissionView .mapshot {
   width: 208;
   height: 117;
+  border-radius: 3;
 }
 
 IntermissionView .name {
@@ -54,4 +70,66 @@ IntermissionView > .countdown {
   font-style: regular;
   font-size: 28;
   padding-bottom: 12;
+}
+
+/* the local player's match stats, flush to the left edge on the cards' gradient */
+IntermissionView > .stats {
+  alignment: middle;
+  left: 0;
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 14;
+  background-color: #08151ae6;
+  background-gradient-color: #08151a9e;
+  background-gradient-angle: 90;
+  padding: 14 20 14 20;
+}
+
+IntermissionView .totals {
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 18;
+}
+
+IntermissionView .total {
+  autoresizing-mask: contain;
+  axis: vertical;
+}
+
+IntermissionView .total > .value {
+  font-family: Rajdhani;
+  font-size: 24;
+}
+
+IntermissionView .total > .caption,
+IntermissionView .weapon:first-child > Text {
+  color: #6fb3cc;
+  text-transform: uppercase;
+}
+
+IntermissionView .weapons {
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 3;
+}
+
+IntermissionView .weapon {
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 10;
+}
+
+IntermissionView .weapon > .icon {
+  width: 22;
+  height: 22;
+}
+
+IntermissionView .weapon > .weaponName {
+  min-width: 170;
+}
+
+IntermissionView .weapon > .accuracy,
+IntermissionView .weapon > .damage,
+IntermissionView .weapon > .kills {
+  min-width: 80;
 }

@@ -116,6 +116,47 @@ typedef struct {
 } CGameNextMapState;
 
 /**
+ * @brief The local player's use of one weapon over the match.
+ */
+typedef struct {
+  /**
+   * @brief The weapon's item tag.
+   */
+  GameItemTag tag;
+
+  /**
+   * @brief Shots fired, enemies hit, and damage dealt to them.
+   */
+  uint32_t shots, hits, damage;
+
+  /**
+   * @brief Enemies killed.
+   */
+  uint16_t kills;
+} CGameWeaponStats;
+
+/**
+ * @brief The local player's match stats, as `SV_CMD_MATCH_STATS` sends them at intermission.
+ */
+typedef struct {
+  /**
+   * @brief Damage dealt to living enemies, and damage taken from any source.
+   */
+  uint32_t damageDealt, damageTaken;
+
+  /**
+   * @brief Each weapon that the player used.
+   */
+  CGameWeaponStats weapons[WEAPON_TOTAL];
+  int32_t numWeapons;
+
+  /**
+   * @brief Bumped whenever the stats arrive, so that a view rebuilds only when it must.
+   */
+  uint32_t generation;
+} CGameMatchStats;
+
+/**
  * @brief The client game representation of clients (players).
  */
 typedef struct {
@@ -454,6 +495,11 @@ typedef struct {
    * @brief The intermission's map candidates, from `CS_NEXT_MAP`.
    */
   CGameNextMapState nextMap;
+
+  /**
+   * @brief The local player's match stats, from `SV_CMD_MATCH_STATS`.
+   */
+  CGameMatchStats matchStats;
 
   /**
    * @brief The camera mode, cycled by `camera`.

@@ -387,6 +387,8 @@ static void G_RestartGame(bool teamz) {
 #endif
     cl->persistent.deaths = 0;
 
+    G_ClientResetStats(cl);
+
     if (teamz) { // reset teams
       cl->persistent.team = NULL;
     }

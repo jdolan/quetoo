@@ -146,8 +146,7 @@ static SDL_Surface *R_ReadTexture(const Texture *texture) {
 /**
  * @brief Returns the type of the screenshot pending this frame, if any.
  */
-RenderScreenshotType R_ScreenshotPending(void) {
-
+RenderScreenshotType R_PendingScreenshot(void) {
   return pendingScreenshot;
 }
 

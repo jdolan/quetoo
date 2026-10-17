@@ -45,7 +45,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1063
+#define PROTOCOL_MINOR 1064
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -74,6 +74,7 @@ typedef enum {
   SV_CMD_SNAP_ANGLES,
   SV_CMD_RACE_BARRIERS, // [byte] count, [short] entity...: the barriers that pass this client
   SV_CMD_RACE_MILESTONE, // [byte] kind, [byte] number, [string] label, [long] time, [long] vs best, [long] vs record
+  SV_CMD_MATCH_STATS, // [long] damage dealt, [long] damage taken, [byte] count, then [byte] tag, [long] shots, [long] hits, [long] damage, [short] kills each
 } GameServerPacketCmd;
 
 /**
@@ -1419,6 +1420,37 @@ typedef struct {
 #define MAX_NET_NAME_PRINTABLE 15
 
 /**
+ * @brief A client's use of one weapon over the match.
+ */
+typedef struct {
+  /**
+   * @brief Shots fired. A shotgun blast or a lightning tick is one shot.
+   */
+  uint32_t shots;
+
+  /**
+   * @brief Living enemies damaged, counted once for each enemy in each frame.
+   */
+  uint32_t hits;
+
+  /**
+   * @brief Health and armor taken from living enemies.
+   */
+  uint32_t damage;
+
+  /**
+   * @brief Enemies killed.
+   */
+  uint32_t kills;
+
+  /**
+   * @brief The frame of the last hit, and the clients hit in that frame.
+   */
+  uint32_t hitFrame;
+  uint64_t hitClients;
+} GameWeaponStats;
+
+/**
  * @brief This structure contains client data that persists over multiple spawns.
  */
 typedef struct {
@@ -1537,6 +1569,16 @@ typedef struct {
    * @brief The runs started on this map, for the HUD.
    */
   uint16_t raceRuns;
+
+  /**
+   * @brief Shots, hits, damage and kills for each weapon, indexed by `tag - WEAPON_FIRST`.
+   */
+  GameWeaponStats weaponStats[WEAPON_TOTAL];
+
+  /**
+   * @brief Damage dealt to living enemies, and damage taken from any source.
+   */
+  uint32_t damageDealt, damageTaken;
 } GameClientPersistent;
 
 /**

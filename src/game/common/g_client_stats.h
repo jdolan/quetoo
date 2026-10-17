@@ -24,7 +24,11 @@
 #include "g_types.h"
 
 #if defined(__G_LOCAL_H__)
+void G_ClientDamageStats(const GameEntity *attacker, const GameEntity *target, int32_t damage, GameMeansOfDeath mod);
+void G_ClientKillStats(const GameEntity *attacker, const GameEntity *target, GameMeansOfDeath mod);
+void G_ClientResetStats(GameClient *cl);
 void G_ClientScores(GameClient *cl);
+void G_ClientShotStats(GameClient *cl);
 void G_ClientSpectatorStats(GameClient *cl);
 void G_ClientStats(GameClient *cl);
 void G_ClientTeamsScoreboard(GameClient *cl);

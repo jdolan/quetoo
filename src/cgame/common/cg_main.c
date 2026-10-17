@@ -452,6 +452,10 @@ static bool Cg_ParseMessage(int32_t cmd) {
       Cg_ParseScores();
       return true;
 
+    case SV_CMD_MATCH_STATS:
+      Cg_Intermission_ParseMatchStats();
+      return true;
+
     case SV_CMD_SNAP_ANGLES:
       cgameState.snapViewAngles = cgi.ReadAngles();
       cgameState.snapAngles = true;

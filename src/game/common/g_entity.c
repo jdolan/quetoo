@@ -658,6 +658,8 @@ void G_SpawnEntities(const char *name, const Entity *mapListEntry, Entity *const
 #endif
     cl->persistent.deaths = 0;
     cl->persistent.team = NULL;
+
+    G_ClientResetStats(cl);
   });
 
   for (int32_t i = 0; i < sv_maxEntities->integer; i++) {

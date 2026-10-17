@@ -33,7 +33,7 @@ typedef enum {
 } RenderScreenshotType;
 
 RenderImage *R_LoadImage(const char *name, RenderImageType type);
-RenderScreenshotType R_ScreenshotPending(void);
+RenderScreenshotType R_PendingScreenshot(void);
 void R_Screenshot(void);
 
 #if defined(__R_LOCAL_H__)

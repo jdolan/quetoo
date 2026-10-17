@@ -46,6 +46,12 @@ ScoreboardView ScoreView {
   padding: 2 4 2 4;
 }
 
+/* the icon and the player color cover the row's corners, so they round them too */
+ScoreboardView ScoreView > #icon,
+ScoreboardView ScoreView > .fill {
+  border-radius: 4;
+}
+
 ScoreboardView ScoreView.self {
   background-color: #08151aaa;
   border-color: #8fc7dc80;
