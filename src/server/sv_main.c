@@ -638,6 +638,9 @@ static void Sv_ResetEntities(void) {
 /**
  * @brief Syncs `ServerClient` state with the game module's `GameClient` for bot clients.
  * Called after each game frame to reflect bot connects and disconnects.
+ * @remarks An AI client that the game connected again in its slot as a level spawned, after
+ * the level change reset the slot, or that replaced another in its slot, is set up as a new
+ * connection, so that it does not time out.
  */
 static void Sv_SyncGameClients(void) {
 
@@ -645,8 +648,8 @@ static void Sv_SyncGameClients(void) {
     ServerClient *client = &svs.clients[i];
     const GameClient *cl = client->gclient;
 
-    if (client->state == SV_CLIENT_FREE) {
-      if (cl->inUse && cl->ai) { // ai client has just connected
+    if (cl->inUse && cl->ai) {
+      if (client->state != SV_CLIENT_ACTIVE || Str_Compare(client->userInfo, cl->userInfo)) {
         Str_Copy(client->userInfo, cl->userInfo, sizeof(client->userInfo));
         client->lastMessage = UINT32_MAX; // ai clients never time out
         client->state = SV_CLIENT_ACTIVE;
@@ -654,18 +657,11 @@ static void Sv_SyncGameClients(void) {
           Com_Warn("Rejected user_info from ai client %d\n", i);
         }
       }
-    } else {
-      if (!cl->inUse) { // ai client has just disconnected
-        GameClient *gclient = client->gclient;
-        memset(client, 0, sizeof(*client));
-        client->lastFrame = -1;
-        client->gclient = gclient;
-      } else if (cl->ai && Str_Compare(client->userInfo, cl->userInfo)) { // another ai took the slot
-        Str_Copy(client->userInfo, cl->userInfo, sizeof(client->userInfo));
-        if (!Sv_UserInfoChanged(client)) {
-          Com_Warn("Rejected user_info from ai client %d\n", i);
-        }
-      }
+    } else if (client->state != SV_CLIENT_FREE && !cl->inUse) { // ai client has just disconnected
+      GameClient *gclient = client->gclient;
+      memset(client, 0, sizeof(*client));
+      client->lastFrame = -1;
+      client->gclient = gclient;
     }
   }
 }

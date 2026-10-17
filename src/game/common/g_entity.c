@@ -616,7 +616,7 @@ GameConfigureLevelHook G_ConfigureLevel = G_ConfigureLevel_Common;
  */
 void G_SpawnEntities(const char *name, const Entity *mapListEntry, Entity *const *entities, size_t numEntities) {
 
-  // Drop bots, they will reconnect via G_Ai_Frame
+  // Drop bots, they will reconnect via G_Ai_Populate as the level spawns
   G_ForEachClient(cl, {
     if (cl->ai) {
       G_ClientDisconnect(cl);
