@@ -4176,6 +4176,8 @@ static int32_t G_Ai_DesiredClients(int32_t humanClients) {
  * @brief Sets up the level's AI players all at once as it spawns, before any client connects, so
  * that every client loads their models with the level rather than in play. The AI players that
  * the level names stay or connect, and those it does not want leave.
+ * @remarks A listen server counts its local player, who joins after the level spawns, so that
+ * an AI player does not connect only to be kicked when that player joins.
  */
 static void G_Ai_Populate(void) {
 
@@ -4185,6 +4187,10 @@ static void G_Ai_Populate(void) {
 
   int32_t humanClients, aiClients;
   G_Ai_CountClients(&humanClients, &aiClients);
+
+  if (!dedicated->value) {
+    humanClients = Maxi(humanClients, 1);
+  }
 
   const int32_t wanted = Maxi(0, G_Ai_DesiredClients(humanClients) - humanClients);
 
