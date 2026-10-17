@@ -51,6 +51,27 @@ static void createServer(Button *button) {
 
   CreateServerViewController *this = button->delegate.self;
 
+  PointerArray *selectedAi = $(this->aiList, selectedAi);
+
+  String *ai = str("");
+  assert(ai);
+
+  for (size_t i = 0; i < selectedAi->count; i++) {
+    const AiItemInfo *info = $(selectedAi, get, i);
+    $(ai, appendFormat, "%s%s", i ? " " : "", info->name);
+  }
+
+  if (selectedAi->count) {
+    const Cvar *svMinClients = cgi.GetCvar("sv_minClients");
+    const int32_t count = (svMinClients && Str_Compare(svMinClients->string, "default"))
+                          ? svMinClients->integer - 1 : 0;
+
+    if (count < (int32_t) selectedAi->count) {
+      cgi.SetCvarInteger("sv_minClients", (int32_t) selectedAi->count + 1);
+      $(this->aiCount, setDefaultText, va("%zu", selectedAi->count));
+    }
+  }
+
   PointerArray *selectedMaps = $(this->mapList, selectedMaps);
   if (selectedMaps->count) {
 
@@ -66,7 +87,11 @@ static void createServer(Button *button) {
         char name[MAX_QPATH];
         StripExtension(Basename(info->mapname), name);
 
-        $(string, appendFormat, "{\n\tname %s\n}\n", name);
+        if (ai->length) {
+          $(string, appendFormat, "{\n\tname %s\n\tai \"%s\"\n}\n", name, ai->chars);
+        } else {
+          $(string, appendFormat, "{\n\tname %s\n}\n", name);
+        }
       }
 
       const int64_t len = cgi.WriteFile(file, string->chars, string->length, 1);
@@ -91,6 +116,8 @@ static void createServer(Button *button) {
   }
 
   release(selectedMaps);
+  release(selectedAi);
+  release(ai);
 }
 
 #pragma mark - ViewController
@@ -114,6 +141,7 @@ static void loadView(ViewController *self) {
     MakeOutlet("movement", &this->movement),
     MakeOutlet("hookInput", &hookInput),
     MakeOutlet("techsInput", &techsInput),
+    MakeOutlet("aiList", &this->aiList),
     MakeOutlet("mapList", &this->mapList),
     MakeOutlet("create", &this->create)
   );

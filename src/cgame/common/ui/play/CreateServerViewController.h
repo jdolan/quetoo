@@ -25,6 +25,7 @@
 
 #include <ObjectivelyMVC.h>
 
+#include "AiCollectionView.h"
 #include "MapListCollectionView.h"
 
 /**
@@ -79,6 +80,11 @@ struct CreateServerViewController {
    * @brief The player movement to run.
    */
   Select *movement;
+
+  /**
+   * @brief The AiCollectionView, from which the player selects the AI players that join first.
+   */
+  AiCollectionView *aiList;
 
   /**
    * @brief The MapListCollectionView.
