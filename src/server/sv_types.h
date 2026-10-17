@@ -308,7 +308,7 @@ typedef struct {
   char userInfo[MAX_INFO_STRING_STRING];
 
   /**
-   * @brief Player name extracted from `userInfo`, stripped of color codes.
+   * @brief Player name extracted from `userInfo`, with its color codes.
    */
   char name[32];
 
