@@ -37,15 +37,24 @@
 /**
  * @brief The `CS_NEXT_MAP` config string: empty outside the intermission, else these
  * fields separated by `\`.
- * @details The first field says whether ballots are being taken. The rest are one
- * `name`, `votes` pair per candidate, so the count of candidates is what the string
- * carries rather than something both sides have to agree on in advance.
+ * @details The first field is the GameNextMapMode. The rest are one `name`, `votes` pair per
+ * candidate, so the count of candidates is what the string carries rather than something
+ * both sides have to agree on in advance. A practice match offers none.
  */
 typedef enum {
-  NEXT_MAP_CS_VOTING, // "1" while ballots are being taken, else "0"
+  NEXT_MAP_CS_MODE, // the GameNextMapMode, as a number
   NEXT_MAP_CS_MAPS, // the first name; from here the fields alternate name, votes
   NEXT_MAP_CS_FIELDS
 } GameNextMapCsField;
+
+/**
+ * @brief What follows the intermission.
+ */
+typedef enum {
+  NEXT_MAP_ANNOUNCE, // the single candidate is next
+  NEXT_MAP_VOTE, // ballots are being taken
+  NEXT_MAP_PRACTICE, // the level holds until the player chooses what to play next
+} GameNextMapMode;
 
 /**
  * @brief The number of `\`-separated fields a `CS_NEXT_MAP` string with `count` maps has.

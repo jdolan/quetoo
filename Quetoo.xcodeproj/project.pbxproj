@@ -74,6 +74,7 @@
 		0BF82540ADD285E5DF358C72 /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
 		0D717FD0F554D48A47A4C2A9 /* CenterPrintView.c in Sources */ = {isa = PBXBuildFile; fileRef = 07C9A88ED1D718092FD62601 /* CenterPrintView.c */; };
 		0D842476D5AF611A59D2407A /* cg_portal.c in Sources */ = {isa = PBXBuildFile; fileRef = E960839170EAFC21DD702B32 /* cg_portal.c */; };
+		C415ACF955FBE54C32D2E863 /* cg_practice.c in Sources */ = {isa = PBXBuildFile; fileRef = 139D9A9FC63B45E8E9F07DD4 /* cg_practice.c */; };
 		13539C3CA303E97E3DFB80B5 /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
 		1579DAA95595D781239A5615 /* g_ai_combat.c in Sources */ = {isa = PBXBuildFile; fileRef = C81D850BEE668DE6AAC93A05 /* g_ai_combat.c */; };
 		16842F99305E37AEE91A82E4 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
@@ -111,6 +112,7 @@
 		3B497D93EA892C673165469D /* StatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 9CA6BC01A9434CCDBF23E8C0 /* StatView.c */; };
 		3C4FCD00A4AE0B8971D17E7D /* OverlayText.c in Sources */ = {isa = PBXBuildFile; fileRef = 8238DE2CC5A406DE6DF84E71 /* OverlayText.c */; };
 		3D8401C9D86FF746C42D2AB6 /* cg_portal.c in Sources */ = {isa = PBXBuildFile; fileRef = E960839170EAFC21DD702B32 /* cg_portal.c */; };
+		EF470ADBD58CDAE2E6516768 /* cg_practice.c in Sources */ = {isa = PBXBuildFile; fileRef = 139D9A9FC63B45E8E9F07DD4 /* cg_practice.c */; };
 		4206A05CAAB61CA9CA518CDD /* g_ai_combat.c in Sources */ = {isa = PBXBuildFile; fileRef = C81D850BEE668DE6AAC93A05 /* g_ai_combat.c */; };
 		457008C2AC171BAD836BC9D8 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		46EE82019B925D394B363E01 /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
@@ -125,6 +127,7 @@
 		4E59F0F29F01B776A97F96B1 /* DemoList.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F2DF6B726C775FE05708017 /* DemoList.c */; };
 		4F0FA3FF26DFBC1FF49D2A63 /* DemoControlsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */; };
 		4F7FD3175C325A7B4A1C9D13 /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
+		9AB49D958DE7F69720D1867D /* cg_practice.h in Headers */ = {isa = PBXBuildFile; fileRef = D7AB3D4FA20D7444F3B31A23 /* cg_practice.h */; };
 		50A618B627838A7F121E3DA9 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
 		50A656139CC3317E925D0231 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
 		5183CDCD1E2C497586ABBEB2 /* NotifyView.c in Sources */ = {isa = PBXBuildFile; fileRef = EB4A4D641AA8495FB08D9F0E /* NotifyView.c */; };
@@ -167,6 +170,7 @@
 		7AFADF59B58F54581DC1C419 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
 		7D15C1A91F54482CB47DCB24 /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
 		7F60EB773A4C8F99836FB0C2 /* cg_portal.c in Sources */ = {isa = PBXBuildFile; fileRef = E960839170EAFC21DD702B32 /* cg_portal.c */; };
+		21432BFC4970786672133750 /* cg_practice.c in Sources */ = {isa = PBXBuildFile; fileRef = 139D9A9FC63B45E8E9F07DD4 /* cg_practice.c */; };
 		7F8DDFA7DCEDCE753F01C436 /* CameraControlsView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = F832961157041452B1D76143 /* CameraControlsView.json */; };
 		814F48F21F6B2E10A1D10BF1 /* TimeView.c in Sources */ = {isa = PBXBuildFile; fileRef = C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */; };
 		14DD3D004AD792574857585A /* ItemTimerView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7460F457CA7284873B6B7FDD /* ItemTimerView.c */; };
@@ -193,6 +197,7 @@
 		9A8A8F490F0A41FDB55A317F /* NotifyView.c in Sources */ = {isa = PBXBuildFile; fileRef = EB4A4D641AA8495FB08D9F0E /* NotifyView.c */; };
 		9B67395438D49AA25C710A4A /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
 		9B731F4E62224A92F0E685EF /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
+		C93D2CDF5B9EF24CA6B51C32 /* cg_practice.h in Headers */ = {isa = PBXBuildFile; fileRef = D7AB3D4FA20D7444F3B31A23 /* cg_practice.h */; };
 		9C1E56948C90F9D9DD714DF6 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		9C43D41506579A6ED4EE80F5 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		9E1C83CE11AE376D9174B271 /* hud.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 027C4ADD65DCCCEBCEB3D462 /* hud.json */; };
@@ -246,6 +251,7 @@
 		AF8056E19DEC77694B63EDD7 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		B0F1E4D1823545B993F57B81 /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
 		B221DFE8D70C9012A418D37B /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
+		18028DC4FC4E4E053D51A080 /* cg_practice.h in Headers */ = {isa = PBXBuildFile; fileRef = D7AB3D4FA20D7444F3B31A23 /* cg_practice.h */; };
 		B2B62AE1E7C09567B299F1AA /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		B325DB5E0D42C6B8A789B6A3 /* GraphicsSettings.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = EC1BDE3495A956825F0F39E1 /* GraphicsSettings.json */; };
 		B3C3D379CB4955B1FED23ADB /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
@@ -272,6 +278,7 @@
 		C8FD8F82018E30E0052179E2 /* MapList.c in Sources */ = {isa = PBXBuildFile; fileRef = 90D8067392DE8E9D0A68FFBF /* MapList.c */; };
 		C916425B74784B149039A63B /* libminizip.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE12D8111C5C5EF000CD0B13 /* libminizip.a */; };
 		CB4A43F954CB0C6DB34F666F /* cg_portal.h in Headers */ = {isa = PBXBuildFile; fileRef = F1709306B7EECB871EDD5BE3 /* cg_portal.h */; };
+		035A502AF7625C1C6B582C4D /* cg_practice.h in Headers */ = {isa = PBXBuildFile; fileRef = D7AB3D4FA20D7444F3B31A23 /* cg_practice.h */; };
 		CC87D6AEB29F498DB8AA7E1C /* voxel.c in Sources */ = {isa = PBXBuildFile; fileRef = 1EE6A866A93B42938A4E84E6 /* voxel.c */; };
 		CC8A4E1E3C5749B68DBD795C /* material_light.h in Headers */ = {isa = PBXBuildFile; fileRef = 21090788F7AC4042B84FEE10 /* material_light.h */; };
 		CCA4333F9876F1849981F4AE /* g_ai_profile.c in Sources */ = {isa = PBXBuildFile; fileRef = 24CBFB8B8E393C7A86B6F94A /* g_ai_profile.c */; };
@@ -643,6 +650,7 @@
 		CE5022EC23DE3CF900B333CE /* r_mesh_model_md3.h in Headers */ = {isa = PBXBuildFile; fileRef = CE5022EA23DE3CF900B333CE /* r_mesh_model_md3.h */; };
 		CE5022ED23DE3CF900B333CE /* r_mesh_model_md3.c in Sources */ = {isa = PBXBuildFile; fileRef = CE5022EB23DE3CF900B333CE /* r_mesh_model_md3.c */; };
 		CE50D13BE2C9722735969053 /* cg_portal.c in Sources */ = {isa = PBXBuildFile; fileRef = E960839170EAFC21DD702B32 /* cg_portal.c */; };
+		B72F7BCFF0B69500F8365603 /* cg_practice.c in Sources */ = {isa = PBXBuildFile; fileRef = 139D9A9FC63B45E8E9F07DD4 /* cg_practice.c */; };
 		CE51FB9321481B1400ABE14F /* check_r_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6D51C5C58C300CD0B13 /* check_r_media.c */; };
 		CE51FB9521481B5F00ABE14F /* r_media.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D5D51C5C58C300CD0B13 /* r_media.c */; };
 		CE51FB9621481B8100ABE14F /* libcommon.a in Frameworks */ = {isa = PBXBuildFile; fileRef = CE80FDE31C5E3E1100A21A51 /* libcommon.a */; };
@@ -3231,11 +3239,13 @@
 		E642B6640D82AE6F5A36526A /* drawelements.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = drawelements.h; sourceTree = "<group>"; };
 		E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TargetNameView.c; sourceTree = "<group>"; };
 		E960839170EAFC21DD702B32 /* cg_portal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_portal.c; sourceTree = "<group>"; };
+		139D9A9FC63B45E8E9F07DD4 /* cg_practice.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_practice.c; sourceTree = "<group>"; };
 		EA8FE4E62B47061B1ADBD908 /* FpsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = FpsView.c; sourceTree = "<group>"; };
 		EB4A4D641AA8495FB08D9F0E /* NotifyView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = NotifyView.c; sourceTree = "<group>"; };
 		EC1BDE3495A956825F0F39E1 /* GraphicsSettings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = GraphicsSettings.json; sourceTree = "<group>"; };
 		EDF1F957220B1D1A54279F71 /* drawface.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = drawface.h; sourceTree = "<group>"; };
 		F1709306B7EECB871EDD5BE3 /* cg_portal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_portal.h; sourceTree = "<group>"; };
+		D7AB3D4FA20D7444F3B31A23 /* cg_practice.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = cg_practice.h; sourceTree = "<group>"; };
 		F2440E567EED9135ED4DDDC8 /* ScoreView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ScoreView.json; sourceTree = "<group>"; };
 		F5BFD9B9C30A304CE5838F1C /* SoundSettings.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = SoundSettings.json; sourceTree = "<group>"; };
 		F62845AB16EAC431505215D1 /* FpsView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FpsView.h; sourceTree = "<group>"; };
@@ -5076,7 +5086,9 @@
 				CE12D5731C5C58C300CD0B13 /* cg_muzzle_flash.c */,
 				AA5E00000000000000000021 /* cg_nav.c */,
 				F1709306B7EECB871EDD5BE3 /* cg_portal.h */,
+				D7AB3D4FA20D7444F3B31A23 /* cg_practice.h */,
 				E960839170EAFC21DD702B32 /* cg_portal.c */,
+				139D9A9FC63B45E8E9F07DD4 /* cg_practice.c */,
 				CE12D5781C5C58C300CD0B13 /* cg_predict.h */,
 				CE12D5771C5C58C300CD0B13 /* cg_predict.c */,
 				CE12D57A1C5C58C300CD0B13 /* cg_score.h */,
@@ -5395,6 +5407,7 @@
 				CE05B3F030224900C0DE004C /* cg_inventory.h in Headers */,
 				CE05B3F030224900C0DE004D /* cg_light.h in Headers */,
 				B221DFE8D70C9012A418D37B /* cg_portal.h in Headers */,
+				18028DC4FC4E4E053D51A080 /* cg_practice.h in Headers */,
 				CE05B3F030224900C0DE004E /* cg_local.h in Headers */,
 				CE05B3F030224900C0DE004F /* cg_main.h in Headers */,
 				CE05B3F030224900C0DE0050 /* cg_media.h in Headers */,
@@ -5473,6 +5486,7 @@
 				F7EBE32625F44EBF895E36BC /* cg_inventory.h in Headers */,
 				CE9CFC9223E792FE0009DA65 /* cg_light.h in Headers */,
 				CB4A43F954CB0C6DB34F666F /* cg_portal.h in Headers */,
+				035A502AF7625C1C6B582C4D /* cg_practice.h in Headers */,
 				CE80FE9D1C5E445500A21A51 /* cg_local.h in Headers */,
 				CE80FE9E1C5E445500A21A51 /* cg_main.h in Headers */,
 				CE80FE9F1C5E445500A21A51 /* cg_media.h in Headers */,
@@ -5727,6 +5741,7 @@
 				CEC0FF002026010300000206 /* cg_inventory.h in Headers */,
 				CEC0FF002026010300000207 /* cg_light.h in Headers */,
 				9B731F4E62224A92F0E685EF /* cg_portal.h in Headers */,
+				C93D2CDF5B9EF24CA6B51C32 /* cg_practice.h in Headers */,
 				CEC0FF002026010300000208 /* cg_local.h in Headers */,
 				CEC0FF002026010300000209 /* cg_main.h in Headers */,
 				CEC0FF00202601030000020A /* cg_media.h in Headers */,
@@ -5869,6 +5884,7 @@
 				D2A5C10000000000000000B6 /* cg_inventory.h in Headers */,
 				D2A5C10000000000000000B7 /* cg_light.h in Headers */,
 				4F7FD3175C325A7B4A1C9D13 /* cg_portal.h in Headers */,
+				9AB49D958DE7F69720D1867D /* cg_practice.h in Headers */,
 				D2A5C10000000000000000B8 /* cg_local.h in Headers */,
 				D2A5C10000000000000000B9 /* cg_main.h in Headers */,
 				D2A5C10000000000000000BA /* cg_media.h in Headers */,
@@ -7060,6 +7076,7 @@
 				CE05B3F030224900C0DE0011 /* cg_inventory.c in Sources */,
 				CE05B3F030224900C0DE0012 /* cg_light.c in Sources */,
 				3D8401C9D86FF746C42D2AB6 /* cg_portal.c in Sources */,
+				EF470ADBD58CDAE2E6516768 /* cg_practice.c in Sources */,
 				CE05B3F030224900C0DE0013 /* cg_main.c in Sources */,
 				CE05B3F030224900C0DE0014 /* cg_media.c in Sources */,
 				CE05B3F030224900C0DEAD03 /* cg_tech.c in Sources */,
@@ -7239,6 +7256,7 @@
 				EC45E0FA2A80403C8FEA3834 /* cg_inventory.c in Sources */,
 				CE9CFC9323E792FE0009DA65 /* cg_light.c in Sources */,
 				7F60EB773A4C8F99836FB0C2 /* cg_portal.c in Sources */,
+				21432BFC4970786672133750 /* cg_practice.c in Sources */,
 				CE12D7F71C5C5E0200CD0B13 /* cg_main.c in Sources */,
 				CE12D7F81C5C5E0200CD0B13 /* cg_media.c in Sources */,
 				CE12D7F91C5C5E0200CD0B13 /* cg_muzzle_flash.c in Sources */,
@@ -7731,6 +7749,7 @@
 				CEC0FF0020260103000001EC /* cg_inventory.c in Sources */,
 				CEC0FF0020260103000001ED /* cg_light.c in Sources */,
 				CE50D13BE2C9722735969053 /* cg_portal.c in Sources */,
+				B72F7BCFF0B69500F8365603 /* cg_practice.c in Sources */,
 				CEC0FF0020260103000001EE /* cg_main.c in Sources */,
 				CEC0FF0020260103000001EF /* cg_media.c in Sources */,
 				CEC0FF0020260103000AD03 /* cg_tech.c in Sources */,
@@ -7965,6 +7984,7 @@
 				D2A5C1000000000000000094 /* cg_inventory.c in Sources */,
 				D2A5C1000000000000000095 /* cg_light.c in Sources */,
 				0D842476D5AF611A59D2407A /* cg_portal.c in Sources */,
+				C415ACF955FBE54C32D2E863 /* cg_practice.c in Sources */,
 				D2A5C1000000000000000096 /* cg_main.c in Sources */,
 				D2A5C1000000000000000097 /* cg_media.c in Sources */,
 				D2A5C1000000000000000098 /* cg_muzzle_flash.c in Sources */,

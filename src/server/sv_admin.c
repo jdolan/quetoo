@@ -61,14 +61,20 @@ static bool Sv_SetPlayer(void) {
     return true;
   }
 
-  // check for a name match
+  char name[MAX_STRING_CHARS];
+  Str_StripColors(Str_Length(s) < sizeof(name) ? s : "", name);
+
+  // check for a name match, ignoring color codes on either side
   for (i = 0, cl = svs.clients; i < sv_maxClients->integer; i++, cl++) {
 
     if (!cl->state) {
       continue;
     }
 
-    if (!Str_Compare(cl->name, s)) {
+    char clientName[sizeof(cl->name)];
+    Str_StripColors(cl->name, clientName);
+
+    if (!Str_Compare(clientName, name)) {
       serverClient = cl;
       return true;
     }

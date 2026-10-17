@@ -616,7 +616,7 @@ GameConfigureLevelHook G_ConfigureLevel = G_ConfigureLevel_Common;
  */
 void G_SpawnEntities(const char *name, const Entity *mapListEntry, Entity *const *entities, size_t numEntities) {
 
-  // Drop bots, they will reconnect via G_Ai_Frame
+  // Drop bots, they will reconnect via G_Ai_Populate as the level spawns
   G_ForEachClient(cl, {
     if (cl->ai) {
       G_ClientDisconnect(cl);
@@ -874,6 +874,9 @@ static void G_worldspawn(GameEntity *ent) {
   } else {
     Str_Copy(gameLevel.ai, gi.EntityValue(ent->def, "ai")->string, sizeof(gameLevel.ai));
   }
+
+  const Entity *practiceMap = G_MapListEntryValue("practice");
+  gameLevel.practice = practiceMap && (practiceMap->parsed & ENTITY_INTEGER) && practiceMap->integer;
 
   const Entity *musicMap = G_MapListEntryValue("music");
   if (musicMap && *musicMap->string) { // prefer map metadata music

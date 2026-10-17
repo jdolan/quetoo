@@ -224,6 +224,7 @@ static void Cg_Init(void) {
 
   Cg_Vote_Init();
   Cg_Intermission_Init();
+  Cg_Practice_Init();
 
   Cg_Module_Init();
 
@@ -244,6 +245,8 @@ static void Cg_Shutdown(void) {
   Cg_FreeMedia();
 
   Cg_ShutdownUi();
+
+  Cg_Practice_Shutdown();
 
   Cg_ShutdownDiscord();
 

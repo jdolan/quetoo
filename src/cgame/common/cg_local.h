@@ -52,6 +52,7 @@
 #include "cg_inventory.h"
 #include "cg_light.h"
 #include "cg_portal.h"
+#include "cg_practice.h"
 #include "cg_main.h"
 #include "cg_media.h"
 #include "cg_module.h"

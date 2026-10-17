@@ -39,6 +39,7 @@ static void dealloc(Object *self) {
   IntermissionView *this = (IntermissionView *) self;
 
   release(this->strip);
+  release(this->result);
   release(this->prompt);
   release(this->maps);
   release(this->countdown);
@@ -284,8 +285,40 @@ static void rebuild(IntermissionView *self) {
   if (cgameState.nextMap.voting) {
     $(self->prompt, setText, va("Press 1 - %d to vote for the next map", cgameState.nextMap.numMaps));
     $((View *) self->prompt, setVisibility, ViewVisibilityVisible);
+  } else if (cgameState.nextMap.practice) {
+    $(self->prompt, setText, "");
+    $((View *) self->prompt, setVisibility, ViewVisibilityVisible);
   } else {
     $((View *) self->prompt, setVisibility, ViewVisibilityHidden);
+  }
+
+  self->practiceResult = -1;
+
+  $(self->result, setText, "");
+  $((View *) self->result, setVisibility,
+    cgameState.nextMap.practice ? ViewVisibilityVisible : ViewVisibilityHidden);
+  $((View *) self->countdown, setVisibility,
+    cgameState.nextMap.practice ? ViewVisibilityHidden : ViewVisibilityVisible);
+}
+
+/**
+ * @brief Shows the result of a practice match, and its choices, once the result is final.
+ */
+static void updatePractice(IntermissionView *self) {
+
+  const int32_t won = Cg_Practice_Result();
+  if (won == self->practiceResult) {
+    return;
+  }
+
+  self->practiceResult = won;
+
+  $(self->result, setText, won ? "Victory" : "Defeat");
+
+  if (won && Cg_Practice_Next()) {
+    $(self->prompt, setText, "1  Next     2  Retry     3  Exit");
+  } else {
+    $(self->prompt, setText, "2  Retry     3  Exit");
   }
 }
 
@@ -305,6 +338,13 @@ static View *init(View *self) {
 
     $((View *) this->strip, addClassName, "strip");
     $(self, addSubview, (View *) this->strip);
+
+    this->result = $(alloc(Text), initWithText, "", NULL);
+    assert(this->result);
+
+    $((View *) this->result, addClassName, "result");
+    $((View *) this->strip, addSubview, (View *) this->result);
+    $((View *) this->result, setVisibility, ViewVisibilityHidden);
 
     this->prompt = $(alloc(Text), initWithText, "", NULL);
     assert(this->prompt);
@@ -358,6 +398,10 @@ static void updateBindings(View *self, ident data) {
       this->statsGeneration = cgameState.matchStats.generation;
 
       $(this, rebuildStats);
+    }
+
+    if (nextMap->practice) {
+      updatePractice(this);
     }
 
     for (int32_t i = 0; i < nextMap->numMaps; i++) {

@@ -25,6 +25,14 @@ IntermissionView > .strip {
   padding-bottom: 44;
 }
 
+/* the result of a practice match, over its choices */
+IntermissionView .result {
+  alignment: top-center;
+  font-family: Rajdhani;
+  font-size: 44;
+  text-transform: uppercase;
+}
+
 IntermissionView .prompt {
   alignment: top-center;
   text-transform: uppercase;

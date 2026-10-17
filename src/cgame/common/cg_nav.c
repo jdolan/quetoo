@@ -469,8 +469,7 @@ void Cg_PrepareNav(const ClientFrame *frame) {
   } else {
     Cg_PrepareNavFlights(frame);
     Cg_PrepareNavMovers();
-    cgi.Print("Built %d navigation nodes, %d links and %d jump pad flights\n",
-              module.graph.numNodes, module.graph.numLinks, module.graph.numPushes);
+    cgi.Print("Built %d navigation nodes with %d links\n", module.graph.numNodes, module.graph.numLinks);
   }
 
   module.built = true;

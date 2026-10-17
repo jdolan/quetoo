@@ -64,9 +64,20 @@ struct IntermissionView {
   StackView *strip;
 
   /**
-   * @brief The keys that cast a ballot, shown only while a vote runs.
+   * @brief The result of a practice match: Victory or Defeat.
+   */
+  Text *result;
+
+  /**
+   * @brief The keys that cast a ballot while a vote runs, or that choose what follows a
+   * practice match.
    */
   Text *prompt;
+
+  /**
+   * @brief The practice result shown, -1 until it is final.
+   */
+  int32_t practiceResult;
 
   /**
    * @brief The tiles, one per candidate.

@@ -27,7 +27,7 @@
 /**
  * @brief Sentinel value indicating an invalid or unset navigation node ID.
  */
-#define AI_NODE_INVALID ((GameAiNodeId)-1)
+#define AI_NODE_INVALID ((GameAiNodeId) - 1)
 
 /**
  * @brief Temporary hardening for #960 (dangling `GameAiGoal` entity pointer
