@@ -104,9 +104,9 @@ const char *Sv_StatusString(void) {
       Str_StripColors(cl->name, name);
 
       const int16_t score = cl->state == SV_CLIENT_ACTIVE ? cl->gclient->score : 0;
-      const bool isBot = cl->gclient->ai != NULL;
+      const bool isAi = cl->gclient->ai != NULL;
 
-      if (isBot) {
+      if (isAi) {
         Str_Format(player, sizeof(player), "\\score\\%d\\ping\\%u\\name\\%s\\ai\\1\n",
                    score, cl->ping, name);
       } else {

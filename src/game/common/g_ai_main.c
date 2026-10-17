@@ -4066,6 +4066,10 @@ static void G_Ai_Connect(GameClient *cl, const GameAiRoster *roster) {
     roster = G_Ai_GetRoster(cl, userInfo);
   }
 
+  if (!roster) {
+    return;
+  }
+
   cl->ai = gi.Malloc(sizeof(GameAi), MEM_TAG_AI);
   cl->ai->roster = roster;
 
@@ -4175,18 +4179,21 @@ void G_Ai_Frame(void) {
 
     const int32_t desiredClients = Mini(minClients, maxClients);
 
-    if (activeClients < desiredClients) {
+    if (activeClients < desiredClients && G_Ai_RosterCount()) {
       G_ForEachFreeClient(cl, {
         G_Ai_Connect(cl, NULL);
         break;
       });
     } else if (activeClients > desiredClients) {
+      const GameClient *kick = NULL;
       G_ForEachClient(cl, {
-        if (cl->ai && !cl->ai->added) {
-          gi.Cbuf(va("kick %d\n", cl->ps.client));
-          break;
+        if (cl->ai && !cl->ai->added && (!kick || !G_Ai_IsLevelRoster(cl->ai->roster))) {
+          kick = cl;
         }
       });
+      if (kick) {
+        gi.Cbuf(va("kick %d\n", kick->ps.client));
+      }
     }
   }
 
@@ -4210,7 +4217,7 @@ static void G_Ai_Add_f(void) {
 
   const GameAiRoster *roster = G_Ai_FindRoster(gi.Argv(1));
   if (!roster) {
-    gi.Print("Unknown bot: %s\n", gi.Argv(1));
+    gi.Print("Unknown AI player: %s\n", gi.Argv(1));
     G_Ai_PrintRoster();
     return;
   }
@@ -4266,6 +4273,8 @@ void G_Ai_Init(void) {
 void G_Ai_Load(void) {
 
   G_Ai_Profile_Load();
+
+  G_Ai_CheckLevelRoster();
 
   G_Ai_State_Unload();
 

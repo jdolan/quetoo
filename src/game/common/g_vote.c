@@ -179,7 +179,7 @@ static bool G_ApplyVote_Common(const char *type, const char *arg) {
     return true;
   }
 
-  if (!Str_Compare(type, "bots")) {
+  if (!Str_Compare(type, "ai")) {
     gameLevel.minClients = (int32_t) strtol(arg, NULL, 10);
     return true;
   }

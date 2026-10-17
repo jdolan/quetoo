@@ -45,7 +45,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1062
+#define PROTOCOL_MINOR 1063
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -1061,6 +1061,12 @@ typedef struct {
    * @brief The minimum number of clients, humans and AI, the game fills to.
    */
   int32_t minClients;
+
+  /**
+   * @brief The AI players, by name and separated by spaces, that the game adds first when it
+   * fills to `minClients`.
+   */
+  char ai[MAX_STRING_CHARS];
 
   /**
    * @brief Frag limit; game ends when a player reaches this.

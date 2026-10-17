@@ -69,7 +69,7 @@ typedef struct {
  */
 static const GameVoteType voteTypesCommon[] = {
   { "map", "Change map", VOTE_ARG_MAP, 0, 0 },
-  { "bots", "Bots", VOTE_ARG_INTEGER, 0, 8 },
+  { "ai", "Bots", VOTE_ARG_INTEGER, 0, 8 },
   { "spectate", "Force spectate", VOTE_ARG_CLIENT, 0, 0 },
   { "mute", "Mute", VOTE_ARG_CLIENT, 0, 0 },
   { "fragLimit", "Frag limit", VOTE_ARG_INTEGER, 0, 100 },

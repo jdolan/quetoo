@@ -46,7 +46,7 @@
 /**
  * @brief The default user info string (name and skin).
  */
-#define DEFAULT_BOT_INFO "\\name\\newbiebot\\skin\\enforcer/default"
+#define DEFAULT_AI_INFO "\\name\\Claude\\skin\\enforcer/default"
 
 /**
  * @brief The type of goal we're after. This controls which variant in `GameAiGoal`
@@ -289,23 +289,33 @@ typedef enum {
 } GameAiStateId;
 
 /**
- * @brief Static bot definition from the roster.
+ * @brief An AI player of the roster, as `ai.lst` defines it.
  */
 typedef struct {
   /**
-   * @brief Bot display name.
+   * @brief The AI player's name.
    */
-  const char *name;
+  char name[MAX_QPATH];
 
   /**
-   * @brief Player model/skin path.
+   * @brief The player model and skin, such as `enforcer/default`.
    */
-  const char *skin;
+  char skin[MAX_QPATH];
 
   /**
-   * @brief Stable per-bot UUID for stats tracking.
+   * @brief The stable UUID by which stats track the AI player.
    */
-  const char *guid;
+  char guid[MAX_QPATH];
+
+  /**
+   * @brief The effect hue, from 0 to 360, or empty for a random one.
+   */
+  char color[8];
+
+  /**
+   * @brief The helmet, shirt and pants tints, as six hex digits, or empty for random ones.
+   */
+  char helmet[8], shirt[8], pants[8];
 
   /**
    * @brief 0.0 (easy) to 1.0 (hard): aim, turn speed, reaction time.
