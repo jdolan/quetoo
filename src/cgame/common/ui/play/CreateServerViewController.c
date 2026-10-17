@@ -26,22 +26,94 @@
 
 #define _Class _CreateServerViewController
 
+#pragma mark - Private
+
+/**
+ * @brief Selects or deselects AI players until `count` are selected. Players are added at
+ * random, and removed from the end of the list.
+ */
+static void CreateServerViewController_selectAiCount(CreateServerViewController *self, size_t count) {
+
+  CollectionView *collectionView = (CollectionView *) self->aiList;
+
+  Array *selection = $(collectionView, selectionIndexPaths);
+
+  for (size_t i = count; i < selection->count; i++) {
+    const IndexPath *indexPath = $(selection, objectAtIndex, i);
+    $(collectionView, deselectItemAtIndexPath, indexPath);
+  }
+
+  if (count > selection->count) {
+
+    size_t *candidates = calloc(self->aiList->numAi, sizeof(size_t));
+    assert(candidates);
+
+    size_t numCandidates = 0;
+    for (size_t i = 0; i < self->aiList->numAi; i++) {
+      IndexPath *indexPath = $(alloc(IndexPath), initWithIndex, i);
+
+      const CollectionItemView *item = $(collectionView, itemAtIndexPath, indexPath);
+      if (item && !item->isSelected) {
+        candidates[numCandidates++] = i;
+      }
+
+      release(indexPath);
+    }
+
+    for (size_t i = selection->count; i < count && numCandidates; i++) {
+      const size_t j = Randomu() % numCandidates;
+
+      IndexPath *indexPath = $(alloc(IndexPath), initWithIndex, candidates[j]);
+      $(collectionView, selectItemAtIndexPath, indexPath);
+      release(indexPath);
+
+      candidates[j] = candidates[--numCandidates];
+    }
+
+    free(candidates);
+  }
+
+  release(selection);
+}
+
 #pragma mark - Delegates
 
 /**
  * @brief TextViewDelegate for the AI count field.
  * Stores (entered value + 1) into sv_minClients, accounting for the
- * player themselves occupying one client slot. An empty field defers to the level.
+ * player themselves occupying one client slot, and selects that many AI players. An empty
+ * field defers to the level, and clears the selection.
  */
 static void aiCountDidEndEditing(TextView *textView) {
 
+  CreateServerViewController *this = textView->delegate.self;
+
   const String *string = (String *) textView->attributedText;
   if (string->length) {
-    cgi.SetCvarInteger("sv_minClients", atoi(string->chars) + 1);
+    const size_t count = Mini(Maxi(0, atoi(string->chars)), (int32_t) this->aiList->numAi);
+
+    $(textView, setAttributedText, va("%zu", count));
+    cgi.SetCvarInteger("sv_minClients", (int32_t) count + 1);
+
+    CreateServerViewController_selectAiCount(this, count);
   } else {
     cgi.SetCvarString("sv_minClients", "default");
     $(textView, setDefaultText, NULL);
+
+    $((CollectionView *) this->aiList, deselectAll);
   }
+}
+
+/**
+ * @brief CollectionViewDelegate for the AI list, which sets the AI count field to the number
+ * of AI players selected.
+ */
+static void aiListDidModifySelection(CollectionView *collectionView, const Array *selectionIndexPaths) {
+
+  CreateServerViewController *this = collectionView->delegate.self;
+
+  $(this->aiCount, setAttributedText, va("%zu", selectionIndexPaths->count));
+  cgi.SetCvarInteger("sv_minClients", (int32_t) selectionIndexPaths->count + 1);
 }
 
 /**
@@ -154,7 +226,11 @@ static void loadView(ViewController *self) {
     $(this->aiCount, setDefaultText, va("%d", Maxi(0, svMinClients->integer - 1)));
   }
 
+  this->aiCount->delegate.self = this;
   this->aiCount->delegate.didEndEditing = aiCountDidEndEditing;
+
+  this->aiList->collectionView.delegate.self = this;
+  this->aiList->collectionView.delegate.didModifySelection = aiListDidModifySelection;
 
   $(this->gameplay, addOption, "Default", "default");
 
