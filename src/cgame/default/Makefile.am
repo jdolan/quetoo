@@ -176,7 +176,9 @@ cguiplay_DATA = \
 	$(CGUI_DIR)/play/JoinServerViewController.json \
 	$(CGUI_DIR)/play/PlayViewController.json \
 	$(CGUI_DIR)/play/PlayerSetupViewController.css \
-	$(CGUI_DIR)/play/PlayerSetupViewController.json
+	$(CGUI_DIR)/play/PlayerSetupViewController.json \
+	$(CGUI_DIR)/play/PracticeViewController.css \
+	$(CGUI_DIR)/play/PracticeViewController.json
 
 cguisettingsdir = \
 	@PKGLIBDIR@/default/ui/settings
@@ -319,6 +321,7 @@ cgame_la_SOURCES = \
 	ui/play/PlayViewController.c \
 	ui/play/PlayerModelView.c \
 	ui/play/PlayerSetupViewController.c \
+	ui/play/PracticeViewController.c \
 	ui/settings/CaptureLevelView.c \
 	ui/settings/CaptureLevelView.h \
 	ui/settings/SettingsViewController.c \

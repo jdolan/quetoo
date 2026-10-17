@@ -23,12 +23,20 @@
 #include "cg_local.h"
 
 /**
+ * @brief Capture the flag is a team game, which the practice ladders do not suit.
+ */
+static bool Cg_AllowPractice_Ctf(void) {
+  return false;
+}
+
+/**
  * @brief This module draws nothing of its own: the flag the client carries, the
  * carrier trails and the capture counts belong to the capture the flag, hook and
  * tech features of the common sources, which `Cg_Init` installs from the defines
- * in this module's Makefile.am.
+ * in this module's Makefile.am. It does not offer Practice.
  */
 void Cg_Module_Init(void) {
+  Cg_AllowPractice = Cg_AllowPractice_Ctf;
 }
 
 /**

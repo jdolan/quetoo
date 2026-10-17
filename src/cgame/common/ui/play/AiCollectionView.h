@@ -61,6 +61,18 @@ struct AiCollectionView {
    * @brief The number of AI players.
    */
   size_t numAi;
+
+  /**
+   * @brief The AI players shown, by their index in `ai`.
+   * @private
+   */
+  size_t *shown;
+
+  /**
+   * @brief The number of AI players shown.
+   * @private
+   */
+  size_t numShown;
 };
 
 /**
@@ -88,6 +100,14 @@ struct AiCollectionViewInterface {
    * @memberof AiCollectionView
    */
   PointerArray *(*selectedAi)(const AiCollectionView *self);
+
+  /**
+   * @fn void AiCollectionView::setNames(AiCollectionView *self, const char *names)
+   * @brief Shows only the AI players that `names` lists, in its order.
+   * @param names The names, separated by spaces, or `NULL` to show every AI player.
+   * @memberof AiCollectionView
+   */
+  void (*setNames)(AiCollectionView *self, const char *names);
 };
 
 /**

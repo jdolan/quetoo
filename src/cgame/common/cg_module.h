@@ -137,6 +137,16 @@ typedef bool (*CGameFilterCreateServerMapListHook)(const MapListItemInfo *info);
 extern CGameFilterCreateServerMapListHook Cg_FilterCreateServerMapList;
 
 /**
+ * @brief Decides whether the Play menu offers Practice, a ladder of matches against AI players.
+ * @return True to offer it.
+ * @details The tail, in cg_practice.c, offers it. A module whose gameplay the ladders do not
+ * suit, such as a team or a race module, replaces it with one that returns false.
+ */
+typedef bool (*CGameAllowPracticeHook)(void);
+
+extern CGameAllowPracticeHook Cg_AllowPractice;
+
+/**
  * @}
  * @defgroup cg-hooks-input Input
  * @brief The keys this module binds by default. Tail in cg_input.c.

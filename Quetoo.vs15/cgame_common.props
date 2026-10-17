@@ -221,6 +221,8 @@
     <ClInclude Include="..\src\cgame\common\ui\play\PlayerModelView.h" />
     <ClCompile Include="..\src\cgame\common\ui\play\PlayerSetupViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\play\PlayerSetupViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\play\PracticeViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\play\PracticeViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\settings\CaptureLevelView.c" />
     <ClInclude Include="..\src\cgame\common\ui\settings\CaptureLevelView.h" />
     <ClCompile Include="..\src\cgame\common\ui\settings\SettingsViewController.c" />

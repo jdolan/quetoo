@@ -1,0 +1,132 @@
+{
+  "identifier": "Practice",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "StackView",
+          "classNames": [
+            "columns",
+            "container"
+          ],
+          "subviews": [
+            {
+              "class": "StackView",
+              "classNames": [
+                "column",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Practice"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Ladder"
+                          }
+                        },
+                        "control": {
+                          "class": "Select",
+                          "identifier": "ladder"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Gameplay"
+                          }
+                        },
+                        "control": {
+                          "class": "Select",
+                          "identifier": "gameplay"
+                        }
+                      }
+                    ]
+                  }
+                },
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "Match"
+                    }
+                  },
+                  "contentView": {
+                    "classNames": [
+                      "practiceDetails"
+                    ],
+                    "subviews": [
+                      {
+                        "class": "Text",
+                        "identifier": "map",
+                        "classNames": [
+                          "practiceMap"
+                        ]
+                      },
+                      {
+                        "class": "Text",
+                        "identifier": "limits"
+                      },
+                      {
+                        "class": "Text",
+                        "identifier": "status"
+                      },
+                      {
+                        "class": "AiCollectionView",
+                        "identifier": "opponents"
+                      }
+                    ]
+                  }
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "classNames": [
+                "column-2",
+                "container"
+              ],
+              "subviews": [
+                {
+                  "class": "StackView",
+                  "identifier": "tiers",
+                  "classNames": [
+                    "practiceTiers"
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "class": "StackView",
+          "classNames": [
+            "accessoryView"
+          ],
+          "subviews": [
+            {
+              "class": "Button",
+              "identifier": "play",
+              "title": {
+                "text": "Play"
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

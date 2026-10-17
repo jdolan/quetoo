@@ -168,6 +168,7 @@ cgame_la_SOURCES = \
 	ui/play/PlayViewController.c \
 	ui/play/PlayerModelView.c \
 	ui/play/PlayerSetupViewController.c \
+	ui/play/PracticeViewController.c \
 	ui/settings/CaptureLevelView.c \
 	ui/settings/CaptureLevelView.h \
 	ui/settings/SettingsViewController.c \

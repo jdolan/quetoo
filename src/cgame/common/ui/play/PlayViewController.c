@@ -26,6 +26,7 @@
 #include "CreateServerViewController.h"
 #include "JoinServerViewController.h"
 #include "PlayerSetupViewController.h"
+#include "PracticeViewController.h"
 
 #define _Class _PlayViewController
 
@@ -69,6 +70,15 @@ static void loadView(ViewController *self) {
   viewController = $((ViewController *) alloc(CreateServerViewController), init);
   $(tabViewController, addChildViewController, viewController);
   release(viewController);
+
+  size_t numLadders;
+  Cg_Practice_Ladders(&numLadders);
+
+  if (Cg_AllowPractice() && numLadders) {
+    viewController = $((ViewController *) alloc(PracticeViewController), init);
+    $(tabViewController, addChildViewController, viewController);
+    release(viewController);
+  }
 
   viewController = $((ViewController *) alloc(PlayerSetupViewController), init);
   $(tabViewController, addChildViewController, viewController);

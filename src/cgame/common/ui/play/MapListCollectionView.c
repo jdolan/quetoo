@@ -86,16 +86,15 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 #pragma mark - Asynchronous map loading
 
 /**
- * @brief FsEnumerator for map discovery.
+ * @brief Loads the information of the map at `path` from its BSP: its title, from the worldspawn
+ * `message`, and the games it is made for.
+ * @return True if the map loaded.
  */
-static void enumerateMaps(const char *path, void *data) {
+bool Cg_LoadMapListItemInfo(const char *path, MapListItemInfo *info) {
 
-  const Thread *thread = $$(Thread, currentThread);
-  if (thread && $(thread, isCancelled)) {
-    return;
-  }
+  memset(info, 0, sizeof(*info));
 
-  MapList *maps = data;
+  bool loaded = false;
 
   File *file = cgi.OpenFile(path);
   if (file) {
@@ -110,10 +109,8 @@ static void enumerateMaps(const char *path, void *data) {
       if (header.version != BSP_VERSION) {
         Cg_Warn("Invalid BSP header found in %s: %d\n", path, header.version);
         cgi.CloseFile(file);
-        return;
+        return false;
       }
-
-      MapListItemInfo *info = calloc(1, sizeof(*info));
 
       Str_Copy(info->mapname, path, sizeof(info->mapname));
       Str_Copy(info->message, path, sizeof(info->message));
@@ -172,16 +169,35 @@ static void enumerateMaps(const char *path, void *data) {
 
       free(entities);
 
-      if (!Cg_FilterCreateServerMapList(info)) {
-        free(info);
-        cgi.CloseFile(file);
-        return;
-      }
-
-      $(maps, add, info);
+      loaded = true;
     }
 
     cgi.CloseFile(file);
+  }
+
+  return loaded;
+}
+
+
+/**
+ * @brief FsEnumerator for map discovery.
+ */
+static void enumerateMaps(const char *path, void *data) {
+
+  const Thread *thread = $$(Thread, currentThread);
+  if (thread && $(thread, isCancelled)) {
+    return;
+  }
+
+  MapList *maps = data;
+
+  MapListItemInfo *info = calloc(1, sizeof(*info));
+  assert(info);
+
+  if (Cg_LoadMapListItemInfo(path, info) && Cg_FilterCreateServerMapList(info)) {
+    $(maps, add, info);
+  } else {
+    free(info);
   }
 }
 

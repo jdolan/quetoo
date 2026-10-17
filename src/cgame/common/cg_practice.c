@@ -25,6 +25,15 @@ Cvar *cg_practice;
 Cvar *cg_practiceLadder;
 
 /**
+ * @brief The tail of the `Cg_AllowPractice` hook, which offers Practice.
+ */
+static bool Cg_AllowPractice_Common(void) {
+  return true;
+}
+
+CGameAllowPracticeHook Cg_AllowPractice = Cg_AllowPractice_Common;
+
+/**
  * @brief An entry the player has cleared, under the gameplay they cleared it in.
  */
 typedef struct {
@@ -40,6 +49,7 @@ static struct {
 
   CGamePracticeEntry *ladder;
   size_t ladderLength;
+  uint32_t ladderGeneration;
   int32_t maxClients;
 
   CGamePracticeClear *clears;
@@ -47,6 +57,9 @@ static struct {
 
   int32_t result;
   uint32_t resultScores;
+
+  CGamePracticeLadder *ladders;
+  size_t numLadders;
 } module;
 
 /**
@@ -90,7 +103,8 @@ static void Cg_Practice_FreeEntities(List *entities) {
 }
 
 /**
- * @brief Loads the ladder. An entry without a map or AI players, or with no tier, is skipped.
+ * @brief Loads the ladder. The `title` entity, and an entry without a map or AI players, or with
+ * no tier, are skipped.
  */
 static void Cg_Practice_LoadLadder(void) {
 
@@ -98,6 +112,7 @@ static void Cg_Practice_LoadLadder(void) {
   module.ladder = NULL;
   module.ladderLength = 0;
   module.maxClients = 0;
+  module.ladderGeneration++;
 
   List *entities = Cg_Practice_LoadEntities(module.ladderPath);
   if (entities == NULL) {
@@ -110,6 +125,10 @@ static void Cg_Practice_LoadLadder(void) {
 
   for (ListNode *node = entities->head; node; node = node->next) {
     const Entity *entity = node->element;
+
+    if (*cgi.EntityValue(entity, "title")->string) {
+      continue;
+    }
 
     CGamePracticeEntry *entry = &module.ladder[module.ladderLength];
 
@@ -195,6 +214,74 @@ static void Cg_Practice_WriteProgress(void) {
 
   release(string);
   cgi.CloseFile(file);
+}
+
+/**
+ * @brief `EnumerateFiles` function that adds the ladder at `path` to the ladders.
+ */
+static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
+
+  char name[MAX_QPATH];
+  StripExtension(Basename(path), name);
+
+  const char *prefix = "practice-";
+  if (strncmp(name, prefix, strlen(prefix)) || !name[strlen(prefix)]) {
+    return;
+  }
+
+  for (size_t i = 0; i < module.numLadders; i++) {
+    if (!Str_Compare(module.ladders[i].name, name + strlen(prefix))) {
+      return;
+    }
+  }
+
+  module.ladders = realloc(module.ladders, (module.numLadders + 1) * sizeof(CGamePracticeLadder));
+  assert(module.ladders);
+
+  CGamePracticeLadder *ladder = &module.ladders[module.numLadders++];
+
+  Str_Copy(ladder->name, name + strlen(prefix), sizeof(ladder->name));
+  Str_Copy(ladder->title, ladder->name, sizeof(ladder->title));
+
+  List *entities = Cg_Practice_LoadEntities(path);
+  if (entities == NULL) {
+    return;
+  }
+
+  for (ListNode *node = entities->head; node; node = node->next) {
+    const char *title = cgi.EntityValue(node->element, "title")->string;
+    if (*title) {
+      Str_Copy(ladder->title, title, sizeof(ladder->title));
+      break;
+    }
+  }
+
+  Cg_Practice_FreeEntities(entities);
+}
+
+/**
+ * @brief Sorts the default ladder first, and the rest by title.
+ */
+static int32_t Cg_Practice_LoadLadders_compare(const void *a, const void *b) {
+
+  const CGamePracticeLadder *la = a, *lb = b;
+
+  const bool da = !Str_Compare(la->name, "default"), db = !Str_Compare(lb->name, "default");
+  if (da != db) {
+    return da ? -1 : 1;
+  }
+
+  return Str_Compare(la->title, lb->title);
+}
+
+/**
+ * @brief Finds every ladder that the search path holds.
+ */
+static void Cg_Practice_LoadLadders(void) {
+
+  cgi.EnumerateFiles("/practice-*.lst", Cg_Practice_LoadLadders_enumerate, NULL);
+
+  qsort(module.ladders, module.numLadders, sizeof(CGamePracticeLadder), Cg_Practice_LoadLadders_compare);
 }
 
 /**
@@ -292,6 +379,26 @@ void Cg_Practice_Start(const CGamePracticeEntry *entry, const char *gameplay) {
   Str_Copy(module.startedLadder, cg_practiceLadder->string, sizeof(module.startedLadder));
 
   cgi.Cbuf("nextMap\n");
+}
+
+/**
+ * @brief Every ladder that the search path holds, the default ladder first.
+ */
+const CGamePracticeLadder *Cg_Practice_Ladders(size_t *count) {
+
+  *count = module.numLadders;
+  return module.ladders;
+}
+
+/**
+ * @brief The number of times that the ladder loaded, which changes each time that the entries
+ * that `Cg_Practice_Ladder` returns move.
+ */
+uint32_t Cg_Practice_LadderGeneration(void) {
+
+  Cg_Practice_Update();
+
+  return module.ladderGeneration;
 }
 
 /**
@@ -522,6 +629,8 @@ void Cg_Practice_Init(void) {
 
   module.result = -1;
 
+  Cg_Practice_LoadLadders();
+
   cgi.AddCmd("practice", Cg_Practice_f, CMD_CGAME, "Practice against AI players: practice <number> [gameplay]");
 
   Cg_Practice_Update();
@@ -534,6 +643,7 @@ void Cg_Practice_Shutdown(void) {
 
   free(module.ladder);
   free(module.clears);
+  free(module.ladders);
 
   memset(&module, 0, sizeof(module));
 }

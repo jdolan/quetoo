@@ -84,6 +84,8 @@ struct MapListCollectionViewInterface {
   PointerArray *(*selectedMaps)(const MapListCollectionView *self);
 };
 
+bool Cg_LoadMapListItemInfo(const char *path, MapListItemInfo *info);
+
 /**
  * @fn Class *MapListCollectionView::_MapListCollectionView(void)
  * @brief The MapListCollectionView archetype.

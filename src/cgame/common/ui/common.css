@@ -418,3 +418,44 @@ CameraControlsView > Text {
   font-size: 20;
   text-transform: uppercase;
 }
+
+/* An AI player's card: the icon at the top, the name under it, and the trait bars at the bottom.
+   The child selectors keep these rules off the image views inside each ProgressBar */
+
+AiCollectionItemView > ImageView {
+  alignment: center;
+  autoresizing-mask: none;
+  height: 56;
+  top: 6;
+  width: 56;
+}
+
+AiCollectionItemView > Text {
+  alignment: middle-center;
+}
+
+.aiItemTraits {
+  alignment: bottom-center;
+  autoresizing-mask: contain;
+  padding: 2 2 4 2;
+  spacing: 2;
+}
+
+.aiItemTraits > ProgressBar {
+  alignment: top-left;
+  autoresizing-mask: none;
+  height: 13;
+  width: 100;
+}
+
+.aiItemTraits > ProgressBar > .background {
+  background-color: #0a0f12cc;
+}
+
+.aiItemTraits > ProgressBar > .foreground {
+  background-color: #1e4e62dd;
+}
+
+.aiItemTraits > ProgressBar > Text {
+  font-size: 12;
+}

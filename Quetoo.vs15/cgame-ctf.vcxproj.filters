@@ -384,6 +384,9 @@
     <ClInclude Include="..\src\cgame\common\ui\play\PlayerSetupViewController.h">
       <Filter>src\common\ui\play</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\play\PracticeViewController.h">
+      <Filter>src\common\ui\play</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\settings\CaptureLevelView.h">
       <Filter>src\common\ui\settings</Filter>
     </ClInclude>
@@ -744,6 +747,9 @@
       <Filter>src\common\ui\play</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\play\PlayerSetupViewController.c">
+      <Filter>src\common\ui\play</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\play\PracticeViewController.c">
       <Filter>src\common\ui\play</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\settings\CaptureLevelView.c">

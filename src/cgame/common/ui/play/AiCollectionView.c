@@ -36,7 +36,7 @@
  * @see CollectionViewDataSource::numberOfItems(const CollectionView *)
  */
 static size_t numberOfItems(const CollectionView *collectionView) {
-  return ((const AiCollectionView *) collectionView)->numAi;
+  return ((const AiCollectionView *) collectionView)->numShown;
 }
 
 /**
@@ -46,7 +46,7 @@ static ident objectForItemAtIndexPath(const CollectionView *collectionView, cons
 
   const AiCollectionView *this = (const AiCollectionView *) collectionView;
 
-  return &this->ai[$(indexPath, indexAtPosition, 0)];
+  return &this->ai[this->shown[$(indexPath, indexAtPosition, 0)]];
 }
 
 #pragma mark - CollectionViewDelegate
@@ -63,7 +63,7 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 
   const size_t index = $(indexPath, indexAtPosition, 0);
 
-  $(item, setAiItemInfo, &this->ai[index]);
+  $(item, setAiItemInfo, &this->ai[this->shown[index]]);
 
   return (CollectionItemView *) item;
 }
@@ -78,6 +78,7 @@ static void dealloc(Object *self) {
   AiCollectionView *this = (AiCollectionView *) self;
 
   free(this->ai);
+  free(this->shown);
 
   super(Object, self, dealloc);
 }
@@ -183,11 +184,14 @@ static AiCollectionView *initWithFrame(AiCollectionView *self, const SDL_Rect *f
   if (self) {
     AiCollectionView_load(self);
 
+    self->shown = calloc(Maxi(1, (int32_t) self->numAi), sizeof(size_t));
+    assert(self->shown);
+
     self->collectionView.dataSource.numberOfItems = numberOfItems;
     self->collectionView.dataSource.objectForItemAtIndexPath = objectForItemAtIndexPath;
     self->collectionView.delegate.itemForObjectAtIndexPath = itemForObjectAtIndexPath;
 
-    $((CollectionView *) self, reloadData);
+    $(self, setNames, NULL);
   }
 
   return self;
@@ -214,6 +218,35 @@ static PointerArray *selectedAi(const AiCollectionView *self) {
   return selected;
 }
 
+/**
+ * @fn void AiCollectionView::setNames(AiCollectionView *self, const char *names)
+ * @memberof AiCollectionView
+ */
+static void setNames(AiCollectionView *self, const char *names) {
+
+  self->numShown = 0;
+
+  if (names) {
+    char buffer[MAX_STRING_CHARS];
+    Str_Copy(buffer, names, sizeof(buffer));
+
+    for (const char *name = strtok(buffer, " \t\n"); name; name = strtok(NULL, " \t\n")) {
+      for (size_t i = 0; i < self->numAi; i++) {
+        if (!Str_CaseCompare(self->ai[i].name, name) && self->numShown < self->numAi) {
+          self->shown[self->numShown++] = i;
+          break;
+        }
+      }
+    }
+  } else {
+    for (size_t i = 0; i < self->numAi; i++) {
+      self->shown[self->numShown++] = i;
+    }
+  }
+
+  $((CollectionView *) self, reloadData);
+}
+
 #pragma mark - Class lifecycle
 
 /**
@@ -227,6 +260,7 @@ static void initialize(Class *clazz) {
 
   ((AiCollectionViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
   ((AiCollectionViewInterface *) clazz->interface)->selectedAi = selectedAi;
+  ((AiCollectionViewInterface *) clazz->interface)->setNames = setNames;
 }
 
 /**

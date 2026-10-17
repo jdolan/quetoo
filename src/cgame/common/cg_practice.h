@@ -40,6 +40,22 @@
 #define PRACTICE_PROGRESS "progress-%s.lst"
 
 /**
+ * @brief A ladder that a `practice-<name>.lst` file holds.
+ */
+typedef struct {
+
+  /**
+   * @brief The name, which `cg_practiceLadder` takes.
+   */
+  char name[MAX_QPATH];
+
+  /**
+   * @brief The title that the file's `title` entity gives, or the name if it gives none.
+   */
+  char title[MAX_QPATH];
+} CGamePracticeLadder;
+
+/**
  * @brief One match of the ladder.
  */
 typedef struct {
@@ -71,7 +87,9 @@ extern Cvar *cg_practiceLadder;
 void Cg_Practice_Init(void);
 void Cg_Practice_Shutdown(void);
 
+const CGamePracticeLadder *Cg_Practice_Ladders(size_t *count);
 const CGamePracticeEntry *Cg_Practice_Ladder(size_t *count);
+uint32_t Cg_Practice_LadderGeneration(void);
 bool Cg_Practice_IsCleared(const CGamePracticeEntry *entry, const char *gameplay);
 
 void Cg_Practice_Start(const CGamePracticeEntry *entry, const char *gameplay);

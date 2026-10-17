@@ -1,0 +1,60 @@
+
+#Practice {
+  autoresizing-mask: contain;
+}
+
+.practiceTiers {
+  autoresizing-mask: contain | width;
+  spacing: 4;
+}
+
+.practiceTier {
+  autoresizing-mask: contain | width;
+}
+
+.practiceTier CollectionView {
+  axis: horizontal;
+  item-size: 172 97;
+  item-spacing: 8 8;
+  selection: single;
+  width: 920;
+  height: 113;
+}
+
+/* A tier is one row, which never scrolls */
+
+.practiceTier ScrollView {
+  scrollbar: hide;
+}
+
+.practiceTier MapListCollectionItemView Text {
+  font-size: 14;
+}
+
+/* A cleared entry keeps its tile, with a gold border */
+
+.practiceTier .cleared {
+  border-color: #d4a72cff;
+  border-width: 2;
+}
+
+.practiceTier .cleared:selected {
+  border-color: #8fc7dc;
+}
+
+.practiceDetails > Text {
+  min-width: 444;
+}
+
+.practiceMap {
+  font-size: 24;
+}
+
+.practiceDetails AiCollectionView {
+  axis: vertical;
+  item-size: 112 152;
+  item-spacing: 8 8;
+  selection: none;
+  width: 444;
+  height: 500;
+}
