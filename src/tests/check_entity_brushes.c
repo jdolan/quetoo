@@ -55,8 +55,7 @@ START_TEST(check_parse_simple_brush) {
     "}\n";
 
   Entity *e = Entity_Alloc();
-  SDL_strlcpy(e->key, "classname", sizeof(e->key));
-  SDL_strlcpy(e->string, "worldspawn", sizeof(e->string));
+  Entity_SetPair(e, "classname", "worldspawn");
 
   Entity *entities[] = { e };
   Entity_ParseBrushes(mapText, entities, 1);
@@ -82,8 +81,7 @@ START_TEST(check_parse_no_brushes) {
     "}\n";
 
   Entity *e = Entity_Alloc();
-  SDL_strlcpy(e->key, "classname", sizeof(e->key));
-  SDL_strlcpy(e->string, "info_player_deathmatch", sizeof(e->string));
+  Entity_SetPair(e, "classname", "info_player_deathmatch");
 
   Entity *entities[] = { e };
   Entity_ParseBrushes(mapText, entities, 1);
@@ -118,8 +116,7 @@ START_TEST(check_parse_patchdef2) {
     "}\n";
 
   Entity *e = Entity_Alloc();
-  SDL_strlcpy(e->key, "classname", sizeof(e->key));
-  SDL_strlcpy(e->string, "worldspawn", sizeof(e->string));
+  Entity_SetPair(e, "classname", "worldspawn");
 
   Entity *entities[] = { e };
   Entity_ParseBrushes(mapText, entities, 1);
@@ -163,8 +160,7 @@ START_TEST(check_parse_mixed_brush_and_patch) {
     "}\n";
 
   Entity *e = Entity_Alloc();
-  SDL_strlcpy(e->key, "classname", sizeof(e->key));
-  SDL_strlcpy(e->string, "worldspawn", sizeof(e->string));
+  Entity_SetPair(e, "classname", "worldspawn");
 
   Entity *entities[] = { e };
   Entity_ParseBrushes(mapText, entities, 1);
@@ -294,8 +290,7 @@ START_TEST(check_parse_preserves_comments) {
     "}\n";
 
   Entity *e = Entity_Alloc();
-  SDL_strlcpy(e->key, "classname", sizeof(e->key));
-  SDL_strlcpy(e->string, "worldspawn", sizeof(e->string));
+  Entity_SetPair(e, "classname", "worldspawn");
 
   Entity *entities[] = { e };
   Entity_ParseBrushes(mapText, entities, 1);
@@ -318,12 +313,10 @@ START_TEST(check_parse_preserves_comments) {
 START_TEST(check_copy_entity_preserves_brushes) {
 
   Entity *origin = Entity_Alloc();
-  SDL_strlcpy(origin->key, "origin", sizeof(origin->key));
-  SDL_strlcpy(origin->string, "128 256 512", sizeof(origin->string));
+  Entity_SetPair(origin, "origin", "128 256 512");
 
   Entity *classname = Entity_Alloc();
-  SDL_strlcpy(classname->key, "classname", sizeof(classname->key));
-  SDL_strlcpy(classname->string, "worldspawn", sizeof(classname->string));
+  Entity_SetPair(classname, "classname", "worldspawn");
   classname->brushes = Mem_TagCopyString("{ test brush data }\n", MEM_TAG_COLLISION);
 
   // Build a linked list: origin -> classname (brushes on classname node)

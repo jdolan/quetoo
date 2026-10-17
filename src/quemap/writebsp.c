@@ -341,7 +341,11 @@ void EmitEntities(void) {
     if (e) {
       Str_Append(out, "{\n", MAX_BSP_ENTITIES_SIZE);
       while (e) {
-        Str_Append(out, va(" \"%s\" \"%s\"\n", e->key, e->value), MAX_BSP_ENTITIES_SIZE);
+        Str_Append(out, " \"", MAX_BSP_ENTITIES_SIZE);
+        Str_Append(out, e->key, MAX_BSP_ENTITIES_SIZE);
+        Str_Append(out, "\" \"", MAX_BSP_ENTITIES_SIZE);
+        Str_Append(out, e->value, MAX_BSP_ENTITIES_SIZE);
+        Str_Append(out, "\"\n", MAX_BSP_ENTITIES_SIZE);
         e = e->next;
       }
       Str_Append(out, "}\n", MAX_BSP_ENTITIES_SIZE);

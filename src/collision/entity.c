@@ -56,6 +56,7 @@ static void Entity_SetPair_string(Entity *pair, char **field, const char *value)
 Entity *Entity_SetPair(Entity *pair, const char *key, const char *string) {
 
   assert(pair);
+  assert(pair != &nullEntity);
 
   if (key != pair->key) {
     Entity_SetPair_string(pair, &pair->key, key);
@@ -475,7 +476,9 @@ char *Entity_ToInfoString(const Entity *entity) {
   char *str = Mem_TagMalloc(MAX_INFO_STRING_STRING, MEM_TAG_COLLISION);
 
   for (const Entity *e = entity; e; e = e->next) {
-    InfoString_Set(str, e->key, e->string);
+    if (!InfoString_Set(str, e->key, e->string)) {
+      Com_Warn("\"%s\" is too long for an info string, and is left out\n", e->key);
+    }
   }
 
   return str;
