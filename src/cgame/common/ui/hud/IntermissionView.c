@@ -129,7 +129,7 @@ static void addMap(IntermissionView *self, int32_t index) {
 /**
  * @brief Hits per shot as a percentage, or a dash for a weapon never fired.
  */
-static const char *accuracy(uint32_t hits, uint32_t shots) {
+static const char *accuracyText(uint32_t hits, uint32_t shots) {
   return shots ? va("%.1f%%", hits * 100.f / shots) : "-";
 }
 
@@ -246,7 +246,7 @@ static void rebuildStats(IntermissionView *self) {
 
   addTotal((View *) totals, "damage dealt", va("%u", stats->damageDealt));
   addTotal((View *) totals, "damage taken", va("%u", stats->damageTaken));
-  addTotal((View *) totals, "accuracy", accuracy(hits, shots));
+  addTotal((View *) totals, "accuracy", accuracyText(hits, shots));
   addTotal((View *) totals, "favorite", favorite ? gameItemDefs[weapons[0].tag].name : "-");
 
   $((View *) self->stats, addSubview, (View *) totals);
@@ -263,7 +263,7 @@ static void rebuildStats(IntermissionView *self) {
     for (int32_t i = 0; i < stats->numWeapons; i++) {
       const CGameWeaponStats *w = &weapons[i];
       addWeapon((View *) table, gameItemDefs[w->tag].icon, gameItemDefs[w->tag].name,
-                accuracy(w->hits, w->shots), va("%u", w->damage), va("%u", w->kills));
+                accuracyText(w->hits, w->shots), va("%u", w->damage), va("%u", w->kills));
     }
 
     $((View *) self->stats, addSubview, (View *) table);

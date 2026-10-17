@@ -130,7 +130,8 @@ void G_ClientShotStats(GameClient *cl) {
 /**
  * @brief Counts damage to a living client: taken by the target, and dealt and hit by an enemy attacker.
  * @remarks A weapon counts one hit for each enemy that it damages in a frame, so that the pellets
- * of one blast or the splash of one rocket count once for each enemy they reach.
+ * of one blast or the splash of one rocket count once for each enemy they reach. The BFG's laser
+ * damages every enemy near the ball on every frame of its flight, so it counts no hits.
  */
 void G_ClientDamageStats(const GameEntity *attacker, const GameEntity *target, int32_t damage, GameMeansOfDeath mod) {
 
@@ -148,6 +149,10 @@ void G_ClientDamageStats(const GameEntity *attacker, const GameEntity *target, i
   }
 
   stats->damage += damage;
+
+  if (damage <= 0 || (mod & ~MOD_FRIENDLY_FIRE) == MOD_BFG_LASER) {
+    return;
+  }
 
   if (stats->hitFrame != gameLevel.frameNum) {
     stats->hitFrame = gameLevel.frameNum;
