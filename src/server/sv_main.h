@@ -57,5 +57,6 @@ const char *Sv_NetaddrToString(const ServerClient *cl);
 void Sv_KickClient(ServerClient *cl, const char *msg);
 void Sv_DropClient(ServerClient *cl);
 bool Sv_UserInfoChanged(ServerClient *cl);
+void Sv_SyncGameClients(void);
 
 #endif

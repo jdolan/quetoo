@@ -322,6 +322,8 @@ static void Sv_LoadMedia(const char *name, const Entity *mapListEntry, ServerSta
 
     Sv_SpawnEntities(name, mapListEntry);
 
+    Sv_SyncGameClients();
+
     const int32_t numEntities = Sv_CreateBaseline();
 
     Com_Print("  Loaded map %s, %d entities.\n", sv.name, numEntities);

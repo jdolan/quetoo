@@ -637,12 +637,13 @@ static void Sv_ResetEntities(void) {
 
 /**
  * @brief Syncs `ServerClient` state with the game module's `GameClient` for bot clients.
- * Called after each game frame to reflect bot connects and disconnects.
+ * Called after each game frame to reflect bot connects and disconnects, and after a level
+ * spawns, so that a connection cannot take a slot that an AI client holds.
  * @remarks An AI client that the game connected again in its slot as a level spawned, after
  * the level change reset the slot, or that replaced another in its slot, is set up as a new
  * connection, so that it does not time out.
  */
-static void Sv_SyncGameClients(void) {
+void Sv_SyncGameClients(void) {
 
   for (int32_t i = 0; i < sv_maxClients->integer; i++) {
     ServerClient *client = &svs.clients[i];
