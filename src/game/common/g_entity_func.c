@@ -700,6 +700,7 @@ static void G_func_plat_CreateTrigger(GameEntity *ent, float lip) {
  height : If set, this will determine the extent of the platform's movement, rather than implicitly using the platform's height.
  sounds : The sound set for the platform (0 default, 1 stone, -1 silent).
  targetname : The target name of this entity if it is to be triggered.
+ ai_hint : Set to "trap" to mark this as a trap, such as a floor that slides away over lava, rising lava, or a crusher. It needs a targetname. A bot in a fight presses or shoots a func_button that targets it, directly or through trigger_relays, while its enemy stands on it or in its path. A bot never opens a trap door to get past it.
 
  -------- Spawn flags --------
  low_trigger : If set, the touch field for this platform will only exist at the lower position.
@@ -1608,7 +1609,7 @@ static void G_func_door_Touch(GameEntity *ent, GameEntity *other, const Collisio
  sounds : The sound set for the door (0 default, 1 stone, -1 silent).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
- ai_hint : Set to "trap" to mark the door as a trap, such as a floor that slides away over lava, or a crusher. The door needs a targetname. A bot in a fight walks into a touched func_button that targets it while its enemy stands on the door. A bot never opens a trap door to get past it.
+ ai_hint : Set to "trap" to mark this as a trap, such as a floor that slides away over lava, rising lava, or a crusher. It needs a targetname. A bot in a fight presses or shoots a func_button that targets it, directly or through trigger_relays, while its enemy stands on it or in its path. A bot never opens a trap door to get past it.
 
  -------- Spawn flags --------
  start_open : The door to moves to its destination when spawned, and operates in reverse.
@@ -1744,7 +1745,7 @@ bool G_func_door_IsAway(const GameEntity *ent) {
  sounds : The sound set for the door (0 default, 1 stone, -1 silent).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
- ai_hint : Set to "trap" to mark the door as a trap, such as a floor that slides away over lava, or a crusher. The door needs a targetname. A bot in a fight walks into a touched func_button that targets it while its enemy stands on the door. A bot never opens a trap door to get past it.
+ ai_hint : Set to "trap" to mark this as a trap, such as a floor that slides away over lava, rising lava, or a crusher. It needs a targetname. A bot in a fight presses or shoots a func_button that targets it, directly or through trigger_relays, while its enemy stands on it or in its path. A bot never opens a trap door to get past it.
 
  -------- Spawn flags --------
  start_open : The door to moves to its destination when spawned, and operates in reverse.
@@ -2046,6 +2047,7 @@ static void G_func_door_secret_Die(GameEntity *ent, GameEntity *attacker, uint32
  sounds : The sound set for the door (0 default, 1 stone, -1 silent).
  dmg : The damage inflicted on players who block the door as it closes (default 2).
  targetname : The target name of this entity if it is to be triggered.
+ ai_hint : Set to "trap" to mark this as a trap, such as a floor that slides away over lava, rising lava, or a crusher. It needs a targetname. A bot in a fight presses or shoots a func_button that targets it, directly or through trigger_relays, while its enemy stands on it or in its path. A bot never opens a trap door to get past it.
 
  -------- Spawn flags --------
 always_shoot : The door will open when shot, even if it is targeted.
@@ -2161,6 +2163,7 @@ static void G_func_wall_Use(GameEntity *ent, GameEntity *other,
 
  -------- Keys --------
  targetname : The target name of this entity if it is to be triggered.
+ ai_hint : Set to "trap" to mark this as a trap, such as a floor that slides away over lava, rising lava, or a crusher. It needs a targetname. A bot in a fight presses or shoots a func_button that targets it, directly or through trigger_relays, while its enemy stands on it or in its path. A bot never opens a trap door to get past it.
 
  -------- Spawn flags --------
  triggered : The wall is inhibited until triggered, at which point it appears and kills everything in its way.
@@ -2206,6 +2209,7 @@ void G_func_wall(GameEntity *ent) {
  wait : Delay in seconds before returning to the initial position (default -1).
  lip : Lip remaining at end of move (default 0 units).
  targetname : The target name of this entity if it is to be triggered.
+ ai_hint : Set to "trap" to mark this as a trap, such as a floor that slides away over lava, rising lava, or a crusher. It needs a targetname. A bot in a fight presses or shoots a func_button that targets it, directly or through trigger_relays, while its enemy stands on it or in its path. A bot never opens a trap door to get past it.
 
  -------- Spawn flags ---------
  start_open : If set, causes the water to move to its destination when spawned and operate in reverse.
