@@ -77,8 +77,8 @@ bool Cg_Practice_IsCleared(const CGamePracticeEntry *entry, const char *gameplay
 void Cg_Practice_Start(const CGamePracticeEntry *entry, const char *gameplay);
 const CGamePracticeEntry *Cg_Practice_Current(void);
 const CGamePracticeEntry *Cg_Practice_Next(void);
-bool Cg_Practice_Won(void);
-void Cg_Practice_RecordWin(void);
+void Cg_Practice_ResetResult(void);
+int32_t Cg_Practice_Result(void);
 
 bool Cg_Practice_PlayNext(void);
 

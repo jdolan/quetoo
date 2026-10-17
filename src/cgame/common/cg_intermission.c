@@ -105,6 +105,10 @@ static bool Cg_ParseConfigString_Intermission(int32_t index) {
     nextMapGeneration++;
   }
 
+  if (nextMap->practice && !practiceWas) {
+    Cg_Practice_ResetResult();
+  }
+
   nextMap->generation = nextMapGeneration;
 
   return true;
@@ -160,10 +164,19 @@ void Cg_Intermission_Vote(int32_t map) {
 }
 
 /**
- * @brief Acts on the practice choice for the key that the player pressed, from 0.
+ * @brief Acts on the practice choice for the key that the player pressed, from 0, once the
+ * match's result is final.
  * @return True if the key is a choice.
  */
 static bool Cg_Intermission_Practice(int32_t choice) {
+
+  if (choice < 0 || choice > 2) {
+    return false;
+  }
+
+  if (Cg_Practice_Result() == -1) {
+    return true;
+  }
 
   switch (choice) {
     case 0:

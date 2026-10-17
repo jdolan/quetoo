@@ -286,14 +286,13 @@ static void rebuild(IntermissionView *self) {
     $(self->prompt, setText, va("Press 1 - %d to vote for the next map", cgameState.nextMap.numMaps));
     $((View *) self->prompt, setVisibility, ViewVisibilityVisible);
   } else if (cgameState.nextMap.practice) {
-    $(self->prompt, setText, "2  Retry     3  Exit");
+    $(self->prompt, setText, "");
     $((View *) self->prompt, setVisibility, ViewVisibilityVisible);
   } else {
     $((View *) self->prompt, setVisibility, ViewVisibilityHidden);
   }
 
   self->practiceResult = -1;
-  self->practiceScores = Cg_ScoresGeneration();
 
   $(self->result, setText, "");
   $((View *) self->result, setVisibility,
@@ -303,18 +302,11 @@ static void rebuild(IntermissionView *self) {
 }
 
 /**
- * @brief Shows the result of a practice match, once the intermission's scores arrive, and
- * records a win.
- * @remarks The server shares one score cache for half a second, so the first scores of the
- * intermission can predate the frag that ended it. The second cannot.
+ * @brief Shows the result of a practice match, and its choices, once the result is final.
  */
 static void updatePractice(IntermissionView *self) {
 
-  if (Cg_ScoresGeneration() - self->practiceScores < 2) {
-    return;
-  }
-
-  const int32_t won = Cg_Practice_Won();
+  const int32_t won = Cg_Practice_Result();
   if (won == self->practiceResult) {
     return;
   }
@@ -327,10 +319,6 @@ static void updatePractice(IntermissionView *self) {
     $(self->prompt, setText, "1  Next     2  Retry     3  Exit");
   } else {
     $(self->prompt, setText, "2  Retry     3  Exit");
-  }
-
-  if (won) {
-    Cg_Practice_RecordWin();
   }
 }
 

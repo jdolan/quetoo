@@ -44,6 +44,9 @@ static struct {
 
   CGamePracticeClear *clears;
   size_t numClears;
+
+  int32_t result;
+  uint32_t resultScores;
 } module;
 
 /**
@@ -186,7 +189,7 @@ static void Cg_Practice_WriteProgress(void) {
       clear->gameplay, clear->name, clear->ai);
   }
 
-  if (cgi.WriteFile(file, string->chars, string->length, 1) == -1) {
+  if (cgi.WriteFile(file, string->chars, string->length, 1) != 1) {
     Cg_Warn("Failed to write %s\n", module.progressPath);
   }
 
@@ -269,7 +272,7 @@ void Cg_Practice_Start(const CGamePracticeEntry *entry, const char *gameplay) {
   release(string);
   cgi.CloseFile(file);
 
-  if (written == -1) {
+  if (written != 1) {
     Cg_Warn("Failed to write %s\n", MAP_LIST_UI);
     return;
   }
@@ -366,7 +369,7 @@ const CGamePracticeEntry *Cg_Practice_Next(void) {
 /**
  * @brief True if the local player holds the top score alone.
  */
-bool Cg_Practice_Won(void) {
+static bool Cg_Practice_Won(void) {
 
   size_t count;
   const GameScore *scores = Cg_Scores(&count);
@@ -394,7 +397,7 @@ bool Cg_Practice_Won(void) {
 /**
  * @brief Records a win of this practice match, if the player has not cleared it before.
  */
-void Cg_Practice_RecordWin(void) {
+static void Cg_Practice_RecordWin(void) {
 
   const CGamePracticeEntry *entry = Cg_Practice_Current();
   if (entry == NULL) {
@@ -419,13 +422,41 @@ void Cg_Practice_RecordWin(void) {
 }
 
 /**
+ * @brief Waits for the result of this practice match, as its intermission begins.
+ */
+void Cg_Practice_ResetResult(void) {
+
+  module.result = -1;
+  module.resultScores = Cg_ScoresGeneration();
+}
+
+/**
+ * @brief The result of this practice match, which records a win once it is final.
+ * @return 1 for a win, 0 for a loss, or -1 until the intermission's scores arrive.
+ * @remarks The server shares one score cache for half a second, so the first scores of the
+ * intermission can predate the frag that ended it. The second cannot.
+ */
+int32_t Cg_Practice_Result(void) {
+
+  if (module.result == -1 && Cg_ScoresGeneration() - module.resultScores >= 2) {
+    module.result = Cg_Practice_Won();
+
+    if (module.result == 1) {
+      Cg_Practice_RecordWin();
+    }
+  }
+
+  return module.result;
+}
+
+/**
  * @brief Plays the entry after this practice match's, under the same gameplay, if the player
  * won this one and there is a next.
  * @return True if the next entry starts.
  */
 bool Cg_Practice_PlayNext(void) {
 
-  const CGamePracticeEntry *next = Cg_Practice_Won() ? Cg_Practice_Next() : NULL;
+  const CGamePracticeEntry *next = Cg_Practice_Result() == 1 ? Cg_Practice_Next() : NULL;
   if (next == NULL) {
     return false;
   }
@@ -488,6 +519,8 @@ void Cg_Practice_Init(void) {
   cg_practiceLadder = cgi.AddCvar("cg_practiceLadder", "default", CVAR_ARCHIVE,
                                   "The ladder that practice matches come from, by name");
   cg_practiceLadder->modified = true;
+
+  module.result = -1;
 
   cgi.AddCmd("practice", Cg_Practice_f, CMD_CGAME, "Practice against AI players: practice <number> [gameplay]");
 

@@ -75,11 +75,9 @@ struct IntermissionView {
   Text *prompt;
 
   /**
-   * @brief The practice result shown, -1 until the scores of the intermission arrive, and the
-   * scores generation the intermission began with.
+   * @brief The practice result shown, -1 until it is final.
    */
   int32_t practiceResult;
-  uint32_t practiceScores;
 
   /**
    * @brief The tiles, one per candidate.
