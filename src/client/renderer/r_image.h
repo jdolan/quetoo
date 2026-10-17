@@ -23,8 +23,17 @@
 
 #include "r_types.h"
 
+/**
+ * @brief Screenshot types.
+ */
+typedef enum {
+  SCREENSHOT_NONE,
+  SCREENSHOT_DEFAULT,
+  SCREENSHOT_VIEW,
+} RenderScreenshotType;
+
 RenderImage *R_LoadImage(const char *name, RenderImageType type);
-bool R_ViewScreenshotPending(void);
+RenderScreenshotType R_ScreenshotPending(void);
 void R_Screenshot(void);
 
 #if defined(__R_LOCAL_H__)

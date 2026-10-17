@@ -27,15 +27,6 @@
 #define IMG_CUBEMAP_LEVELS 8
 
 /**
- * @brief Screenshot types.
- */
-typedef enum {
-  SCREENSHOT_NONE,
-  SCREENSHOT_DEFAULT,
-  SCREENSHOT_VIEW,
-} RenderScreenshotType;
-
-/**
  * @brief Pending screenshot type.
  */
 static RenderScreenshotType pendingScreenshot;
@@ -153,11 +144,11 @@ static SDL_Surface *R_ReadTexture(const Texture *texture) {
 }
 
 /**
- * @brief Returns true if a screenshot of the view, without 2D, is pending this frame.
+ * @brief Returns the type of the screenshot pending this frame, if any.
  */
-bool R_ViewScreenshotPending(void) {
+RenderScreenshotType R_ScreenshotPending(void) {
 
-  return pendingScreenshot == SCREENSHOT_VIEW;
+  return pendingScreenshot;
 }
 
 /**

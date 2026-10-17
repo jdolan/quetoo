@@ -61,7 +61,7 @@ void Cl_UpdateScreen(void) {
       break;
 
     case CL_ACTIVE:
-      if (R_ViewScreenshotPending()) {
+      if (R_ScreenshotPending() == SCREENSHOT_VIEW) {
         break;
       }
 
