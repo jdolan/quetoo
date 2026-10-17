@@ -776,9 +776,19 @@ bool G_Ai_CanShootButton(const GameClient *cl, const GameEntity *button) {
   }
 
   const Vec3 eye = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+  const Vec3 center = Box3_Center(button->absBounds);
 
-  return !(cl->weapon->def.flags & WF_EXPLOSIVE) ||
-         Vec3_Distance(eye, Box3_Center(button->absBounds)) >= AI_SELF_SPLASH_DISTANCE;
+  const CollisionTrace trace = gi.Trace(eye, center, Box3_Zero(), cl->entity,
+                                        CONTENTS_MASK_CLIP_PROJECTILE);
+  const float impact = Vec3_Distance(eye, trace.end);
+
+  if ((cl->weapon == &gameItems[WEAPON_LIGHTNING] ||
+       cl->weapon == &gameItems[WEAPON_QUAKE_THUNDERBOLT]) &&
+      impact > g_balanceLightningLength->value) {
+    return false;
+  }
+
+  return !(cl->weapon->def.flags & WF_EXPLOSIVE) || impact >= AI_SELF_SPLASH_DISTANCE;
 }
 
 /**
@@ -848,8 +858,8 @@ uint32_t G_Ai_Weaponry(GameClient *cl, PMoveCmd *cmd) {
     G_Ai_PickWeapon(cl);
   }
 
-  // we're alive - if we're aiming at an enemy, start-a-firin
-  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY) {
+  // we're alive - if we're aiming at an enemy, and not at a button, start-a-firin
+  if (cl->ai->combatTarget.type == AI_GOAL_ENTITY && !cl->ai->shootTarget) {
     if (cl->ai->combatTarget.entity.lockOnTime < gameLevel.time &&
         gameLevel.time - cl->ai->combatTargetSeenTime <= AI_TARGET_SEEN_MILLIS) {
 

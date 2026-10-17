@@ -1619,8 +1619,27 @@ static bool G_Ai_SeesButton(const Vec3 origin, const float height, const GameEnt
 static bool G_Ai_IsShotButton(const GameEntity *button);
 
 /**
- * @return The trap's nearest button that the bot presses from where it stands, or NULL: one that a
- * shot presses, which it sees within `AI_SHOOT_REACH` and which its weapon can shoot, or one that it
+ * @return True if the entity is under a trap that the button springs. Relays can let one button
+ * spring several traps.
+ */
+static bool G_Ai_IsUnderButtonTrap(const GameEntity *ent, const GameEntity *button) {
+
+  for (int32_t i = 0; i < module.numTraps; i++) {
+    const GameAiTrap *trap = &module.traps[i];
+
+    for (int32_t j = 0; j < trap->numButtons; j++) {
+      if (trap->buttons[j] == button && G_Ai_IsUnderTrap(ent, trap)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @return The trap's nearest button that the bot presses from where it stands, and that springs no
+ * trap that the bot is under, or NULL: one that a shot presses, which it sees within `AI_SHOOT_REACH` and which its weapon can shoot, or one that it
  * touches, within `AI_TRAP_REACH` with a clear line for its box, raised by a step.
  */
 static const GameEntity *G_Ai_SpringTrap_button(const GameClient *cl, const GameAiTrap *trap) {
@@ -1636,7 +1655,7 @@ static const GameEntity *G_Ai_SpringTrap_button(const GameClient *cl, const Game
     const Vec3 center = Box3_Center(button->absBounds);
     const float distance = Vec3_Distance(cl->entity->s.origin, center);
 
-    if (distance >= nearestDistance) {
+    if (distance >= nearestDistance || G_Ai_IsUnderButtonTrap(cl->entity, button)) {
       continue;
     }
 
