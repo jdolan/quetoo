@@ -37,9 +37,9 @@ typedef struct MapshotThumbnailViewInterface MapshotThumbnailViewInterface;
 /**
  * @brief Cycles through every mapshot of a map, starting from a random one.
  * @details The mapshots are found and loaded on a worker thread, scaled to this view's size in
- * pixels, once the view is first drawn. A view that is never on screen loads nothing, so a long list costs only
- * what it shows. Each view picks its own slide duration, so that a list of them never changes in
- * step.
+ * pixels, once the view is first drawn. A view that is never on screen loads nothing, so a long
+ * list costs only what it shows. Each view picks its own slide duration, so that a list of them
+ * never changes in step.
  * @extends View
  */
 struct MapshotThumbnailView {

@@ -43,6 +43,12 @@ static ident loadMapshots(Thread *thread) {
 
   MapshotThumbnailJob *job = thread->data;
 
+  if ($(job->queue, isCancelled) || $(thread, isCancelled)) {
+    release(job->queue);
+    free(job);
+    return NULL;
+  }
+
   List *mapshots = cgi.Mapshots(job->map);
 
   const ListNode *node = mapshots->head;
@@ -50,11 +56,16 @@ static ident loadMapshots(Thread *thread) {
     node = node->next;
   }
 
-  for (size_t i = 0; i < mapshots->count && !$(job->queue, isCancelled); i++) {
+  for (size_t i = 0; i < mapshots->count; i++) {
+
+    if ($(job->queue, isCancelled) || $(thread, isCancelled)) {
+      break;
+    }
 
     SDL_Surface *surface = cgi.LoadSurface(node->element);
     if (surface) {
-      SDL_Surface *scaled = SDL_ScaleSurface(surface, job->width, job->height, SDL_SCALEMODE_LINEAR);
+      SDL_Surface *scaled = SDL_ScaleSurface(surface, job->width, job->height,
+                                             SDL_SCALEMODE_LINEAR);
       SDL_DestroySurface(surface);
 
       if (scaled) {
@@ -98,6 +109,13 @@ static void dealloc(Object *self) {
 }
 
 #pragma mark - View
+
+/**
+ * @see View::init(View *)
+ */
+static View *init(View *self) {
+  return (View *) $((MapshotThumbnailView *) self, initWithFrame, NULL);
+}
 
 /**
  * @see View::render(View *, Renderer *)
@@ -206,6 +224,7 @@ static void initialize(Class *clazz) {
 
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
+  ((ViewInterface *) clazz->interface)->init = init;
   ((ViewInterface *) clazz->interface)->render = render;
 
   ((MapshotThumbnailViewInterface *) clazz->interface)->initWithFrame = initWithFrame;
