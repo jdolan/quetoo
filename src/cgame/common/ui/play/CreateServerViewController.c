@@ -101,17 +101,6 @@ static void createServer(Button *button) {
 
       cgi.CloseFile(file);
 
-      if (selectedAi->count) {
-        const Cvar *svMinClients = cgi.GetCvar("sv_minClients");
-        const int32_t count = (svMinClients && Str_Compare(svMinClients->string, "default"))
-                              ? svMinClients->integer - 1 : 0;
-
-        if (count < (int32_t) selectedAi->count) {
-          cgi.SetCvarInteger("sv_minClients", (int32_t) selectedAi->count + 1);
-          $(this->aiCount, setAttributedText, va("%zu", selectedAi->count));
-        }
-      }
-
       cgi.SetCvarString("sv_mapList", MAP_LIST_UI);
       cgi.Cbuf("nextMap");
     } else {

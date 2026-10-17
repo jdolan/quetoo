@@ -28,6 +28,7 @@ void G_Ai_GetRosterInfo(const GameClient *cl, const GameAiRoster *entry, char *i
 const GameAiRoster *G_Ai_GetRoster(const GameClient *cl, char *info);
 const GameAiRoster *G_Ai_FindRoster(const char *name);
 uint32_t G_Ai_RosterCount(void);
+int32_t G_Ai_LevelRosterCount(void);
 bool G_Ai_IsLevelRoster(const GameAiRoster *entry);
 void G_Ai_CheckLevelRoster(void);
 void G_Ai_PrintRoster(void);

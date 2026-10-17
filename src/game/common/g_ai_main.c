@@ -4178,7 +4178,8 @@ void G_Ai_Frame(void) {
     const int32_t minClients = Maxi(0, gameLevel.minClients);
     const int32_t maxClients = Maxi(0, sv_maxClients->integer);
 
-    const int32_t desiredClients = Mini(minClients, maxClients);
+    const int32_t namedClients = humanClients + G_Ai_LevelRosterCount();
+    const int32_t desiredClients = Mini(Maxi(minClients, namedClients), maxClients);
 
     if (activeClients < desiredClients && G_Ai_RosterCount()) {
       G_ForEachFreeClient(cl, {

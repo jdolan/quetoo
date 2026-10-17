@@ -342,6 +342,38 @@ const GameAiRoster *G_Ai_FindRoster(const char *name) {
 }
 
 /**
+ * @return The number of distinct roster entries that the level's `ai` key names.
+ */
+int32_t G_Ai_LevelRosterCount(void) {
+
+  const GameAiRoster *named[MAX_CLIENTS];
+  int32_t count = 0;
+
+  char names[MAX_STRING_CHARS];
+  Str_Copy(names, gameLevel.ai, sizeof(names));
+
+  char *save;
+  for (char *name = Str_Tokenize(names, " \t", &save); name && count < MAX_CLIENTS;
+       name = Str_Tokenize(NULL, " \t", &save)) {
+    const GameAiRoster *entry = G_Ai_FindRoster(name);
+    if (!entry) {
+      continue;
+    }
+
+    int32_t i = 0;
+    while (i < count && named[i] != entry) {
+      i++;
+    }
+
+    if (i == count) {
+      named[count++] = entry;
+    }
+  }
+
+  return count;
+}
+
+/**
  * @return True if the level's `ai` key names the roster entry.
  */
 bool G_Ai_IsLevelRoster(const GameAiRoster *entry) {
