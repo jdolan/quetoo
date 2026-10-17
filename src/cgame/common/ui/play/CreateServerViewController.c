@@ -58,18 +58,13 @@ static void createServer(Button *button) {
 
   for (size_t i = 0; i < selectedAi->count; i++) {
     const AiItemInfo *info = $(selectedAi, get, i);
-    $(ai, appendFormat, "%s%s", i ? " " : "", info->name);
-  }
 
-  if (selectedAi->count) {
-    const Cvar *svMinClients = cgi.GetCvar("sv_minClients");
-    const int32_t count = (svMinClients && Str_Compare(svMinClients->string, "default"))
-                          ? svMinClients->integer - 1 : 0;
-
-    if (count < (int32_t) selectedAi->count) {
-      cgi.SetCvarInteger("sv_minClients", (int32_t) selectedAi->count + 1);
-      $(this->aiCount, setDefaultText, va("%zu", selectedAi->count));
+    if (ai->length + (i ? 1 : 0) + strlen(info->name) >= MAX_BSP_ENTITY_VALUE) {
+      cgi.Print("Too many AI players to name: %s and later ones join at random\n", info->name);
+      break;
     }
+
+    $(ai, appendFormat, "%s%s", i ? " " : "", info->name);
   }
 
   PointerArray *selectedMaps = $(this->mapList, selectedMaps);
@@ -105,6 +100,17 @@ static void createServer(Button *button) {
       release(string);
 
       cgi.CloseFile(file);
+
+      if (selectedAi->count) {
+        const Cvar *svMinClients = cgi.GetCvar("sv_minClients");
+        const int32_t count = (svMinClients && Str_Compare(svMinClients->string, "default"))
+                              ? svMinClients->integer - 1 : 0;
+
+        if (count < (int32_t) selectedAi->count) {
+          cgi.SetCvarInteger("sv_minClients", (int32_t) selectedAi->count + 1);
+          $(this->aiCount, setAttributedText, va("%zu", selectedAi->count));
+        }
+      }
 
       cgi.SetCvarString("sv_mapList", MAP_LIST_UI);
       cgi.Cbuf("nextMap");
