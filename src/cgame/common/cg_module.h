@@ -124,8 +124,7 @@ typedef struct MapListItemInfo MapListItemInfo;
  * @brief Decides whether the create-server map browser lists a map.
  * @param info The map as the browser read it: its path, title, and its worldspawn
  * `games` value, the space-delimited games it is made for, already defaulted to
- * `dm` when the map sets none. The mapshot is loaded only for a map that passes,
- * so it is `NULL` here. See `MapListCollectionItemView.h`.
+ * `dm` when the map sets none. See `MapListCollectionItemView.h`.
  * @return True to list the map.
  * @details Chainable. The tail lists a map whose `games` names `GAME_NAME` as a
  * whole token, which is all a mod that is its own game needs. A module whose

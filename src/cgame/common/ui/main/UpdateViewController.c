@@ -38,7 +38,7 @@
  */
 static ident fetchHeroImages(Thread *thread) {
 
-	HeroImageList *heroImages = thread->data;
+	ImageQueue *heroImages = thread->data;
 
 	Data *listData = NULL, *imageData = NULL;
 
@@ -163,7 +163,7 @@ static void loadView(ViewController *self) {
 	self->view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/main/UpdateViewController.css");
 	assert(self->view->stylesheet);
 
-	this->heroImages = $(alloc(HeroImageList), init);
+	this->heroImages = $(alloc(ImageQueue), init);
 	assert(this->heroImages);
 
 	$(this->logo, setImageWithResourceName, "ui/loading.png");

@@ -21,9 +21,9 @@
 
 #include "cg_local.h"
 
-#include "HeroImageList.h"
+#include "ImageQueue.h"
 
-#define _Class _HeroImageList
+#define _Class _ImageQueue
 
 #pragma mark - Object
 
@@ -32,7 +32,7 @@
  */
 static void dealloc(Object *self) {
 
-  HeroImageList *this = (HeroImageList *) self;
+  ImageQueue *this = (ImageQueue *) self;
 
   release(this->lock);
   release(this->images);
@@ -40,15 +40,15 @@ static void dealloc(Object *self) {
   super(Object, self, dealloc);
 }
 
-#pragma mark - HeroImageList
+#pragma mark - ImageQueue
 
 /**
- * @fn HeroImageList *HeroImageList::init(HeroImageList *self)
- * @memberof HeroImageList
+ * @fn ImageQueue *ImageQueue::init(ImageQueue *self)
+ * @memberof ImageQueue
  */
-static HeroImageList *init(HeroImageList *self) {
+static ImageQueue *init(ImageQueue *self) {
 
-  self = (HeroImageList *) super(Object, self, init);
+  self = (ImageQueue *) super(Object, self, init);
   if (self) {
     self->lock = $(alloc(Lock), init);
     assert(self->lock);
@@ -61,10 +61,10 @@ static HeroImageList *init(HeroImageList *self) {
 }
 
 /**
- * @fn void HeroImageList::add(HeroImageList *self, Image *image)
- * @memberof HeroImageList
+ * @fn void ImageQueue::add(ImageQueue *self, Image *image)
+ * @memberof ImageQueue
  */
-static void add(HeroImageList *self, Image *image) {
+static void add(ImageQueue *self, Image *image) {
 
   synchronized(self->lock, {
     $(self->images, addObject, image);
@@ -72,10 +72,10 @@ static void add(HeroImageList *self, Image *image) {
 }
 
 /**
- * @fn Array *HeroImageList::drain(HeroImageList *self)
- * @memberof HeroImageList
+ * @fn Array *ImageQueue::drain(ImageQueue *self)
+ * @memberof ImageQueue
  */
-static Array *drain(HeroImageList *self) {
+static Array *drain(ImageQueue *self) {
 
   Array *images = NULL;
   synchronized(self->lock, {
@@ -89,10 +89,10 @@ static Array *drain(HeroImageList *self) {
 }
 
 /**
- * @fn void HeroImageList::cancel(HeroImageList *self)
- * @memberof HeroImageList
+ * @fn void ImageQueue::cancel(ImageQueue *self)
+ * @memberof ImageQueue
  */
-static void cancel(HeroImageList *self) {
+static void cancel(ImageQueue *self) {
 
   synchronized(self->lock, {
     self->cancelled = true;
@@ -100,10 +100,10 @@ static void cancel(HeroImageList *self) {
 }
 
 /**
- * @fn bool HeroImageList::isCancelled(const HeroImageList *self)
- * @memberof HeroImageList
+ * @fn bool ImageQueue::isCancelled(const ImageQueue *self)
+ * @memberof ImageQueue
  */
-static bool isCancelled(const HeroImageList *self) {
+static bool isCancelled(const ImageQueue *self) {
 
   bool cancelled;
   synchronized(self->lock, {
@@ -122,27 +122,27 @@ static void initialize(Class *clazz) {
 
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
-  ((HeroImageListInterface *) clazz->interface)->init = init;
-  ((HeroImageListInterface *) clazz->interface)->add = add;
-  ((HeroImageListInterface *) clazz->interface)->drain = drain;
-  ((HeroImageListInterface *) clazz->interface)->cancel = cancel;
-  ((HeroImageListInterface *) clazz->interface)->isCancelled = isCancelled;
+  ((ImageQueueInterface *) clazz->interface)->init = init;
+  ((ImageQueueInterface *) clazz->interface)->add = add;
+  ((ImageQueueInterface *) clazz->interface)->drain = drain;
+  ((ImageQueueInterface *) clazz->interface)->cancel = cancel;
+  ((ImageQueueInterface *) clazz->interface)->isCancelled = isCancelled;
 }
 
 /**
- * @fn Class *HeroImageList::_HeroImageList(void)
- * @memberof HeroImageList
+ * @fn Class *ImageQueue::_ImageQueue(void)
+ * @memberof ImageQueue
  */
-Class *_HeroImageList(void) {
+Class *_ImageQueue(void) {
   static Class *clazz;
   static Once once;
 
   do_once(&once, {
     clazz = _initialize(&(const ClassDef) {
-      .name = "HeroImageList",
+      .name = "ImageQueue",
       .superclass = _Object(),
-      .instanceSize = sizeof(HeroImageList),
-      .interfaceSize = sizeof(HeroImageListInterface),
+      .instanceSize = sizeof(ImageQueue),
+      .interfaceSize = sizeof(ImageQueueInterface),
       .initialize = initialize,
     });
   });

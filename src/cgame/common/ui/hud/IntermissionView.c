@@ -25,6 +25,7 @@
 
 #include "HudViewController.h"
 #include "IntermissionView.h"
+#include "MapshotThumbnailView.h"
 
 #define _Class _IntermissionView
 
@@ -49,34 +50,32 @@ static void dealloc(Object *self) {
 #pragma mark - Tiles
 
 /**
- * @brief The map's thumbnail, or a placeholder for a map this client does not have.
+ * @brief The map's mapshots, or a placeholder for a map this client does not have.
  * @remarks Resolving a mapshot enumerates the filesystem, so this runs only when the
  * candidates change, never per frame.
  */
-static Image *thumbnail(const char *map) {
+static View *thumbnail(const char *map) {
 
   List *mapshots = cgi.Mapshots(map);
-
-  // the first, deterministically: a different one each frame would flicker
-  const char *path = mapshots->count ? mapshots->head->element : NULL;
-
-  Image *image = NULL;
-
-  if (path) {
-    SDL_Surface *surface = cgi.LoadSurface(path);
-    if (surface) {
-      image = $$(Image, imageWithSurface, surface);
-      SDL_DestroySurface(surface);
-    }
-  }
-
+  const bool found = mapshots->count > 0;
   release(mapshots);
 
-  if (image == NULL) {
-    image = Cg_LoadImage(va("ui/backgrounds/%u", (uint32_t) (Str_Length(map) % 6)));
+  if (found) {
+    MapshotThumbnailView *view = $(alloc(MapshotThumbnailView), initWithFrame, NULL);
+    assert(view);
+
+    $(view, setMap, map);
+    return (View *) view;
   }
 
-  return image;
+  ImageView *view = $(alloc(ImageView), initWithFrame, NULL);
+  assert(view);
+
+  Image *image = Cg_LoadImage(va("ui/backgrounds/%u", (uint32_t) (Str_Length(map) % 6)));
+  $(view, setImage, image);
+  release(image);
+
+  return (View *) view;
 }
 
 /**
@@ -91,15 +90,10 @@ static void addMap(IntermissionView *self, int32_t index) {
 
   $((View *) tile, addClassName, "map");
 
-  ImageView *mapshot = $(alloc(ImageView), initWithFrame, NULL);
-  assert(mapshot);
+  View *mapshot = thumbnail(nextMap->maps[index]);
 
-  Image *image = thumbnail(nextMap->maps[index]);
-  $(mapshot, setImage, image);
-  release(image);
-
-  $((View *) mapshot, addClassName, "mapshot");
-  $((View *) tile, addSubview, (View *) mapshot);
+  $(mapshot, addClassName, "mapshot");
+  $((View *) tile, addSubview, mapshot);
   release(mapshot);
 
   // the key that picks it, which is the only way to pick one: the HUD layer is drawn

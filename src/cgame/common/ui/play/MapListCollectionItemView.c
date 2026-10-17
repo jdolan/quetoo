@@ -54,6 +54,13 @@ static MapListCollectionItemView *initWithFrame(MapListCollectionItemView *self,
     assert(self->games);
 
     $((View *) self->games, addClassName, "mapItemGames");
+
+    self->mapshot = $(alloc(MapshotThumbnailView), initWithFrame, NULL);
+    assert(self->mapshot);
+
+    CollectionItemView *item = (CollectionItemView *) self;
+    $((View *) self, addSubviewRelativeTo, (View *) self->mapshot, (View *) item->imageView, ViewPositionAfter);
+    release(self->mapshot);
   }
 
   return self;
@@ -69,14 +76,14 @@ static void setMapListItemInfo(MapListCollectionItemView *self, const MapListIte
   CollectionItemView *item = (CollectionItemView *) self;
 
   $(item->text, setText, NULL);
-  $(item->imageView, setImage, NULL);
 
   $((View *) self->games, removeAllSubviews);
   $((View *) self->games, removeFromSuperview);
 
+  $(self->mapshot, setMap, info ? info->mapname : NULL);
+
   if (info) {
     $(item->text, setText, info->message);
-    $(item->imageView, setImageWithSurface, info->mapshot);
 
     char games[sizeof(info->games)];
     Str_Copy(games, info->games, sizeof(games));

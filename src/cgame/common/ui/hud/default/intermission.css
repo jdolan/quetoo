@@ -49,6 +49,10 @@ IntermissionView .mapshot {
   border-radius: 2;
 }
 
+IntermissionView .mapshot ImageView {
+  border-radius: 2;
+}
+
 IntermissionView .name {
   alignment: top-center;
 }

@@ -25,6 +25,8 @@
 
 #include <ObjectivelyMVC.h>
 
+#include "MapshotThumbnailView.h"
+
 /**
  * @file
  * @brief Join server ViewController: the known servers in one pane, and the
@@ -78,7 +80,7 @@ struct JoinServerViewController {
   /**
    * @brief The selected server's mapshot, when its map is installed locally.
    */
-  ImageView *mapshotView;
+  MapshotThumbnailView *mapshotView;
 
   /**
    * @brief The part of the details pane that only means something once a

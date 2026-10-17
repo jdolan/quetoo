@@ -26,13 +26,6 @@
 
 #define _Class _MapListCollectionView
 
-/**
- * @brief The mapshot surfaces are scaled once, on the loading thread, so they take a fixed
- * resolution rather than the item size, which the cascade owns and which that thread may not read.
- */
-#define MAPSHOT_WIDTH  420
-#define MAPSHOT_HEIGHT 236
-
 #define DEFAULT_GAMES "dm"
 
 #pragma mark - Cg_FilterCreateServerMapList
@@ -184,29 +177,6 @@ static void enumerateMaps(const char *path, void *data) {
         cgi.CloseFile(file);
         return;
       }
-
-      List *mapshots = cgi.Mapshots(path);
-
-      const uint32_t len = mapshots ? (uint32_t) mapshots->count : 0;
-      if (len) {
-        const size_t index = RandomRangeu(0, len);
-        const ListNode *node = mapshots->head;
-        for (size_t i = 0; node && i < index; i++) {
-          node = node->next;
-        }
-
-        const char *mapshot = node ? node->element : NULL;
-
-        SDL_Surface *surf = mapshot ? cgi.LoadSurface(mapshot) : NULL;
-        if (surf) {
-          info->mapshot = SDL_CreateSurface(MAPSHOT_WIDTH, MAPSHOT_HEIGHT, SDL_PIXELFORMAT_RGB24);
-          SDL_BlitSurfaceScaled(surf, NULL, info->mapshot, NULL, SDL_SCALEMODE_LINEAR);
-        } else {
-          info->mapshot = NULL;
-        }
-      }
-
-      release(mapshots);
 
       $(maps, add, info);
     }

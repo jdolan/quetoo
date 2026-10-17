@@ -158,7 +158,7 @@
                         }
                       },
                       {
-                        "class": "ImageView",
+                        "class": "MapshotThumbnailView",
                         "identifier": "serverMapshot",
                         "classNames": [
                           "joinDetailMapshot"

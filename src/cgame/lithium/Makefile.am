@@ -100,6 +100,8 @@ cgame_la_SOURCES = \
 	ui/CvarSlider.c \
 	ui/CvarTextView.c \
 	ui/DialogViewController.c \
+	ui/ImageQueue.c \
+	ui/MapshotThumbnailView.c \
 	ui/controls/CommunicationCaptureViewController.c \
 	ui/controls/ControlsViewController.c \
 	ui/controls/CrosshairHudViewController.c \
@@ -148,7 +150,6 @@ cgame_la_SOURCES = \
 	ui/hud/VoiceView.c \
 	ui/hud/VoteView.c \
 	ui/hud/WeaponBarView.c \
-	ui/main/HeroImageList.c \
 	ui/main/LoadingViewController.c \
 	ui/main/MainView.c \
 	ui/main/MainViewController.c \

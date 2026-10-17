@@ -53,6 +53,10 @@ IntermissionView .mapshot {
   border-radius: 3;
 }
 
+IntermissionView .mapshot ImageView {
+  border-radius: 3;
+}
+
 IntermissionView .name {
   alignment: top-center;
   text-transform: uppercase;
