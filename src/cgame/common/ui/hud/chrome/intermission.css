@@ -36,16 +36,21 @@ IntermissionView .maps {
   spacing: 16;
 }
 
+/* each candidate on the cards' gradient, fading upward from the bottom edge */
 IntermissionView .map {
   autoresizing-mask: contain;
   axis: vertical;
   spacing: 3;
   padding: 5 5 5 5;
+  background-color: #08151ae6;
+  background-gradient-color: #08151a9e;
+  background-gradient-angle: 180;
 }
 
 IntermissionView .mapshot {
   width: 208;
   height: 117;
+  border-radius: 3;
 }
 
 IntermissionView .name {
@@ -67,15 +72,17 @@ IntermissionView > .countdown {
   padding-bottom: 12;
 }
 
-/* the local player's match stats, beside the scoreboard */
+/* the local player's match stats, flush to the left edge on the cards' gradient */
 IntermissionView > .stats {
   alignment: middle;
-  left: 24;
+  left: 0;
   autoresizing-mask: contain;
   axis: vertical;
   spacing: 14;
-  background-color: #0b0f1299;
-  padding: 14 14 14 14;
+  background-color: #08151ae6;
+  background-gradient-color: #08151a9e;
+  background-gradient-angle: 90;
+  padding: 14 20 14 20;
 }
 
 IntermissionView .totals {

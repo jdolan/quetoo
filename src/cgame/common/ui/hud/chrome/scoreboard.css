@@ -47,7 +47,7 @@ ScoreboardView > .columns {
 ScoreboardView .column {
   autoresizing-mask: contain;
   axis: vertical;
-  spacing: 1;
+  spacing: 3;
 }
 
 ScoreboardView .spectators {
@@ -63,12 +63,15 @@ ScoreboardView .fields .caption {
 }
 
 /*
- * With no card behind them the rows are the table, so every one carries a fill and the
- * striping is the difference between them; transparent rows would read as gaps.
+ * With no card behind them the rows are the table, so every one is a card on the HUD's
+ * gradient, and the striping is the difference between them; transparent rows would read as
+ * gaps. The local player's row takes the blue of the score card.
  */
 
 ScoreboardView ScoreView {
-  background-color: #08151ad9;
+  background-color: #08151ae6;
+  background-gradient-color: #08151a9e;
+  background-gradient-angle: 90;
   padding: 2 4 2 4;
 }
 
@@ -77,9 +80,16 @@ ScoreboardView ScoreView.odd {
 }
 
 ScoreboardView ScoreView.self {
-  background-color: #1e4e6299;
+  background-color: #1e4e62e6;
+  background-gradient-color: #08151acc;
   border-color: #8fc7dc80;
   border-width: 1;
+}
+
+/* the player's color leads from the icon and fades out before the fields */
+ScoreboardView ScoreView > .fill {
+  background-gradient-color: #08151a01;
+  background-gradient-angle: 90;
 }
 
 ScoreboardView .name {
