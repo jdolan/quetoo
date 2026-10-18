@@ -162,9 +162,6 @@
           "identifier": "weaponBar"
         },
         {
-          "identifier": "spine"
-        },
-        {
           "class": "FpsView",
           "identifier": "fps",
           "caption": "FPS"

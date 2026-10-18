@@ -385,7 +385,7 @@ static bool isEditorView(const View *view) {
 
 /**
  * @return True if the view is a wrapper, such as the layout or an anchor: a plain View that
- * holds other views. A plain View with no subviews draws itself, as the chrome spine does.
+ * holds other views. A plain View with no subviews draws itself.
  */
 static bool isWrapperView(const View *view) {
   return ((Object *) view)->clazz == _View() && view->subviews->count;

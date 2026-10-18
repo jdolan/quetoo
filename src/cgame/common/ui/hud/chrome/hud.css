@@ -341,17 +341,6 @@
   height: 30;
 }
 
-/* The one flourish that is not a card: a lit seam along the bottom edge, centred */
-
-#spine {
-  alignment: bottom-center;
-  width: 260;
-  height: 3;
-  background-color: #8fc7dc00;
-  background-gradient-color: #8fc7dc;
-  background-gradient-angle: 90;
-}
-
 /* The clock holds the top center, so the pickup and the spectator line sit below it */
 
 #pickup {
