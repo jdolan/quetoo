@@ -121,6 +121,9 @@ void Ui_HandleEvent(const SDL_Event *event) {
         case SDL_EVENT_WINDOW_FIRST ... SDL_EVENT_WINDOW_LAST:
           break;
         case SDL_EVENT_KEY_DOWN:
+          if (event->key.key == SDLK_D && (event->key.mod & SDL_KMOD_CTRL)) {
+            break;
+          }
           if (editor->value && cls.keyState.dest == KEY_GAME) {
             break;
           }

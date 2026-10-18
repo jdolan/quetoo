@@ -227,11 +227,17 @@ float Cl_KeyState(InputButton *key, uint32_t cmdMsec) {
 static void Cl_UpdateMouseState(void) {
 
   const SDL_WindowFlags flags = SDL_GetWindowFlags(renderContext.window);
+  const SDL_PropertiesID properties = SDL_GetWindowProperties(renderContext.window);
+
+  WindowController *windowController = SDL_GetPointerProperty(properties, "windowController", NULL);
 
   // paused demo playback stays in KEY_GAME so the HUD (and its transport controls) keep
   // drawing, but wants a visible, ungrabbed cursor to drive those controls with
-  if (cls.keyState.dest == KEY_UI || cls.keyState.dest == KEY_CONSOLE || cls.demo.paused ||
-      (flags & (SDL_WINDOW_OCCLUDED | SDL_WINDOW_HIDDEN | SDL_WINDOW_MINIMIZED))) {
+  if (cls.keyState.dest == KEY_UI
+      || cls.keyState.dest == KEY_CONSOLE
+      || cls.demo.paused
+      || windowController->debugViewController
+      || (flags & (SDL_WINDOW_OCCLUDED | SDL_WINDOW_HIDDEN | SDL_WINDOW_MINIMIZED))) {
     SDL_ShowCursor();
     SDL_SetWindowMouseGrab(renderContext.window, false);
   } else {
@@ -243,7 +249,7 @@ static void Cl_UpdateMouseState(void) {
   // doesn't change destination, so the pause state is reconciled here each frame instead - and
   // so it survives a trip through the menus and back
   if (cls.keyState.dest == KEY_GAME) {
-    SDL_SetWindowRelativeMouseMode(renderContext.window, !cls.demo.paused);
+    SDL_SetWindowRelativeMouseMode(renderContext.window, !cls.demo.paused && !windowController->debugViewController);
   }
 }
 
