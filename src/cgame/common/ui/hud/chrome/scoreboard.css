@@ -11,6 +11,7 @@
 
 ScoreboardView {
   autoresizing-mask: fill;
+  top: 168;
 }
 
 ScoreboardView Text {
@@ -25,14 +26,13 @@ ScoreboardView > .title {
   text-transform: uppercase;
   font-size: 34;
   color: #f2f5f6;
-  padding-top: 20;
 }
 
 ScoreboardView > .header {
   alignment: top-center;
   autoresizing-mask: contain;
   axis: horizontal;
-  padding-top: 64;
+  padding-top: 24;
   spacing: 48;
 }
 
@@ -40,7 +40,7 @@ ScoreboardView > .columns {
   alignment: top-center;
   autoresizing-mask: contain;
   axis: horizontal;
-  padding-top: 86;
+  padding-top: 48;
   spacing: 24;
 }
 
