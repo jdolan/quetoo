@@ -31,7 +31,7 @@ ScoreboardView > .columns {
   alignment: top-center;
   autoresizing-mask: contain;
   axis: horizontal;
-  padding-top: 88;
+  padding-top: 164;
 }
 
 ScoreboardView .column {
