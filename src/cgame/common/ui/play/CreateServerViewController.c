@@ -32,7 +32,7 @@
  * @brief Selects or deselects AI players until `count` are selected. Players are added at
  * random, and removed from the end of the list.
  */
-static void CreateServerViewController_selectAiCount(CreateServerViewController *self, size_t count) {
+static void selectAiCount(CreateServerViewController *self, size_t count) {
 
   CollectionView *collectionView = (CollectionView *) self->aiList;
 
@@ -95,9 +95,9 @@ static void aiCountDidEndEditing(TextView *textView) {
     $(textView, setAttributedText, va("%zu", count));
     cgi.SetCvarInteger("sv_minClients", (int32_t) count + 1);
 
-    CreateServerViewController_selectAiCount(this, count);
+    selectAiCount(this, count);
   } else {
-    cgi.SetCvarString("sv_minClients", "default");
+    cgi.SetCvarString("sv_minClients", "0");
     $(textView, setDefaultText, NULL);
 
     $((CollectionView *) this->aiList, deselectAll);
