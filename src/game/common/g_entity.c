@@ -122,7 +122,7 @@ static const Entity *G_MapListEntryValue(const char *key) {
  * entry, then its worldspawn, then Quetoo's built-in value. A value outside 0 to
  * `INT16_MAX` is unset. Prints the value in effect, and where it came from, which may be the cvar.
  */
-static float G_RequestSetting(const GameEntity *worldspawn, const Cvar *cvar, const char *key, float builtin, float *requested) {
+static float G_LevelOption(const GameEntity *worldspawn, const Cvar *cvar, const char *key, float builtin, float *requested) {
 
   const char *source = "built-in";
   *requested = builtin;
@@ -813,7 +813,7 @@ static void G_worldspawn(GameEntity *ent) {
 
   gi.SetConfigString(CS_MESSAGE, gameLevel.message);
 
-  gameLevel.gravity = G_RequestSetting(ent, g_gravity, "gravity", 0.f, &gameLevel.requested.gravity);
+  gameLevel.gravity = G_LevelOption(ent, g_gravity, "gravity", 0.f, &gameLevel.requested.gravity);
 
   // the gameplay is g_gameplay if the admin named one, else this level's
   // metadata, else its worldspawn, else deathmatch, as the movement is below
@@ -861,12 +861,12 @@ static void G_worldspawn(GameEntity *ent) {
     gameLevel.numTeams = -1; // G_InitSpawnPoints derives it from the spawn points
   }
 
-  gameLevel.minClients = G_RequestSetting(ent, sv_minClients, "min_clients", 0.f, &gameLevel.requested.minClients);
-  gameLevel.fragLimit = G_RequestSetting(ent, g_fragLimit, "frag_limit", 30.f, &gameLevel.requested.fragLimit);
+  gameLevel.minClients = G_LevelOption(ent, sv_minClients, "min_clients", 0.f, &gameLevel.requested.minClients);
+  gameLevel.fragLimit = G_LevelOption(ent, g_fragLimit, "frag_limit", 30.f, &gameLevel.requested.fragLimit);
 #if defined(G_CTF)
-  gameLevel.captureLimit = G_RequestSetting(ent, g_captureLimit, "capture_limit", 8.f, &gameLevel.requested.captureLimit);
+  gameLevel.captureLimit = G_LevelOption(ent, g_captureLimit, "capture_limit", 8.f, &gameLevel.requested.captureLimit);
 #endif
-  gameLevel.timeLimit = G_RequestSetting(ent, g_timeLimit, "time_limit", 20.f, &gameLevel.requested.timeLimit) * 60 * 1000;
+  gameLevel.timeLimit = G_LevelOption(ent, g_timeLimit, "time_limit", 20.f, &gameLevel.requested.timeLimit) * 60 * 1000;
 
   const Entity *aiMap = G_MapListEntryValue("ai");
   if (aiMap && *aiMap->string) {
