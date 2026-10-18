@@ -141,6 +141,61 @@
                       }
                     ]
                   }
+                },
+                ,
+                {
+                  "class": "Box",
+                  "label": {
+                    "text": {
+                      "text": "View"
+                    }
+                  },
+                  "contentView": {
+                    "subviews": [
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Show weapon"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "var": "cg_drawWeapon"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Weapon sway"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 2,
+                          "step": 0.05,
+                          "var": "cg_drawWeaponBob"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
+                            "text": "Bob"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarSlider",
+                          "min": 0,
+                          "max": 2,
+                          "step": 0.05,
+                          "var": "cg_bob"
+                        }
+                      }
+                    ]
+                  }
                 }
               ]
             },
@@ -340,6 +395,19 @@
                         "class": "Input",
                         "label": {
                           "text": {
+                            "text": "Show item timers"
+                          }
+                        },
+                        "control": {
+                          "class": "CvarCheckbox",
+                          "identifier": "itemTimers",
+                          "var": "cg_drawItemTimers"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
                             "text": "Pulse low vitals"
                           }
                         },
@@ -373,60 +441,6 @@
                         "control": {
                           "class": "BindTextView",
                           "bind": "+score"
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  "class": "Box",
-                  "label": {
-                    "text": {
-                      "text": "View"
-                    }
-                  },
-                  "contentView": {
-                    "subviews": [
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Show weapon"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarCheckbox",
-                          "var": "cg_drawWeapon"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Weapon sway"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 0,
-                          "max": 2,
-                          "step": 0.05,
-                          "var": "cg_drawWeaponBob"
-                        }
-                      },
-                      {
-                        "class": "Input",
-                        "label": {
-                          "text": {
-                            "text": "Bob"
-                          }
-                        },
-                        "control": {
-                          "class": "CvarSlider",
-                          "min": 0,
-                          "max": 2,
-                          "step": 0.05,
-                          "var": "cg_bob"
                         }
                       }
                     ]

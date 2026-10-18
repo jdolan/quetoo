@@ -64,7 +64,9 @@ static void updateBindings(View *self, ident data) {
 
   super(View, self, updateBindings, data);
 
-  if (data == NULL) {
+  $(self, setVisibility, cg_drawItemTimers->integer ? ViewVisibilityVisible : ViewVisibilityHidden);
+
+  if (data == NULL || self->visibility == ViewVisibilityHidden) {
     return;
   }
 
