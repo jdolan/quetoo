@@ -234,8 +234,6 @@ void G_ResetTeams(void);
 void G_InitNumTeams(void);
 void G_SetTeamNames(void);
 void G_ResetSpawnPoints(void);
-void G_CallTimeOut(GameEntity *ent);
-void G_CallTimeIn(void);
 void G_RunTimers(void);
 void G_MuteClient(char *name, bool mute);
 void G_SetClientMuted(GameClient *cl, bool mute);

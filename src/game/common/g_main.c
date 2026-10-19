@@ -1303,7 +1303,7 @@ void G_Shutdown(void) {
 }
 
 /**
- * @brief Handles clock, countdown, and timeout timers for the current level.
+ * @brief Handles clock and countdown timers for the current level.
  */
 void G_RunTimers(void) {
   uint32_t time = gameLevel.time;
