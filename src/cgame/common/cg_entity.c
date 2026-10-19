@@ -252,7 +252,9 @@ static bool Cg_IsProjectileTrail(const uint8_t trail) {
 
 /**
  * @brief Moves a new projectile of the viewed player, in first person, from the view weapon's
- * muzzle toward its origin over `CG_PROJECTILE_ANCHOR_MILLIS`.
+ * muzzle toward its origin over `CG_PROJECTILE_ANCHOR_MILLIS`. The viewed player is `Cg_Self()`,
+ * because a chasing spectator's `frame.ps.client` is its own, where `Cg_AddWeapon` stores the
+ * muzzle.
  */
 static void Cg_AnchorProjectile(ClientEntity *ent) {
 
@@ -264,10 +266,10 @@ static void Cg_AnchorProjectile(ClientEntity *ent) {
     anchor->spawnId = s->spawnId;
     anchor->time = 0;
 
-    if (s->client == cgi.client->frame.ps.client && Cg_ViewIsSelf() &&
+    if (s->client == Cg_Self()->current.client && Cg_ViewIsSelf() &&
         !(s->effects & (EF_CLIENT | EF_CORPSE | EF_BEAM)) && Cg_IsProjectileTrail(s->trail)) {
 
-      const Vec3 muzzle = cgameState.clients[s->client].weaponMuzzle;
+      const Vec3 muzzle = cgameState.clients[cgi.client->frame.ps.client].weaponMuzzle;
       if (!Vec3_Equal(muzzle, Vec3_Zero()) &&
           Vec3_Distance(muzzle, ent->origin) < CG_PROJECTILE_ANCHOR_DISTANCE) {
         anchor->time = cgi.client->unclampedTime;
