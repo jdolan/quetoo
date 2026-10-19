@@ -63,6 +63,11 @@ typedef struct {
    * @brief The title that the file's `title` entity gives, or the name if it gives none.
    */
   char title[MAX_QPATH];
+
+  /**
+   * @brief The gameplay that the file's `title` entity sets, or `NULL` to let the player choose.
+   */
+  const GamePlay *gamePlay;
 } CGamePracticeLadder;
 
 /**
@@ -99,6 +104,7 @@ void Cg_Practice_Shutdown(void);
 
 const CGamePracticeLadder *Cg_Practice_Ladders(size_t *count);
 const CGamePracticeEntry *Cg_Practice_Ladder(size_t *count);
+const GamePlay *Cg_Practice_LadderGamePlay(void);
 uint32_t Cg_Practice_LadderGeneration(void);
 bool Cg_Practice_IsCleared(const CGamePracticeEntry *entry, const char *gameplay);
 

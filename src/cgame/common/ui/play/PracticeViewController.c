@@ -57,6 +57,43 @@ static const char *selectedGamePlay(const PracticeViewController *self) {
 }
 
 /**
+ * @brief Enables or disables `control`.
+ */
+static void setEnabled(Control *control, bool enabled) {
+
+  const ControlState state = enabled
+    ? control->state & ~ControlStateDisabled
+    : control->state | ControlStateDisabled;
+
+  if (state != control->state) {
+    control->state = state;
+    $(control, stateDidChange);
+  }
+}
+
+/**
+ * @brief Selects the gameplay that the ladder sets, or else deathmatch, and lets the player
+ * choose only if the ladder sets none.
+ */
+static void updateGamePlay(PracticeViewController *self) {
+
+  const GamePlay *gamePlay = Cg_Practice_LadderGamePlay();
+  const char *name = gamePlay ? gamePlay->name : "deathmatch";
+
+  size_t count;
+  const GamePlay *gamePlays = Cg_ListGamePlays(&count);
+
+  for (size_t i = 0; i < count; i++) {
+    if (!Str_Compare(gamePlays[i].name, name)) {
+      $(self->gameplay, selectOptionWithValue, (ident) gamePlays[i].name);
+      break;
+    }
+  }
+
+  setEnabled((Control *) self->gameplay, gamePlay == NULL);
+}
+
+/**
  * @brief Shows the selected entry, and enables the Play button only if an entry is selected.
  */
 static void updateDetails(PracticeViewController *self) {
@@ -86,16 +123,7 @@ static void updateDetails(PracticeViewController *self) {
     $(self->status, setText, NULL);
   }
 
-  Control *control = (Control *) self->play;
-
-  const ControlState state = entry
-    ? control->state & ~ControlStateDisabled
-    : control->state | ControlStateDisabled;
-
-  if (state != control->state) {
-    control->state = state;
-    $(control, stateDidChange);
-  }
+  setEnabled((Control *) self->play, entry != NULL);
 }
 
 /**
@@ -322,6 +350,7 @@ static void didSelectLadder(Select *select, Option *option) {
 
   this->selected = -1;
 
+  updateGamePlay(this);
   reloadTiers(this);
 }
 
@@ -408,6 +437,8 @@ static void loadView(ViewController *self) {
 
   this->gameplay->delegate.self = this;
   this->gameplay->delegate.didSelectOption = didSelectGamePlay;
+
+  updateGamePlay(this);
 
   this->play->delegate.self = this;
   this->play->delegate.didClick = didClickPlay;

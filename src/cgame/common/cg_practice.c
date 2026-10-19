@@ -234,7 +234,26 @@ static void Cg_Practice_WriteProgress(void) {
 }
 
 /**
- * @brief `EnumerateFiles` function that adds the ladder at `path` to the ladders.
+ * @brief The gameplay named `name` that Practice offers, or `NULL` if the module has none, or if
+ * it is a team gameplay.
+ */
+static const GamePlay *Cg_Practice_GamePlay(const char *name) {
+
+  size_t count;
+  const GamePlay *gamePlays = Cg_ListGamePlays(&count);
+
+  for (size_t i = 0; i < count; i++) {
+    if (!Str_Compare(gamePlays[i].name, name)) {
+      return (gamePlays[i].id & GAMEPLAY_TEAMS) ? NULL : &gamePlays[i];
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief `EnumerateFiles` function that adds the ladder at `path` to the ladders. A ladder that
+ * sets a gameplay Practice does not offer is skipped.
  */
 static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
 
@@ -252,28 +271,38 @@ static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
     }
   }
 
+  CGamePracticeLadder ladder = {};
+
+  Str_Copy(ladder.name, name + strlen(prefix), sizeof(ladder.name));
+  Str_Copy(ladder.title, ladder.name, sizeof(ladder.title));
+
+  List *entities = Cg_Practice_LoadEntities(path);
+  if (entities) {
+    for (ListNode *node = entities->head; node; node = node->next) {
+      const char *title = cgi.EntityValue(node->element, "title")->string;
+      if (*title) {
+        Str_Copy(ladder.title, title, sizeof(ladder.title));
+
+        const char *gameplay = cgi.EntityValue(node->element, "gameplay")->string;
+        if (*gameplay) {
+          ladder.gamePlay = Cg_Practice_GamePlay(gameplay);
+          if (ladder.gamePlay == NULL) {
+            Cg_Warn("Skipping %s: Practice does not offer gameplay %s\n", path, gameplay);
+            Cg_Practice_FreeEntities(entities);
+            return;
+          }
+        }
+        break;
+      }
+    }
+
+    Cg_Practice_FreeEntities(entities);
+  }
+
   module.ladders = realloc(module.ladders, (module.numLadders + 1) * sizeof(CGamePracticeLadder));
   assert(module.ladders);
 
-  CGamePracticeLadder *ladder = &module.ladders[module.numLadders++];
-
-  Str_Copy(ladder->name, name + strlen(prefix), sizeof(ladder->name));
-  Str_Copy(ladder->title, ladder->name, sizeof(ladder->title));
-
-  List *entities = Cg_Practice_LoadEntities(path);
-  if (entities == NULL) {
-    return;
-  }
-
-  for (ListNode *node = entities->head; node; node = node->next) {
-    const char *title = cgi.EntityValue(node->element, "title")->string;
-    if (*title) {
-      Str_Copy(ladder->title, title, sizeof(ladder->title));
-      break;
-    }
-  }
-
-  Cg_Practice_FreeEntities(entities);
+  module.ladders[module.numLadders++] = ladder;
 }
 
 /**
@@ -347,9 +376,15 @@ static const char *Cg_Practice_CurrentGamePlay(void) {
 }
 
 /**
- * @brief Practices `entry` under `gameplay`, on a new local server.
+ * @brief Practices `entry` under `gameplay`, or under the gameplay its ladder sets, on a new
+ * local server.
  */
 void Cg_Practice_Start(const CGamePracticeEntry *entry, const char *gameplay) {
+
+  const GamePlay *ladderGamePlay = Cg_Practice_LadderGamePlay();
+  if (ladderGamePlay) {
+    gameplay = ladderGamePlay->name;
+  }
 
   File *file = cgi.OpenFileWrite(MAP_LIST_UI);
   if (file == NULL) {
@@ -405,6 +440,21 @@ const CGamePracticeLadder *Cg_Practice_Ladders(size_t *count) {
 
   *count = module.numLadders;
   return module.ladders;
+}
+
+/**
+ * @brief The gameplay that the `cg_practiceLadder` ladder sets, or `NULL` to let the player
+ * choose.
+ */
+const GamePlay *Cg_Practice_LadderGamePlay(void) {
+
+  for (size_t i = 0; i < module.numLadders; i++) {
+    if (!Str_Compare(module.ladders[i].name, cg_practiceLadder->string)) {
+      return module.ladders[i].gamePlay;
+    }
+  }
+
+  return NULL;
 }
 
 /**
@@ -608,7 +658,7 @@ void Cg_Practice_Exit(void) {
 
 /**
  * @brief Plays the entry of the `cg_practiceLadder` ladder with the number given, from 1, under
- * the gameplay given, or deathmatch.
+ * the gameplay that the ladder sets, or else the gameplay given, or deathmatch.
  */
 static void Cg_Practice_f(void) {
 
