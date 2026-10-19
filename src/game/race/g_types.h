@@ -526,7 +526,7 @@ typedef enum {
 #define EF_INACTIVE        (EF_GAME << 2) // inactive icon for when input is not going to game
 #define EF_BEAM            (EF_GAME << 3) // overloads oldOrigin for endpoint
 #define EF_CORPSE          (EF_GAME << 4) // to differentiate own corpse from self
-#define EF_RESPAWN         (EF_GAME << 5) // yellow shell
+#define EF_SPAWN_PROTECTION (EF_GAME << 5) // yellow shell
 #define EF_QUAD            (EF_GAME << 6) // blue-green shell
 #define EF_RACE_GHOST      (EF_GAME << 7) // the course record run, wearing the viewer's skin
 #define EF_DESPAWN         (EF_GAME << 11) // translucent
@@ -1775,7 +1775,7 @@ struct GameClient {
   /**
    * @brief Respawn protection expires at this time.
    */
-  uint32_t respawnProtectionTime;
+  uint32_t spawnProtectionTime;
 
   /**
    * @brief Level time when the client last touched the ground.

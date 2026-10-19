@@ -1640,7 +1640,7 @@ void G_ClientRespawn(GameClient *cl, bool voluntary) {
   }
 
   cl->respawnTime = gameLevel.time;
-  cl->respawnProtectionTime = gameLevel.time + g_respawnProtection->value * 1000;
+  cl->spawnProtectionTime = gameLevel.time + g_spawnProtection->value * 1000;
 
   if (cl->ai) {
     G_Ai_Respawn(cl);
@@ -2382,10 +2382,10 @@ static void G_ClientInventoryThink(GameClient *cl) {
     }
   }
 
-  if (cl->respawnProtectionTime > gameLevel.time) {
-    cl->entity->s.effects |= EF_RESPAWN;
+  if (cl->spawnProtectionTime > gameLevel.time) {
+    cl->entity->s.effects |= EF_SPAWN_PROTECTION;
   } else {
-    cl->entity->s.effects &= ~EF_RESPAWN;
+    cl->entity->s.effects &= ~EF_SPAWN_PROTECTION;
   }
 
   // decrement any boosted health from items

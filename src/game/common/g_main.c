@@ -172,7 +172,7 @@ Cvar *g_motd;
 Cvar *g_numTeams;
 Cvar *g_password;
 Cvar *g_playerProjectile;
-Cvar *g_respawnProtection;
+Cvar *g_spawnProtection;
 Cvar *g_fallDamage;
 Cvar *g_selfDamage;
 Cvar *g_selfKnockback;
@@ -1240,7 +1240,7 @@ void G_Init(void) {
   g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");
   g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");
   g_playerProjectile = gi.AddCvar("g_playerProjectile", "1", CVAR_SERVER_INFO, "Scales player velocity to projectiles.");
-  g_respawnProtection = gi.AddCvar("g_respawnProtection", "0", 0, "Respawn protection in seconds.");
+  g_spawnProtection = gi.AddCvar("g_spawnProtection", "0", 0, "Spawn protection in seconds. It ends when the player fires.");
   g_fallDamage = gi.AddCvar("g_fallDamage", "1", CVAR_SERVER_INFO, "Scales fall damage. 0 disables fall damage entirely (cf. Quake2 DF_NO_FALLING).");
   g_selfDamage = gi.AddCvar("g_selfDamage", "1", CVAR_SERVER_INFO, "Scales self-inflicted damage (rocket splash, grenade splash, etc)");
   g_selfKnockback = gi.AddCvar("g_selfKnockback", "1", CVAR_SERVER_INFO, "Scales self-inflicted knockback (rocket jump, plasma climb, etc)");
