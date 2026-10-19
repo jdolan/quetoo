@@ -313,16 +313,11 @@ static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
 }
 
 /**
- * @brief Sorts the default ladder first, and the rest by title.
+ * @brief Sorts the ladders by title.
  */
 static int32_t Cg_Practice_LoadLadders_compare(const void *a, const void *b) {
 
   const CGamePracticeLadder *la = a, *lb = b;
-
-  const bool da = !Str_Compare(la->name, "default"), db = !Str_Compare(lb->name, "default");
-  if (da != db) {
-    return da ? -1 : 1;
-  }
 
   return Str_Compare(la->title, lb->title);
 }
@@ -441,7 +436,7 @@ void Cg_Practice_Start(const CGamePracticeEntry *entry, const char *gameplay) {
 }
 
 /**
- * @brief Every ladder that the search path holds, the default ladder first.
+ * @brief Every ladder that the search path holds, by title.
  */
 const CGamePracticeLadder *Cg_Practice_Ladders(size_t *count) {
 

@@ -142,7 +142,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map edge"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set timeDemo 1"
