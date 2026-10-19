@@ -22,6 +22,14 @@
 #include "g_local.h"
 
 /**
+ * @return The client number for a projectile's `s.client`: its emitter's if the emitter is a
+ * client, else `MAX_CLIENTS`, so that the client game can tell whose projectile it sees.
+ */
+static uint8_t G_ProjectileClient(const GameEntity *emitter) {
+  return emitter->client ? emitter->s.client : MAX_CLIENTS;
+}
+
+/**
  * @brief Adds a fraction of the player's velocity to the given projectile.
  */
 static void G_PlayerProjectile(GameEntity *ent, const float scale) {
@@ -217,7 +225,7 @@ void G_BlasterProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
   projectile->nextThink = gameLevel.time + 8000;
   projectile->Think = G_FreeEntity;
   projectile->Touch = G_BlasterProjectile_Touch;
-  projectile->s.client = emitter->s.client;
+  projectile->s.client = G_ProjectileClient(emitter);
   projectile->s.trail = TRAIL_BLASTER;
 
   gi.LinkEntity(projectile);
@@ -296,7 +304,7 @@ void G_NailProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 star
   projectile->nextThink = gameLevel.time + 8000;
   projectile->Think = G_FreeEntity;
   projectile->Touch = G_NailProjectile_Touch;
-  projectile->s.client = emitter->s.client;
+  projectile->s.client = G_ProjectileClient(emitter);
   projectile->s.model1 = gameMedia.models.quakeNail;
   projectile->s.trail = TRAIL_QUAKE_NAIL;
 
@@ -544,6 +552,7 @@ void G_GrenadeProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
   projectile->Touch = G_GrenadeProjectile_Touch;
   projectile->touchTime = gameLevel.time;
   projectile->hitSound = gameMedia.sounds.grenadeHit;
+  projectile->s.client = G_ProjectileClient(emitter);
   projectile->s.trail = TRAIL_GRENADE;
   projectile->s.model1 = gameMedia.models.grenade;
 
@@ -599,6 +608,7 @@ void G_QuakeGrenadeProjectile(GameEntity *emitter, GameEntity *attacker, const V
   projectile->Touch = G_QuakeGrenadeProjectile_Touch;
   projectile->touchTime = gameLevel.time;
   projectile->hitSound = gameMedia.sounds.quakeGrenadeHit;
+  projectile->s.client = G_ProjectileClient(emitter);
   projectile->s.trail = TRAIL_QUAKE_GRENADE;
   projectile->s.model1 = gameMedia.models.quakeGrenade;
 }
@@ -644,6 +654,7 @@ void G_HandGrenadeProjectile(GameEntity *ent, GameEntity *projectile, Vec3 const
   projectile->Think = G_GrenadeProjectile_Explode;
   projectile->Touch = G_GrenadeProjectile_Touch;
   projectile->hitSound = gameMedia.sounds.grenadeHit;
+  projectile->s.client = G_ProjectileClient(ent);
   projectile->s.sound = 0;
 
   if (G_ImmediateImpact(ent, projectile)) {
@@ -736,6 +747,7 @@ void G_RocketProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 st
   projectile->Touch = G_RocketProjectile_Touch;
   projectile->s.model1 = gameMedia.models.rocket;
   projectile->s.sound = gameMedia.sounds.rocketFly;
+  projectile->s.client = G_ProjectileClient(emitter);
   projectile->s.trail = TRAIL_ROCKET;
 
   if (G_ImmediateImpact(emitter, projectile)) {
@@ -774,6 +786,7 @@ void G_QuakeRocketProjectile(GameEntity *emitter, GameEntity *attacker, const Ve
   projectile->Touch = G_RocketProjectile_Touch;
   projectile->s.model1 = gameMedia.models.quakeRocket;
   projectile->s.sound = gameMedia.sounds.rocketFly;
+  projectile->s.client = G_ProjectileClient(emitter);
   projectile->s.trail = TRAIL_ROCKET;
 
   if (G_ImmediateImpact(emitter, projectile)) {
@@ -879,6 +892,7 @@ void G_HyperblasterProjectile(GameEntity *emitter, GameEntity *attacker, const V
   projectile->nextThink = gameLevel.time + 6000;
   projectile->Think = G_FreeEntity;
   projectile->Touch = G_HyperblasterProjectile_Touch;
+  projectile->s.client = G_ProjectileClient(emitter);
   projectile->s.trail = TRAIL_HYPERBLASTER;
 
   gi.LinkEntity(projectile);
@@ -1461,6 +1475,7 @@ void G_BfgProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start
   projectile->timestamp = gameLevel.time + 8000;
   projectile->Think = G_BfgProjectile_Think;
   projectile->Touch = G_BfgProjectile_Touch;
+  projectile->s.client = G_ProjectileClient(emitter);
   projectile->s.trail = TRAIL_BFG;
 
   gi.LinkEntity(projectile);
