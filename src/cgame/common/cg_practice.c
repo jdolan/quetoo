@@ -394,7 +394,7 @@ void Cg_Practice_Start(const CGamePracticeEntry *entry, const char *gameplay) {
     return;
   }
 
-  String *string = str("{\n\tname %s\n\tai \"%s\"\n\tgameplay %s\n\tpractice 1\n",
+  String *string = str("{\n\tname %s\n\tai \"%s\"\n\tgameplay %s\n",
                        entry->name, entry->ai, gameplay);
   assert(string);
 
@@ -426,7 +426,7 @@ void Cg_Practice_Start(const CGamePracticeEntry *entry, const char *gameplay) {
     cgi.SetCvarString(levelCvars[i], "default");
   }
 
-  cgi.SetCvarInteger("sv_public", 0);
+  cgi.SetCvarInteger("sv_practice", 1);
   cgi.SetCvarInteger("sv_maxClients", module.maxClients);
   cgi.SetCvarString("sv_mapList", MAP_LIST_UI);
   cgi.SetCvarInteger(cg_practice->name, (int32_t) (entry - module.ladder));

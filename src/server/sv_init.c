@@ -162,6 +162,10 @@ static void Sv_UpdateLatchedVars(void) {
 
   sv_maxClients->integer = Clampf(sv_maxClients->integer, 1, MAX_CLIENTS);
   sv_maxEntities->integer = Clampf(sv_maxEntities->integer, MAX_CLIENTS + 1, MAX_ENTITIES);
+
+  if (dedicated->value) {
+    Cvar_ForceSetInteger(sv_practice->name, 0);
+  }
 }
 
 /**
@@ -364,12 +368,21 @@ void Sv_InitServer(const char *name, const Entity *mapListEntry, ServerState sta
 
   Com_Print("Server initialization...\n");
 
-  Net_Config(NS_UDP_SERVER, true);
+  if (state == SV_ACTIVE_DEMO) {
+    Cvar_ForceSetInteger(sv_practice->name, 0);
+  }
 
   Mem_InitBuffer(&sv.multicast, sv.multicastBuffer, sizeof(sv.multicastBuffer));
 
   // initialize entities, reloading the game module if necessary
   Sv_InitEntities(state);
+
+  if (sv_practice->integer) {
+    Cvar_ForceSetInteger(sv_public->name, 0);
+    Net_Config(NS_UDP_SERVER, false);
+  } else {
+    Net_Config(NS_UDP_SERVER, true);
+  }
 
   // load the map or demo and related media
   Sv_LoadMedia(name, mapListEntry, state);
@@ -399,6 +412,8 @@ void Sv_ShutdownServer(const char *msg) {
   Sv_ClearState();
 
   Net_Config(NS_UDP_SERVER, false);
+
+  Cvar_ForceSetInteger(sv_practice->name, 0);
 
   Com_Print("Server down\n");
 

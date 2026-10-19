@@ -222,6 +222,7 @@ extern Cvar *sv_maxClients;
 extern Cvar *sv_maxEntities;
 extern Cvar *sv_minClients;
 extern Cvar *sv_hostname;
+extern Cvar *sv_practice;
 extern Cvar *dedicated;
 extern Cvar *editor;
 
