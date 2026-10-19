@@ -269,8 +269,8 @@ typedef enum {
 } CGameCameraMode;
 
 /**
- * @brief Moves a new projectile of the viewed player from the view weapon's muzzle to where the
- * server put it, which for a bot, or for a player with other view settings, is elsewhere.
+ * @brief Moves a new projectile of the viewed player from the line out of the view weapon's muzzle
+ * to where the server put it, which for a bot, or for a player with other view settings, is off it.
  */
 typedef struct {
   /**
@@ -289,7 +289,8 @@ typedef struct {
   uint32_t time;
 
   /**
-   * @brief The offset from the server's origin to the muzzle, when the anchor began.
+   * @brief The offset from the server's origin to the line out of the muzzle, across the
+   * projectile's flight, when the anchor began.
    */
   Vec3 offset;
 } CGameProjectileAnchor;

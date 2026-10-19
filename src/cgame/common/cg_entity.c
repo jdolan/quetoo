@@ -220,8 +220,8 @@ static void Cg_EntitySound(ClientEntity *ent) {
 }
 
 /**
- * @brief The time in milliseconds over which a new projectile moves from the view weapon's muzzle
- * to its origin.
+ * @brief The time in milliseconds over which a new projectile moves from the line out of the view
+ * weapon's muzzle to its origin.
  */
 #define CG_PROJECTILE_ANCHOR_MILLIS 100
 
@@ -229,7 +229,7 @@ static void Cg_EntitySound(ClientEntity *ent) {
  * @brief The distance from the muzzle within which a new projectile is taken to have left it, so
  * that a projectile first seen elsewhere is not pulled across the view.
  */
-#define CG_PROJECTILE_ANCHOR_DISTANCE 128.f
+#define CG_PROJECTILE_ANCHOR_DISTANCE 256.f
 
 /**
  * @return True if the trail is a weapon projectile's, which leaves a player's muzzle.
@@ -251,10 +251,11 @@ static bool Cg_IsProjectileTrail(const uint8_t trail) {
 }
 
 /**
- * @brief Moves a new projectile of the viewed player, in first person, from the view weapon's
- * muzzle toward its origin over `CG_PROJECTILE_ANCHOR_MILLIS`. The viewed player is `Cg_Self()`,
- * because a chasing spectator's `frame.ps.client` is its own, where `Cg_AddWeapon` stores the
- * muzzle.
+ * @brief Moves a new projectile of the viewed player, in first person, from the line out of the
+ * view weapon's muzzle toward its origin over `CG_PROJECTILE_ANCHOR_MILLIS`, and starts its trail at
+ * the muzzle. Only the offset across its flight moves it, so that it stays as far ahead as the
+ * server put it, rather than in the viewer's face. The viewed player is `Cg_Self()`, because a
+ * chasing spectator's `frame.ps.client` is its own, where `Cg_AddWeapon` stores the muzzle.
  */
 static void Cg_AnchorProjectile(ClientEntity *ent) {
 
@@ -272,8 +273,18 @@ static void Cg_AnchorProjectile(ClientEntity *ent) {
       const Vec3 muzzle = cgameState.clients[cgi.client->frame.ps.client].weaponMuzzle;
       if (!Vec3_Equal(muzzle, Vec3_Zero()) &&
           Vec3_Distance(muzzle, ent->origin) < CG_PROJECTILE_ANCHOR_DISTANCE) {
+        Vec3 forward;
+        Vec3_Vectors(s->angles, &forward, NULL, NULL);
+
+        const Vec3 offset = Vec3_Subtract(muzzle, ent->origin);
+
         anchor->time = cgi.client->unclampedTime;
-        anchor->offset = Vec3_Subtract(muzzle, ent->origin);
+        anchor->offset = Vec3_Fmaf(offset, -Vec3_Dot(offset, forward), forward);
+
+        ent->previousOrigin = muzzle;
+        for (size_t i = 0; i < lengthof(ent->trailOrigins); i++) {
+          ent->trailOrigins[i] = muzzle;
+        }
       }
     }
   }
@@ -290,13 +301,6 @@ static void Cg_AnchorProjectile(ClientEntity *ent) {
 
   const float frac = 1.f - elapsed / (float) CG_PROJECTILE_ANCHOR_MILLIS;
   ent->origin = Vec3_Fmaf(ent->origin, frac, anchor->offset);
-
-  if (elapsed == 0) {
-    ent->previousOrigin = ent->origin;
-    for (size_t i = 0; i < lengthof(ent->trailOrigins); i++) {
-      ent->trailOrigins[i] = ent->origin;
-    }
-  }
 }
 
 /**
