@@ -104,8 +104,9 @@ static void Cg_Practice_FreeEntities(List *entities) {
 
 /**
  * @brief Loads the ladder. The `title` entity, an entry without a map or AI players, an entry
- * with no tier or a tier above `PRACTICE_MAX_TIERS`, and an entry past its tier's
- * `PRACTICE_MAX_TIER_ENTRIES`, are skipped.
+ * with no tier or a tier above `PRACTICE_MAX_TIERS`, an entry past its tier's
+ * `PRACTICE_MAX_TIER_ENTRIES`, and an entry with more than `PRACTICE_MAX_AI` AI players, are
+ * skipped.
  */
 static void Cg_Practice_LoadLadder(void) {
 
@@ -158,17 +159,23 @@ static void Cg_Practice_LoadLadder(void) {
       continue;
     }
 
-    tierEntries[entry->tier - 1]++;
-
     char ai[sizeof(entry->ai)];
     Str_Copy(ai, entry->ai, sizeof(ai));
 
-    int32_t clients = 1;
+    int32_t numAi = 0;
     for (const char *name = strtok(ai, " \t\n"); name; name = strtok(NULL, " \t\n")) {
-      clients++;
+      numAi++;
     }
 
-    module.maxClients = Maxi(module.maxClients, clients);
+    if (numAi > PRACTICE_MAX_AI) {
+      Cg_Warn("Skipping %s in tier %d: an entry has at most %d AI players\n",
+              entry->name, entry->tier, PRACTICE_MAX_AI);
+      continue;
+    }
+
+    tierEntries[entry->tier - 1]++;
+
+    module.maxClients = Maxi(module.maxClients, numAi + 1);
     module.ladderLength++;
   }
 

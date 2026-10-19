@@ -3,6 +3,16 @@
   autoresizing-mask: contain;
 }
 
+/* The left column takes the height of the tiers, and the Match box fills what remains of it */
+
+#Practice .columns > .column {
+  autoresizing-mask: contain | height;
+}
+
+.practiceMatch {
+  stretch: true;
+}
+
 .practiceTiers {
   autoresizing-mask: contain | width;
   spacing: 12;
@@ -56,5 +66,5 @@
   item-spacing: 8 8;
   selection: none;
   width: 444;
-  height: 500;
+  height: 340;
 }

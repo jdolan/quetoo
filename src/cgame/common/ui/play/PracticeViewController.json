@@ -59,6 +59,9 @@
                 },
                 {
                   "class": "Box",
+                  "classNames": [
+                    "practiceMatch"
+                  ],
                   "label": {
                     "text": {
                       "text": "Match"

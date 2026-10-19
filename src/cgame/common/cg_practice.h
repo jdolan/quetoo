@@ -50,6 +50,11 @@
 #define PRACTICE_MAX_TIER_ENTRIES 3
 
 /**
+ * @brief The most AI players of an entry.
+ */
+#define PRACTICE_MAX_AI 6
+
+/**
  * @brief A ladder that a `practice-<name>.lst` file holds.
  */
 typedef struct {
