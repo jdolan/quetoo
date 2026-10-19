@@ -14,8 +14,14 @@
           "identifier": "crosshair"
         },
         {
-          "class": "CenterPrintView",
-          "identifier": "centerPrint"
+          "class": "View",
+          "identifier": "centerPrintAnchor",
+          "subviews": [
+            {
+              "class": "CenterPrintView",
+              "identifier": "centerPrint"
+            }
+          ]
         },
         {
           "class": "View",

@@ -60,6 +60,9 @@ static struct {
 
   CGamePracticeLadder *ladders;
   size_t numLadders;
+
+  ClientKeyDest keyDest;
+  bool menuPaused;
 } module;
 
 /**
@@ -646,6 +649,29 @@ bool Cg_Practice_PlayNext(void) {
  */
 void Cg_Practice_Retry(void) {
   cgi.Cbuf("nextMap\n");
+}
+
+/**
+ * @brief Pauses a practice match while the menu is open, and resumes it when the menu closes.
+ */
+void Cg_Practice_CheckPause(void) {
+
+  const ClientKeyDest keyDest = cgi.GetKeyDest();
+  if (keyDest == module.keyDest) {
+    return;
+  }
+
+  if (module.keyDest == KEY_GAME && keyDest == KEY_UI) {
+    if (cgi.GetCvarInteger("sv_practice") && !cgi.GetCvarInteger("sv_paused")) {
+      cgi.SetCvarInteger("sv_paused", 1);
+      module.menuPaused = true;
+    }
+  } else if (keyDest == KEY_GAME && module.menuPaused) {
+    cgi.SetCvarInteger("sv_paused", 0);
+    module.menuPaused = false;
+  }
+
+  module.keyDest = keyDest;
 }
 
 /**

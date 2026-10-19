@@ -41,6 +41,10 @@ static View *init(View *self) {
  */
 static const char *textForFrame(OverlayText *self, const ClientFrame *frame) {
 
+  if (cgi.client->paused) {
+    return "Paused";
+  }
+
   const PlayerState *ps = &frame->ps;
 
   if (ps->stats[STAT_SCORES] || cgameState.centerPrint.time < cgi.client->unclampedTime) {
