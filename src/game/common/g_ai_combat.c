@@ -102,7 +102,7 @@ static void G_Ai_PickWeapon(GameClient *cl) {
 
   cl->ai->weaponCheckTime = gameLevel.time + 250; // don't try again for a bit
 
-  if (cl->weaponChangeTime > gameLevel.time) {
+  if (cl->weaponChangeTime > gameLevel.time || cl->ai->weaponHoldTime > gameLevel.time) {
     return;
   }
 
@@ -231,7 +231,8 @@ static void G_Ai_PickWeapon(GameClient *cl) {
 
   gi.TokenizeString(va("use %s", bestWeapon->item->def.name));
   ge.ClientCommand(cl);
-  cl->ai->weaponCheckTime = gameLevel.time + AI_WEAPON_HOLD_MILLIS;
+  cl->ai->weaponCheckTime = gameLevel.time + 300; // don't try again for a bit
+  cl->ai->weaponHoldTime = gameLevel.time + AI_WEAPON_HOLD_MILLIS;
   G_Ai_Debug("weapon choice: %s (%d choices)\n", bestWeapon->item->def.name, (int32_t) numWeapons);
 }
 
@@ -301,7 +302,7 @@ static bool G_Ai_Perceives(const GameClient *cl, const GameEntity *other) {
   }
 
   if (gameLevel.time < other->client->respawnTime + AI_SPAWN_GRACE_MILLIS &&
-      !G_Ai_IsAttacker(cl, other)) {
+      !(G_Ai_IsAttacker(cl, other) && cl->ai->attackedTime >= other->client->respawnTime)) {
     return false;
   }
 
@@ -713,7 +714,8 @@ static void G_Ai_Weaponry_spam(GameClient *cl, PMoveCmd *cmd) {
   }
 
   if (cl->weapon != weapon) {
-    if (cl->ai->weaponCheckTime < gameLevel.time) {
+    if (cl->ai->weaponCheckTime < gameLevel.time && cl->ai->weaponHoldTime <= gameLevel.time &&
+        cl->weaponChangeTime <= gameLevel.time) {
       G_Ai_Profile_WeaponChange(cl, weapon, "spam");
 
       gi.TokenizeString(va("use %s", weapon->def.name));

@@ -606,6 +606,12 @@ typedef struct GameAi {
   uint32_t weaponCheckTime;
 
   /**
+   * @brief The level time until which the bot holds the weapon that it last picked, apart from the
+   * polling of `weaponCheckTime`, which grenade spam resets.
+   */
+  uint32_t weaponHoldTime;
+
+  /**
    * @brief The seed of a less aware bot's noise in weapon scores. It is rolled once for each
    * target, so that the bot keeps its preference through a fight.
    */
