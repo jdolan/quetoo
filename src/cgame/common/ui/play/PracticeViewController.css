@@ -5,7 +5,7 @@
 
 .practiceTiers {
   autoresizing-mask: contain | width;
-  spacing: 4;
+  spacing: 12;
 }
 
 .practiceTier {
@@ -14,11 +14,11 @@
 
 .practiceTier CollectionView {
   axis: horizontal;
-  item-size: 216 122;
+  item-size: 296 166;
   item-spacing: 8 8;
   selection: single;
   width: 920;
-  height: 138;
+  height: 182;
 }
 
 /* A tier is one row, which never scrolls */

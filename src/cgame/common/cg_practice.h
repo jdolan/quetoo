@@ -47,7 +47,7 @@
 /**
  * @brief The most entries of a tier.
  */
-#define PRACTICE_MAX_TIER_ENTRIES 4
+#define PRACTICE_MAX_TIER_ENTRIES 3
 
 /**
  * @brief A ladder that a `practice-<name>.lst` file holds.
