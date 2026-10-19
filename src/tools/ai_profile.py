@@ -378,6 +378,21 @@ def summarize(path, events):
     for link, count in stuck.most_common(5):
         print(f'    {count:>5}  {link}')
 
+    changes = [e for e in events if e.kind == 'WEAPON']
+    reasons = collections.Counter(e['reason'] for e in changes)
+    print(f'  weapon changes: {len(changes)} ({len(changes) * per_minute:.2f} a minute); '
+          + ', '.join(f'{reason} {n}' for reason, n in reasons.most_common()))
+    flips = 0
+    last = {}
+    for e in changes:
+        prev = last.get(e.client)
+        if prev and prev['from'] == e['to'] and e.time - prev.time < 2000:
+            flips += 1
+        last[e.client] = e
+    print(f'    changed back within 2 seconds: {flips}')
+    for (a, b), n in collections.Counter((e['from'], e['to']) for e in changes).most_common(8):
+        print(f'    {n:>5}  {a} -> {b}')
+
     gates = [e for e in events if e.kind == 'GATE']
     uses = collections.Counter((e['name'], e['result']) for e in events if e.kind == 'GATEUSE')
     print(f'  gates: {len(gates)}')

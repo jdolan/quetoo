@@ -1040,6 +1040,27 @@ void G_Ai_Profile_GateUse(const GameClient *cl, const char *name, const char *re
 /**
  * @see g_ai_profile.h
  */
+void G_Ai_Profile_WeaponChange(const GameClient *cl, const GameItem *weapon, const char *reason) {
+
+  if (!G_Ai_Profile_Records(AI_PROFILE_BOTS)) {
+    return;
+  }
+
+  const GameEntity *enemy = cl->ai->combatTarget.type == AI_GOAL_ENTITY ?
+                            cl->ai->combatTarget.entity.ent : NULL;
+
+  char from[MAX_QPATH];
+  Str_Copy(from, G_Ai_Profile_Token(cl->weapon ? cl->weapon->def.name : NULL), sizeof(from));
+
+  G_Ai_Profile_Print(cl->ps.client, "WEAPON", "from=%s to=%s reason=%s enemy=%d health=%d", from,
+                     G_Ai_Profile_Token(weapon->def.name), reason,
+                     enemy ? (int32_t) Vec3_Distance(cl->entity->s.origin, enemy->s.origin) : -1,
+                     cl->entity->health);
+}
+
+/**
+ * @see g_ai_profile.h
+ */
 void G_Ai_Profile_ItemTaken(const GameClient *cl, const GameEntity *item) {
 
   if (!G_Ai_Profile_Records(cl->ai ? AI_PROFILE_BOTS : AI_PROFILE_PLAYERS)) {

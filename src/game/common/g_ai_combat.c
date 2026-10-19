@@ -62,11 +62,49 @@ static GameAiRange G_Ai_GetRange(const float distance) {
 }
 
 /**
+ * @brief The factor by which another weapon must outscore the one in hand for a bot to change to
+ * it, so that a target near the edge of a range, or a small change in health, does not make the
+ * bot change weapons back and forth.
+ */
+#define AI_WEAPON_CHANGE_MARGIN 1.3f
+
+/**
+ * @brief The time in milliseconds that a bot holds a weapon that it changed to before it may
+ * change again, as a player does not change weapons more often than this.
+ */
+#define AI_WEAPON_HOLD_MILLIS 2000
+
+/**
+ * @brief The time in milliseconds after a bot last saw its target that it keeps the weapon that it
+ * chose for that target, so that losing and finding the target does not change its weapon.
+ */
+#define AI_WEAPON_KEEP_MILLIS 3000
+
+/**
+ * @return A factor from .7 to 1.3 for the given weapon, fixed for the bot's `weaponNoiseSeed`.
+ */
+static float G_Ai_WeaponNoise(const GameClient *cl, const GameItemTag tag) {
+
+  uint32_t h = cl->ai->weaponNoiseSeed ^ ((uint32_t) tag * 0x9e3779b9u);
+  h ^= h >> 16;
+  h *= 0x85ebca6bu;
+  h ^= h >> 13;
+  h *= 0xc2b2ae35u;
+  h ^= h >> 16;
+
+  return Mixf(.7f, 1.3f, (float) h * 0x1p-32f);
+}
+
+/**
  * @brief Picks a weapon for the AI based on its target
  */
 static void G_Ai_PickWeapon(GameClient *cl) {
 
   cl->ai->weaponCheckTime = gameLevel.time + 250; // don't try again for a bit
+
+  if (cl->weaponChangeTime > gameLevel.time || cl->ai->weaponHoldTime > gameLevel.time) {
+    return;
+  }
 
   GameAiRange targRange;
 
@@ -155,7 +193,7 @@ static void G_Ai_PickWeapon(GameClient *cl) {
 
     // less aware bots have noisier weapon scoring
     if (cl->ai->personality.awareness < .5f) {
-      weight *= RandomRangef(.7f, 1.3f);
+      weight *= G_Ai_WeaponNoise(cl, t);
     }
 
     weapons[numWeapons++] = (GameAiItemPick) {
@@ -176,9 +214,25 @@ static void G_Ai_PickWeapon(GameClient *cl) {
     return;
   }
 
+  for (size_t i = 1; i < numWeapons; i++) {
+    if (weapons[i].item == cl->weapon) {
+      if (bestWeapon->weight < weapons[i].weight * AI_WEAPON_CHANGE_MARGIN) {
+        return;
+      }
+      if (targRange == RANGE_DONT_CARE &&
+          gameLevel.time - cl->ai->combatTargetSeenTime < AI_WEAPON_KEEP_MILLIS) {
+        return;
+      }
+      break;
+    }
+  }
+
+  G_Ai_Profile_WeaponChange(cl, bestWeapon->item, "pick");
+
   gi.TokenizeString(va("use %s", bestWeapon->item->def.name));
   ge.ClientCommand(cl);
   cl->ai->weaponCheckTime = gameLevel.time + 300; // don't try again for a bit
+  cl->ai->weaponHoldTime = gameLevel.time + AI_WEAPON_HOLD_MILLIS;
   G_Ai_Debug("weapon choice: %s (%d choices)\n", bestWeapon->item->def.name, (int32_t) numWeapons);
 }
 
@@ -231,12 +285,24 @@ static float G_Ai_EnemyPriority(const GameClient *cl, const GameEntity *target,
 #define AI_TARGET_SEEN_MILLIS 100
 
 /**
+ * @brief The time in milliseconds after a player spawns that bots do not take the player as a
+ * target, unless the player attacks them, so that the player sees the level before a bot fires.
+ */
+#define AI_SPAWN_GRACE_MILLIS 3000
+
+/**
  * @return True if the bot sees the enemy, or the enemy hurt it recently and nothing lies between
- * them, so that a bot shot from behind turns and fights back.
+ * them, so that a bot shot from behind turns and fights back. An enemy that spawned within
+ * `AI_SPAWN_GRACE_MILLIS` is perceived only if it hurt the bot.
  */
 static bool G_Ai_Perceives(const GameClient *cl, const GameEntity *other) {
 
   if (!G_Ai_IsTargetable(cl, other)) {
+    return false;
+  }
+
+  if (gameLevel.time < other->client->respawnTime + AI_SPAWN_GRACE_MILLIS &&
+      !(G_Ai_IsAttacker(cl, other) && cl->ai->attackedTime >= other->client->respawnTime)) {
     return false;
   }
 
@@ -303,7 +369,11 @@ static void G_Ai_AcquireTarget(GameClient *cl, const GameEntity *enemy, const fl
   const float leadSpread = Mixf(.3f, .05f, cl->ai->personality.skill);
   cl->ai->leadError = RandomRangef(-leadSpread, leadSpread);
 
-  G_Ai_PickWeapon(cl);
+  cl->ai->weaponNoiseSeed = Randomu();
+
+  if (cl->ai->weaponCheckTime < gameLevel.time) {
+    G_Ai_PickWeapon(cl);
+  }
 
   if (cl->ai->personality.aggression > .6f) {
     cl->ai->combatTarget.entity.combatType = Randomb() ? AI_COMBAT_CLOSE :
@@ -644,7 +714,10 @@ static void G_Ai_Weaponry_spam(GameClient *cl, PMoveCmd *cmd) {
   }
 
   if (cl->weapon != weapon) {
-    if (cl->ai->weaponCheckTime < gameLevel.time) {
+    if (cl->ai->weaponCheckTime < gameLevel.time && cl->ai->weaponHoldTime <= gameLevel.time &&
+        cl->weaponChangeTime <= gameLevel.time) {
+      G_Ai_Profile_WeaponChange(cl, weapon, "spam");
+
       gi.TokenizeString(va("use %s", weapon->def.name));
       ge.ClientCommand(cl);
       cl->ai->weaponCheckTime = gameLevel.time + 300;

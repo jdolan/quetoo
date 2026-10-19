@@ -98,6 +98,12 @@ void G_Ai_Profile_Gate(const char *name, const int32_t numButtons, const int32_t
                        const int32_t numDoors, const uint32_t openMillis);
 
 /**
+ * @brief Records that a bot changes its weapon, with `AI_PROFILE_BOTS`: `pick` when it picks the
+ * best weapon for its target, `spam` when it takes a grenade weapon to spam with.
+ */
+void G_Ai_Profile_WeaponChange(const GameClient *cl, const GameItem *weapon, const char *reason);
+
+/**
  * @brief Records what a bot did with a gate, with `AI_PROFILE_BOTS`: `choose` when it goes to the
  * button, `open` when it goes through the open doors, and `fail` when it gives up.
  */

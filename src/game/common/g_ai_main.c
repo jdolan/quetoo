@@ -3962,6 +3962,9 @@ void G_Ai_Respawn(GameClient *cl) {
   G_Ai_State_Reset(cl);
 
   cl->ai->weaponCheckTime = 0;
+  cl->ai->weaponHoldTime = 0;
+  cl->ai->weaponNoiseSeed = Randomu();
+  cl->ai->combatTargetSeenTime = 0;
   cl->ai->reacquireTime = 0;
   cl->ai->lookaheadFrame = 0;
   cl->ai->lookaheadNoGround = false;

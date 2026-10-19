@@ -366,8 +366,12 @@ void G_Damage(const GameDamage *dmg) {
     return;
   }
 
-  if (target->client) { // respawn protection
-    if (target->client->respawnProtectionTime > gameLevel.time) {
+  if (attacker->client && attacker != target) {
+    attacker->client->spawnProtectionTime = 0;
+  }
+
+  if (target->client && !(dflags & DMG_NO_GOD)) { // spawn protection
+    if (target->client->spawnProtectionTime > gameLevel.time) {
       return;
     }
   }
