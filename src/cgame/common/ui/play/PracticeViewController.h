@@ -35,16 +35,6 @@
  * @brief Practice ViewController.
  */
 
-/**
- * @brief The most tiers that a ladder shows.
- */
-#define PRACTICE_MAX_TIERS 8
-
-/**
- * @brief The most entries that a tier shows.
- */
-#define PRACTICE_MAX_TIER_ENTRIES 16
-
 typedef struct PracticeViewController PracticeViewController;
 typedef struct PracticeViewControllerInterface PracticeViewControllerInterface;
 

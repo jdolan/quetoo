@@ -40,6 +40,16 @@
 #define PRACTICE_PROGRESS "progress-%s.lst"
 
 /**
+ * @brief The most tiers of a ladder.
+ */
+#define PRACTICE_MAX_TIERS 3
+
+/**
+ * @brief The most entries of a tier.
+ */
+#define PRACTICE_MAX_TIER_ENTRIES 4
+
+/**
  * @brief A ladder that a `practice-<name>.lst` file holds.
  */
 typedef struct {
@@ -60,7 +70,7 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief The tier, from 1, which groups entries into rows.
+   * @brief The tier, 1 to `PRACTICE_MAX_TIERS`, which groups entries into rows.
    */
   int32_t tier;
 

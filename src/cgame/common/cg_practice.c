@@ -103,8 +103,9 @@ static void Cg_Practice_FreeEntities(List *entities) {
 }
 
 /**
- * @brief Loads the ladder. The `title` entity, and an entry without a map or AI players, or with
- * no tier, are skipped.
+ * @brief Loads the ladder. The `title` entity, an entry without a map or AI players, an entry
+ * with no tier or a tier above `PRACTICE_MAX_TIERS`, and an entry past its tier's
+ * `PRACTICE_MAX_TIER_ENTRIES`, are skipped.
  */
 static void Cg_Practice_LoadLadder(void) {
 
@@ -122,6 +123,8 @@ static void Cg_Practice_LoadLadder(void) {
 
   module.ladder = calloc(entities->count, sizeof(CGamePracticeEntry));
   assert(module.ladder);
+
+  size_t tierEntries[PRACTICE_MAX_TIERS] = { 0 };
 
   for (ListNode *node = entities->head; node; node = node->next) {
     const Entity *entity = node->element;
@@ -142,6 +145,20 @@ static void Cg_Practice_LoadLadder(void) {
       Cg_Warn("Skipping %s entry with no tier, map or AI players\n", module.ladderPath);
       continue;
     }
+
+    if (entry->tier > PRACTICE_MAX_TIERS) {
+      Cg_Warn("Skipping %s in tier %d: a ladder has at most %d tiers\n",
+              entry->name, entry->tier, PRACTICE_MAX_TIERS);
+      continue;
+    }
+
+    if (tierEntries[entry->tier - 1] == PRACTICE_MAX_TIER_ENTRIES) {
+      Cg_Warn("Skipping %s in tier %d: a tier has at most %d entries\n",
+              entry->name, entry->tier, PRACTICE_MAX_TIER_ENTRIES);
+      continue;
+    }
+
+    tierEntries[entry->tier - 1]++;
 
     char ai[sizeof(entry->ai)];
     Str_Copy(ai, entry->ai, sizeof(ai));

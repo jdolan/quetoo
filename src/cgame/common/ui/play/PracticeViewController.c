@@ -261,21 +261,9 @@ static void reloadTiers(PracticeViewController *self) {
     }
 
     if (tier == NULL) {
-      if (self->numTiers == lengthof(self->tier)) {
-        Cg_Warn("Skipping %s in tier %d: a ladder shows at most %d tiers\n",
-                entry->name, entry->tier, PRACTICE_MAX_TIERS);
-        continue;
-      }
-
       tier = &self->tier[self->numTiers++];
       tier->self = self;
       tier->tier = entry->tier;
-    }
-
-    if (tier->numEntries == lengthof(tier->entries)) {
-      Cg_Warn("Skipping %s in tier %d: a tier shows at most %d entries\n",
-              entry->name, entry->tier, PRACTICE_MAX_TIER_ENTRIES);
-      continue;
     }
 
     tier->entries[tier->numEntries++] = entry;

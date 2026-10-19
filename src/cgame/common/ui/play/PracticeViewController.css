@@ -14,11 +14,11 @@
 
 .practiceTier CollectionView {
   axis: horizontal;
-  item-size: 172 97;
+  item-size: 216 122;
   item-spacing: 8 8;
   selection: single;
   width: 920;
-  height: 113;
+  height: 138;
 }
 
 /* A tier is one row, which never scrolls */
