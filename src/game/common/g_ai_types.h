@@ -606,6 +606,12 @@ typedef struct GameAi {
   uint32_t weaponCheckTime;
 
   /**
+   * @brief The seed of a less aware bot's noise in weapon scores. It is rolled once for each
+   * target, so that the bot keeps its preference through a fight.
+   */
+  uint32_t weaponNoiseSeed;
+
+  /**
    * @brief Level time until which the bot, once it has no move target, avoids the objective of a
    * path that ended in distress, and chooses another.
    */
