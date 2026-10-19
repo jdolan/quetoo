@@ -284,12 +284,24 @@ static float G_Ai_EnemyPriority(const GameClient *cl, const GameEntity *target,
 #define AI_TARGET_SEEN_MILLIS 100
 
 /**
+ * @brief The time in milliseconds after a player spawns that bots do not take the player as a
+ * target, unless the player attacks them, so that the player sees the level before a bot fires.
+ */
+#define AI_SPAWN_GRACE_MILLIS 3000
+
+/**
  * @return True if the bot sees the enemy, or the enemy hurt it recently and nothing lies between
- * them, so that a bot shot from behind turns and fights back.
+ * them, so that a bot shot from behind turns and fights back. An enemy that spawned within
+ * `AI_SPAWN_GRACE_MILLIS` is perceived only if it hurt the bot.
  */
 static bool G_Ai_Perceives(const GameClient *cl, const GameEntity *other) {
 
   if (!G_Ai_IsTargetable(cl, other)) {
+    return false;
+  }
+
+  if (gameLevel.time < other->client->respawnTime + AI_SPAWN_GRACE_MILLIS &&
+      !G_Ai_IsAttacker(cl, other)) {
     return false;
   }
 
