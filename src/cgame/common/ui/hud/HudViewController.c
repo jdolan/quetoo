@@ -518,6 +518,14 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
   if (self->hud) {
     $(self->hud, setVisibility, hidden ? ViewVisibilityHidden : ViewVisibilityVisible);
 
+    if (cgi.client->paused != $(self->hud, hasClassName, "paused")) {
+      if (cgi.client->paused) {
+        $(self->hud, addClassName, "paused");
+      } else {
+        $(self->hud, removeClassName, "paused");
+      }
+    }
+
     if (!hidden) {
       $(self->hud, enumerateSubviews, hideForEditor, NULL);
 

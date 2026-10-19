@@ -548,6 +548,8 @@ static void Cg_PrepareScene(const ClientFrame *frame) {
   Cg_PrepareStage(frame);
 
   Cg_PrepareNav(frame);
+
+  Cg_Practice_CheckPause();
 }
 
 /**

@@ -40,6 +40,8 @@ extern Cvar *sv_master;
 extern Cvar *sv_maxClients;
 extern Cvar *sv_maxEntities;
 extern Cvar *sv_minClients;
+extern Cvar *sv_paused;
+extern Cvar *sv_practice;
 extern Cvar *sv_public;
 extern Cvar *sv_statsUrl;
 extern Cvar *sv_timeout;

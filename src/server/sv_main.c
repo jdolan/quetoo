@@ -42,6 +42,8 @@ Cvar *sv_maxClients;
 Cvar *sv_maxEntities;
 Cvar *sv_minClients;
 Cvar *sv_master;
+Cvar *sv_paused;
+Cvar *sv_practice;
 Cvar *sv_public;
 Cvar *sv_statsUrl;
 Cvar *sv_timeout;
@@ -187,6 +189,11 @@ static void Sv_Connect_f(void) {
   // resolve protocol
   if (version != PROTOCOL_MAJOR) {
     NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nServer is version %d.\n", PROTOCOL_MAJOR);
+    return;
+  }
+
+  if (sv_practice->integer && addr->type != NA_LOOP) {
+    NetChan_OutOfBandPrint(NS_UDP_SERVER, addr, "print\nConnection refused\n");
     return;
   }
 
@@ -889,6 +896,22 @@ void Sv_Frame(const uint32_t msec) {
     return;
   }
 
+  if (sv_paused->integer && !(svs.state == SV_ACTIVE_GAME && sv_practice->integer)) {
+    Com_Print("Only a practice game may be paused\n");
+    Cvar_ForceSetInteger(sv_paused->name, 0);
+  }
+
+  if (sv.paused != (sv_paused->integer != 0)) {
+    sv.paused = !sv.paused;
+
+    ServerClient *cl = svs.clients;
+    for (int32_t i = 0; i < sv_maxClients->integer; i++, cl++) {
+      if (cl->state != SV_CLIENT_FREE && !cl->gclient->ai) {
+        Sv_SendPause(cl);
+      }
+    }
+  }
+
   if (timeDemo->value) { // always run a frame
     frameDelta = QUETOO_TICK_MILLIS;
   } else { // keep simulation time in sync with reality
@@ -935,7 +958,9 @@ void Sv_Frame(const uint32_t msec) {
     const uint64_t tickStart = SDL_GetTicks();
 
     // run the simulation
-    Sv_RunGameFrame();
+    if (!sv.paused) {
+      Sv_RunGameFrame();
+    }
 
     // send the resulting frame to connected clients
     Sv_SendClientPackets();
@@ -980,6 +1005,8 @@ static void Sv_InitLocal(void) {
   sv_maxClients = Cvar_Add("sv_maxClients", va("%d", MAX_CLIENTS), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of clients the server will allow.");
   sv_maxEntities = Cvar_Add("sv_maxEntities", va("%d", MAX_ENTITIES), CVAR_SERVER_INFO | CVAR_LATCH, "The maximum number of entities the server will allow.");
   sv_minClients = Cvar_Add("sv_minClients", "0", CVAR_SERVER_INFO, "The number of clients, humans and AI, the game fills to: \"default\" defers to the level, else 0.");
+  sv_paused = Cvar_Add("sv_paused", "0", 0, "Set to 1 to pause a practice game.");
+  sv_practice = Cvar_Add("sv_practice", "0", CVAR_LATCH, "Set to 1 to run a practice game, which only the local client may join.");
   sv_public = Cvar_Add("sv_public", "0", CVAR_SERVER_INFO, "Set to 1 to to advertise this server via the master server.");
   sv_statsUrl = Cvar_Add("sv_statsUrl", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST per-match stats to. Requires sv_public 1. Set to 0 to disable.");
   char uuid[37];

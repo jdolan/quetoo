@@ -193,6 +193,8 @@ static void Sv_Begin_f(void) {
 
   svs.game->ClientBegin(cl);
 
+  Cvar_ForceSetInteger(sv_paused->name, 0);
+
   Cbuf_InsertFromDefer();
 }
 
@@ -272,7 +274,9 @@ static void Sv_UserStringCommand(const char *s) {
   }
 
   if (!c->name) { // unmatched command
-    if (svs.state == SV_ACTIVE_GAME) { // maybe the game knows what to do with it
+    if (sv.paused) {
+      Sv_ClientPrint(serverClient->gclient, PRINT_HIGH, "The game is paused\n");
+    } else if (svs.state == SV_ACTIVE_GAME) { // maybe the game knows what to do with it
       svs.game->ClientCommand(serverClient->gclient);
     }
   }
@@ -284,6 +288,10 @@ static void Sv_UserStringCommand(const char *s) {
 static void Sv_ClientThink(ServerClient *cl, PMoveCmd *cmd) {
 
   cl->cmdMsec += cmd->msec;
+
+  if (sv.paused) {
+    return;
+  }
 
   svs.game->ClientThink(cl->gclient, cmd);
 }

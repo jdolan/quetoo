@@ -113,7 +113,7 @@ void Cl_MouseMotionEvent(const SDL_Event *event) {
     cls.mouseState.y = (cls.mouseState.y + cls.mouseState.oldY) * 0.5f;
   }
 
-  if (cls.state == CL_ACTIVE) {
+  if (cls.state == CL_ACTIVE && !cl.paused) {
     if (m_invert->value) {
       cls.mouseState.y = -cls.mouseState.y;
     }

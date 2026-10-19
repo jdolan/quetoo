@@ -121,6 +121,13 @@ int32_t Cg_Practice_Result(void);
 
 bool Cg_Practice_PlayNext(void);
 
+/**
+ * @brief Pauses a practice match while the menu is open, and resumes it when the menu closes.
+ * @remarks A pause that the player made stays when the menu closes. A loss of window focus opens
+ * the menu, so it pauses the match too.
+ */
+void Cg_Practice_CheckPause(void);
+
 void Cg_Practice_Retry(void);
 void Cg_Practice_Exit(void);
 #endif

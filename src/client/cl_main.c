@@ -681,7 +681,7 @@ void Cl_Frame(const uint32_t msec) {
   // it, and animations, trails and every other effect keyed on them hold their pose. Input is
   // not part of the world: the viewer still holds keys and still flies the free camera, so
   // cl.inputTime runs on regardless
-  const uint32_t simulated = cls.demo.paused ? 0 : msec;
+  const uint32_t simulated = (cls.demo.paused || cl.paused) ? 0 : msec;
 
   // update the simulation time
   cl.time += simulated;

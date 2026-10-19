@@ -475,6 +475,12 @@ typedef struct {
    * @brief Index into `configStrings` used to verify file presence or initiate downloads.
    */
   int32_t precacheCheck;
+
+  /**
+   * @brief True while the server holds a practice game still. The world's clocks stop with it,
+   * as they do for paused demo playback.
+   */
+  bool paused;
 } Client;
 
 typedef enum {

@@ -56,6 +56,15 @@ void Sv_ClientPrint(const GameClient *cl, const int32_t level, const char *fmt, 
 }
 
 /**
+ * @brief Sends the server's paused state to the given client, over its reliable channel.
+ */
+void Sv_SendPause(ServerClient *cl) {
+
+  Net_WriteByte(&cl->netChan.message, SV_CMD_PAUSE);
+  Net_WriteByte(&cl->netChan.message, sv.paused);
+}
+
+/**
  * @brief Sends text to all active clients over their unreliable channels.
  */
 void Sv_BroadcastPrint(const int32_t level, const char *fmt, ...) {
@@ -340,7 +349,7 @@ void Sv_SendClientPackets(void) {
       if (!Sv_SendDemoPacket(cl, demoBuffer, demoSize)) {
         break; // recording is done, so we're done
       }
-    } else if (cl->state == SV_CLIENT_ACTIVE) { // send the game packet
+    } else if (cl->state == SV_CLIENT_ACTIVE && !sv.paused) { // send the game packet
 
       Sv_SendClientDatagram(cl);
 

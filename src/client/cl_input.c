@@ -500,6 +500,11 @@ static void Cl_ClampPitch(const PlayerState *ps) {
  */
 void Cl_Look(PMoveCmd *cmd) {
 
+  if (cl.paused) {
+    cmd->angles = cl.angles;
+    return;
+  }
+
   cmd->up += cl_upSpeed->value * cmd->msec * Cl_KeyState(&buttons.up, cmd->msec);
   cmd->up -= cl_upSpeed->value * cmd->msec * Cl_KeyState(&buttons.down, cmd->msec);
 

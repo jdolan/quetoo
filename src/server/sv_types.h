@@ -143,6 +143,12 @@ typedef struct {
   bool demoPaused;
 
   /**
+   * @brief True while `sv_paused` holds a practice game still: no game frame runs, and no
+   * frame is sent.
+   */
+  bool paused;
+
+  /**
    * @brief Set by `Sv_SeekDemo` to release exactly one frame even while paused. Without it a
    * seek issued from the paused transport controls would move the file position but transmit
    * nothing, leaving the viewer on the old frame until playback resumed somewhere unexpected.

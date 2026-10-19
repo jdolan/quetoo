@@ -397,8 +397,17 @@
   autoresizing-mask: fill;
 }
 
-#hud #centerPrint {
+#hud #centerPrintAnchor {
   alignment: middle-center;
+  autoresizing-mask: contain;
+}
+
+#hud.paused #centerPrintAnchor {
+  padding-bottom: 160;
+}
+
+#hud.paused #centerPrint {
+  font-size: 40;
 }
 
 /*

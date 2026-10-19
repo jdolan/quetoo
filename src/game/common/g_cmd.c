@@ -687,7 +687,7 @@ static void G_Admin_f(GameClient *cl) {
       gi.ClientPrint(cl, PRINT_HIGH, "Usage: admin <password>\n");
     } else {
       gi.ClientPrint(cl, PRINT_HIGH, "Admin commands:\n");
-      gi.ClientPrint(cl, PRINT_HIGH, "kick, remove, mute, unmute, timeout, timein\n");
+      gi.ClientPrint(cl, PRINT_HIGH, "kick, remove, mute, unmute\n");
     }
     return;
   }
@@ -847,13 +847,11 @@ void G_ClientCommand(GameClient *cl) {
     return;
   }
 
-  // these commands are allowed in a timeout
   if (Str_Compare(cmd, "admin") == 0) {
     G_Admin_f(cl);
     return;
   }
 
-  // these commands are not allowed during intermission or timeout
   if (Str_Compare(cmd, "spectate") == 0 || Str_Compare(cmd, "join") == 0) {
     G_Spectate_f(cl);
   } else if (Str_Compare(cmd, "team") == 0) {

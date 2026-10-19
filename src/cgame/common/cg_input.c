@@ -596,6 +596,8 @@ static void Cg_BindKeys_Common(void) {
     { "f2", "vote no" },
 
     { "left alt", "+ZOOM" },
+
+    { "p", "toggle sv_paused" },
   };
 
   cgi.Cbuf("alias +ZOOM \""

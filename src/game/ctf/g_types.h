@@ -878,7 +878,7 @@ typedef struct {
   char ai[MAX_STRING_CHARS];
 
   /**
-   * @brief True if the map list entry asks for a practice match, which holds the intermission
+   * @brief True if the server is a practice server (`sv_practice`), which holds the intermission
    * until the player chooses what to play next.
    */
   bool practice;

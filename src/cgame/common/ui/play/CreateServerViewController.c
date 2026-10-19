@@ -167,6 +167,7 @@ static void createServer(Button *button) {
 
       cgi.CloseFile(file);
 
+      cgi.SetCvarInteger("sv_practice", 0);
       cgi.SetCvarString("sv_mapList", MAP_LIST_UI);
       cgi.Cbuf("nextMap");
     } else {

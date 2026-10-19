@@ -187,6 +187,7 @@ Cvar *sv_minClients;
 Cvar *sv_maxClients;
 Cvar *sv_maxEntities;
 Cvar *sv_hostname;
+Cvar *sv_practice;
 Cvar *dedicated;
 Cvar *editor;
 
@@ -1303,7 +1304,7 @@ void G_Shutdown(void) {
 }
 
 /**
- * @brief Handles clock, countdown, and timeout timers for the current level.
+ * @brief Handles clock and countdown timers for the current level.
  */
 void G_RunTimers(void) {
   uint32_t time = gameLevel.time;
@@ -1342,6 +1343,7 @@ GameExport *G_LoadGame(GameImport *import) {
   sv_maxClients = gi.GetCvar("sv_maxClients");
   sv_maxEntities = gi.GetCvar("sv_maxEntities");
   sv_hostname = gi.GetCvar("sv_hostname");
+  sv_practice = gi.GetCvar("sv_practice");
 
   dedicated = gi.GetCvar("dedicated");
   editor = gi.GetCvar("editor");

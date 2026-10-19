@@ -235,7 +235,7 @@ CollisionTrace Cl_Trace(const Vec3 start, const Vec3 end, const Box3 bounds, con
  */
 void Cl_PredictMovement(void) {
 
-  if (!cls.cgame->UsePrediction()) {
+  if (cl.paused || !cls.cgame->UsePrediction()) {
     return;
   }
 
