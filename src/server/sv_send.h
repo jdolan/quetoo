@@ -27,6 +27,7 @@
 void Sv_SendClientPackets(void);
 void Sv_ClientDatagramMessage(ServerClient *cl, byte *data, size_t len);
 void Sv_Unicast(const GameClient *cl, const bool reliable);
+void Sv_SendPause(ServerClient *cl);
 void Sv_Multicast(const Vec3 origin, Multicast to);
 void Sv_ClientPrint(const GameClient *cl, int32_t level, const char *fmt, ...) __attribute__((format(printf, 3, 4)));
 void Sv_BroadcastPrint(int32_t level, const char *fmt, ...) __attribute__((format(printf, 2, 3)));

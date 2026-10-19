@@ -497,6 +497,7 @@ typedef enum {
   SV_CMD_DEMO_INFO, // [long] duration in ms, [byte] paused; from a demo relay, on every change
   SV_CMD_CHAT, // [byte] speaker [byte] flags [string] message; flags are the game's
   SV_CMD_VOICE, // [byte] speaker [byte] seq [byte] flags [pos] origin [byte] len [data]
+  SV_CMD_PAUSE, // [byte] paused; from a practice server, on every change
   SV_CMD_CGAME, // the game may extend from here
 } ServerPacketCmd;
 

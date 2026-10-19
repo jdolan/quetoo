@@ -521,6 +521,10 @@ void Cl_ParseServerMessage(void) {
         Cl_ParseServerData();
         break;
 
+      case SV_CMD_PAUSE:
+        cl.paused = Net_ReadByte(&netMessage);
+        break;
+
       case SV_CMD_DEMO_INFO:
         Cl_ParseDemoInfo();
         break;

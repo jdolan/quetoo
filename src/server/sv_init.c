@@ -368,6 +368,8 @@ void Sv_InitServer(const char *name, const Entity *mapListEntry, ServerState sta
 
   Com_Print("Server initialization...\n");
 
+  Cvar_ForceSetInteger(sv_paused->name, 0);
+
   if (state == SV_ACTIVE_DEMO) {
     Cvar_ForceSetInteger(sv_practice->name, 0);
   }
@@ -413,6 +415,7 @@ void Sv_ShutdownServer(const char *msg) {
 
   Net_Config(NS_UDP_SERVER, false);
 
+  Cvar_ForceSetInteger(sv_paused->name, 0);
   Cvar_ForceSetInteger(sv_practice->name, 0);
 
   Com_Print("Server down\n");

@@ -500,6 +500,8 @@ static void Cl_ClampPitch(const PlayerState *ps) {
  */
 void Cl_Look(PMoveCmd *cmd) {
 
+  const Vec3 angles = cl.angles;
+
   cmd->up += cl_upSpeed->value * cmd->msec * Cl_KeyState(&buttons.up, cmd->msec);
   cmd->up -= cl_upSpeed->value * cmd->msec * Cl_KeyState(&buttons.down, cmd->msec);
 
@@ -510,6 +512,10 @@ void Cl_Look(PMoveCmd *cmd) {
   cl.angles.x += cl_pitchSpeed->value * cmd->msec * Cl_KeyState(&buttons.lookDown, cmd->msec);
 
   cls.cgame->Look(cmd);
+
+  if (cl.paused) {
+    cl.angles = angles;
+  }
 
   Cl_ClampPitch(&cl.frame.ps);
 
