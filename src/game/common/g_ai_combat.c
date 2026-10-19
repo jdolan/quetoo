@@ -176,6 +176,8 @@ static void G_Ai_PickWeapon(GameClient *cl) {
     return;
   }
 
+  G_Ai_Profile_WeaponChange(cl, bestWeapon->item, "pick");
+
   gi.TokenizeString(va("use %s", bestWeapon->item->def.name));
   ge.ClientCommand(cl);
   cl->ai->weaponCheckTime = gameLevel.time + 300; // don't try again for a bit
@@ -645,6 +647,8 @@ static void G_Ai_Weaponry_spam(GameClient *cl, PMoveCmd *cmd) {
 
   if (cl->weapon != weapon) {
     if (cl->ai->weaponCheckTime < gameLevel.time) {
+      G_Ai_Profile_WeaponChange(cl, weapon, "spam");
+
       gi.TokenizeString(va("use %s", weapon->def.name));
       ge.ClientCommand(cl);
       cl->ai->weaponCheckTime = gameLevel.time + 300;
