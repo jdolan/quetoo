@@ -32,14 +32,14 @@
  * @brief True if the ladder loaded again since the tiers were built, so that they point into a
  * ladder that is freed.
  */
-static bool PracticeViewController_isStale(const PracticeViewController *self) {
+static bool isStale(const PracticeViewController *self) {
   return Cg_Practice_LadderGeneration() != self->tiersGeneration;
 }
 
 /**
  * @brief The entry with `index` in the ladder, or `NULL`.
  */
-static const CGamePracticeEntry *PracticeViewController_entry(int32_t index) {
+static const CGamePracticeEntry *entryAtIndex(int32_t index) {
 
   size_t count;
   const CGamePracticeEntry *ladder = Cg_Practice_Ladder(&count);
@@ -50,7 +50,7 @@ static const CGamePracticeEntry *PracticeViewController_entry(int32_t index) {
 /**
  * @brief The selected gameplay, by name.
  */
-static const char *PracticeViewController_gameplay(const PracticeViewController *self) {
+static const char *selectedGamePlay(const PracticeViewController *self) {
 
   const Option *option = $(self->gameplay, selectedOption);
   return option ? option->value : "deathmatch";
@@ -59,9 +59,9 @@ static const char *PracticeViewController_gameplay(const PracticeViewController 
 /**
  * @brief Shows the selected entry, and enables the Play button only if an entry is selected.
  */
-static void PracticeViewController_updateDetails(PracticeViewController *self) {
+static void updateDetails(PracticeViewController *self) {
 
-  const CGamePracticeEntry *entry = PracticeViewController_entry(self->selected);
+  const CGamePracticeEntry *entry = entryAtIndex(self->selected);
 
   if (entry) {
     $(self->map, setText, self->maps[self->selected].message);
@@ -77,7 +77,7 @@ static void PracticeViewController_updateDetails(PracticeViewController *self) {
     }
     $(self->limits, setText, *limits ? limits : "The level's limits");
 
-    const bool cleared = Cg_Practice_IsCleared(entry, PracticeViewController_gameplay(self));
+    const bool cleared = Cg_Practice_IsCleared(entry, selectedGamePlay(self));
     $(self->status, setText, cleared ? "Cleared" : "Not cleared");
   } else {
     $(self->map, setText, "Select a match");
@@ -101,15 +101,15 @@ static void PracticeViewController_updateDetails(PracticeViewController *self) {
 /**
  * @brief Plays the selected entry under the selected gameplay.
  */
-static void PracticeViewController_play(PracticeViewController *self) {
+static void play(PracticeViewController *self) {
 
-  if (PracticeViewController_isStale(self)) {
+  if (isStale(self)) {
     return;
   }
 
-  const CGamePracticeEntry *entry = PracticeViewController_entry(self->selected);
+  const CGamePracticeEntry *entry = entryAtIndex(self->selected);
   if (entry) {
-    Cg_Practice_Start(entry, PracticeViewController_gameplay(self));
+    Cg_Practice_Start(entry, selectedGamePlay(self));
   }
 }
 
@@ -148,7 +148,7 @@ static CollectionItemView *itemForObjectAtIndexPath(const CollectionView *collec
 
   $(item, setMapListItemInfo, &tier->self->maps[entry - ladder]);
 
-  if (Cg_Practice_IsCleared(entry, PracticeViewController_gameplay(tier->self))) {
+  if (Cg_Practice_IsCleared(entry, selectedGamePlay(tier->self))) {
     $((View *) item, addClassName, "cleared");
   }
 
@@ -164,7 +164,7 @@ static void didModifySelection(CollectionView *collectionView, const Array *sele
   PracticeTier *tier = collectionView->dataSource.self;
   PracticeViewController *this = tier->self;
 
-  if (PracticeViewController_isStale(this)) {
+  if (isStale(this)) {
     return;
   }
 
@@ -185,13 +185,13 @@ static void didModifySelection(CollectionView *collectionView, const Array *sele
     this->selected = (int32_t) (tier->entries[$(indexPath, indexAtPosition, 0)] - ladder);
   }
 
-  PracticeViewController_updateDetails(this);
+  updateDetails(this);
 
   if (this->selected > -1) {
     const SDL_PropertiesID props = SDL_GetWindowProperties(((View *) collectionView)->window);
     const SDL_Event *event = SDL_GetPointerProperty(props, "event", NULL);
     if (event && event->button.clicks == 2) {
-      PracticeViewController_play(this);
+      play(this);
     }
   }
 }
@@ -199,7 +199,7 @@ static void didModifySelection(CollectionView *collectionView, const Array *sele
 /**
  * @brief Reads the map of each entry of the ladder from its BSP, if the ladder changed.
  */
-static void PracticeViewController_loadMaps(PracticeViewController *self) {
+static void loadMaps(PracticeViewController *self) {
 
   size_t count;
   const CGamePracticeEntry *ladder = Cg_Practice_Ladder(&count);
@@ -231,14 +231,14 @@ static void PracticeViewController_loadMaps(PracticeViewController *self) {
 /**
  * @brief Builds one row for each tier of the ladder, and selects the selected entry again.
  */
-static void PracticeViewController_reloadTiers(PracticeViewController *self) {
+static void reloadTiers(PracticeViewController *self) {
 
   $((View *) self->tiers, removeAllSubviews);
 
   memset(self->tier, 0, sizeof(self->tier));
   self->numTiers = 0;
 
-  PracticeViewController_loadMaps(self);
+  loadMaps(self);
 
   self->tiersGeneration = Cg_Practice_LadderGeneration();
 
@@ -318,7 +318,7 @@ static void PracticeViewController_reloadTiers(PracticeViewController *self) {
     }
   }
 
-  PracticeViewController_updateDetails(self);
+  updateDetails(self);
 }
 
 #pragma mark - Delegates
@@ -334,21 +334,21 @@ static void didSelectLadder(Select *select, Option *option) {
 
   this->selected = -1;
 
-  PracticeViewController_reloadTiers(this);
+  reloadTiers(this);
 }
 
 /**
  * @brief SelectDelegate for the gameplay Select: marks the entries cleared under it.
  */
 static void didSelectGamePlay(Select *select, Option *option) {
-  PracticeViewController_reloadTiers(select->delegate.self);
+  reloadTiers(select->delegate.self);
 }
 
 /**
  * @brief ButtonDelegate for the Play button.
  */
 static void didClickPlay(Button *button) {
-  PracticeViewController_play(button->delegate.self);
+  play(button->delegate.self);
 }
 
 #pragma mark - Object
@@ -432,7 +432,7 @@ static void viewWillAppear(ViewController *self) {
 
   super(ViewController, self, viewWillAppear);
 
-  PracticeViewController_reloadTiers((PracticeViewController *) self);
+  reloadTiers((PracticeViewController *) self);
 }
 
 #pragma mark - Class lifecycle

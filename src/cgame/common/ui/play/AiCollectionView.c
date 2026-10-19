@@ -97,7 +97,7 @@ static View *init(View *self) {
 /**
  * @brief Orders AI players by skill, then by name.
  */
-static int AiCollectionView_compare(const void *a, const void *b) {
+static int compare(const void *a, const void *b) {
 
   const AiItemInfo *x = a, *y = b;
 
@@ -112,7 +112,7 @@ static int AiCollectionView_compare(const void *a, const void *b) {
  * @brief Loads the AI players of `ai.lst`. An entry without a name or skin, or with a trait that
  * is not a number from 0 to 1, is skipped with a warning, as the game skips it.
  */
-static void AiCollectionView_load(AiCollectionView *self) {
+static void loadRoster(AiCollectionView *self) {
 
   void *buffer;
   if (cgi.LoadFile(AI_ROSTER_FILE, &buffer) == -1) {
@@ -171,7 +171,7 @@ static void AiCollectionView_load(AiCollectionView *self) {
 
   release(entities);
 
-  qsort(self->ai, self->numAi, sizeof(AiItemInfo), AiCollectionView_compare);
+  qsort(self->ai, self->numAi, sizeof(AiItemInfo), compare);
 }
 
 /**
@@ -182,7 +182,7 @@ static AiCollectionView *initWithFrame(AiCollectionView *self, const SDL_Rect *f
 
   self = (AiCollectionView *) super(CollectionView, self, initWithFrame, frame);
   if (self) {
-    AiCollectionView_load(self);
+    loadRoster(self);
 
     self->shown = calloc(Maxi(1, (int32_t) self->numAi), sizeof(size_t));
     assert(self->shown);

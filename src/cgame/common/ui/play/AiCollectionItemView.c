@@ -47,7 +47,7 @@ static void dealloc(Object *self) {
 /**
  * @return A trait bar from 0 to 1, labeled with the trait's name.
  */
-static ProgressBar *AiCollectionItemView_trait(const char *name) {
+static ProgressBar *trait(const char *name) {
 
   ProgressBar *bar = $(alloc(ProgressBar), initWithFrame, NULL);
   assert(bar);
@@ -73,9 +73,9 @@ static AiCollectionItemView *initWithFrame(AiCollectionItemView *self, const SDL
 
     $((View *) self->traits, addClassName, "aiItemTraits");
 
-    self->skill = AiCollectionItemView_trait("Skill");
-    self->aggression = AiCollectionItemView_trait("Aggression");
-    self->awareness = AiCollectionItemView_trait("Awareness");
+    self->skill = trait("Skill");
+    self->aggression = trait("Aggression");
+    self->awareness = trait("Awareness");
 
     $((View *) self->traits, addSubview, (View *) self->skill);
     $((View *) self->traits, addSubview, (View *) self->aggression);
