@@ -1370,6 +1370,10 @@ static void G_Ai_State_navigate_reacquire(GameClient *cl) {
  * @return The item that the bot collects, or NULL if it has none, or the item has no value to it
  * any longer, in which case the bot gives up the objective and its move target.
  * @param utility Receives the utility of the item, or 0.
+ * @remarks The objective's node is taken from the item again, because an item gets its own node
+ * only once it drops to the floor, or, if it hovers, once the first second of the level is over.
+ * A bot that chose the item before then holds the nearest node instead, which can lie out of
+ * reach of the item, and would path to it, arrive, and path to it again.
  */
 static const GameEntity *G_Ai_State_navigate_objective(GameClient *cl, const float *costs,
                                                        float *utility) {
@@ -1382,6 +1386,8 @@ static const GameEntity *G_Ai_State_navigate_objective(GameClient *cl, const flo
   if (!objective) {
     return NULL;
   }
+
+  ai->objectiveNode = G_Ai_ItemNode(objective);
 
   const float cost = ai->objectiveNode < G_Ai_Node_Count() ? costs[ai->objectiveNode] : FLT_MAX;
 
