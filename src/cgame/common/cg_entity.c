@@ -220,6 +220,86 @@ static void Cg_EntitySound(ClientEntity *ent) {
 }
 
 /**
+ * @brief The time in milliseconds over which a new projectile moves from the view weapon's muzzle
+ * to its origin.
+ */
+#define CG_PROJECTILE_ANCHOR_MILLIS 100
+
+/**
+ * @brief The distance from the muzzle within which a new projectile is taken to have left it, so
+ * that a projectile first seen elsewhere is not pulled across the view.
+ */
+#define CG_PROJECTILE_ANCHOR_DISTANCE 128.f
+
+/**
+ * @return True if the trail is a weapon projectile's, which leaves a player's muzzle.
+ */
+static bool Cg_IsProjectileTrail(const uint8_t trail) {
+
+  switch (trail) {
+    case TRAIL_BLASTER:
+    case TRAIL_QUAKE_NAIL:
+    case TRAIL_GRENADE:
+    case TRAIL_QUAKE_GRENADE:
+    case TRAIL_ROCKET:
+    case TRAIL_HYPERBLASTER:
+    case TRAIL_BFG:
+      return true;
+    default:
+      return false;
+  }
+}
+
+/**
+ * @brief Moves a new projectile of the viewed player, in first person, from the view weapon's
+ * muzzle toward its origin over `CG_PROJECTILE_ANCHOR_MILLIS`. The viewed player is `Cg_Self()`,
+ * because a chasing spectator's `frame.ps.client` is its own, where `Cg_AddWeapon` stores the
+ * muzzle.
+ */
+static void Cg_AnchorProjectile(ClientEntity *ent) {
+
+  const EntityState *s = &ent->current;
+  CGameProjectileAnchor *anchor = &cgameState.projectileAnchors[s->number];
+
+  if (!anchor->seen || anchor->spawnId != s->spawnId) {
+    anchor->seen = true;
+    anchor->spawnId = s->spawnId;
+    anchor->time = 0;
+
+    if (s->client == Cg_Self()->current.client && Cg_ViewIsSelf() &&
+        !(s->effects & (EF_CLIENT | EF_CORPSE | EF_BEAM)) && Cg_IsProjectileTrail(s->trail)) {
+
+      const Vec3 muzzle = cgameState.clients[cgi.client->frame.ps.client].weaponMuzzle;
+      if (!Vec3_Equal(muzzle, Vec3_Zero()) &&
+          Vec3_Distance(muzzle, ent->origin) < CG_PROJECTILE_ANCHOR_DISTANCE) {
+        anchor->time = cgi.client->unclampedTime;
+        anchor->offset = Vec3_Subtract(muzzle, ent->origin);
+      }
+    }
+  }
+
+  if (anchor->time == 0) {
+    return;
+  }
+
+  const uint32_t elapsed = cgi.client->unclampedTime - anchor->time;
+  if (elapsed >= CG_PROJECTILE_ANCHOR_MILLIS) {
+    anchor->time = 0;
+    return;
+  }
+
+  const float frac = 1.f - elapsed / (float) CG_PROJECTILE_ANCHOR_MILLIS;
+  ent->origin = Vec3_Fmaf(ent->origin, frac, anchor->offset);
+
+  if (elapsed == 0) {
+    ent->previousOrigin = ent->origin;
+    for (size_t i = 0; i < lengthof(ent->trailOrigins); i++) {
+      ent->trailOrigins[i] = ent->origin;
+    }
+  }
+}
+
+/**
  * @brief Interpolate the current frame, processing any new events and advancing the simulation.
  */
 void Cg_Interpolate(const ClientFrame *frame) {
@@ -235,6 +315,7 @@ void Cg_Interpolate(const ClientFrame *frame) {
 
     Cg_EntitySound(ent);
     Cg_EntityEvent(ent);
+    Cg_AnchorProjectile(ent);
 
     // the event is consumed whether or not it was shown, so that parsing the
     // same frame again does not fire it twice

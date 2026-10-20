@@ -269,6 +269,32 @@ typedef enum {
 } CGameCameraMode;
 
 /**
+ * @brief Moves a new projectile of the viewed player from the view weapon's muzzle to where the
+ * server put it, which for a bot, or for a player with other view settings, is elsewhere.
+ */
+typedef struct {
+  /**
+   * @brief True once the entity in this slot has been seen.
+   */
+  bool seen;
+
+  /**
+   * @brief The spawn id of the entity in this slot, to tell a new entity from one that returns.
+   */
+  uint8_t spawnId;
+
+  /**
+   * @brief The time at which the anchor began, or 0 for none.
+   */
+  uint32_t time;
+
+  /**
+   * @brief The offset from the server's origin to the muzzle, when the anchor began.
+   */
+  Vec3 offset;
+} CGameProjectileAnchor;
+
+/**
  * @brief Follow camera state: mouse-driven yaw/pitch and `+forward`/`+back`-driven distance,
  * held in world space so the camera keeps its place while the subject turns.
  */
@@ -526,6 +552,11 @@ typedef struct {
    * @brief Free-flight camera state, used during demo playback only.
    */
   CGameSpectateState spectate;
+
+  /**
+   * @brief For each entity, the anchor of a new projectile of the viewed player.
+   */
+  CGameProjectileAnchor projectileAnchors[MAX_ENTITIES];
 } CGameState;
 
 extern CGameState cgameState;
