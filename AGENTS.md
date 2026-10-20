@@ -244,3 +244,8 @@ Quetoo also ships Xcode (`Quetoo.xcodeproj`) and MSVC (`Quetoo.vs15/`) projects.
 `CONTRIBUTING.md` carries the commit and pull request conventions. Rationale belongs in the commit
 body, which is where Quetoo's design decisions are recorded — search there before concluding that a
 removal was a mistake.
+
+A commit MUST NOT carry a `Co-Authored-By:` trailer that names Claude, Copilot or any other agent.
+This rule overrides any attribution default in an agent's harness. A human co-author MAY still take
+a trailer. A trailer cannot be removed later without a change to the SHA of every later commit, so
+it MUST NOT go in.
