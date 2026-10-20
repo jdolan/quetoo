@@ -10,7 +10,12 @@
 
 ## Features
 
- * Deathmatch, Team DM, Capture the Flag, Instagib and Rocket Arena gameplay modes
+ * Deathmatch, Instagib and Rocket Arena gameplay, each with a team variant, plus Capture the Flag
+ * Wicked good bots for online and offline practice
+ * Single-player ladders against increasingly difficult bots
+ * Race mode, with records and replays
+ * Grappling hook and techs, enabled by default in Capture the Flag
+ * In-game voice chat
  * High quality remakes of id Software's legendary _Quake_ series deathmatch levels, as well as many originals
  * Realtime lighting with soft shadowmapping
  * Steep parallax occlusion mapping with self-shadowing
@@ -20,12 +25,16 @@
 
 ## Downloads
 
-Snapshot releases of _Quetoo_ for all platforms are available on the [GitHub Releases](https://github.com/jdolan/quetoo/releases) page. Download and extract the latest release for your platform. On first launch, _Quetoo_ will automatically download and install the game data.
+Releases of _Quetoo_ for all platforms are available on the [GitHub Releases](https://github.com/jdolan/quetoo/releases) page:
 
-### macOS
-Because _Quetoo_ is not signed with an Apple Developer certificate, macOS will block it on first launch. To allow it, right-click the application and select **Open**, then click **Open** again in the dialog that appears.
+ * **macOS**: a signed and notarized disk image for Apple Silicon
+ * **Windows**: a zip archive for x86_64
+ * **Linux**: `.tar.gz` archives, and `.deb` and `.rpm` client and server packages, for x86_64 and aarch64
+
+On first launch, _Quetoo_ will automatically download and install the game data.
 
 ### Windows
+
 Windows SmartScreen may block _Quetoo_ on first launch. Click **More info**, then **Run anyway** to proceed.
 
 ## Community
@@ -38,16 +47,23 @@ Compiling _Quetoo_ is only recommended for developers and modders. Supported pla
 
 The following dependencies are required:
 
+ * [SDL3](https://github.com/jdolan/SDL/tree/ObjectivelyGPU), with SDL3_image and SDL3_ttf
+ * [Objectively](https://github.com/jdolan/Objectively/)
+ * [ObjectivelyGPU](https://github.com/jdolan/ObjectivelyGPU/)
  * [ObjectivelyMVC](https://github.com/jdolan/ObjectivelyMVC/)
  * [PhysicsFS](https://icculus.org/physfs/)
  * [OpenAL](https://www.openal.org/)
- * [libsndfile](http://mega-nerd.com/libsndfile/)
+ * [Opus](https://opus-codec.org/)
+ * [libsndfile](https://libsndfile.github.io/libsndfile/)
  * [ncurses](https://www.gnu.org/software/ncurses/)
+ * [Check](https://libcheck.github.io/check/), for the unit tests only
+
+_Quetoo_ requires a fork of SDL3 that adds the SDL_gpu query API. Stock SDL3 builds, but occlusion queries silently do nothing. SDL3_image and SDL3_ttf must be built from source against the fork. See ObjectivelyGPU's [installation guide](https://github.com/jdolan/ObjectivelyGPU/blob/main/Documentation/install.md) for the full procedure.
 
 Quetoo builds with GNU Autotools. To build it, run the following:
 
     autoreconf -i
-    ./configure [--with-tests --with-master]
+    ./configure [--with-tests]
     make -j8 && sudo make install
 
 ## Installing
