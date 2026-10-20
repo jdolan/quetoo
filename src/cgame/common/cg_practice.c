@@ -685,29 +685,65 @@ void Cg_Practice_Exit(void) {
 }
 
 /**
- * @brief Plays the entry of the `cg_practiceLadder` ladder with the number given, from 1, under
- * the gameplay that the ladder sets, or else the gameplay given, or deathmatch.
+ * @brief The ladder named `name`, or `NULL` if the search path holds none.
+ */
+static const CGamePracticeLadder *Cg_Practice_FindLadder(const char *name) {
+
+  for (size_t i = 0; i < module.numLadders; i++) {
+    if (!Str_Compare(module.ladders[i].name, name)) {
+      return &module.ladders[i];
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief Plays the entry of the ladder named first with the number given, from 1, under the
+ * gameplay that the ladder sets, or else the gameplay given, or deathmatch. The ladder becomes
+ * `cg_practiceLadder`, so that the match counts toward its progress. With no number, lists the
+ * ladder's entries, and with no ladder, lists the ladders.
+ * @remarks The ladder is loaded through `cg_practiceLadder` to read its entries, and the cvar is
+ * set back unless a match starts, so that a match in progress still counts toward its own ladder.
  */
 static void Cg_Practice_f(void) {
 
+  if (!*cgi.Argv(1)) {
+    for (size_t i = 0; i < module.numLadders; i++) {
+      cgi.Print("%-12s %s\n", module.ladders[i].name, module.ladders[i].title);
+    }
+    cgi.Print("Usage: practice <ladder> [number] [gameplay]\n");
+    return;
+  }
+
+  if (Cg_Practice_FindLadder(cgi.Argv(1)) == NULL) {
+    cgi.Print("No ladder %s\n", cgi.Argv(1));
+    return;
+  }
+
+  char previous[MAX_QPATH];
+  Str_Copy(previous, cg_practiceLadder->string, sizeof(previous));
+
+  cgi.SetCvarString(cg_practiceLadder->name, cgi.Argv(1));
   Cg_Practice_Update();
 
-  if (!*cgi.Argv(1)) {
+  const int32_t index = (int32_t) strtol(cgi.Argv(2), NULL, 10) - 1;
+
+  if (!*cgi.Argv(2)) {
     for (size_t i = 0; i < module.ladderLength; i++) {
       const CGamePracticeEntry *entry = &module.ladder[i];
       cgi.Print("%2zu  tier %d  %-12s %s\n", i + 1, entry->tier, entry->name, entry->ai);
     }
-    cgi.Print("Usage: practice <number> [gameplay]\n");
+    cgi.Print("Usage: practice %s <number> [gameplay]\n", cgi.Argv(1));
+  } else if (index < 0 || (size_t) index >= module.ladderLength) {
+    cgi.Print("No entry %s in ladder %s\n", cgi.Argv(2), cgi.Argv(1));
+  } else {
+    Cg_Practice_Start(&module.ladder[index], *cgi.Argv(3) ? cgi.Argv(3) : "deathmatch");
     return;
   }
 
-  const int32_t index = (int32_t) strtol(cgi.Argv(1), NULL, 10) - 1;
-  if (index < 0 || (size_t) index >= module.ladderLength) {
-    cgi.Print("No ladder entry %s\n", cgi.Argv(1));
-    return;
-  }
-
-  Cg_Practice_Start(&module.ladder[index], *cgi.Argv(2) ? cgi.Argv(2) : "deathmatch");
+  cgi.SetCvarString(cg_practiceLadder->name, previous);
+  Cg_Practice_Update();
 }
 
 /**
@@ -726,7 +762,7 @@ void Cg_Practice_Init(void) {
 
   Cg_Practice_LoadLadders();
 
-  cgi.AddCmd("practice", Cg_Practice_f, CMD_CGAME, "Practice against AI players: practice <number> [gameplay]");
+  cgi.AddCmd("practice", Cg_Practice_f, CMD_CGAME, "Practice against AI players: practice <ladder> [number] [gameplay]");
 
   Cg_Practice_Update();
 }
