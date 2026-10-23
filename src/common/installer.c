@@ -68,6 +68,12 @@ typedef struct {
 } InstallerRelease;
 
 /**
+ * @brief The games whose data every installation syncs, in order, whichever game is active.
+ * @remarks A game module that ships data MUST be listed here, or players never receive it.
+ */
+static const char *syncedGames[] = { DEFAULT_GAME, "ctf" };
+
+/**
  * @brief The module type.
  * @details The module runs a dedicated thread that steps through the `InstallerState`
  * lifecycle. `Installer_Main` is called on the main thread via `Init`, which pumps an
@@ -107,6 +113,11 @@ static struct {
   HashTable *localManifest;
 
   /**
+   * @brief The index in `syncedGames` of the game whose data is being synced.
+   */
+  size_t game;
+
+  /**
    * @brief The latest release, populated by `INSTALLER_CHECKING_BIN`.
    */
   InstallerRelease release;
@@ -134,6 +145,13 @@ static struct {
    */
   InstallerStatus status;
 } module;
+
+/**
+ * @return The game whose data is being synced.
+ */
+static const char *Installer_Game(void) {
+  return syncedGames[module.game];
+}
 
 /**
  * @brief Compares dotted release versions, e.g. `1.0.91` against `1.0.9`.
@@ -554,7 +572,7 @@ static void Installer_PruneStaleEntry(const HashTable *table, ident key, ident v
   const ManifestEntry *entry = value;
   if (entry->status == ENTRY_STALE) {
     char fullPath[MAX_OS_PATH];
-    Str_Format(fullPath, sizeof(fullPath), "%s/%s/%s", Fs_DataDir(), Com_Game(), entry->path);
+    Str_Format(fullPath, sizeof(fullPath), "%s/%s/%s", Fs_DataDir(), Installer_Game(), entry->path);
     if (SDL_RemovePath(fullPath)) {
       Com_Debug(DEBUG_COMMON, "Pruned stale file: %s\n", entry->path);
     } else {
@@ -603,7 +621,7 @@ static void Installer_Commit(void) {
 
   if (module.remoteManifest) {
     char mfPath[MAX_OS_PATH];
-    Str_Format(mfPath, sizeof(mfPath), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
+    Str_Format(mfPath, sizeof(mfPath), "%s/%s/manifest.mf", Fs_DataDir(), Installer_Game());
     Manifest_WriteFile(mfPath, module.remoteManifest);
     Manifest_Free(module.remoteManifest);
     module.remoteManifest = NULL;
@@ -631,7 +649,7 @@ static bool Installer_DownloadFile(const ManifestEntry *entry) {
   *dst = '\0';
 
   char url[MAX_OS_PATH * 2];
-  Str_Format(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s/%s", Com_Game(), encoded);
+  Str_Format(url, sizeof(url), QUETOO_DATA_BASE_URL "/%s/%s", Installer_Game(), encoded);
 
   Data *data = NULL;
 
@@ -643,7 +661,7 @@ static bool Installer_DownloadFile(const ManifestEntry *entry) {
   }
 
   char path[MAX_OS_PATH];
-  Str_Format(path, sizeof(path), "%s/%s/%s", Fs_DataDir(), Com_Game(), entry->path);
+  Str_Format(path, sizeof(path), "%s/%s/%s", Fs_DataDir(), Installer_Game(), entry->path);
 
   {
     char dir[MAX_OS_PATH];
@@ -685,7 +703,7 @@ static bool Installer_DownloadFile(const ManifestEntry *entry) {
 static bool Installer_HasManifest(void) {
 
   char path[MAX_OS_PATH];
-  Str_Format(path, sizeof(path), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
+  Str_Format(path, sizeof(path), "%s/%s/manifest.mf", Fs_DataDir(), Installer_Game());
 
   return SDL_GetPathInfo(path, NULL);
 }
@@ -702,7 +720,7 @@ static bool Installer_HasManifest(void) {
 static HashTable *Installer_ReadManifest(void) {
 
   char path[MAX_OS_PATH];
-  Str_Format(path, sizeof(path), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
+  Str_Format(path, sizeof(path), "%s/%s/manifest.mf", Fs_DataDir(), Installer_Game());
 
   FILE *file = fopen(path, "rb");
   if (!file) {
@@ -770,9 +788,11 @@ static bool Installer_InstallData(void) {
   SDL_RemovePath(archive);
 
   if (!success) {
-    char manifest[MAX_OS_PATH];
-    Str_Format(manifest, sizeof(manifest), "%s/%s/manifest.mf", Fs_DataDir(), Com_Game());
-    SDL_RemovePath(manifest);
+    for (size_t i = 0; i < lengthof(syncedGames); i++) {
+      char manifest[MAX_OS_PATH];
+      Str_Format(manifest, sizeof(manifest), "%s/%s/manifest.mf", Fs_DataDir(), syncedGames[i]);
+      SDL_RemovePath(manifest);
+    }
   }
 
   SDL_LockMutex(module.mutex);
@@ -834,6 +854,25 @@ static int Installer_DownloadThread(void *unused) {
   }
 
   return 0;
+}
+
+/**
+ * @brief Moves on to the next game's data, or finishes after the last one.
+ * @details Must be called with the mutex held. A cancelled update stays cancelled.
+ */
+static void Installer_NextGame(void) {
+
+  InstallerStatus *in = &module.status;
+
+  if (in->state == INSTALLER_CANCELLED) {
+    return;
+  }
+
+  if (++module.game < lengthof(syncedGames)) {
+    in->state = INSTALLER_CHECKING_DATA;
+  } else {
+    in->state = INSTALLER_DONE;
+  }
 }
 
 /**
@@ -900,7 +939,7 @@ static int Installer_Thread(void *unused) {
 
       case INSTALLER_CHECKING_DATA: {
 
-        if (!module.installedData && !Installer_HasManifest()) {
+        if (module.game == 0 && !module.installedData && !Installer_HasManifest()) {
           module.installedData = true;
           if (!Installer_InstallData()) {
             Com_Warn("Falling back to a file by file sync\n");
@@ -915,12 +954,23 @@ static int Installer_Thread(void *unused) {
 
         Data *data = NULL;
         char manifestUrl[MAX_OS_PATH];
-        Str_Format(manifestUrl, sizeof(manifestUrl), QUETOO_DATA_BASE_URL "/%s/manifest.mf", Com_Game());
+        Str_Format(manifestUrl, sizeof(manifestUrl), QUETOO_DATA_BASE_URL "/%s/manifest.mf", Installer_Game());
         const int32_t httpStatus = $(module.restClient, get, manifestUrl, NULL, &data);
+        if (httpStatus == 404 && module.game > 0) {
+          Com_Print("No game data is published for %s\n", Installer_Game());
+          release(data);
+          SDL_LockMutex(module.mutex);
+          Installer_NextGame();
+          SDL_UnlockMutex(module.mutex);
+          break;
+        }
+
         if (httpStatus != 200 || !data) {
           SDL_LockMutex(module.mutex);
-          in->state = INSTALLER_ERROR;
-          Str_Format(in->error, sizeof(in->error), "Failed to fetch manifest: HTTP %d", httpStatus);
+          if (in->state != INSTALLER_CANCELLED) {
+            in->state = INSTALLER_ERROR;
+            Str_Format(in->error, sizeof(in->error), "Failed to fetch manifest: HTTP %d", httpStatus);
+          }
           SDL_UnlockMutex(module.mutex);
           release(data);
           break;
@@ -945,14 +995,16 @@ static int Installer_Thread(void *unused) {
         module.localManifest = local;
 
         SDL_LockMutex(module.mutex);
-        if (filesTotal == 0) {
-          in->state = INSTALLER_COMMITTING_DATA;
-        } else {
-          in->state = INSTALLER_DOWNLOADING_DATA;
-          in->filesTotal = filesTotal;
-          in->kbytesTotal = kbytesTotal;
-          in->filesDone = 0;
-          in->kbytesDone = 0;
+        if (in->state != INSTALLER_CANCELLED) {
+          if (filesTotal == 0) {
+            in->state = INSTALLER_COMMITTING_DATA;
+          } else {
+            in->state = INSTALLER_DOWNLOADING_DATA;
+            in->filesTotal = filesTotal;
+            in->kbytesTotal = kbytesTotal;
+            in->filesDone = 0;
+            in->kbytesDone = 0;
+          }
         }
         SDL_UnlockMutex(module.mutex);
       }
@@ -977,7 +1029,7 @@ static int Installer_Thread(void *unused) {
       case INSTALLER_COMMITTING_DATA:
         Installer_Commit();
         SDL_LockMutex(module.mutex);
-        in->state = INSTALLER_DONE;
+        Installer_NextGame();
         SDL_UnlockMutex(module.mutex);
         break;
 
