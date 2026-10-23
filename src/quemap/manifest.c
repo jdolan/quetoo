@@ -254,10 +254,18 @@ static void AddLocation(void) {
 }
 
 /**
+ * @brief Adds the map source.
+ */
+static void AddSource(void) {
+	Add(va("maps/%s.map", mapBase));
+}
+
+/**
  * @brief Adds documentation.
  */
 static void AddDocumentation(void) {
-	Add(va("docs/map-%s.txt", mapBase));
+	Add(va("docs/maps-%s.txt", mapBase));
+	Add(va("docs/maps-%s.license.txt", mapBase));
 }
 
 /**
@@ -295,6 +303,7 @@ int32_t WriteManifest(void) {
 	AddBspMaterials();
 	AddEntities();
 	AddLocation();
+	AddSource();
 	AddDocumentation();
 	AddMapshots();
 

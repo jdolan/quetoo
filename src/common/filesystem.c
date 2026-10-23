@@ -151,6 +151,13 @@ const char *Fs_DataDir(void) {
 }
 
 /**
+ * @return The read-only resources directory of an application bundle, or an empty string.
+ */
+const char *Fs_ResourcesDir(void) {
+  return module.resourcesDir;
+}
+
+/**
  * @brief Closes the file.
  *
  * @return True on successful flush and close, false otherwise.

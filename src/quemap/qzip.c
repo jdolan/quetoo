@@ -41,6 +41,57 @@ static void CollectManifestAsset(const HashTable *table, ident key, ident value,
   $(assets, append, Str_Duplicate(entry->path));
 }
 
+static Order AssetPathCompare(const ident a, const ident b) {
+  const int32_t cmp = Str_Compare((const char *) a, (const char *) b);
+  return cmp < 0 ? OrderAscending : cmp > 0 ? OrderDescending : OrderSame;
+}
+
+/**
+ * @return The canonical form of the official content root `dir`, a copy of `dir` if it cannot be
+ * resolved, or NULL if `dir` is empty. The caller MUST free it.
+ */
+static char *OfficialRoot(const char *dir) {
+
+  if (!*dir) {
+    return NULL;
+  }
+
+  return Sys_RealPath(dir) ?: Str_Duplicate(dir);
+}
+
+/**
+ * @return True if `filename`, found in search path `dir`, resolves to a file beneath `root`, or
+ * false if `root` is NULL.
+ * @remarks The whole path is resolved, not just `dir`, because the data dir and directories within
+ * the user dir are often symbolic links to a quetoo-data checkout.
+ */
+static bool ResolvesWithin(const char *dir, const char *filename, const char *root) {
+
+  if (!root) {
+    return false;
+  }
+
+  char *canonical = Sys_RealPath(va("%s/%s", dir, filename));
+  const char *path = canonical ?: dir;
+
+  const size_t len = Str_Length(root);
+  const bool within = !Str_CompareN(path, root, len) &&
+                      (path[len] == '\0' || path[len] == '/' || path[len] == '\\');
+
+  free(canonical);
+  return within;
+}
+
+/**
+ * @return True if `filename` is the map's BSP or manifest, which MUST be archived even where they
+ * live beside official assets.
+ * @remarks An official map's docs and mapshots stay loose, versioned files.
+ */
+static bool IsMapAsset(const char *filename) {
+  return !Str_Compare(filename, va("maps/%s.bsp", mapBase)) ||
+         !Str_Compare(filename, va("maps/%s.mf", mapBase));
+}
+
 /**
  * @brief Reads the manifest file and generates a pk3 archive containing
  * all referenced assets.
@@ -72,6 +123,14 @@ int32_t Qzip_Main(void) {
 
   Manifest_Free(manifest);
 
+  $(assets, sort, AssetPathCompare);
+
+  char *dataDir = OfficialRoot(Fs_DataDir());
+  char *resourcesDir = OfficialRoot(Fs_ResourcesDir());
+
+  struct tm epoch = { .tm_year = 80, .tm_mon = 5, .tm_mday = 24, .tm_hour = 12, .tm_isdst = -1 };
+  MZ_TIME_T modified = mktime(&epoch);
+
   mz_zip_archive zip;
   memset(&zip, 0, sizeof(zip));
 
@@ -89,7 +148,7 @@ int32_t Qzip_Main(void) {
         continue;
       }
 
-      if (includeShared == false) {
+      if (includeShared == false && !IsMapAsset(filename)) {
         const char *dir = Fs_RealDir(filename);
 
         if (GlobMatch("sky-*.pk3", dir, GLOB_CASE_INSENSITIVE) ||
@@ -101,7 +160,8 @@ int32_t Qzip_Main(void) {
           // skip it. This allows us to rebuild our official maps easily, but without
           // pulling in flares, envmaps, etc.
 
-          (!Str_CompareN(dir, PKGDATADIR, Str_Length(PKGDATADIR)) && !HasSuffix(dir, ".pk3"))) {
+          (!HasSuffix(dir, ".pk3") && (ResolvesWithin(dir, filename, dataDir) ||
+                                       ResolvesWithin(dir, filename, resourcesDir)))) {
 
             Com_Print("[S] %s (%s)\n", filename, dir);
             continue;
@@ -115,7 +175,8 @@ int32_t Qzip_Main(void) {
         continue;
       }
 
-      if (!mz_zip_writer_add_mem(&zip, filename, buffer, len, MZ_DEFAULT_COMPRESSION)) {
+      if (!mz_zip_writer_add_mem_ex_v2(&zip, filename, buffer, len, NULL, 0, MZ_DEFAULT_COMPRESSION,
+                                       0, 0, &modified, NULL, 0, NULL, 0)) {
         Com_Error(ERROR_FATAL, "Failed to add %s to %s: %s\n",
               filename,
               path,
@@ -139,6 +200,8 @@ int32_t Qzip_Main(void) {
   }
 
   release(assets);
+  free(dataDir);
+  free(resourcesDir);
 
   const uint32_t end = (uint32_t) SDL_GetTicks();
   Com_Print("\nWrote %s in %d ms\n", path, end - start);

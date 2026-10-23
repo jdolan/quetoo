@@ -35,6 +35,13 @@ const char *Sys_ExecutablePath(void);
  */
 void Sys_Relaunch(void);
 
+/**
+ * @return The canonical, absolute form of the OS path `path`, with symbolic links resolved, or
+ * NULL if it cannot be resolved. The caller MUST `free` it.
+ * @remarks On Windows, symbolic links are not resolved.
+ */
+char *Sys_RealPath(const char *path);
+
 const char *Sys_Username(void);
 const char *Sys_UserDir(void);
 

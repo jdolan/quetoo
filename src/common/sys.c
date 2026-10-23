@@ -182,6 +182,14 @@ const char *Sys_UserDir(void) {
   return userDir;
 }
 
+char *Sys_RealPath(const char *path) {
+#if defined(_WIN32)
+  return _fullpath(NULL, path, 0);
+#else
+  return realpath(path, NULL);
+#endif
+}
+
 /**
  * @brief Warns if the image that loaded is not the one at the given path.
  * @details dyld searches DYLD_LIBRARY_PATH for a library's leaf name before it
@@ -192,7 +200,7 @@ const char *Sys_UserDir(void) {
 static void Sys_CheckLibrary(const char *path) {
 #if defined(__APPLE__)
 
-  char *expected = realpath(path, NULL);
+  char *expected = Sys_RealPath(path);
   if (!expected) {
     return;
   }
@@ -205,7 +213,7 @@ static void Sys_CheckLibrary(const char *path) {
       continue;
     }
 
-    char *actual = realpath(image, NULL);
+    char *actual = Sys_RealPath(image);
     if (actual) {
       loaded = !Str_Compare(actual, expected);
       free(actual);

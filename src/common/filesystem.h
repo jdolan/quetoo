@@ -49,6 +49,7 @@ const char *Fs_BaseDir(void);
 const char *Fs_BinDir(void);
 const char *Fs_LibDir(void);
 const char *Fs_DataDir(void);
+const char *Fs_ResourcesDir(void);
 bool Fs_Close(File *file);
 bool Fs_Delete(const char *filename);
 bool Fs_Eof(File *file);
