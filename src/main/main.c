@@ -447,9 +447,9 @@ static void Main_Init(void) {
     Com_Shutdown("Restarting to apply the update\n");
   }
 
-  // Re-add data search paths in case the installer just created them
-  Fs_AddToSearchPathv(Fs_DataDir(), NULL);
-  Fs_AddToSearchPathv(Fs_DataDir(), Com_Game(), NULL);
+  // mount the data the installer just wrote; Com_SetGame would return at once, as the game is
+  // unchanged
+  Fs_SetGame(Com_Game(), Com_Cgame());
 
   // after Cl_Init has queued the default binds and their quetoo.cfg, so that
   // autoexec.cfg has the last word, and a dedicated server reaches it too

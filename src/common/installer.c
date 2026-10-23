@@ -677,15 +677,28 @@ static bool Installer_DownloadFile(const ManifestEntry *entry) {
     }
   }
 
+  const bool mounted = Fs_IsMounted(path);
+  if (mounted && !Fs_Unmount(path)) {
+    release(data);
+    return false;
+  }
+
   FILE *f = fopen(path, "wb");
   if (!f) {
     Com_Warn("Failed to open for writing: %s\n", path);
+    if (mounted) {
+      Fs_AddToSearchPath(path);
+    }
     release(data);
     return false;
   }
 
   const size_t written = fwrite(data->bytes, 1, data->length, f);
   fclose(f);
+
+  if (mounted) {
+    Fs_AddToSearchPath(path);
+  }
 
   if (written != data->length) {
     Com_Warn("Failed to write %s: %zu of %zu bytes\n", path, written, data->length);

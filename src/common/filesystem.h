@@ -78,6 +78,8 @@ void Fs_Enumerate(const char *pattern, FsEnumerator, void *data);
 void Fs_CompleteFile(const char *pattern, List *matches);
 void Fs_CompleteGame(const char *pattern, List *matches);
 void Fs_AddToSearchPath(const char *path);
+bool Fs_IsMounted(const char *path);
+bool Fs_Unmount(const char *path);
 void Fs_AddToSearchPathv(const char *dir, ...) __attribute__((sentinel));
 bool Fs_SetGame(const char *game, const char *cgame);
 bool Fs_FindLibrary(const char *game, const char *name, char *path, size_t len);
