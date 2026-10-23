@@ -71,7 +71,7 @@ typedef struct {
  * @brief The games whose data every installation syncs, in order, whichever game is active.
  * @remarks A game module that ships data MUST be listed here, or players never receive it.
  */
-static const char *syncedGames[] = { DEFAULT_GAME, "ctf" };
+static const char *installerGames[] = { DEFAULT_GAME, "ctf" };
 
 /**
  * @brief The module type.
@@ -150,7 +150,7 @@ static struct {
  * @return The game whose data is being synced.
  */
 static const char *Installer_Game(void) {
-  return syncedGames[module.game];
+  return installerGames[module.game];
 }
 
 /**
@@ -788,9 +788,9 @@ static bool Installer_InstallData(void) {
   SDL_RemovePath(archive);
 
   if (!success) {
-    for (size_t i = 0; i < lengthof(syncedGames); i++) {
+    for (size_t i = 0; i < lengthof(installerGames); i++) {
       char manifest[MAX_OS_PATH];
-      Str_Format(manifest, sizeof(manifest), "%s/%s/manifest.mf", Fs_DataDir(), syncedGames[i]);
+      Str_Format(manifest, sizeof(manifest), "%s/%s/manifest.mf", Fs_DataDir(), installerGames[i]);
       SDL_RemovePath(manifest);
     }
   }
@@ -868,7 +868,7 @@ static void Installer_NextGame(void) {
     return;
   }
 
-  if (++module.game < lengthof(syncedGames)) {
+  if (++module.game < lengthof(installerGames)) {
     in->state = INSTALLER_CHECKING_DATA;
   } else {
     in->state = INSTALLER_DONE;
