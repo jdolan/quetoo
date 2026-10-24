@@ -89,6 +89,7 @@ bool Fs_SetGame(const char *game, const char *cgame);
 bool Fs_FindLibrary(const char *game, const char *name, char *path, size_t len);
 void Fs_SetWriteDir(const char *dir);
 const char *Fs_WriteDir(void);
+const char *Fs_DefaultWriteDir(void);
 const char *Fs_RealDir(const char *filename);
 const char *Fs_RealPath(const char *path);
 void Fs_Init(const uint32_t flags);

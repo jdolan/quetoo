@@ -523,6 +523,15 @@ static void Cl_WriteConfiguration(void) {
   Cl_WriteBindings(f);
   Cvar_WriteAll(f);
   Fs_Close(f);
+
+  if (Str_Compare(Fs_WriteDir(), Fs_DefaultWriteDir())) {
+    const char *source = va("%s/quetoo.cfg", Fs_WriteDir());
+    const char *dest = va("%s/quetoo.cfg", Fs_DefaultWriteDir());
+
+    if (!SDL_RenamePath(source, dest)) {
+      Com_Warn("Couldn't move %s to %s: %s\n", source, dest, SDL_GetError());
+    }
+  }
 }
 
 /**
