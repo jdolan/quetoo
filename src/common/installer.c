@@ -1019,7 +1019,7 @@ static int Installer_Thread(void *unused) {
         break;
 
       case INSTALLER_DOWNLOADING_DATA: {
-        char **searchPath = Fs_GetSearchPath();
+        PointerArray *searchPath = Fs_GetSearchPath();
 
         SDL_Thread *threads[8];
         for (size_t i = 0; i < lengthof(threads); i++) {
@@ -1029,8 +1029,8 @@ static int Installer_Thread(void *unused) {
           SDL_WaitThread(threads[i], NULL);
         }
 
-        Fs_RestoreSearchPath(searchPath);
-        Fs_FreeSearchPath(searchPath);
+        Fs_SetSearchPath(searchPath);
+        release(searchPath);
         SDL_LockMutex(module.mutex);
         if (in->state == INSTALLER_DOWNLOADING_DATA) {
           in->state = INSTALLER_COMMITTING_DATA;

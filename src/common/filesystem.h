@@ -21,6 +21,8 @@
 
 #pragma once
 
+#include <Objectively/PointerArray.h>
+
 #include "common.h"
 
 /**
@@ -80,9 +82,8 @@ void Fs_CompleteGame(const char *pattern, List *matches);
 void Fs_AddToSearchPath(const char *path);
 bool Fs_IsMounted(const char *path);
 bool Fs_Unmount(const char *path);
-char **Fs_GetSearchPath(void);
-void Fs_FreeSearchPath(char **searchPath);
-void Fs_RestoreSearchPath(char **searchPath);
+PointerArray *Fs_GetSearchPath(void);
+void Fs_SetSearchPath(const PointerArray *searchPath);
 void Fs_AddToSearchPathv(const char *dir, ...) __attribute__((sentinel));
 bool Fs_SetGame(const char *game, const char *cgame);
 bool Fs_FindLibrary(const char *game, const char *name, char *path, size_t len);

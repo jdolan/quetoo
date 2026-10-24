@@ -729,43 +729,70 @@ bool Fs_Unmount(const char *path) {
 }
 
 /**
- * @return A copy of the search path, in priority order, for `Fs_RestoreSearchPath`. Free it with
- * `Fs_FreeSearchPath`.
+ * @return The search path, in priority order, as owned copies of its paths, for
+ * `Fs_SetSearchPath`. The caller MUST release it.
  */
-char **Fs_GetSearchPath(void) {
-  return PHYSFS_getSearchPath();
-}
+PointerArray *Fs_GetSearchPath(void) {
 
-/**
- * @brief Frees a search path returned by `Fs_GetSearchPath`.
- */
-void Fs_FreeSearchPath(char **searchPath) {
-  PHYSFS_freeList(searchPath);
-}
+  PointerArray *searchPath = $(alloc(PointerArray), initWithDestroy, free);
 
-/**
- * @brief Mounts again, in its original place, each archive of `searchPath` that has since been
- * unmounted.
- * @details PhysFS can only append an archive, so every path after the first unmounted one is
- * unmounted too, and all of them are appended again in their original order. Directories are
- * always prepended, so those paths are all archives.
- */
-void Fs_RestoreSearchPath(char **searchPath) {
-
-  char **first = searchPath;
-  while (*first && PHYSFS_getMountPoint(*first)) {
-    first++;
+  char **paths = PHYSFS_getSearchPath();
+  for (char **path = paths; *path; path++) {
+    $(searchPath, add, Str_Duplicate(*path));
   }
+  PHYSFS_freeList(paths);
 
-  for (char **path = first; *path; path++) {
-    if (PHYSFS_getMountPoint(*path)) {
-      Fs_Unmount(*path);
+  return searchPath;
+}
+
+/**
+ * @return True if `searchPath` holds `path`.
+ */
+static bool Fs_SetSearchPath_contains(const PointerArray *searchPath, const char *path) {
+
+  for (size_t i = 0; i < searchPath->count; i++) {
+    if (!Str_Compare(searchPath->elements[i], path)) {
+      return true;
     }
   }
 
-  for (char **path = first; *path; path++) {
-    if (!PHYSFS_getMountPoint(*path) && PHYSFS_mount(*path, NULL, 1) == 0) {
-      Com_Warn("%s: %s\n", *path, Fs_LastError());
+  return false;
+}
+
+/**
+ * @brief Makes the search path exactly `searchPath`, in its order.
+ * @details Paths that `searchPath` does not hold are unmounted. PhysFS cannot insert a path at a
+ * position, so every path from the first one out of place onward is unmounted, and all of them are
+ * mounted again, appended in order. A path with open files cannot be unmounted, and stays where it
+ * is.
+ */
+void Fs_SetSearchPath(const PointerArray *searchPath) {
+
+  char **paths = PHYSFS_getSearchPath();
+  for (char **path = paths; *path; path++) {
+    if (!Fs_SetSearchPath_contains(searchPath, *path)) {
+      Fs_Unmount(*path);
+    }
+  }
+  PHYSFS_freeList(paths);
+
+  size_t first = 0;
+
+  paths = PHYSFS_getSearchPath();
+  while (first < searchPath->count && paths[first] &&
+         !Str_Compare(paths[first], searchPath->elements[first])) {
+    first++;
+  }
+
+  for (char **path = paths + first; *path; path++) {
+    Fs_Unmount(*path);
+  }
+  PHYSFS_freeList(paths);
+
+  for (size_t i = first; i < searchPath->count; i++) {
+    const char *path = searchPath->elements[i];
+    if (!PHYSFS_getMountPoint(path) && PHYSFS_mount(path, NULL, 1) == 0) {
+      Com_Warn("%s: %s\n", path, Fs_LastError());
     }
   }
 }
