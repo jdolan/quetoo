@@ -75,6 +75,20 @@ static int32_t Cg_Practice_Integer(const Entity *entity, const char *key) {
 }
 
 /**
+ * @brief The ladder named `name`, or `NULL` if the search path holds none.
+ */
+static const CGamePracticeLadder *Cg_Practice_FindLadder(const char *name) {
+
+  for (size_t i = 0; i < module.numLadders; i++) {
+    if (!Str_Compare(module.ladders[i].name, name)) {
+      return &module.ladders[i];
+    }
+  }
+
+  return NULL;
+}
+
+/**
  * @brief Loads the entities of `path`, or returns `NULL` if it does not exist or is empty.
  */
 static List *Cg_Practice_LoadEntities(const char *path) {
@@ -119,6 +133,8 @@ static void Cg_Practice_LoadLadder(void) {
   module.maxClients = 0;
   module.ladderGeneration++;
 
+  const CGamePracticeLadder *ladder = Cg_Practice_FindLadder(cg_practiceLadder->string);
+
   List *entities = Cg_Practice_LoadEntities(module.ladderPath);
   if (entities == NULL) {
     Cg_Warn("Failed to load practice ladder %s\n", module.ladderPath);
@@ -145,6 +161,11 @@ static void Cg_Practice_LoadLadder(void) {
     entry->fragLimit = Cg_Practice_Integer(entity, "frag_limit");
     entry->captureLimit = Cg_Practice_Integer(entity, "capture_limit");
     entry->timeLimit = Cg_Practice_Integer(entity, "time_limit");
+    entry->numTeams = Cg_Practice_Integer(entity, "num_teams");
+
+    if (entry->numTeams == -1 && ladder) {
+      entry->numTeams = ladder->numTeams;
+    }
 
     if (entry->tier < 1 || !*entry->name || !*entry->ai) {
       Cg_Warn("Skipping %s entry with no tier, map or AI players\n", module.ladderPath);
@@ -262,15 +283,15 @@ static const GamePlay *Cg_Practice_GamePlay(const char *name) {
 }
 
 /**
- * @return True if the module offers a gameplay that the player may choose: one without teams.
+ * @return True if the module offers a gameplay with teams, if `teams`, or else one without.
  */
-static bool Cg_Practice_OffersChoice(void) {
+static bool Cg_Practice_OffersChoice(bool teams) {
 
   size_t count;
   const GamePlay *gamePlays = Cg_ListGamePlays(&count);
 
   for (size_t i = 0; i < count; i++) {
-    if (!(gamePlays[i].id & GAMEPLAY_TEAMS)) {
+    if (((gamePlays[i].id & GAMEPLAY_TEAMS) != 0) == teams) {
       return true;
     }
   }
@@ -281,7 +302,8 @@ static bool Cg_Practice_OffersChoice(void) {
 /**
  * @brief `EnumerateFiles` function that adds the ladder at `path` to the ladders. A ladder that
  * sets a gameplay the module does not offer belongs to another module, and is skipped. So is a
- * ladder that leaves the gameplay to the player, if the module offers no gameplay to choose.
+ * ladder that leaves the gameplay to the player, if the module offers no gameplay to choose, and
+ * a ladder that sets teams and a gameplay without them.
  */
 static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
 
@@ -299,7 +321,7 @@ static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
     }
   }
 
-  CGamePracticeLadder ladder = {};
+  CGamePracticeLadder ladder = { .numTeams = -1 };
 
   Str_Copy(ladder.name, name + strlen(prefix), sizeof(ladder.name));
   Str_Copy(ladder.title, ladder.name, sizeof(ladder.title));
@@ -310,12 +332,19 @@ static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
       const char *title = cgi.EntityValue(node->element, "title")->string;
       if (*title) {
         Str_Copy(ladder.title, title, sizeof(ladder.title));
+        ladder.numTeams = Cg_Practice_Integer(node->element, "num_teams");
 
         const char *gameplay = cgi.EntityValue(node->element, "gameplay")->string;
         if (*gameplay) {
           ladder.gamePlay = Cg_Practice_GamePlay(gameplay);
           if (ladder.gamePlay == NULL) {
             Cg_Debug("Skipping %s: no gameplay %s\n", path, gameplay);
+            Cg_Practice_FreeEntities(entities);
+            return;
+          }
+
+          if (ladder.numTeams > -1 && !(ladder.gamePlay->id & GAMEPLAY_TEAMS)) {
+            Cg_Warn("Skipping %s: %s has no teams\n", path, gameplay);
             Cg_Practice_FreeEntities(entities);
             return;
           }
@@ -327,7 +356,7 @@ static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
     Cg_Practice_FreeEntities(entities);
   }
 
-  if (ladder.gamePlay == NULL && !Cg_Practice_OffersChoice()) {
+  if (ladder.gamePlay == NULL && !Cg_Practice_OffersChoice(ladder.numTeams > -1)) {
     Cg_Debug("Skipping %s: no gameplay to choose\n", path);
     return;
   }
@@ -436,6 +465,10 @@ void Cg_Practice_Start(const CGamePracticeEntry *entry, const char *gameplay) {
     $(string, appendFormat, "\ttime_limit %d\n", entry->timeLimit);
   }
 
+  if (entry->numTeams > -1) {
+    $(string, appendFormat, "\tnum_teams %d\n", entry->numTeams);
+  }
+
   $(string, appendCharacters, "}\n");
 
   const int64_t written = cgi.WriteFile(file, string->chars, string->length, 1);
@@ -449,7 +482,7 @@ void Cg_Practice_Start(const CGamePracticeEntry *entry, const char *gameplay) {
   }
 
   static const char *levelCvars[] = {
-    "g_fragLimit", "g_timeLimit", "g_captureLimit", "g_gravity", "g_gameplay"
+    "g_fragLimit", "g_timeLimit", "g_captureLimit", "g_numTeams", "g_gravity", "g_gameplay"
   };
 
   for (size_t i = 0; i < lengthof(levelCvars); i++) {
@@ -480,9 +513,39 @@ const CGamePracticeLadder *Cg_Practice_Ladders(size_t *count) {
  */
 const GamePlay *Cg_Practice_LadderGamePlay(void) {
 
-  for (size_t i = 0; i < module.numLadders; i++) {
-    if (!Str_Compare(module.ladders[i].name, cg_practiceLadder->string)) {
-      return module.ladders[i].gamePlay;
+  const CGamePracticeLadder *ladder = Cg_Practice_FindLadder(cg_practiceLadder->string);
+  return ladder ? ladder->gamePlay : NULL;
+}
+
+/**
+ * @return True if the ladder offers `gamePlay`: it is the ladder's gameplay, or the ladder sets
+ * none and `gamePlay` has teams if and only if the ladder does.
+ */
+bool Cg_Practice_OffersGamePlay(const GamePlay *gamePlay) {
+
+  const CGamePracticeLadder *ladder = Cg_Practice_FindLadder(cg_practiceLadder->string);
+  if (ladder == NULL) {
+    return false;
+  }
+
+  if (ladder->gamePlay) {
+    return gamePlay == ladder->gamePlay;
+  }
+
+  return ((gamePlay->id & GAMEPLAY_TEAMS) != 0) == (ladder->numTeams > -1);
+}
+
+/**
+ * @return The first gameplay that the ladder offers, or `NULL` if it offers none.
+ */
+const GamePlay *Cg_Practice_DefaultGamePlay(void) {
+
+  size_t count;
+  const GamePlay *gamePlays = Cg_ListGamePlays(&count);
+
+  for (size_t i = 0; i < count; i++) {
+    if (Cg_Practice_OffersGamePlay(&gamePlays[i])) {
+      return &gamePlays[i];
     }
   }
 
@@ -752,22 +815,8 @@ void Cg_Practice_Exit(void) {
 }
 
 /**
- * @brief The ladder named `name`, or `NULL` if the search path holds none.
- */
-static const CGamePracticeLadder *Cg_Practice_FindLadder(const char *name) {
-
-  for (size_t i = 0; i < module.numLadders; i++) {
-    if (!Str_Compare(module.ladders[i].name, name)) {
-      return &module.ladders[i];
-    }
-  }
-
-  return NULL;
-}
-
-/**
  * @brief Plays the entry of the ladder named first with the number given, from 1, under the
- * gameplay that the ladder sets, or else the gameplay given, or deathmatch. The ladder becomes
+ * gameplay given, or else the first that the ladder offers. The ladder becomes
  * `cg_practiceLadder`, so that the match counts toward its progress. With no number, lists the
  * ladder's entries, and with no ladder, lists the ladders.
  * @remarks The ladder is loaded through `cg_practiceLadder` to read its entries, and the cvar is
@@ -805,8 +854,12 @@ static void Cg_Practice_f(void) {
   } else if (index < 0 || (size_t) index >= module.ladderLength) {
     cgi.Print("No entry %s in ladder %s\n", cgi.Argv(2), cgi.Argv(1));
   } else {
-    Cg_Practice_Start(&module.ladder[index], *cgi.Argv(3) ? cgi.Argv(3) : "deathmatch");
-    return;
+    const GamePlay *gamePlay = *cgi.Argv(3) ? Cg_Practice_GamePlay(cgi.Argv(3)) : Cg_Practice_DefaultGamePlay();
+    if (gamePlay && Cg_Practice_OffersGamePlay(gamePlay)) {
+      Cg_Practice_Start(&module.ladder[index], gamePlay->name);
+      return;
+    }
+    cgi.Print("Ladder %s does not offer gameplay %s\n", cgi.Argv(1), *cgi.Argv(3) ? cgi.Argv(3) : "");
   }
 
   cgi.SetCvarString(cg_practiceLadder->name, previous);
