@@ -94,6 +94,148 @@ START_TEST(check_Fs_LoadFile) {
 
 } END_TEST
 
+static void Test_WriteShort(FILE *f, uint16_t value) {
+  fputc(value & 0xff, f);
+  fputc(value >> 8, f);
+}
+
+static void Test_WriteLong(FILE *f, uint32_t value) {
+  Test_WriteShort(f, value & 0xffff);
+  Test_WriteShort(f, value >> 16);
+}
+
+/**
+ * @brief Writes a zip archive at the OS path `path` that stores the one file `name`, uncompressed.
+ */
+static void Test_WriteZip(const char *path, const char *name, const char *contents) {
+
+  const uint16_t nameLen = (uint16_t) strlen(name);
+  const uint32_t len = (uint32_t) strlen(contents);
+  const uint32_t crc = SDL_crc32(0, contents, len);
+
+  FILE *f = fopen(path, "wb");
+  ck_assert_msg(f != NULL, "Failed to open %s", path);
+
+  Test_WriteLong(f, 0x04034b50);
+  Test_WriteShort(f, 20);
+  Test_WriteShort(f, 0);
+  Test_WriteShort(f, 0);
+  Test_WriteShort(f, 0);
+  Test_WriteShort(f, 0x21);
+  Test_WriteLong(f, crc);
+  Test_WriteLong(f, len);
+  Test_WriteLong(f, len);
+  Test_WriteShort(f, nameLen);
+  Test_WriteShort(f, 0);
+  fwrite(name, 1, nameLen, f);
+  fwrite(contents, 1, len, f);
+
+  const uint32_t centralOffset = 30 + nameLen + len;
+
+  Test_WriteLong(f, 0x02014b50);
+  Test_WriteShort(f, 20);
+  Test_WriteShort(f, 20);
+  Test_WriteShort(f, 0);
+  Test_WriteShort(f, 0);
+  Test_WriteShort(f, 0);
+  Test_WriteShort(f, 0x21);
+  Test_WriteLong(f, crc);
+  Test_WriteLong(f, len);
+  Test_WriteLong(f, len);
+  Test_WriteShort(f, nameLen);
+  Test_WriteShort(f, 0);
+  Test_WriteShort(f, 0);
+  Test_WriteShort(f, 0);
+  Test_WriteShort(f, 0);
+  Test_WriteLong(f, 0);
+  Test_WriteLong(f, 0);
+  fwrite(name, 1, nameLen, f);
+
+  Test_WriteLong(f, 0x06054b50);
+  Test_WriteShort(f, 0);
+  Test_WriteShort(f, 0);
+  Test_WriteShort(f, 1);
+  Test_WriteShort(f, 1);
+  Test_WriteLong(f, 46 + nameLen);
+  Test_WriteLong(f, centralOffset);
+  Test_WriteShort(f, 0);
+
+  ck_assert_msg(fclose(f) == 0, "Failed to close %s", path);
+}
+
+/**
+ * @brief Asserts that `name` loads with exactly `contents`.
+ */
+static void Test_AssertContents(const char *name, const char *contents) {
+  void *buffer;
+  const int64_t len = Fs_Load(name, &buffer);
+
+  ck_assert_msg(len == (int64_t) strlen(contents), "Failed to load %s", name);
+  ck_assert_str_eq((const char *) buffer, contents);
+
+  Fs_Free(buffer);
+}
+
+START_TEST(check_Fs_Unmount) {
+  const char *name = "check_filesystem/archived.txt";
+
+  char path[MAX_OS_PATH];
+  Str_Format(path, sizeof(path), "%s/check_filesystem.pk3", Fs_WriteDir());
+
+  Test_WriteZip(path, name, "original");
+  Fs_AddToSearchPath(path);
+
+  ck_assert(Fs_IsMounted(path));
+  Test_AssertContents(name, "original");
+
+  ck_assert(Fs_Unmount(path));
+  ck_assert(!Fs_IsMounted(path));
+  ck_assert(!Fs_Exists(name));
+
+  Test_WriteZip(path, name, "replaced in place");
+  Fs_AddToSearchPath(path);
+
+  ck_assert(Fs_IsMounted(path));
+  Test_AssertContents(name, "replaced in place");
+
+  ck_assert(Fs_Unmount(path));
+  ck_assert(SDL_RemovePath(path));
+
+} END_TEST
+
+START_TEST(check_Fs_RestoreSearchPath) {
+  const char *name = "check_filesystem/shared.txt";
+
+  char first[MAX_OS_PATH], second[MAX_OS_PATH];
+  Str_Format(first, sizeof(first), "%s/check_filesystem_a.pk3", Fs_WriteDir());
+  Str_Format(second, sizeof(second), "%s/check_filesystem_b.pk3", Fs_WriteDir());
+
+  Test_WriteZip(first, name, "first");
+  Test_WriteZip(second, name, "second");
+  Fs_AddToSearchPath(first);
+  Fs_AddToSearchPath(second);
+
+  Test_AssertContents(name, "first");
+
+  char **searchPath = Fs_GetSearchPath();
+
+  ck_assert(Fs_Unmount(first));
+  Test_WriteZip(first, name, "first, replaced");
+
+  Fs_RestoreSearchPath(searchPath);
+  Fs_FreeSearchPath(searchPath);
+
+  ck_assert(Fs_IsMounted(first));
+  ck_assert(Fs_IsMounted(second));
+  Test_AssertContents(name, "first, replaced");
+
+  ck_assert(Fs_Unmount(first));
+  ck_assert(Fs_Unmount(second));
+  ck_assert(SDL_RemovePath(first));
+  ck_assert(SDL_RemovePath(second));
+
+} END_TEST
+
 /**
  * @brief Test entry point.
  */
@@ -107,6 +249,8 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(tcase, check_Fs_OpenRead);
   tcase_add_test(tcase, check_Fs_OpenWrite);
   tcase_add_test(tcase, check_Fs_LoadFile);
+  tcase_add_test(tcase, check_Fs_Unmount);
+  tcase_add_test(tcase, check_Fs_RestoreSearchPath);
 
   Suite *suite = suite_create("check_filesystem");
   suite_add_tcase(suite, tcase);

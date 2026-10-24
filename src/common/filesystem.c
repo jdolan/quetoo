@@ -26,6 +26,8 @@
 
 #include <Objectively/HashTable.h>
 #include <Objectively/List.h>
+#include <Objectively/Set.h>
+#include <Objectively/String.h>
 #include <Objectively/Vector.h>
 
 #include "console.h"
@@ -69,11 +71,10 @@ static struct {
   char resourcesDir[MAX_OS_PATH];
 
   /**
-   * @brief The base search paths (all those present after invoking `Fs_Init`).
-   * When calling `Fs_SetGameDir`, all paths following the base paths are
-   * unloaded.
+   * @brief The base search paths: those present after `Fs_Init`, and any base directory or
+   * archive that `Fs_SetGame` has mounted since. `Fs_SetGame` unmounts every other path.
    */
-  char **baseSearchPaths;
+  Set *baseSearchPaths;
 
   /**
    * @brief Search paths given on the command line with `-p` or `--path`.
@@ -707,6 +708,69 @@ void Fs_AddToSearchPath(const char *path) {
 }
 
 /**
+ * @return True if the directory or archive `path` is mounted.
+ */
+bool Fs_IsMounted(const char *path) {
+  return PHYSFS_getMountPoint(path) != NULL;
+}
+
+/**
+ * @brief Unmounts the directory or archive `path`.
+ * @return True on success, false if `path` is not mounted or has open files.
+ */
+bool Fs_Unmount(const char *path) {
+
+  if (PHYSFS_unmount(path) == 0) {
+    Com_Warn("Failed to unmount %s: %s\n", path, Fs_LastError());
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @return A copy of the search path, in priority order, for `Fs_RestoreSearchPath`. Free it with
+ * `Fs_FreeSearchPath`.
+ */
+char **Fs_GetSearchPath(void) {
+  return PHYSFS_getSearchPath();
+}
+
+/**
+ * @brief Frees a search path returned by `Fs_GetSearchPath`.
+ */
+void Fs_FreeSearchPath(char **searchPath) {
+  PHYSFS_freeList(searchPath);
+}
+
+/**
+ * @brief Mounts again, in its original place, each archive of `searchPath` that has since been
+ * unmounted.
+ * @details PhysFS can only append an archive, so every path after the first unmounted one is
+ * unmounted too, and all of them are appended again in their original order. Directories are
+ * always prepended, so those paths are all archives.
+ */
+void Fs_RestoreSearchPath(char **searchPath) {
+
+  char **first = searchPath;
+  while (*first && PHYSFS_getMountPoint(*first)) {
+    first++;
+  }
+
+  for (char **path = first; *path; path++) {
+    if (PHYSFS_getMountPoint(*path)) {
+      Fs_Unmount(*path);
+    }
+  }
+
+  for (char **path = first; *path; path++) {
+    if (!PHYSFS_getMountPoint(*path) && PHYSFS_mount(*path, NULL, 1) == 0) {
+      Com_Warn("%s: %s\n", *path, Fs_LastError());
+    }
+  }
+}
+
+/**
  * @brief Variadic arguments version of `Fs_AddToSearchPath`.
  */
 void Fs_AddToSearchPathv(const char *dir, ...) {
@@ -787,6 +851,83 @@ static void Fs_AddGameSearchPath(const char *dir) {
   }
 }
 
+/**
+ * @brief Records `path` as a base search path, which `Fs_SetGame` never unmounts.
+ */
+static void Fs_AddBaseSearchPath(const char *path) {
+
+  String *string = $(alloc(String), initWithCharacters, path);
+  $(module.baseSearchPaths, addObject, string);
+  release(string);
+}
+
+/**
+ * @return True if `path` is a base search path.
+ */
+static bool Fs_IsBaseSearchPath(const char *path) {
+
+  String *string = $(alloc(String), initWithCharacters, path);
+  const bool contains = $(module.baseSearchPaths, containsObject, string);
+  release(string);
+
+  return contains;
+}
+
+/**
+ * @brief Mounts `path` if it is not mounted, and records it as a base search path.
+ * @details As in `Fs_AddToSearchPath`, a directory is mounted at the highest priority and an
+ * archive at the lowest, so that loose files win over archives.
+ */
+static void Fs_MountBaseSearchPath(const char *path, bool isDir) {
+
+  if (!PHYSFS_getMountPoint(path)) {
+    Com_Print("Adding path %s..\n", path);
+
+    if (PHYSFS_mount(path, NULL, !isDir) == 0) {
+      Com_Warn("%s: %s\n", path, Fs_LastError());
+      return;
+    }
+  }
+
+  Fs_AddBaseSearchPath(path);
+}
+
+/**
+ * @brief Mounts the base data directories and their archives that appeared after `Fs_Init`.
+ * @details The installer creates `<dataDir>/default` on a fresh install, and writes archives into
+ * it on every update, after `Fs_Init` has recorded the base search paths. Without this, the first
+ * game switch would unmount that data until the next launch.
+ */
+static void Fs_UpdateBaseSearchPaths(void) {
+
+  char dirs[2][MAX_OS_PATH];
+  Str_Copy(dirs[0], module.dataDir, MAX_OS_PATH);
+  Str_Format(dirs[1], MAX_OS_PATH, "%s/%s", module.dataDir, DEFAULT_GAME);
+
+  for (size_t i = 0; i < lengthof(dirs); i++) {
+
+    SDL_PathInfo info;
+    if (!SDL_GetPathInfo(dirs[i], &info) || info.type != SDL_PATHTYPE_DIRECTORY) {
+      continue;
+    }
+
+    Fs_MountBaseSearchPath(dirs[i], true);
+
+    if (module.flags & FS_AUTO_LOAD_ARCHIVES) {
+
+      int32_t count = 0;
+      char **archives = SDL_GlobDirectory(dirs[i], "*.pk3", 0, &count);
+
+      for (int32_t j = 0; j < count; j++) {
+        char path[MAX_OS_PATH];
+        Str_Format(path, sizeof(path), "%s/%s", dirs[i], archives[j]);
+        Fs_MountBaseSearchPath(path, false);
+      }
+
+      SDL_free(archives);
+    }
+  }
+}
 
 /**
  * @brief Points the search path at the given game directory.
@@ -802,17 +943,12 @@ bool Fs_SetGame(const char *game, const char *cgame) {
 
   Com_Debug(DEBUG_FILESYSTEM, "Setting game: %s\n", game);
 
+  Fs_UpdateBaseSearchPaths();
+
   // iterate the current search path, removing those which are not base paths
   char **paths = PHYSFS_getSearchPath();
   for (char **path = paths; *path; path++) {
-    char **p = module.baseSearchPaths;
-    while (*p != NULL) {
-      if (!Str_Compare(*path, *p)) {
-        break;
-      }
-      p++;
-    }
-    if (!*p) {
+    if (!Fs_IsBaseSearchPath(*path)) {
       Com_Debug(DEBUG_FILESYSTEM, "Removing %s\n", *path);
       if (PHYSFS_unmount(*path) == 0) {
         Com_Warn("%s: %s\n", *path, Fs_LastError());
@@ -1101,7 +1237,13 @@ void Fs_Init(const uint32_t flags) {
   }
 
   // these paths will be retained across all game modules
-  module.baseSearchPaths = PHYSFS_getSearchPath();
+  module.baseSearchPaths = $(alloc(Set), init);
+
+  char **paths = PHYSFS_getSearchPath();
+  for (char **path = paths; *path; path++) {
+    Fs_AddBaseSearchPath(*path);
+  }
+  PHYSFS_freeList(paths);
 
   module.loadedFiles = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
   module.loadedFiles->destroyValue = Mem_Free;
@@ -1126,7 +1268,7 @@ void Fs_Shutdown(void) {
   $(module.loadedFiles, enumerate, Fs_LoadedFiles_, NULL);
   release(module.loadedFiles);
 
-  PHYSFS_freeList(module.baseSearchPaths);
+  release(module.baseSearchPaths);
 
   PHYSFS_deinit();
 }
