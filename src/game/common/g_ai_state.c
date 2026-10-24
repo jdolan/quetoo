@@ -2150,7 +2150,8 @@ GameAiTaskHook G_Ai_Task = G_Ai_Task_Common;
  * bot whose task changes reviews it at once, so that a bot that takes a flag does not follow its
  * path to the flag for one more review. A bot that found no path to a task that is not urgent does
  * without it for `AI_TASK_RETRY_MILLIS`, unless the task changes. An urgent task is tried again at
- * once, because a bot is often off the graph only for a moment, after a landing or a knockback.
+ * once, because a bot is often off the graph only for a moment, after a landing or a knockback,
+ * unless the task itself has no node, as an enemy carrier in flight from a jump pad has none.
  */
 static bool G_Ai_IsTasked(GameClient *cl) {
 
@@ -2218,7 +2219,9 @@ static bool G_Ai_IsPathTo(const GameAiGoal *goal, const GameAiNodeId node) {
 
 /**
  * @return The node nearest one of `AI_ROAM_SAMPLES` random points within the task's radius of its
- * position, the first that the bot can reach, or `AI_NODE_INVALID` if it can reach none of them.
+ * position, the first that the bot can reach and that does not stand at the edge of the void, or
+ * `AI_NODE_INVALID` if there is none. A flag can stand on a platform over the void, from whose rim
+ * a bot that roams there falls.
  */
 static GameAiNodeId G_Ai_TaskRoamNode(const GameAiTask *task, const float *costs) {
 
@@ -2232,7 +2235,7 @@ static GameAiNodeId G_Ai_TaskRoamNode(const GameAiTask *task, const float *costs
 
     const GameAiNodeId node = G_Ai_Node_FindClosest(point, AI_NODE_DISTANCE, true, true);
 
-    if (node != AI_NODE_INVALID && costs[node] != FLT_MAX &&
+    if (node != AI_NODE_INVALID && costs[node] != FLT_MAX && !G_Ai_Node_IsEdge(node) &&
         Vec3_Distance(G_Ai_Node_GetPosition(node), position) <= task->radius) {
       return node;
     }
@@ -2287,7 +2290,7 @@ static void G_Ai_State_task(GameClient *cl) {
   if (!G_Ai_PathTo(cl, node, AI_PURSUE_PRIORITY, task->ent)) {
     G_Ai_Profile_Task(cl, node, "nopath");
 
-    if (!task->urgent) {
+    if (!task->urgent || node == AI_NODE_INVALID) {
       ai->taskRetryTime = gameLevel.time + AI_TASK_RETRY_MILLIS;
       G_Ai_Resume(cl);
     }

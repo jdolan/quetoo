@@ -218,7 +218,7 @@ static bool G_Ai_Task_Ctf(const GameClient *cl, GameAiTask *task) {
 
   if (defender) {
     if (thief) {
-      *task = (GameAiTask) { .name = "hunt", .ent = thief->entity };
+      *task = (GameAiTask) { .name = "hunt", .ent = thief->entity, .urgent = G_Ai_IsArmed(cl) };
     } else {
       *task = (GameAiTask) { .name = "defend", .ent = base, .radius = AI_CTF_DEFEND_RADIUS };
     }
@@ -228,7 +228,7 @@ static bool G_Ai_Task_Ctf(const GameClient *cl, GameAiTask *task) {
   const GameClient *carrier = G_Ai_Ctf_TeamCarrier(cl);
 
   if (carrier && thief) {
-    *task = (GameAiTask) { .name = "hunt", .ent = thief->entity };
+    *task = (GameAiTask) { .name = "hunt", .ent = thief->entity, .urgent = G_Ai_IsArmed(cl) };
     return true;
   }
 
@@ -247,7 +247,7 @@ static bool G_Ai_Task_Ctf(const GameClient *cl, GameAiTask *task) {
   }
 
   if (thief) {
-    *task = (GameAiTask) { .name = "hunt", .ent = thief->entity };
+    *task = (GameAiTask) { .name = "hunt", .ent = thief->entity, .urgent = G_Ai_IsArmed(cl) };
     return true;
   }
 
