@@ -877,19 +877,14 @@ static void G_CheckRules(void) {
   if (g_numTeams->modified) { // reset teams, scores, etc
     g_numTeams->modified = false;
 
-    int32_t numTeams;
+    const int32_t numTeams = gameLevel.numTeams;
 
-    if (!Str_Compare(g_numTeams->string, "default")) {
-      numTeams = -1; // G_InitNumTeams will pick this up
-    } else {
-      numTeams = Clampf(g_numTeams->integer, 2, MAX_TEAMS);
-    }
+    gameLevel.numTeams = G_LevelSetting(g_numTeams, gameLevel.requested.numTeams, NULL);
+    G_InitNumTeams();
 
     if (gameLevel.numTeams != numTeams) {
-      gameLevel.numTeams = numTeams;
 
       if (gameLevel.teams) {
-        G_InitNumTeams();
 
         gi.BroadcastPrint(PRINT_HIGH, "Number of teams set to %i\n",
                   gameLevel.numTeams);
@@ -1040,11 +1035,26 @@ static void G_Restart_f(void) {
  * @brief Set up the `CS_NUM_TEAMS` configstring to the number of valid teams we have
  * @details A team counts if the map gives it its own spawn points, or its own flag. An
  * `info_player_team_any` spawn belongs to every team's spawn points, so those can not tell how
- * many teams the map was made for.
+ * many teams the map was made for. A requested count is kept within 2 and `MAX_TEAMS`, and in
+ * CTF within the teams that have a flag, since a team without one can not score.
  */
 void G_InitNumTeams(void) {
 
-  if (gameLevel.numTeams == -1) { // set to default, so let's set number of teams
+  if (gameLevel.numTeams != -1) {
+    gameLevel.numTeams = Clampf(gameLevel.numTeams, 2, MAX_TEAMS);
+
+#if defined(G_CTF)
+    int32_t flags = 0;
+    while (flags < MAX_TEAMS && gameTeamList[flags].flagEntity) {
+      flags++;
+    }
+
+    if (flags >= 2 && gameLevel.numTeams > flags) {
+      G_Warn("%s has flags for %d teams, not %d\n", gameLevel.name, flags, gameLevel.numTeams);
+      gameLevel.numTeams = flags;
+    }
+#endif
+  } else {
     gameLevel.numTeams = 0;
 
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
@@ -1267,7 +1277,7 @@ void G_Init(void) {
   g_deathCamRise = gi.AddCvar("g_deathCamRise", "90", 0, "Initial upward speed of the death camera, in units per second.");
   g_deathCamTime = gi.AddCvar("g_deathCamTime", "800", 0, "Time in milliseconds for the death camera to settle.");
   g_deathCamVelocity = gi.AddCvar("g_deathCamVelocity", "0.25", 0, "Fraction of the player's velocity inherited by the death camera.");
-  g_numTeams = gi.AddCvar("g_numTeams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
+  g_numTeams = gi.AddCvar("g_numTeams", "default", CVAR_SERVER_INFO, "The number of teams: \"default\" defers to the map list, else to the teams that the map has spawn points or flags for.");
   g_itemTimers = gi.AddCvar("g_itemTimers", "1", CVAR_SERVER_INFO, "Publishes the time until the mega health and each powerup respawns, for the HUD.");
   g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");
   g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");

@@ -771,7 +771,7 @@ static void G_worldspawn_Music(void) {
 /*QUAKED worldspawn (0 0 0) ?
  The worldspawn entity defines global conditions and behavior for the entire level. All brushes not belonging to an explicit entity implicitly belong to worldspawn.
 
-The map list's entry for the level takes precedence over the gameplay, movement, gravity, min_clients, ai, frag_limit, capture_limit, time_limit and music given here. A server setting other than "default" takes precedence over both, except for ai and music, which have no server setting.
+The map list's entry for the level takes precedence over the gameplay, movement, gravity, min_clients, ai, frag_limit, capture_limit, time_limit and music given here. A server setting other than "default" takes precedence over both, except for ai and music, which have no server setting. The map list entry may also set num_teams, the number of teams; unset, the teams that the map has spawn points or flags for.
  -------- KEYS --------
  message : The map title.
  games : Space-delimited games this map is made for, one or more of dm, tdm, duel, ctf, instagib, race (default dm). Shown and filtered in the Create Server map browser.
@@ -855,10 +855,20 @@ static void G_worldspawn(GameEntity *ent) {
 
   gameLevel.teams = (gameLevel.gameplay & GAMEPLAY_TEAMS) != 0;
 
-  if (Str_Compare(g_numTeams->string, "default")) {
-    gameLevel.numTeams = Clampf(g_numTeams->integer, 2, MAX_TEAMS);
+  const char *source = NULL;
+  gameLevel.requested.numTeams = -1.f;
+
+  const Entity *numTeams = G_MapListEntryValue("num_teams");
+  if (numTeams && (numTeams->parsed & ENTITY_INTEGER)) {
+    source = "map list";
+    gameLevel.requested.numTeams = numTeams->integer;
+  }
+
+  gameLevel.numTeams = G_LevelSetting(g_numTeams, gameLevel.requested.numTeams, &source);
+  if (gameLevel.numTeams == -1) {
+    gi.Print("  num_teams: ^2the map's^7\n");
   } else {
-    gameLevel.numTeams = -1; // G_InitSpawnPoints derives it from the spawn points
+    gi.Print("  num_teams: ^2%d^7 (%s)\n", gameLevel.numTeams, source);
   }
 
   gameLevel.minClients = G_LevelOption(ent, sv_minClients, "min_clients", 0.f, &gameLevel.requested.minClients);
