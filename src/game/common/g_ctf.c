@@ -206,11 +206,16 @@ static void G_FormatGameName_Ctf(char *name, size_t size) {
 }
 
 /**
- * @brief Captures are always team deathmatch: instagib and arena do not apply,
+ * @brief Captures are team deathmatch or team instagib: arena does not apply,
  * and teams are not optional. Replaces rather than qualifies, and so does not
  * defer to previous.
  */
 static GamePlayId G_ClampGamePlay_Ctf(GamePlayId gameplay) {
+
+  if ((gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) {
+    return GAMEPLAY_TEAM_INSTAGIB;
+  }
+
   return GAMEPLAY_TEAM_DEATHMATCH;
 }
 

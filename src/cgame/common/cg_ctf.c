@@ -113,25 +113,24 @@ Class *_HeldFlagView(void) {
 #undef _Class
 
 /**
- * @brief Captures is always team deathmatch: instagib and arena do not apply,
+ * @brief Captures are team deathmatch or team instagib: arena does not apply,
  * and teams are not optional. A single owner, like the game side's
  * `G_ClampGamePlay_Ctf`, so it does not add to what `previous` offers.
- * @details Points directly at the `GAMEPLAY_TEAM_DEATHMATCH` row of the shared
- * `gameplays` table rather than copying its `name`/`label` into a
- * duplicate row - there is nothing here to drift out of sync with the game
- * side, since it is the same static data.
+ * @details The rows are copies of the shared `gameplays` table's, so their
+ * `name` and `label` are the table's own strings.
  */
 static const GamePlay *Cg_ListGamePlays_Ctf(size_t *count) {
+  static GamePlay ctfGamePlays[2];
 
-  *count = 1;
+  *count = 0;
 
   for (size_t i = 0; i < lengthof(gameplays); i++) {
-    if (gameplays[i].id == GAMEPLAY_TEAM_DEATHMATCH) {
-      return &gameplays[i];
+    if (gameplays[i].id == GAMEPLAY_TEAM_DEATHMATCH || gameplays[i].id == GAMEPLAY_TEAM_INSTAGIB) {
+      ctfGamePlays[(*count)++] = gameplays[i];
     }
   }
 
-  return gameplays; // unreachable: GAMEPLAY_TEAM_DEATHMATCH is always in the table
+  return ctfGamePlays;
 }
 
 /**
