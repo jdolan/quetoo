@@ -48,9 +48,15 @@ static const CGamePracticeEntry *entryAtIndex(int32_t index) {
 }
 
 /**
- * @brief The selected gameplay, by name.
+ * @brief The gameplay that the ladder sets, or else the selected gameplay, by name.
+ * @remarks The chooser does not offer team gameplays, so it can not select a team ladder's.
  */
 static const char *selectedGamePlay(const PracticeViewController *self) {
+
+  const GamePlay *gamePlay = Cg_Practice_LadderGamePlay();
+  if (gamePlay) {
+    return gamePlay->name;
+  }
 
   const Option *option = $(self->gameplay, selectedOption);
   return option ? option->value : "deathmatch";

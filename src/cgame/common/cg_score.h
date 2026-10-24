@@ -43,6 +43,12 @@ void Cg_ClearScores(void);
 const GameScore *Cg_Scores(size_t *count);
 
 /**
+ * @brief The scores of the teams in play, as last parsed, in team order, or none outside a team
+ * game.
+ */
+const GameScore *Cg_TeamScores(size_t *count);
+
+/**
  * @brief Incremented whenever the scores change, so a view knows to rebuild.
  */
 uint32_t Cg_ScoresGeneration(void);

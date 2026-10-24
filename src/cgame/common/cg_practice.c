@@ -244,8 +244,7 @@ static void Cg_Practice_WriteProgress(void) {
 }
 
 /**
- * @brief The gameplay named `name` that Practice offers, or `NULL` if the module has none, or if
- * it is a team gameplay.
+ * @brief The gameplay named `name`, or `NULL` if the module has none.
  */
 static const GamePlay *Cg_Practice_GamePlay(const char *name) {
 
@@ -254,7 +253,7 @@ static const GamePlay *Cg_Practice_GamePlay(const char *name) {
 
   for (size_t i = 0; i < count; i++) {
     if (!Str_Compare(gamePlays[i].name, name)) {
-      return (gamePlays[i].id & GAMEPLAY_TEAMS) ? NULL : &gamePlays[i];
+      return &gamePlays[i];
     }
   }
 
@@ -262,8 +261,26 @@ static const GamePlay *Cg_Practice_GamePlay(const char *name) {
 }
 
 /**
+ * @return True if the module offers a gameplay that the player may choose: one without teams.
+ */
+static bool Cg_Practice_OffersChoice(void) {
+
+  size_t count;
+  const GamePlay *gamePlays = Cg_ListGamePlays(&count);
+
+  for (size_t i = 0; i < count; i++) {
+    if (!(gamePlays[i].id & GAMEPLAY_TEAMS)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * @brief `EnumerateFiles` function that adds the ladder at `path` to the ladders. A ladder that
- * sets a gameplay the module does not offer belongs to another module, and is skipped.
+ * sets a gameplay the module does not offer belongs to another module, and is skipped. So is a
+ * ladder that leaves the gameplay to the player, if the module offers no gameplay to choose.
  */
 static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
 
@@ -307,6 +324,11 @@ static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
     }
 
     Cg_Practice_FreeEntities(entities);
+  }
+
+  if (ladder.gamePlay == NULL && !Cg_Practice_OffersChoice()) {
+    Cg_Debug("Skipping %s: no gameplay to choose\n", path);
+    return;
   }
 
   module.ladders = realloc(module.ladders, (module.numLadders + 1) * sizeof(CGamePracticeLadder));
@@ -546,12 +568,52 @@ const CGamePracticeEntry *Cg_Practice_Next(void) {
 }
 
 /**
- * @brief True if the local player holds the top score alone.
+ * @brief The points that decide a team game: captures where the module has flags, else frags.
+ */
+static int32_t Cg_Practice_TeamPoints(const GameScore *score) {
+#if defined(G_CTF)
+  return score->captures;
+#else
+  return score->score;
+#endif
+}
+
+/**
+ * @brief True if the team with index `team` holds the top team score alone.
+ */
+static bool Cg_Practice_TeamWon(int32_t team) {
+
+  size_t count;
+  const GameScore *scores = Cg_TeamScores(&count);
+
+  int32_t self = INT32_MIN, best = INT32_MIN;
+
+  for (size_t i = 0; i < count; i++) {
+    const GameScore *score = &scores[i];
+
+    if ((score->flags & ~SCORE_AGGREGATE) == team) {
+      self = Cg_Practice_TeamPoints(score);
+    } else {
+      best = Maxi(best, Cg_Practice_TeamPoints(score));
+    }
+  }
+
+  return self > best;
+}
+
+/**
+ * @brief True if the local player, or the local player's team, holds the top score alone.
  */
 static bool Cg_Practice_Won(void) {
 
   size_t count;
   const GameScore *scores = Cg_Scores(&count);
+
+  for (size_t i = 0; i < count; i++) {
+    if (scores[i].client == cgi.client->frame.ps.client && scores[i].team) {
+      return Cg_Practice_TeamWon(scores[i].team - 1);
+    }
+  }
 
   const GameScore *self = NULL;
   int32_t best = INT32_MIN;
@@ -761,6 +823,11 @@ void Cg_Practice_Init(void) {
   module.result = -1;
 
   Cg_Practice_LoadLadders();
+
+  if (module.numLadders && !Cg_Practice_FindLadder(cg_practiceLadder->string)) {
+    const CGamePracticeLadder *ladder = Cg_Practice_FindLadder(cg_practiceLadder->defaultString);
+    cgi.SetCvarString(cg_practiceLadder->name, (ladder ?: &module.ladders[0])->name);
+  }
 
   cgi.AddCmd("practice", Cg_Practice_f, CMD_CGAME, "Practice against AI players: practice <ladder> [number] [gameplay]");
 
