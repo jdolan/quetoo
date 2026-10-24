@@ -995,12 +995,20 @@ GameEntity *G_DropItem(GameClient *cl, const GameItem *item) {
 }
 
 /**
- * @brief The tail of the `G_ResolveInventoryItem` chain, resolving the name
- * against the item list.
+ * @brief The tail of the `G_ResolveInventoryItem` chain, resolving "weapon" to the client's
+ * weapon, "ammo" to that weapon's ammo, and any other name against the item list.
  */
 static const GameItem *G_ResolveInventoryItem_Common(GameClient *cl, const char *name) {
 
-  (void) cl;
+  if (cl->weapon) {
+    if (!Str_CaseCompare(name, "weapon")) {
+      return cl->weapon;
+    }
+
+    if (!Str_CaseCompare(name, "ammo") && cl->weapon->def.ammo) {
+      return &gameItems[cl->weapon->def.ammo];
+    }
+  }
 
   return G_FindItem(name);
 }
@@ -1056,9 +1064,10 @@ void G_DropInventoryItem(GameClient *cl, const GameItem *it) {
 
   it->Drop(cl, it);
 
-  // adjust weapon if we need to
-  if (it->def.type == ITEM_TYPE_WEAPON) {
-    if (cl->weapon == it && !cl->nextWeapon && !cl->inventory[index]) {
+  // adjust weapon if we need to, cancelling a change to the weapon that was dropped
+  if (it->def.type == ITEM_TYPE_WEAPON && !cl->inventory[index]) {
+    if (cl->nextWeapon ? cl->nextWeapon == it : cl->weapon == it) {
+      cl->weaponChangeTime = 0;
       G_UseBestWeapon(cl);
     }
   }
