@@ -20,6 +20,7 @@
  */
 
 #include "cg_local.h"
+#include "ui/play/MapListCollectionItemView.h"
 
 Cvar *cg_practice;
 Cvar *cg_practiceLadder;
@@ -300,8 +301,9 @@ static bool Cg_Practice_OffersChoice(bool teams) {
 }
 
 /**
- * @brief `EnumerateFiles` function that adds the ladder at `path` to the ladders. A ladder that
- * sets a gameplay the module does not offer belongs to another module, and is skipped. So is a
+ * @brief `EnumerateFiles` function that adds the ladder at `path` to the ladders. A ladder made
+ * for games that the module does not play, by its `games` as a map's worldspawn names them, or that
+ * sets a gameplay the module does not offer, belongs to another module, and is skipped. So is a
  * ladder that leaves the gameplay to the player, if the module offers no gameplay to choose, and
  * a ladder that sets teams and a gameplay without them.
  */
@@ -322,6 +324,7 @@ static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
   }
 
   CGamePracticeLadder ladder = { .numTeams = -1 };
+  MapListItemInfo info = { .games = "dm" };
 
   Str_Copy(ladder.name, name + strlen(prefix), sizeof(ladder.name));
   Str_Copy(ladder.title, ladder.name, sizeof(ladder.title));
@@ -333,6 +336,11 @@ static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
       if (*title) {
         Str_Copy(ladder.title, title, sizeof(ladder.title));
         ladder.numTeams = Cg_Practice_Integer(node->element, "num_teams");
+
+        const char *games = cgi.EntityValue(node->element, "games")->string;
+        if (*games) {
+          Str_Copy(info.games, games, sizeof(info.games));
+        }
 
         const char *gameplay = cgi.EntityValue(node->element, "gameplay")->string;
         if (*gameplay) {
@@ -354,6 +362,11 @@ static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
     }
 
     Cg_Practice_FreeEntities(entities);
+  }
+
+  if (!Cg_FilterCreateServerMapList(&info)) {
+    Cg_Debug("Skipping %s: made for %s\n", path, info.games);
+    return;
   }
 
   if (ladder.gamePlay == NULL && !Cg_Practice_OffersChoice(ladder.numTeams > -1)) {
