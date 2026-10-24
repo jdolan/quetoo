@@ -263,7 +263,7 @@ static const GamePlay *Cg_Practice_GamePlay(const char *name) {
 
 /**
  * @brief `EnumerateFiles` function that adds the ladder at `path` to the ladders. A ladder that
- * sets a gameplay Practice does not offer is skipped.
+ * sets a gameplay the module does not offer belongs to another module, and is skipped.
  */
 static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
 
@@ -297,7 +297,7 @@ static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
         if (*gameplay) {
           ladder.gamePlay = Cg_Practice_GamePlay(gameplay);
           if (ladder.gamePlay == NULL) {
-            Cg_Warn("Skipping %s: Practice does not offer gameplay %s\n", path, gameplay);
+            Cg_Debug("Skipping %s: no gameplay %s\n", path, gameplay);
             Cg_Practice_FreeEntities(entities);
             return;
           }
