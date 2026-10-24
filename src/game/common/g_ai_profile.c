@@ -1132,3 +1132,18 @@ void G_Ai_Profile_Killed(const GameClient *cl, const GameEntity *attacker, const
   c->numPositions = 0;
   c->jumping = c->pushed = false;
 }
+
+/**
+ * @see g_ai_profile.h
+ */
+void G_Ai_Profile_Flag(const GameClient *cl, const char *event, const int32_t team) {
+
+  if (!G_Ai_Profile_Records(cl && !cl->ai ? AI_PROFILE_PLAYERS : AI_PROFILE_BOTS)) {
+    return;
+  }
+
+  const int32_t carrierTeam = cl && cl->persistent.team ? cl->persistent.team->id : -1;
+
+  G_Ai_Profile_Print(cl ? cl->ps.client : -1, "FLAG", "event=%s flag=%d team=%d bot=%d", event,
+                     team, carrierTeam, cl && cl->ai != NULL);
+}

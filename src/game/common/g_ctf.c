@@ -130,6 +130,8 @@ static void G_ResetDroppedFlag(GameEntity *ent) {
 
   gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned :flag%d_return:\n", t->name, t->id + 1);
 
+  G_Ai_Profile_Flag(NULL, "reset", t->id);
+
   if (ent != f) {
     G_FreeEntity(ent); // the base flag was restored in place, so keep it
   }
@@ -261,6 +263,8 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
 
       gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag :flag%d_return:\n", cl->persistent.netName, team->name, team->id + 1);
 
+      G_Ai_Profile_Flag(cl, "return", team->id);
+
       return true;
     }
 
@@ -292,6 +296,8 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
         }, MULTICAST_ALL_R);
 
         gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag :flag%d_capture:\n", cl->persistent.netName, otherTeam->name, otherTeam->id + 1);
+
+        G_Ai_Profile_Flag(cl, "capture", otherTeam->id);
 
         team->captures++;
         cl->persistent.captures++;
@@ -343,6 +349,8 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
 
   gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag :flag%d_steal:\n", cl->persistent.netName, team->name, team->id + 1);
 
+  G_Ai_Profile_Flag(cl, ent->spawnFlags & SF_ITEM_DROPPED ? "pickup" : "steal", team->id);
+
   cl->entity->s.effects |= G_EffectForTeam(team);
   return true;
 }
@@ -359,6 +367,8 @@ static GameEntity *G_ReleaseFlag(GameClient *cl, const GameItem *flag) {
   cl->entity->s.effects &= ~EF_CTF_MASK;
 
   gi.BroadcastPrint(PRINT_HIGH, "%s dropped the %s flag :flag%d_drop:\n", cl->persistent.netName, team->name, team->id + 1);
+
+  G_Ai_Profile_Flag(cl, "drop", team->id);
 
   return G_DropItem(cl, flag);
 }

@@ -124,4 +124,13 @@ void G_Ai_Profile_ClientMove(const GameClient *cl, const PMoveCmd *cmd);
  * game calls it as the client dies.
  */
 void G_Ai_Profile_Killed(const GameClient *cl, const GameEntity *attacker, const uint32_t mod);
+
+/**
+ * @brief Records what happened to a team's flag, with `AI_PROFILE_BOTS` or `AI_PROFILE_PLAYERS`:
+ * `steal` from its base, `pickup` where it lies dropped, `capture`, `return` by a player of its team,
+ * `drop`, or `reset` to its base when it lay dropped too long or fell into a `trigger_hurt`.
+ * @param cl The client that did it, or NULL for a `reset`.
+ * @param team The team whose flag it is.
+ */
+void G_Ai_Profile_Flag(const GameClient *cl, const char *event, const int32_t team);
 #endif

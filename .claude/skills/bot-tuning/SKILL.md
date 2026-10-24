@@ -16,6 +16,7 @@ The parts are:
 | `g_aiProfile` (`src/game/common/g_ai_profile.c`) | A developer cvar. The game writes what each bot does to `ai_profile_<map>.log` in the write directory. 1 records the bots, 2 the navigation graph, 4 the human players. The flags add: 5 records the bots and the players. The default, 0, records nothing. |
 | `src/tools/ai_profile.py run` | Runs a headless dedicated server on the tree's build, at `timeDemo 1`, adds bots by rcon, and stops the server cleanly. |
 | `src/tools/ai_profile.py summary`, `deaths`, `pushes`, `hazards` | Count and explain deaths, unplanned pushes, entries into lava or slime, pickups and stuck time. |
+| `src/tools/ai_profile.py flags` | Count CTF flag steals, pickups, captures, returns, drops and resets per game minute, over one or more logs, in total and by team. |
 | `src/tools/ai_profile.py node`, `near`, `path`, `routes` | Query the navigation graph that the game used. |
 | `src/tools/ai_profile.py suite`, `compare`, `graphdiff` | Run a match on each of the 26 maps, compare two builds by deaths, kills and pickups per game minute, and tell whether two builds make the same graphs. |
 | `cg_drawNav`, `navInfo` (`src/cgame/common/cg_nav.c`) | Draw the graph in the client, and print the node nearest the view. |
@@ -41,6 +42,8 @@ python3 src/tools/ai_profile.py run longyard --seconds 60 --bot Bastard:0.8 --gr
   grow without limit, and the results mean nothing.
 - `--clients N` sets `sv_minClients`, and the game fills the server with random roster bots.
 - `--graph` also records the graph, which the graph commands need. It adds about 250 KB.
+- `--module ctf` stages the ctf game and passes `+game ctf`. A CTF map sets its own capture limit,
+  which ends the match early: pass `+set g_captureLimit 0`.
 - Arguments after the options go to the server, for example `+set g_gravity 400`.
 - Each match that runs at the same time MUST use a different `--port`.
 
@@ -116,6 +119,7 @@ milliseconds. The client is -1 for an event of the level. A value MUST NOT conta
 | `GATE` | Once, for each gate: the `targetname` of doors that a button moves, with links through them, and the counts of its buttons, of the nodes from which a bot presses them, and of its doors |
 | `GATEUSE` | When a bot chooses a gate on the way to an item (`choose`), goes through it once the doors move (`open`), or gives up (`fail`). `summary` counts them for each gate |
 | `LADDER` | When a bot grabs a ladder (`on=1`) or leaves it (`on=0`), with its position, velocity, link and the ladder controller's `phase` (`GameAiLadderPhase`). A climb completed if the bot left the ladder near the height of the climb's landing. It also has the bot's view `yaw`, its pmove time `flags` (`PMF_TIME_MASK`, in hex), and the `trace` that `Pm_CheckLadder` makes, 4 units ahead: fraction, contents in hex, and the normal's x and y in hundredths. A let-go with `flags=40` (`PMF_TIME_PUSHED`) while the trace touches the ladder is a hit's knockback: `G_Damage` sets that flag on a climber for any hit, and `Pm_CheckLadder` does not grab while a time flag is set |
+| `FLAG` | In CTF, with flag 1 or 4, what happens to a team's flag: `steal` from its base, `pickup` where it lies dropped, `capture`, `return` by its own team, `drop`, and `reset` (client -1) when it lay dropped too long or fell into a `trigger_hurt`. `flag` is the flag's team, `team` the team of the client that did it |
 | `STUCK` | Each second that a bot on a path, out of combat, has stayed within 96 units over its last 6 `POS` events, which span 5 seconds, with `HIST reason=stuck` at the first |
 
 Link types are the `NavTravelType` values, which `ai_profile.py` and `navInfo` name as
