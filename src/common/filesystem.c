@@ -729,6 +729,48 @@ bool Fs_Unmount(const char *path) {
 }
 
 /**
+ * @return A copy of the search path, in priority order, for `Fs_RestoreSearchPath`. Free it with
+ * `Fs_FreeSearchPath`.
+ */
+char **Fs_GetSearchPath(void) {
+  return PHYSFS_getSearchPath();
+}
+
+/**
+ * @brief Frees a search path returned by `Fs_GetSearchPath`.
+ */
+void Fs_FreeSearchPath(char **searchPath) {
+  PHYSFS_freeList(searchPath);
+}
+
+/**
+ * @brief Mounts again, in its original place, each archive of `searchPath` that has since been
+ * unmounted.
+ * @details PhysFS can only append an archive, so every path after the first unmounted one is
+ * unmounted too, and all of them are appended again in their original order. Directories are
+ * always prepended, so those paths are all archives.
+ */
+void Fs_RestoreSearchPath(char **searchPath) {
+
+  char **first = searchPath;
+  while (*first && PHYSFS_getMountPoint(*first)) {
+    first++;
+  }
+
+  for (char **path = first; *path; path++) {
+    if (PHYSFS_getMountPoint(*path)) {
+      Fs_Unmount(*path);
+    }
+  }
+
+  for (char **path = first; *path; path++) {
+    if (!PHYSFS_getMountPoint(*path) && PHYSFS_mount(*path, NULL, 1) == 0) {
+      Com_Warn("%s: %s\n", *path, Fs_LastError());
+    }
+  }
+}
+
+/**
  * @brief Variadic arguments version of `Fs_AddToSearchPath`.
  */
 void Fs_AddToSearchPathv(const char *dir, ...) {

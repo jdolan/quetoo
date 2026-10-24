@@ -203,6 +203,39 @@ START_TEST(check_Fs_Unmount) {
 
 } END_TEST
 
+START_TEST(check_Fs_RestoreSearchPath) {
+  const char *name = "check_filesystem/shared.txt";
+
+  char first[MAX_OS_PATH], second[MAX_OS_PATH];
+  Str_Format(first, sizeof(first), "%s/check_filesystem_a.pk3", Fs_WriteDir());
+  Str_Format(second, sizeof(second), "%s/check_filesystem_b.pk3", Fs_WriteDir());
+
+  Test_WriteZip(first, name, "first");
+  Test_WriteZip(second, name, "second");
+  Fs_AddToSearchPath(first);
+  Fs_AddToSearchPath(second);
+
+  Test_AssertContents(name, "first");
+
+  char **searchPath = Fs_GetSearchPath();
+
+  ck_assert(Fs_Unmount(first));
+  Test_WriteZip(first, name, "first, replaced");
+
+  Fs_RestoreSearchPath(searchPath);
+  Fs_FreeSearchPath(searchPath);
+
+  ck_assert(Fs_IsMounted(first));
+  ck_assert(Fs_IsMounted(second));
+  Test_AssertContents(name, "first, replaced");
+
+  ck_assert(Fs_Unmount(first));
+  ck_assert(Fs_Unmount(second));
+  ck_assert(SDL_RemovePath(first));
+  ck_assert(SDL_RemovePath(second));
+
+} END_TEST
+
 /**
  * @brief Test entry point.
  */
@@ -217,6 +250,7 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(tcase, check_Fs_OpenWrite);
   tcase_add_test(tcase, check_Fs_LoadFile);
   tcase_add_test(tcase, check_Fs_Unmount);
+  tcase_add_test(tcase, check_Fs_RestoreSearchPath);
 
   Suite *suite = suite_create("check_filesystem");
   suite_add_tcase(suite, tcase);

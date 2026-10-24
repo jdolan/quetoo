@@ -573,6 +573,9 @@ static void Installer_PruneStaleEntry(const HashTable *table, ident key, ident v
   if (entry->status == ENTRY_STALE) {
     char fullPath[MAX_OS_PATH];
     Str_Format(fullPath, sizeof(fullPath), "%s/%s/%s", Fs_DataDir(), Installer_Game(), entry->path);
+    if (Fs_IsMounted(fullPath) && !Fs_Unmount(fullPath)) {
+      return;
+    }
     if (SDL_RemovePath(fullPath)) {
       Com_Debug(DEBUG_COMMON, "Pruned stale file: %s\n", entry->path);
     } else {
@@ -677,8 +680,7 @@ static bool Installer_DownloadFile(const ManifestEntry *entry) {
     }
   }
 
-  const bool mounted = Fs_IsMounted(path);
-  if (mounted && !Fs_Unmount(path)) {
+  if (Fs_IsMounted(path) && !Fs_Unmount(path)) {
     release(data);
     return false;
   }
@@ -686,19 +688,12 @@ static bool Installer_DownloadFile(const ManifestEntry *entry) {
   FILE *f = fopen(path, "wb");
   if (!f) {
     Com_Warn("Failed to open for writing: %s\n", path);
-    if (mounted) {
-      Fs_AddToSearchPath(path);
-    }
     release(data);
     return false;
   }
 
   const size_t written = fwrite(data->bytes, 1, data->length, f);
   fclose(f);
-
-  if (mounted) {
-    Fs_AddToSearchPath(path);
-  }
 
   if (written != data->length) {
     Com_Warn("Failed to write %s: %zu of %zu bytes\n", path, written, data->length);
@@ -1024,6 +1019,8 @@ static int Installer_Thread(void *unused) {
         break;
 
       case INSTALLER_DOWNLOADING_DATA: {
+        char **searchPath = Fs_GetSearchPath();
+
         SDL_Thread *threads[8];
         for (size_t i = 0; i < lengthof(threads); i++) {
           threads[i] = SDL_CreateThread(Installer_DownloadThread, "Installer_DownloadThread", NULL);
@@ -1031,6 +1028,9 @@ static int Installer_Thread(void *unused) {
         for (size_t i = 0; i < lengthof(threads); i++) {
           SDL_WaitThread(threads[i], NULL);
         }
+
+        Fs_RestoreSearchPath(searchPath);
+        Fs_FreeSearchPath(searchPath);
         SDL_LockMutex(module.mutex);
         if (in->state == INSTALLER_DOWNLOADING_DATA) {
           in->state = INSTALLER_COMMITTING_DATA;
