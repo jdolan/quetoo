@@ -1098,7 +1098,7 @@ static float G_Ai_Node_RiseTime(const float speed, const float gravity, const fl
  * @brief Flies a player from `origin` on a `trigger_push` with the level's movement and no input,
  * as a bot rides one, with `Nav_FlyPush`, which the client game draws the same flight with. The
  * flight passes on to each other push of the level that it touches.
- * @param landing The player origin where the flight lands.
+ * @param landing The player origin where the flight lands, or where it ends if it does not land.
  * @param time The duration of the flight, in seconds.
  * @return True if the flight lands within `NAV_FLIGHT_SECONDS`.
  */
@@ -1127,6 +1127,7 @@ static bool G_Ai_Node_FlyPush(const GameEntity *push, const Vec3 origin, Vec3 *l
 
   if (!Nav_FlyPush(&nav, (const NavPush *) module.pushes->elements, (int32_t) module.pushes->count,
                    &pm, NULL, 0, NULL, time)) {
+    *landing = pm.s.origin;
     return false;
   }
 
