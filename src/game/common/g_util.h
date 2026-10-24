@@ -55,6 +55,7 @@ GameEntity *G_AllocEntity(const char *classname);
 GameEntity *G_AllocEntityAt(int32_t number, const char *classname);
 void G_InvalidateEntityReferences(const GameEntity *ent);
 void G_FreeEntity(GameEntity *ent);
+void G_ClientCenterPrint(const GameClient *cl, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 void G_TeamCenterPrint(const GameTeam *team, const char *fmt, ...) __attribute__((format(printf, 2, 3)));
 
 #define G_ForEachClient(var, block) \

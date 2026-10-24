@@ -786,6 +786,22 @@ bool G_IsAnimation(GameClient *cl, EntityAnimation anim) {
 }
 
 /**
+ * @brief Send a centerprint to the supplied client.
+ */
+void G_ClientCenterPrint(const GameClient *cl, const char *fmt, ...) {
+  char string[MAX_STRING_CHARS];
+  va_list args;
+
+  va_start(args, fmt);
+  vsnprintf(string, sizeof(string), fmt, args);
+  va_end(args);
+
+  gi.WriteByte(SV_CMD_CENTER_PRINT);
+  gi.WriteString(string);
+  gi.Unicast(cl, true);
+}
+
+/**
  * @brief Send a centerprint to everyone on the supplied team
  */
 void G_TeamCenterPrint(const GameTeam *team, const char *fmt, ...) {

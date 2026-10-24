@@ -80,7 +80,7 @@ static const char *teamTotal(const CGameTeamInfo *team, const GameScore *score) 
 #if defined(G_CTF)
   return va("%s^7 %d captures", team->name, score->captures);
 #else
-  return va("%s^7 %d frags", team->name, score->score);
+  return va("%s^7 %d frags", team->name, score->frags);
 #endif
 }
 
@@ -310,9 +310,13 @@ static size_t fields(const ScoreboardView *self, const ScoreField **fields) {
 
   // lower case, as the prose reads it; the table's header uppercases it in the stylesheet
   static const ScoreField stock[] = {
+#if defined(G_CTF)
+    { "score", 80 },
+#endif
     { "frags", 80 },
 #if defined(G_CTF)
     { "captures", 96 },
+    { "assists", 88 },
 #endif
     { "deaths", 80 },
   };
@@ -328,13 +332,19 @@ static size_t fields(const ScoreboardView *self, const ScoreField **fields) {
 static const char *valueForField(const ScoreboardView *self, const GameScore *score, size_t field) {
 
   switch (field) {
+#if defined(G_CTF)
     case 0:
       return va("%d", score->score);
-#if defined(G_CTF)
     case 1:
-      return va("%d", score->captures);
+      return va("%d", score->frags);
     case 2:
+      return va("%d", score->captures);
+    case 3:
+      return va("%d", score->assists);
+    case 4:
 #else
+    case 0:
+      return va("%d", score->frags);
     case 1:
 #endif
       return va("%d", score->deaths);

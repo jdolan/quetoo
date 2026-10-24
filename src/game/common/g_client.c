@@ -420,23 +420,26 @@ static void G_ClientObituary(GameClient *cl, GameEntity *attacker, uint32_t mod)
 
   if (frag) {
     if (friendlyFire) {
+      attacker->client->persistent.frags--;
       attacker->client->persistent.score--;
     } else {
+      attacker->client->persistent.frags++;
       attacker->client->persistent.score++;
     }
 
     if (gameLevel.teams && cl->persistent.team && attacker->client->persistent.team) {
       if (friendlyFire) {
-        attacker->client->persistent.team->score--;
+        attacker->client->persistent.team->frags--;
       } else {
-        attacker->client->persistent.team->score++;
+        attacker->client->persistent.team->frags++;
       }
     }
   } else {
+    cl->persistent.frags--;
     cl->persistent.score--;
 
     if (gameLevel.teams && cl->persistent.team) {
-      cl->persistent.team->score--;
+      cl->persistent.team->frags--;
     }
   }
 }
@@ -944,6 +947,8 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
   // velocity we actually died with
   const Vec3 velocity = ent->velocity;
 
+  G_ClientWillDie(cl, attacker, mod);
+
   G_ClientObituary(cl, attacker, mod);
 
   G_Ai_Profile_Killed(cl, attacker, mod);
@@ -1420,6 +1425,14 @@ static void G_ClientDidBegin_Common(GameClient *cl) {
 GameClientDidBeginHook G_ClientDidBegin = G_ClientDidBegin_Common;
 
 /**
+ * @brief The tail of the `G_ClientWillDie` chain: a notification, so it does nothing.
+ */
+static void G_ClientWillDie_Common(GameClient *cl, GameEntity *attacker, uint32_t mod) {
+}
+
+GameClientWillDieHook G_ClientWillDie = G_ClientWillDie_Common;
+
+/**
  * @brief The tail of the `G_ClientWillChangeUserInfo` chain: a notification, so it does nothing.
  */
 static void G_ClientWillChangeUserInfo_Common(GameClient *cl, const char *userInfo) {
@@ -1631,9 +1644,9 @@ void G_ClientRespawn(GameClient *cl, bool voluntary) {
 
   // clear scores on voluntary changes
   if (cl->persistent.spectator && voluntary) {
-    cl->persistent.score = cl->persistent.deaths = 0;
+    cl->persistent.frags = cl->persistent.score = cl->persistent.deaths = 0;
 #if defined(G_CTF)
-    cl->persistent.captures = 0;
+    cl->persistent.captures = cl->persistent.assists = 0;
 #endif
 
     G_ClientResetStats(cl);

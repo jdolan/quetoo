@@ -45,7 +45,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1065
+#define PROTOCOL_MINOR 1066
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -120,6 +120,7 @@ typedef enum {
  */
 typedef enum {
   STAT_ARMOR,
+  STAT_ASSISTS,
   STAT_CAPTURES,
   STAT_CHASE,
   STAT_DAMAGE_ARMOR,
@@ -133,6 +134,7 @@ typedef enum {
   STAT_PICKUP,
   STAT_PING,
   STAT_QUAD_TIME,
+  STAT_SCORE,
   STAT_SCORES,
   STAT_SPECTATOR,
   STAT_TEAM,
@@ -271,9 +273,20 @@ typedef struct {
   int16_t color;
 
   /**
-   * @brief Frag or point score.
+   * @brief Number of frags.
+   */
+  int16_t frags;
+
+  /**
+   * @brief Points, by which the scoreboard sorts: frags, and in capture the flag, the
+   * points of the flag events.
    */
   int16_t score;
+
+  /**
+   * @brief Number of assists.
+   */
+  int16_t assists;
 
   /**
    * @brief Number of flag captures.
@@ -1196,9 +1209,9 @@ typedef struct {
   int16_t effect;
 
   /**
-   * @brief Team score.
+   * @brief Team frag count.
    */
-  int16_t score;
+  int16_t frags;
 
   /**
    * @brief Team capture count.
@@ -1273,6 +1286,39 @@ typedef struct {
 } GameWeaponStats;
 
 /**
+ * @brief What a client did in capture the flag that can earn points later: a defense or an
+ * assist. Times are `gameLevel.time`, and 0 is never.
+ */
+typedef struct {
+  /**
+   * @brief When the client took the flag that it carries.
+   */
+  uint32_t carryTime;
+
+  /**
+   * @brief The enemy carrier that the client last hurt, and when.
+   */
+  const GameClient *hurtCarrier;
+  uint32_t hurtCarrierTime;
+
+  /**
+   * @brief When the client last returned its team's flag.
+   */
+  uint32_t returnTime;
+
+  /**
+   * @brief When the client last killed an enemy carrier.
+   */
+  uint32_t carrierKillTime;
+
+  /**
+   * @brief The teammate carrier that the client last defended, and when.
+   */
+  const GameClient *defendedCarrier;
+  uint32_t defendTime;
+} GameClientCtf;
+
+/**
  * @brief This structure contains client data that persists over multiple spawns.
  */
 typedef struct {
@@ -1338,9 +1384,19 @@ typedef struct {
   Color shirt, pants, helmet;
 
   /**
-   * @brief Current score.
+   * @brief Number of frags.
+   */
+  int16_t frags;
+
+  /**
+   * @brief Points: frags, and in capture the flag, the points of the flag events.
    */
   int16_t score;
+
+  /**
+   * @brief Number of assists.
+   */
+  int16_t assists;
 
   /**
    * @brief Number of flag captures.
@@ -1386,6 +1442,11 @@ typedef struct {
    * @brief Damage dealt to living enemies, and damage taken from any source.
    */
   uint32_t damageDealt, damageTaken;
+
+  /**
+   * @brief The capture the flag events that can earn points later.
+   */
+  GameClientCtf ctf;
 } GameClientPersistent;
 
 /**

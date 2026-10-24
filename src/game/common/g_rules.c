@@ -45,14 +45,14 @@ static bool G_CheckWinner_Common(void) {
 
     if (gameLevel.teams) { // check team scores
       for (int32_t i = 0; i < gameLevel.numTeams; i++) {
-        if (gameTeamList[i].score >= gameLevel.fragLimit) {
+        if (gameTeamList[i].frags >= gameLevel.fragLimit) {
           gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
           return true;
         }
       }
     } else { // or individual scores
       G_ForEachClient(cl, {
-        if (cl->persistent.score >= gameLevel.fragLimit) {
+        if (cl->persistent.frags >= gameLevel.fragLimit) {
           gi.BroadcastPrint(PRINT_HIGH, "Frag limit hit\n");
           return true;
         }

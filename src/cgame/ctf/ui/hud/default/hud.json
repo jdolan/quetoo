@@ -155,6 +155,12 @@
           "subviews": [
             {
               "class": "CounterView",
+              "identifier": "score",
+              "caption": "Score",
+              "stat": "score"
+            },
+            {
+              "class": "CounterView",
               "identifier": "frags",
               "caption": "Frags",
               "stat": "frags"
@@ -170,6 +176,12 @@
               "identifier": "captures",
               "caption": "Captures",
               "stat": "captures"
+            },
+            {
+              "class": "CounterView",
+              "identifier": "assists",
+              "caption": "Assists",
+              "stat": "assists"
             }
           ]
         },

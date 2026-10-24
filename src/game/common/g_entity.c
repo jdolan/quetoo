@@ -652,9 +652,11 @@ void G_SpawnEntities(const char *name, const Entity *mapListEntry, Entity *const
     // referring to them must not survive into the next level
     memset(&cl->hook, 0, sizeof(cl->hook));
 #endif
+    cl->persistent.frags = 0;
     cl->persistent.score = 0;
 #if defined(G_CTF)
     cl->persistent.captures = 0;
+    cl->persistent.assists = 0;
 #endif
     cl->persistent.deaths = 0;
     cl->persistent.team = NULL;

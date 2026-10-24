@@ -105,6 +105,17 @@
           "subviews": [
             {
               "class": "CounterView",
+              "identifier": "score",
+              "caption": "Score",
+              "stat": "score"
+            },
+            {
+              "classNames": [
+                "divider"
+              ]
+            },
+            {
+              "class": "CounterView",
               "identifier": "frags",
               "caption": "Frags",
               "stat": "frags"
@@ -130,6 +141,17 @@
               "identifier": "captures",
               "caption": "Captures",
               "stat": "captures"
+            },
+            {
+              "classNames": [
+                "divider"
+              ]
+            },
+            {
+              "class": "CounterView",
+              "identifier": "assists",
+              "caption": "Assists",
+              "stat": "assists"
             }
           ]
         },

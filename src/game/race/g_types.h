@@ -45,7 +45,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1065
+#define PROTOCOL_MINOR 1066
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -466,7 +466,13 @@ typedef struct {
   int16_t color;
 
   /**
-   * @brief Frag or point score.
+   * @brief Number of frags.
+   */
+  int16_t frags;
+
+  /**
+   * @brief Points, by which the scoreboard sorts: frags, and in capture the flag, the
+   * points of the flag events.
    */
   int16_t score;
 
@@ -1390,9 +1396,9 @@ typedef struct {
   int16_t color;
 
     /**
-   * @brief Team score.
+   * @brief Team frag count.
    */
-  int16_t score;
+  int16_t frags;
 
     /**
    * @brief Spawn points for this team.
@@ -1523,7 +1529,12 @@ typedef struct {
   Color shirt, pants, helmet;
 
   /**
-   * @brief Current score.
+   * @brief Number of frags.
+   */
+  int16_t frags;
+
+  /**
+   * @brief Points: frags, and in capture the flag, the points of the flag events.
    */
   int16_t score;
 

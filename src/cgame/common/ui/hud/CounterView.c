@@ -30,6 +30,8 @@ static const EnumName statNames[] = MakeEnumNames(
   MakeEnumAlias(STAT_DEATHS, deaths)
 #if defined(G_CTF)
   , MakeEnumAlias(STAT_CAPTURES, captures)
+  , MakeEnumAlias(STAT_ASSISTS, assists)
+  , MakeEnumAlias(STAT_SCORE, score)
 #endif
 );
 
