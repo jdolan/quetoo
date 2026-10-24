@@ -52,7 +52,7 @@
 /**
  * @brief The most AI players of an entry.
  */
-#define PRACTICE_MAX_AI 6
+#define PRACTICE_MAX_AI 15
 
 /**
  * @brief A ladder that a `practice-<name>.lst` file holds.
