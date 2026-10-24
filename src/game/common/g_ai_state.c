@@ -2259,7 +2259,7 @@ static void G_Ai_State_task(GameClient *cl) {
   }
 
   const bool inRadius = task->radius > 0.f &&
-                    Vec3_Distance(cl->entity->s.origin, G_Ai_TaskPosition(task)) <= task->radius;
+                        Vec3_Distance(cl->entity->s.origin, G_Ai_TaskPosition(task)) <= task->radius;
 
   if (inRadius) {
     const float *costs = G_Ai_TravelCosts(cl);
