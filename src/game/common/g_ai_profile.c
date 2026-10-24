@@ -1143,7 +1143,10 @@ void G_Ai_Profile_Killed(const GameClient *cl, const GameEntity *attacker, const
  */
 void G_Ai_Profile_Flag(const GameClient *cl, const char *event, const int32_t team) {
 
-  if (!G_Ai_Profile_Records(cl && !cl->ai ? AI_PROFILE_PLAYERS : AI_PROFILE_BOTS)) {
+  const int32_t flags = cl ? (cl->ai ? AI_PROFILE_BOTS : AI_PROFILE_PLAYERS)
+                           : AI_PROFILE_BOTS | AI_PROFILE_PLAYERS;
+
+  if (!G_Ai_Profile_Records(flags)) {
     return;
   }
 
