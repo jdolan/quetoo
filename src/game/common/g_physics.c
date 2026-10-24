@@ -392,6 +392,11 @@ void G_TouchOccupy(GameEntity *ent) {
     case SOLID_DEAD:
     case SOLID_BOX:
       break;
+    case SOLID_TRIGGER:
+      if (ent->spawnFlags & SF_ITEM_DROPPED) {
+        break;
+      }
+      return;
     default:
       return;
   }
