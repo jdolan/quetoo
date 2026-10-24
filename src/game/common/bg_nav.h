@@ -565,8 +565,12 @@ const char *Nav_TravelName(const NavTravelType type);
 /**
  * @brief Flies a player from where `pm` stands on the push, with no input, as a bot rides one. The
  * push sets the velocity again in each move that the player's box touches it, as
- * `G_trigger_push_Push` does. One move is one server frame.
+ * `G_trigger_push_Push` does, and so does each other push of `pushes` that the box touches in
+ * flight, so that a pad that throws the player onto another is flown on. One move is one server
+ * frame.
  * @param push The push to fly.
+ * @param pushes The level's pushes, or NULL. Those that start off are passed through.
+ * @param numPushes The count of `pushes`.
  * @param pm The move, with the level's movement parameters, the origin, and the trace and contents
  * functions that the caller chooses. The flight moves it.
  * @param points If not NULL, the player origin at the start of each move, up to `maxPoints`. The
@@ -576,8 +580,8 @@ const char *Nav_TravelName(const NavTravelType type);
  * @param seconds The duration of the flight, written only if it lands.
  * @return True if the flight lands within `NAV_FLIGHT_SECONDS`, at `pm->s.origin`.
  */
-bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints,
-                 int32_t *numPoints, float *seconds);
+bool Nav_FlyPush(const NavPush *push, const NavPush *pushes, int32_t numPushes, PMove *pm,
+                 Vec3 *points, int32_t maxPoints, int32_t *numPoints, float *seconds);
 
 /**
  * @brief Frees the nodes and links of a graph that `Nav_Build` made, and zeroes their counts. It

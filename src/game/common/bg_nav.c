@@ -3166,8 +3166,8 @@ bool Nav_Build(const NavParams *params, NavGraph *graph) {
 /**
  * @see bg_nav.h
  */
-bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints,
-                 int32_t *numPoints, float *seconds) {
+bool Nav_FlyPush(const NavPush *push, const NavPush *pushes, int32_t numPushes, PMove *pm,
+                 Vec3 *points, int32_t maxPoints, int32_t *numPoints, float *seconds) {
 
   const Box3 bounds = Pm_Bounds(&pm->s.params, false);
   const uint8_t msec = QUETOO_TICK_MILLIS;
@@ -3182,8 +3182,17 @@ bool Nav_FlyPush(const NavPush *push, PMove *pm, Vec3 *points, int32_t maxPoints
       points[(*numPoints)++] = pm->s.origin;
     }
 
-    if (Box3_Intersects(Box3_Translate(bounds, pm->s.origin), push->bounds)) {
-      pm->s.velocity = push->velocity;
+    const Box3 box = Box3_Translate(bounds, pm->s.origin);
+    const NavPush *touched = Box3_Intersects(box, push->bounds) ? push : NULL;
+
+    for (int32_t i = 0; i < numPushes && !touched; i++) {
+      if (!pushes[i].startOff && Box3_Intersects(box, pushes[i].bounds)) {
+        touched = &pushes[i];
+      }
+    }
+
+    if (touched) {
+      pm->s.velocity = touched->velocity;
       pm->s.flags |= PMF_TIME_PUSHED;
       pm->s.time = PM_PUSH_MILLIS;
     } else if (pm->ground.ent && !(pm->s.flags & PMF_TIME_PUSHED)) {

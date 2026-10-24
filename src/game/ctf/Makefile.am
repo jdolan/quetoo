@@ -33,6 +33,7 @@ game_la_SOURCES = \
 	bg_pmove_quetoo.c \
 	bg_pmove_race.c \
 	g_ai_combat.c \
+	g_ai_ctf.c \
 	g_ai_goal.c \
 	g_ai_grid.c \
 	g_ai_info.c \

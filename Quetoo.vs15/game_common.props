@@ -96,6 +96,8 @@
        defining G_HOOK; the counterpart of listing g_hook.c in a module's
        _SOURCES and adding -DG_HOOK to its AM_CPPFLAGS. -->
   <ItemGroup Condition="'$(QuetooGameCtf)'=='true'">
+    <ClCompile Include="..\src\game\common\g_ai_ctf.c" />
+    <ClInclude Include="..\src\game\common\g_ai_ctf.h" />
     <ClCompile Include="..\src\game\common\g_ctf.c" />
     <ClInclude Include="..\src\game\common\g_ctf.h" />
   </ItemGroup>

@@ -1093,6 +1093,7 @@ void G_Init(void) {
 
 #if defined(G_CTF)
   G_Ctf_Init();
+  G_Ai_Ctf_Init();
 #endif
 
   G_Vote_Init();

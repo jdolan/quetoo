@@ -269,6 +269,7 @@ def cmd_run(args):
                '+set', 'g_fragLimit', '0',
                '+set', 'timeDemo', '1',
                '+set', 'g_aiProfile', '3' if args.graph else '1',
+               *(['+game', args.module] if args.module != 'default' else []),
                *args.extra,
                '+map', args.map]
 
@@ -787,6 +788,34 @@ def cmd_kills(args):
         print(f'  {kind:<8} {mod:<24} {victim:<7} {len(ranges):>5} {median(ranges):>12}')
 
 
+FLAG_EVENTS = ('steal', 'pickup', 'capture', 'return', 'drop', 'reset')
+
+
+def cmd_flags(args):
+    """Flag events per game minute over one or more logs, in total and by the team that did them."""
+    minutes = 0.0
+    totals = collections.Counter()
+    teams = collections.defaultdict(collections.Counter)
+    kills = 0
+    for log in args.logs:
+        events = read_log(log)
+        minutes += game_seconds(events) / 60.0
+        for e in events:
+            if e.kind == 'FLAG':
+                totals[e['event']] += 1
+                if e['event'] != 'reset':
+                    teams[e['team']][e['event']] += 1
+            elif e.kind == 'KILL' and e.get('attacker') not in ('-1', str(e.client)):
+                kills += 1
+    if not minutes:
+        sys.exit('No game time in the logs')
+    print(f'{minutes:.1f} game minutes, {kills / minutes:.2f} kills/min')
+    print(f'  {"":<8}' + ''.join(f'{name:>9}' for name in FLAG_EVENTS))
+    print(f'  {"all":<8}' + ''.join(f'{totals[name] / minutes:>9.2f}' for name in FLAG_EVENTS))
+    for team in sorted(teams):
+        print(f'  {"team " + team:<8}' + ''.join(f'{teams[team][name] / minutes:>9.2f}' for name in FLAG_EVENTS))
+
+
 # ---------------------------------------------------------------------------
 # Suites
 # ---------------------------------------------------------------------------
@@ -1022,6 +1051,10 @@ def main():
     p.add_argument('log')
     p.add_argument('--module', default='default', help='the game module whose means of death to name')
     p.set_defaults(func=cmd_kills)
+
+    p = sub.add_parser('flags', help='CTF flag steals, pickups, captures, returns, drops and resets per game minute')
+    p.add_argument('logs', nargs='+')
+    p.set_defaults(func=cmd_flags)
 
     args, extra = parser.parse_known_args()
     if extra and args.command not in ('run', 'suite'):
