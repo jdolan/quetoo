@@ -114,6 +114,10 @@ static void updateDetails(PracticeViewController *self) {
     if (entry->fragLimit > -1) {
       Str_Format(limits, sizeof(limits), "%d frags", entry->fragLimit);
     }
+    if (entry->captureLimit > -1) {
+      Str_Format(limits + strlen(limits), sizeof(limits) - strlen(limits), "%s%d captures",
+                 *limits ? ", " : "", entry->captureLimit);
+    }
     if (entry->timeLimit > -1) {
       Str_Format(limits + strlen(limits), sizeof(limits) - strlen(limits), "%s%d minutes",
                  *limits ? ", " : "", entry->timeLimit);

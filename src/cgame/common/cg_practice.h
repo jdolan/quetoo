@@ -95,9 +95,10 @@ typedef struct {
   char ai[MAX_STRING_CHARS];
 
   /**
-   * @brief The frag limit and the time limit in minutes, or -1 to leave them to the level.
+   * @brief The frag limit, the capture limit and the time limit in minutes, or -1 to leave them
+   * to the level.
    */
-  int32_t fragLimit, timeLimit;
+  int32_t fragLimit, captureLimit, timeLimit;
 } CGamePracticeEntry;
 
 #if defined(__CG_LOCAL_H__)

@@ -143,6 +143,7 @@ static void Cg_Practice_LoadLadder(void) {
     Str_Copy(entry->name, cgi.EntityValue(entity, "name")->string, sizeof(entry->name));
     Str_Copy(entry->ai, cgi.EntityValue(entity, "ai")->string, sizeof(entry->ai));
     entry->fragLimit = Cg_Practice_Integer(entity, "frag_limit");
+    entry->captureLimit = Cg_Practice_Integer(entity, "capture_limit");
     entry->timeLimit = Cg_Practice_Integer(entity, "time_limit");
 
     if (entry->tier < 1 || !*entry->name || !*entry->ai) {
@@ -425,6 +426,10 @@ void Cg_Practice_Start(const CGamePracticeEntry *entry, const char *gameplay) {
 
   if (entry->fragLimit > -1) {
     $(string, appendFormat, "\tfrag_limit %d\n", entry->fragLimit);
+  }
+
+  if (entry->captureLimit > -1) {
+    $(string, appendFormat, "\tcapture_limit %d\n", entry->captureLimit);
   }
 
   if (entry->timeLimit > -1) {
