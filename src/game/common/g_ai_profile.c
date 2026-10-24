@@ -1147,3 +1147,20 @@ void G_Ai_Profile_Flag(const GameClient *cl, const char *event, const int32_t te
   G_Ai_Profile_Print(cl ? cl->ps.client : -1, "FLAG", "event=%s flag=%d team=%d bot=%d", event,
                      team, carrierTeam, cl && cl->ai != NULL);
 }
+
+/**
+ * @see g_ai_profile.h
+ */
+void G_Ai_Profile_PadLink(const GameEntity *push, const char *result, const int32_t from,
+                          const int32_t to, const Vec3 landing) {
+
+  if (!G_Ai_Profile_Records(AI_PROFILE_GRAPH)) {
+    return;
+  }
+
+  G_Ai_Profile_Print(-1, "PADLINK", "result=%s center=%d,%d,%d dir=%.2f,%.2f,%.2f speed=%d "
+                     "from=%d to=%d landing=%d,%d,%d", result,
+                     AI_PROFILE_VEC3(Box3_Center(push->absBounds)), push->moveDir.x,
+                     push->moveDir.y, push->moveDir.z, (int32_t) push->speed, from, to,
+                     AI_PROFILE_VEC3(landing));
+}

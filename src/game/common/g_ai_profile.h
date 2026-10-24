@@ -126,6 +126,14 @@ void G_Ai_Profile_ClientMove(const GameClient *cl, const PMoveCmd *cmd);
 void G_Ai_Profile_Killed(const GameClient *cl, const GameEntity *attacker, const uint32_t mod);
 
 /**
+ * @brief Records how the graph links a `trigger_push`, with `AI_PROFILE_GRAPH`: `linked`, with the
+ * link's nodes, or why it has no link: `nonode` (no node at the pad), `nofloor`, `noland` (the
+ * flight does not land), or `nolanding` (no node in sight where it lands), with the landing.
+ */
+void G_Ai_Profile_PadLink(const GameEntity *push, const char *result, const int32_t from,
+                          const int32_t to, const Vec3 landing);
+
+/**
  * @brief Records what happened to a team's flag, with `AI_PROFILE_BOTS` or `AI_PROFILE_PLAYERS`:
  * `steal` from its base, `pickup` where it lies dropped, `capture`, `return` by a player of its team,
  * `drop`, or `reset` to its base when it lay dropped too long or fell into a `trigger_hurt`.
