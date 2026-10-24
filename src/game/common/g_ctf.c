@@ -124,8 +124,9 @@ static void G_ResetDroppedFlag(GameEntity *ent) {
   gi.LinkEntity(f);
 
   G_MulticastSound(&(const GamePlaySound) {
-    .index = module.return_
-  }, MULTICAST_PHS_R);
+    .index = module.return_,
+    .flags = SOUND_RELATIVE
+  }, MULTICAST_ALL_R);
 
   gi.BroadcastPrint(PRINT_HIGH, "The %s flag has been returned :flag%d_return:\n", t->name, t->id + 1);
 
@@ -205,11 +206,16 @@ static void G_FormatGameName_Ctf(char *name, size_t size) {
 }
 
 /**
- * @brief Captures are always team deathmatch: instagib and arena do not apply,
+ * @brief Captures are team deathmatch or team instagib: arena does not apply,
  * and teams are not optional. Replaces rather than qualifies, and so does not
  * defer to previous.
  */
 static GamePlayId G_ClampGamePlay_Ctf(GamePlayId gameplay) {
+
+  if ((gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) {
+    return GAMEPLAY_TEAM_INSTAGIB;
+  }
+
   return GAMEPLAY_TEAM_DEATHMATCH;
 }
 
@@ -249,8 +255,9 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
       teamFlag->s.eventData = teamFlag->item->def.tag;
 
       G_MulticastSound(&(const GamePlaySound) {
-        .index = module.return_
-      }, MULTICAST_PHS);
+        .index = module.return_,
+        .flags = SOUND_RELATIVE
+      }, MULTICAST_ALL_R);
 
       gi.BroadcastPrint(PRINT_HIGH, "%s returned the %s flag :flag%d_return:\n", cl->persistent.netName, team->name, team->id + 1);
 
@@ -280,8 +287,9 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
         otherTeamFlag->s.eventData = otherTeamFlag->item->def.tag;
 
         G_MulticastSound(&(const GamePlaySound) {
-          .index = module.capture
-        }, MULTICAST_PHS_R);
+          .index = module.capture,
+          .flags = SOUND_RELATIVE
+        }, MULTICAST_ALL_R);
 
         gi.BroadcastPrint(PRINT_HIGH, "%s captured the %s flag :flag%d_capture:\n", cl->persistent.netName, otherTeam->name, otherTeam->id + 1);
 
@@ -330,7 +338,8 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
 
   G_MulticastSound(&(const GamePlaySound) {
     .index = module.steal,
-  }, MULTICAST_PHS_R);
+    .flags = SOUND_RELATIVE
+  }, MULTICAST_ALL_R);
 
   gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag :flag%d_steal:\n", cl->persistent.netName, team->name, team->id + 1);
 

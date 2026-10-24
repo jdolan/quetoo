@@ -85,7 +85,7 @@ static void G_trigger_multiple_Use(GameEntity *ent, GameEntity *other,
 static void G_trigger_multiple_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
 
   if (!other->client) {
-    const bool isProjectile = other->owner && other->owner->client;
+    const bool isProjectile = other->solid == SOLID_PROJECTILE && other->owner && other->owner->client;
     if (isProjectile && (ent->spawnFlags & SHOOTABLE)) {
       // we're a shootable trigger, and we've been shot
     } else {
@@ -476,6 +476,10 @@ void G_trigger_hurt(GameEntity *ent) {
  * @brief Handles touch events on a `trigger_exec`, executing a console command or script.
  */
 static void G_trigger_exec_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
+
+  if (other->item) {
+    return;
+  }
 
   if (ent->timestamp > gameLevel.time) {
     return;

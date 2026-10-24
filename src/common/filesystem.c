@@ -985,6 +985,17 @@ bool Fs_SetGame(const char *game, const char *cgame) {
 
   PHYSFS_freeList(paths);
 
+  if (Str_Compare(game, DEFAULT_GAME) && !*module.writeDirOverride) {
+    char path[MAX_OS_PATH];
+    Str_Format(path, sizeof(path), "%s/%s", Sys_UserDir(), DEFAULT_GAME);
+
+    if (SDL_CreateDirectory(path)) {
+      Fs_AddToSearchPath(path);
+    } else {
+      Com_Warn("Failed to create %s\n", path);
+    }
+  }
+
   const bool provider = Com_IsValidGame(cgame)
       && Str_Compare(cgame, game)
       && Str_Compare(cgame, DEFAULT_GAME);
@@ -1077,6 +1088,21 @@ void Fs_SetWriteDir(const char *dir) {
  */
 const char *Fs_WriteDir(void) {
   return PHYSFS_getWriteDir();
+}
+
+/**
+ * @return The directory that `DEFAULT_GAME` writes to: the `-w` directory if one was given, else
+ * the default game's user directory.
+ */
+const char *Fs_DefaultWriteDir(void) {
+  static char dir[MAX_OS_PATH];
+
+  if (*module.writeDirOverride) {
+    return module.writeDirOverride;
+  }
+
+  Str_Format(dir, sizeof(dir), "%s/%s", Sys_UserDir(), DEFAULT_GAME);
+  return dir;
 }
 
 /**

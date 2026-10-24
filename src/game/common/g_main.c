@@ -485,6 +485,35 @@ static void G_PostStats(void) {
 }
 
 /**
+ * @return The level's intermission point, else its first player spawn point, else the world.
+ */
+static const GameEntity *G_IntermissionPoint(void) {
+
+  static const char *classnames[] = {
+    "info_player_intermission", "info_player_start", "info_player_deathmatch"
+  };
+
+  for (size_t i = 0; i < lengthof(classnames); i++) {
+    const GameEntity *ent = G_Find(NULL, EOFS(classname), classnames[i]);
+    if (ent) {
+      return ent;
+    }
+  }
+
+  if (gameLevel.spawnPoints.count) {
+    return gameLevel.spawnPoints.spots[0];
+  }
+
+  for (int32_t t = 0; t < MAX_TEAMS; t++) {
+    if (gameTeamList[t].spawnPoints.count) {
+      return gameTeamList[t].spawnPoints.spots[0];
+    }
+  }
+
+  return ge.entities[0];
+}
+
+/**
  * @brief Starts an intermission sequence, moving all clients to the intermission viewpoint
  * and selecting the next map.
  */
@@ -505,14 +534,7 @@ static void G_BeginIntermission(void) {
     }
   });
 
-  // find an intermission spot
-  GameEntity *ent = G_Find(NULL, EOFS(classname), "info_player_intermission");
-  if (!ent) { // map does not have an intermission point
-    ent = G_Find(NULL, EOFS(classname), "info_player_start");
-    if (!ent) {
-      ent = G_Find(NULL, EOFS(classname), "info_player_deathmatch");
-    }
-  }
+  const GameEntity *ent = G_IntermissionPoint();
 
   gameLevel.intermissionOrigin = ent->s.origin;
   gameLevel.intermissionAngle = ent->s.angles;
@@ -855,19 +877,14 @@ static void G_CheckRules(void) {
   if (g_numTeams->modified) { // reset teams, scores, etc
     g_numTeams->modified = false;
 
-    int32_t numTeams;
+    const int32_t numTeams = gameLevel.numTeams;
 
-    if (!Str_Compare(g_numTeams->string, "default")) {
-      numTeams = -1; // G_InitNumTeams will pick this up
-    } else {
-      numTeams = Clampf(g_numTeams->integer, 2, MAX_TEAMS);
-    }
+    gameLevel.numTeams = G_LevelSetting(g_numTeams, gameLevel.requested.numTeams, NULL);
+    G_InitNumTeams();
 
     if (gameLevel.numTeams != numTeams) {
-      gameLevel.numTeams = numTeams;
 
       if (gameLevel.teams) {
-        G_InitNumTeams();
 
         gi.BroadcastPrint(PRINT_HIGH, "Number of teams set to %i\n",
                   gameLevel.numTeams);
@@ -1016,15 +1033,39 @@ static void G_Restart_f(void) {
 
 /**
  * @brief Set up the `CS_NUM_TEAMS` configstring to the number of valid teams we have
+ * @details A team counts if the map gives it its own spawn points, or in CTF, its own flag, since a
+ * team without a flag can not score. An `info_player_team_any` spawn belongs to every team's spawn
+ * points, so those can not tell how many teams the map was made for. A requested count is kept within 2 and `MAX_TEAMS`, and in
+ * CTF within the teams that have a flag, since a team without one can not score.
  */
 void G_InitNumTeams(void) {
 
-  if (gameLevel.numTeams == -1) { // set to default, so let's set number of teams
+  if (gameLevel.numTeams != -1) {
+    gameLevel.numTeams = Clampf(gameLevel.numTeams, 2, MAX_TEAMS);
+
+#if defined(G_CTF)
+    int32_t flags = 0;
+    while (flags < MAX_TEAMS && gameTeamList[flags].flagEntity) {
+      flags++;
+    }
+
+    if (flags >= 2 && gameLevel.numTeams > flags) {
+      G_Warn("%s has flags for %d teams, not %d\n", gameLevel.name, flags, gameLevel.numTeams);
+      gameLevel.numTeams = flags;
+    }
+#endif
+  } else {
     gameLevel.numTeams = 0;
 
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
 
-      if (!gameTeamList[t].spawnPoints.count) {
+#if defined(G_CTF)
+      const bool valid = gameTeamList[t].flagEntity != NULL;
+#else
+      const bool valid = G_Find(NULL, EOFS(classname), gameTeamList[t].spawn) != NULL;
+#endif
+
+      if (!valid) {
         break;
       }
 
@@ -1236,7 +1277,7 @@ void G_Init(void) {
   g_deathCamRise = gi.AddCvar("g_deathCamRise", "90", 0, "Initial upward speed of the death camera, in units per second.");
   g_deathCamTime = gi.AddCvar("g_deathCamTime", "800", 0, "Time in milliseconds for the death camera to settle.");
   g_deathCamVelocity = gi.AddCvar("g_deathCamVelocity", "0.25", 0, "Fraction of the player's velocity inherited by the death camera.");
-  g_numTeams = gi.AddCvar("g_numTeams", "default", CVAR_SERVER_INFO, "The number of teams allowed. By default, picks the valid amount for the map, or 2.");
+  g_numTeams = gi.AddCvar("g_numTeams", "default", CVAR_SERVER_INFO, "The number of teams: \"default\" defers to the level, else to the teams that the map has spawn points or flags for.");
   g_itemTimers = gi.AddCvar("g_itemTimers", "1", CVAR_SERVER_INFO, "Publishes the time until the mega health and each powerup respawns, for the HUD.");
   g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");
   g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");

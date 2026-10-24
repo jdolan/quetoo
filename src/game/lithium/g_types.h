@@ -840,6 +840,7 @@ typedef struct {
     float minClients;
     float fragLimit;
     float timeLimit;
+    float numTeams;
   } requested;
 
   /**

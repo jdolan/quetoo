@@ -131,6 +131,7 @@ typedef struct MapListItemInfo MapListItemInfo;
  * players pick a variant instead, as `default` does with `dm tdm duel instagib`,
  * installs a link accepting its variants before deferring. A link MAY ignore
  * `games` entirely and decide by path, title or prefix instead.
+ * @remarks Practice asks it too, with only `games` set, for the games that a ladder is made for.
  */
 typedef bool (*CGameFilterCreateServerMapListHook)(const MapListItemInfo *info);
 

@@ -226,9 +226,10 @@ static void Cg_Init(void) {
 
   Cg_Vote_Init();
   Cg_Intermission_Init();
-  Cg_Practice_Init();
 
   Cg_Module_Init();
+
+  Cg_Practice_Init();
 
   cge.ClipEntity = Cg_ClipEntity;
 

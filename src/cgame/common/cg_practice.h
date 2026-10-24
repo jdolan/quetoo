@@ -52,7 +52,7 @@
 /**
  * @brief The most AI players of an entry.
  */
-#define PRACTICE_MAX_AI 6
+#define PRACTICE_MAX_AI 15
 
 /**
  * @brief A ladder that a `practice-<name>.lst` file holds.
@@ -73,6 +73,13 @@ typedef struct {
    * @brief The gameplay that the file's `title` entity sets, or `NULL` to let the player choose.
    */
   const GamePlay *gamePlay;
+
+  /**
+   * @brief The number of teams that the file's `title` entity sets, or -1 if it sets none. A
+   * ladder that sets it lets the player choose among team gameplays only, and one that does not,
+   * among the others.
+   */
+  int32_t numTeams;
 } CGamePracticeLadder;
 
 /**
@@ -95,9 +102,15 @@ typedef struct {
   char ai[MAX_STRING_CHARS];
 
   /**
-   * @brief The frag limit and the time limit in minutes, or -1 to leave them to the level.
+   * @brief The frag limit, the capture limit and the time limit in minutes, or -1 to leave them
+   * to the level.
    */
-  int32_t fragLimit, timeLimit;
+  int32_t fragLimit, captureLimit, timeLimit;
+
+  /**
+   * @brief The number of teams, or else the ladder's, or -1 to leave it to the level.
+   */
+  int32_t numTeams;
 } CGamePracticeEntry;
 
 #if defined(__CG_LOCAL_H__)
@@ -110,6 +123,8 @@ void Cg_Practice_Shutdown(void);
 const CGamePracticeLadder *Cg_Practice_Ladders(size_t *count);
 const CGamePracticeEntry *Cg_Practice_Ladder(size_t *count);
 const GamePlay *Cg_Practice_LadderGamePlay(void);
+bool Cg_Practice_OffersGamePlay(const GamePlay *gamePlay);
+const GamePlay *Cg_Practice_DefaultGamePlay(void);
 uint32_t Cg_Practice_LadderGeneration(void);
 bool Cg_Practice_IsCleared(const CGamePracticeEntry *entry, const char *gameplay);
 

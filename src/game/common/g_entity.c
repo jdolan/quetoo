@@ -771,7 +771,7 @@ static void G_worldspawn_Music(void) {
 /*QUAKED worldspawn (0 0 0) ?
  The worldspawn entity defines global conditions and behavior for the entire level. All brushes not belonging to an explicit entity implicitly belong to worldspawn.
 
-The map list's entry for the level takes precedence over the gameplay, movement, gravity, min_clients, ai, frag_limit, capture_limit, time_limit and music given here. A server setting other than "default" takes precedence over both, except for ai and music, which have no server setting.
+The map list's entry for the level takes precedence over the gameplay, movement, gravity, min_clients, ai, num_teams, frag_limit, capture_limit, time_limit and music given here. A server setting other than "default" takes precedence over both, except for ai and music, which have no server setting.
  -------- KEYS --------
  message : The map title.
  games : Space-delimited games this map is made for, one or more of dm, tdm, duel, ctf, instagib, race (default dm). Shown and filtered in the Create Server map browser.
@@ -783,6 +783,7 @@ The map list's entry for the level takes precedence over the gameplay, movement,
  items : The item set for this map: "default" (Quetoo weapons) or "quake" (Quake weapons).
  min_clients : The number of clients, humans and AI, the game fills to; unset, 0.
  ai : The AI players, by name and separated by spaces, that join the level first. They always join, even beyond min_clients; any others that min_clients asks for are picked at random.
+ num_teams : The number of teams, 2 to 4, in team gameplays; unset, the teams that the map has spawn points or flags for. In CTF, at most the teams that the map has flags for.
  frag_limit : The frag limit; unset, 30.
  capture_limit : The capture limit, in CTF; unset, 8.
  time_limit : The time limit in minutes; unset, 20.
@@ -855,10 +856,23 @@ static void G_worldspawn(GameEntity *ent) {
 
   gameLevel.teams = (gameLevel.gameplay & GAMEPLAY_TEAMS) != 0;
 
-  if (Str_Compare(g_numTeams->string, "default")) {
-    gameLevel.numTeams = Clampf(g_numTeams->integer, 2, MAX_TEAMS);
+  const char *source = NULL;
+  gameLevel.requested.numTeams = -1.f;
+
+  const Entity *numTeams = G_MapListEntryValue("num_teams");
+  if (numTeams && (numTeams->parsed & ENTITY_INTEGER)) {
+    source = "map list";
+    gameLevel.requested.numTeams = numTeams->integer;
+  } else if ((numTeams = gi.EntityValue(ent->def, "num_teams"))->parsed & ENTITY_INTEGER) {
+    source = "worldspawn";
+    gameLevel.requested.numTeams = numTeams->integer;
+  }
+
+  gameLevel.numTeams = G_LevelSetting(g_numTeams, gameLevel.requested.numTeams, &source);
+  if (gameLevel.numTeams == -1) {
+    gi.Print("  num_teams: ^2the map's^7\n");
   } else {
-    gameLevel.numTeams = -1; // G_InitSpawnPoints derives it from the spawn points
+    gi.Print("  num_teams: ^2%d^7 (%s)\n", gameLevel.numTeams, source);
   }
 
   gameLevel.minClients = G_LevelOption(ent, sv_minClients, "min_clients", 0.f, &gameLevel.requested.minClients);

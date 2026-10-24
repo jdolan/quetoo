@@ -48,12 +48,17 @@ static const CGamePracticeEntry *entryAtIndex(int32_t index) {
 }
 
 /**
- * @brief The selected gameplay, by name.
+ * @brief The selected gameplay, else the ladder's first, by name.
  */
 static const char *selectedGamePlay(const PracticeViewController *self) {
 
   const Option *option = $(self->gameplay, selectedOption);
-  return option ? option->value : "deathmatch";
+  if (option) {
+    return option->value;
+  }
+
+  const GamePlay *gamePlay = Cg_Practice_DefaultGamePlay();
+  return gamePlay ? gamePlay->name : "deathmatch";
 }
 
 /**
@@ -72,25 +77,28 @@ static void setEnabled(Control *control, bool enabled) {
 }
 
 /**
- * @brief Selects the gameplay that the ladder sets, or else deathmatch, and lets the player
- * choose only if the ladder sets none.
+ * @brief Offers the gameplays that the ladder offers, selects the first, and lets the player
+ * choose only if the ladder sets no gameplay.
  */
 static void updateGamePlay(PracticeViewController *self) {
 
-  const GamePlay *gamePlay = Cg_Practice_LadderGamePlay();
-  const char *name = gamePlay ? gamePlay->name : "deathmatch";
+  $(self->gameplay, removeAllOptions);
 
   size_t count;
   const GamePlay *gamePlays = Cg_ListGamePlays(&count);
 
   for (size_t i = 0; i < count; i++) {
-    if (!Str_Compare(gamePlays[i].name, name)) {
-      $(self->gameplay, selectOptionWithValue, (ident) gamePlays[i].name);
-      break;
+    if (Cg_Practice_OffersGamePlay(&gamePlays[i])) {
+      $(self->gameplay, addOption, gamePlays[i].label, (ident) gamePlays[i].name);
     }
   }
 
-  setEnabled((Control *) self->gameplay, gamePlay == NULL);
+  const GamePlay *gamePlay = Cg_Practice_DefaultGamePlay();
+  if (gamePlay) {
+    $(self->gameplay, selectOptionWithValue, (ident) gamePlay->name);
+  }
+
+  setEnabled((Control *) self->gameplay, Cg_Practice_LadderGamePlay() == NULL);
 }
 
 /**
@@ -107,6 +115,10 @@ static void updateDetails(PracticeViewController *self) {
     char limits[MAX_STRING_CHARS] = "";
     if (entry->fragLimit > -1) {
       Str_Format(limits, sizeof(limits), "%d frags", entry->fragLimit);
+    }
+    if (entry->captureLimit > -1) {
+      Str_Format(limits + strlen(limits), sizeof(limits) - strlen(limits), "%s%d captures",
+                 *limits ? ", " : "", entry->captureLimit);
     }
     if (entry->timeLimit > -1) {
       Str_Format(limits + strlen(limits), sizeof(limits) - strlen(limits), "%s%d minutes",
@@ -425,15 +437,6 @@ static void loadView(ViewController *self) {
 
   this->ladder->delegate.self = this;
   this->ladder->delegate.didSelectOption = didSelectLadder;
-
-  size_t numGamePlays;
-  const GamePlay *gamePlays = Cg_ListGamePlays(&numGamePlays);
-
-  for (size_t i = 0; i < numGamePlays; i++) {
-    if (!(gamePlays[i].id & GAMEPLAY_TEAMS)) {
-      $(this->gameplay, addOption, gamePlays[i].label, (ident) gamePlays[i].name);
-    }
-  }
 
   this->gameplay->delegate.self = this;
   this->gameplay->delegate.didSelectOption = didSelectGamePlay;

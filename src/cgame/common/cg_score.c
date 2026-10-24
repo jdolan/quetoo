@@ -107,6 +107,16 @@ const GameScore *Cg_Scores(size_t *count) {
 
 /**
  * @see cg_score.h
+ * @details The aggregate scores follow the client scores, one for each of `MAX_TEAMS` teams, and
+ * only the first `cgameState.numTeams` of them are in play.
+ */
+const GameScore *Cg_TeamScores(size_t *count) {
+  *count = cgameState.numTeams;
+  return module.scores + module.numScores;
+}
+
+/**
+ * @see cg_score.h
  */
 uint32_t Cg_ScoresGeneration(void) {
   return module.generation;
