@@ -1016,6 +1016,9 @@ static void G_Restart_f(void) {
 
 /**
  * @brief Set up the `CS_NUM_TEAMS` configstring to the number of valid teams we have
+ * @details A team counts if the map gives it its own spawn points, or its own flag. An
+ * `info_player_team_any` spawn belongs to every team's spawn points, so those can not tell how
+ * many teams the map was made for.
  */
 void G_InitNumTeams(void) {
 
@@ -1024,7 +1027,13 @@ void G_InitNumTeams(void) {
 
     for (int32_t t = 0; t < MAX_TEAMS; t++) {
 
-      if (!gameTeamList[t].spawnPoints.count) {
+      bool valid = G_Find(NULL, EOFS(classname), gameTeamList[t].spawn) != NULL;
+
+#if defined(G_CTF)
+      valid |= gameTeamList[t].flagEntity != NULL;
+#endif
+
+      if (!valid) {
         break;
       }
 
