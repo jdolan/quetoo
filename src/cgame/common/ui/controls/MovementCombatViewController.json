@@ -250,6 +250,18 @@
                         "class": "Input",
                         "label": {
                           "text": {
+                            "text": "Drop tech"
+                          }
+                        },
+                        "control": {
+                          "class": "BindTextView",
+                          "bind": "drop tech"
+                        }
+                      },
+                      {
+                        "class": "Input",
+                        "label": {
+                          "text": {
                             "text": "Hook / cycle camera"
                           }
                         },
