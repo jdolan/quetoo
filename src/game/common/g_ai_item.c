@@ -137,11 +137,11 @@ bool G_Ai_CanPickup(const GameClient *cl, const GameEntity *other) {
     case ITEM_TYPE_FLAG: {
       const GameTeamId team = cl->persistent.team->id;
       const GameTeamId flagTeam = (item->def.tag - FLAG_FIRST);
-      if (flagTeam == team && other->owner == NULL) {
-        return false;
+      if (flagTeam == team) {
+        return other->owner != NULL;
       }
 
-      return true;
+      return G_GetFlag(cl) == NULL;
     }
 #endif
 

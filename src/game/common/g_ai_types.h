@@ -285,8 +285,49 @@ typedef enum {
    */
   AI_STATE_CLIMB,
 
+  /**
+   * @brief Do the task that the game module gives the bot (`G_Ai_Task`), such as to capture a
+   * flag, before the items that it would collect.
+   */
+  AI_STATE_TASK,
+
   AI_STATE_TOTAL
 } GameAiStateId;
+
+/**
+ * @brief A task that the game module gives a bot through `G_Ai_Task`: an entity or a position to go
+ * to, or to stay near.
+ */
+typedef struct {
+  /**
+   * @brief The task's name, for debugging and the profiler, such as `capture`.
+   */
+  const char *name;
+
+  /**
+   * @brief The entity to go to, or NULL to go to `position`.
+   */
+  const GameEntity *ent;
+
+  /**
+   * @brief The position to go to, if `ent` is NULL.
+   */
+  Vec3 position;
+
+  /**
+   * @brief 0 to go to the entity or the position. Else the distance within which the bot stays
+   * near it: there, it collects the items within this travel cost, and moves among the nodes within
+   * this distance.
+   */
+  float radius;
+
+  /**
+   * @brief True if the task goes before a fight: the bot fires at its enemy as it goes, and does
+   * not stop to fight. Else the bot fights first, and does the task only while it is armed and need
+   * not retreat.
+   */
+  bool urgent;
+} GameAiTask;
 
 /**
  * @brief An AI player of the roster, as `ai.lst` defines it.
@@ -872,6 +913,16 @@ typedef struct GameAi {
    * @brief The target of the strafe jump for which `strafeSafe` was found.
    */
   Vec3 strafeSafeTarget;
+
+  /**
+   * @brief The task that `G_Ai_Task` last gave the bot, valid while the bot is in `AI_STATE_TASK`.
+   */
+  GameAiTask task;
+
+  /**
+   * @brief Level time until which the bot does not do its task, because it found no path to it.
+   */
+  uint32_t taskRetryTime;
 } GameAi;
 
 #endif

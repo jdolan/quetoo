@@ -162,6 +162,7 @@
 		72A48E18ED83E23491FE447D /* asset.c in Sources */ = {isa = PBXBuildFile; fileRef = 52CCC184568D9A04E0D91F1A /* asset.c */; };
 		73DBBF49A55BBA6FB35431A6 /* DemosCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = F790A4C9147BE48A3BBCC99D /* DemosCollectionItemView.c */; };
 		7633815018464B363B23EB72 /* g_ai_combat.c in Sources */ = {isa = PBXBuildFile; fileRef = C81D850BEE668DE6AAC93A05 /* g_ai_combat.c */; };
+		08FA259C278FA540544F32B5 /* g_ai_ctf.c in Sources */ = {isa = PBXBuildFile; fileRef = 53A74586FE7ECA2141F3BF5F /* g_ai_ctf.c */; };
 		77C2AFA7D92DAC05CE4E7996 /* FpsView.c in Sources */ = {isa = PBXBuildFile; fileRef = EA8FE4E62B47061B1ADBD908 /* FpsView.c */; };
 		77DC97E1E9FDFCF8FD91B1BC /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
 		7857EDF77E5E58CEFFD03198 /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
@@ -1597,6 +1598,7 @@
 		F794CD9FF6534935B10C3EFD /* ConsoleView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7F6A5E1D6B8246A7B4EAD906 /* ConsoleView.c */; };
 		F7EBE32625F44EBF895E36BC /* cg_inventory.h in Headers */ = {isa = PBXBuildFile; fileRef = 066246FB7ACD4B74AC6A10C8 /* cg_inventory.h */; };
 		F8C0270DADA8F311EE1C9FA8 /* g_ai_combat.h in Headers */ = {isa = PBXBuildFile; fileRef = 7610ECCDD66E323A33218A5E /* g_ai_combat.h */; };
+		0BB17621D80889F6C0EBFF8D /* g_ai_ctf.h in Headers */ = {isa = PBXBuildFile; fileRef = 355245D6EBE40F66DCC1C282 /* g_ai_ctf.h */; };
 		F8D615462A724ECF9847D4CD /* r_post.h in Headers */ = {isa = PBXBuildFile; fileRef = B80C92655F5249E48131CB95 /* r_post.h */; };
 		F956F2A93BABE228BC99C9E4 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
 		FBA34330EDE55ADE01202579 /* SDL3_image.xcframework in Frameworks */ = {isa = PBXBuildFile; fileRef = CEF601C42FE711B7005C680C /* SDL3_image.xcframework */; };
@@ -2336,6 +2338,7 @@
 		743CD3FB2DAA4893BBF6DAF0 /* NotifyView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NotifyView.h; sourceTree = "<group>"; };
 		755F8C8CBA7F7C48E79A578C /* PowerupView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PowerupView.c; sourceTree = "<group>"; };
 		7610ECCDD66E323A33218A5E /* g_ai_combat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_combat.h; sourceTree = "<group>"; };
+		355245D6EBE40F66DCC1C282 /* g_ai_ctf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_ctf.h; sourceTree = "<group>"; };
 		7773870519E25AD88B29F618 /* WeaponBarView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = WeaponBarView.c; sourceTree = "<group>"; };
 		7966EA6596003F9303BC00FA /* bg_item.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = bg_item.c; sourceTree = "<group>"; };
 		798D1D350CCC161F92103924 /* drawelements.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = drawelements.c; sourceTree = "<group>"; };
@@ -2391,6 +2394,7 @@
 		C22C8B9ED966181A40EEE5A3 /* CameraControlsView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CameraControlsView.c; sourceTree = "<group>"; };
 		C412F8050FB26E0D40018D29 /* StageView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = StageView.c; sourceTree = "<group>"; };
 		C81D850BEE668DE6AAC93A05 /* g_ai_combat.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = g_ai_combat.c; sourceTree = "<group>"; };
+		53A74586FE7ECA2141F3BF5F /* g_ai_ctf.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = g_ai_ctf.c; sourceTree = "<group>"; };
 		C8249BF99F0E4A2D77D37865 /* CrosshairView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CrosshairView.h; sourceTree = "<group>"; };
 		C853849AF0A2CC2F7C531245 /* PowerupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PowerupView.h; sourceTree = "<group>"; };
 		C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TimeView.c; sourceTree = "<group>"; };
@@ -5149,6 +5153,8 @@
 				D1A5B0000000000000000105 /* bg_vote.h */,
 				7610ECCDD66E323A33218A5E /* g_ai_combat.h */,
 				C81D850BEE668DE6AAC93A05 /* g_ai_combat.c */,
+				355245D6EBE40F66DCC1C282 /* g_ai_ctf.h */,
+				53A74586FE7ECA2141F3BF5F /* g_ai_ctf.c */,
 				CE27E9F327BDA2AE003D56AC /* g_ai_goal.h */,
 				CE27E9F127BDA2AE003D56AC /* g_ai_goal.c */,
 				CE4E053F2FDAE2CE00B92C32 /* g_ai_grid.h */,
@@ -5698,6 +5704,7 @@
 				D1A5B0000000000000000003 /* bg_pmove_local.h in Headers */,
 				CEFEEE0000000000000000D3 /* bg_tech.h in Headers */,
 				F8C0270DADA8F311EE1C9FA8 /* g_ai_combat.h in Headers */,
+				0BB17621D80889F6C0EBFF8D /* g_ai_ctf.h in Headers */,
 				CEC0FF00202601030000010B /* g_ai_goal.h in Headers */,
 				CEC0FF00202601030000010C /* g_ai_grid.h in Headers */,
 				CEC0FF00202601030000010D /* g_ai_info.h in Headers */,
@@ -7624,6 +7631,7 @@
 				D6A5C100000000000000005B /* bg_pmove_race.c in Sources */,
 				D7A5C100000000000000005B /* bg_pmove_quake3.c in Sources */,
 				7633815018464B363B23EB72 /* g_ai_combat.c in Sources */,
+				08FA259C278FA540544F32B5 /* g_ai_ctf.c in Sources */,
 				CEC0FF0020260103000000EF /* g_ai_goal.c in Sources */,
 				CEC0FF0020260103000000F0 /* g_ai_grid.c in Sources */,
 				CEC0FF0020260103000000F1 /* g_ai_info.c in Sources */,

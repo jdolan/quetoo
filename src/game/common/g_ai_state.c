@@ -89,6 +89,11 @@
 #define AI_DETOUR_COST PM_SPEED_RUN
 
 /**
+ * @brief The time in milliseconds for which a bot that finds no path to its task does without it.
+ */
+#define AI_TASK_RETRY_MILLIS 3000
+
+/**
  * @brief The most items for which a bot plans the route from the item to its objective.
  */
 #define AI_DETOUR_CANDIDATES 3
@@ -448,6 +453,7 @@ static const char *const stateNames[AI_STATE_TOTAL] = {
   [AI_STATE_ACTIVATE] = "activate",
   [AI_STATE_ESCAPE] = "escape",
   [AI_STATE_CLIMB] = "climb",
+  [AI_STATE_TASK] = "task",
 };
 
 static struct {
@@ -916,6 +922,11 @@ static bool G_Ai_GoToItem(GameClient *cl, const float *costs, const GameAiChoice
  * @see g_ai_state.h
  */
 const char *G_Ai_State_Name(const GameClient *cl) {
+
+  if (cl->ai->state == AI_STATE_TASK && cl->ai->task.name) {
+    return cl->ai->task.name;
+  }
+
   return stateNames[cl->ai->state];
 }
 
@@ -2125,6 +2136,165 @@ static void G_Ai_State_pursue(GameClient *cl, const Vec3 position) {
 }
 
 /**
+ * @brief The tail of the `G_Ai_Task` hook, which gives no task.
+ */
+static bool G_Ai_Task_Common(const GameClient *cl, GameAiTask *task) {
+  return false;
+}
+
+GameAiTaskHook G_Ai_Task = G_Ai_Task_Common;
+
+/**
+ * @return True if the game module gives the bot a task that it does now, which `cl->ai->task`
+ * then holds. A bot does a task that is not urgent only while it is armed and need not retreat. A
+ * bot whose task changes reviews it at once, so that a bot that takes a flag does not follow its
+ * path to the flag for one more review. A bot that found no path to a task that is not urgent does
+ * without it for `AI_TASK_RETRY_MILLIS`, unless the task changes. An urgent task is tried again at
+ * once, because a bot is often off the graph only for a moment, after a landing or a knockback.
+ */
+static bool G_Ai_IsTasked(GameClient *cl) {
+
+  GameAi *ai = cl->ai;
+  GameAiTask *task = &ai->task;
+
+  const GameAiTask last = *task;
+  GameAiTask next = {};
+
+  const bool tasked = G_Ai_Task(cl, &next);
+  *task = next;
+
+  if (!tasked) {
+    return false;
+  }
+
+  if (task->name != last.name || task->ent != last.ent) {
+    G_Ai_Profile_Task(cl, AI_NODE_INVALID, "begin");
+    ai->taskRetryTime = 0;
+  }
+
+  if (ai->taskRetryTime > gameLevel.time) {
+    return false;
+  }
+
+  if (ai->state == AI_STATE_TASK && (task->name != last.name || task->ent != last.ent)) {
+    ai->reviewTime = ai->reviewedTime = 0;
+    G_Ai_ClearGoal(&ai->moveTarget);
+  }
+
+  return task->urgent || (G_Ai_IsArmed(cl) && !G_Ai_ShouldRetreat(cl));
+}
+
+/**
+ * @return The position of the bot's task: its entity's, or its position.
+ */
+static Vec3 G_Ai_TaskPosition(const GameAiTask *task) {
+  return task->ent ? task->ent->s.origin : task->position;
+}
+
+/**
+ * @return The node of the bot's task: its item's, or the node nearest its entity or position.
+ */
+static GameAiNodeId G_Ai_TaskNode(const GameAiTask *task) {
+
+  if (task->ent && task->ent->item) {
+    return G_Ai_ItemNode(task->ent);
+  }
+
+  return G_Ai_Node_FindClosest(G_Ai_TaskPosition(task), AI_NODE_DISTANCE, true, true);
+}
+
+/**
+ * @return True if the goal is a path that ends at the node, so that a bot whose task does not move
+ * keeps its path, and does not search again at each review.
+ */
+static bool G_Ai_IsPathTo(const GameAiGoal *goal, const GameAiNodeId node) {
+
+  if (goal->type != AI_GOAL_PATH || !goal->path.path || !goal->path.path->count) {
+    return false;
+  }
+
+  return VectorValue(goal->path.path, GameAiNodeId, goal->path.path->count - 1) == node;
+}
+
+/**
+ * @return The node nearest one of `AI_ROAM_SAMPLES` random points within the task's radius of its
+ * position, the first that the bot can reach, or `AI_NODE_INVALID` if it can reach none of them.
+ */
+static GameAiNodeId G_Ai_TaskRoamNode(const GameAiTask *task, const float *costs) {
+
+  const Vec3 position = G_Ai_TaskPosition(task);
+
+  for (int32_t i = 0; i < AI_ROAM_SAMPLES; i++) {
+    const float angle = RandomRangef(0.f, 2.f * M_PI);
+    const float distance = task->radius * sqrtf(RandomRangef(0.f, 1.f));
+    const Vec3 point = Vec3_Add(position, MakeVec3(cosf(angle) * distance, sinf(angle) * distance,
+                                                   0.f));
+
+    const GameAiNodeId node = G_Ai_Node_FindClosest(point, AI_NODE_DISTANCE, true, true);
+
+    if (node != AI_NODE_INVALID && costs[node] != FLT_MAX &&
+        Vec3_Distance(G_Ai_Node_GetPosition(node), position) <= task->radius) {
+      return node;
+    }
+  }
+
+  return AI_NODE_INVALID;
+}
+
+/**
+ * @brief Does the bot's task. A bot within the task's radius collects the items close by, and moves
+ * from node to node within the radius. Any other bot paths to the task's entity or position, and
+ * again at a review if the entity moved to another node.
+ */
+static void G_Ai_State_task(GameClient *cl) {
+
+  GameAi *ai = cl->ai;
+  const GameAiTask *task = &ai->task;
+
+  if (!G_Ai_ShouldReview(cl) && ai->moveTarget.type != AI_GOAL_NONE) {
+    return;
+  }
+
+  const bool near = task->radius > 0.f &&
+                    Vec3_Distance(cl->entity->s.origin, G_Ai_TaskPosition(task)) <= task->radius;
+
+  if (near) {
+    const float *costs = G_Ai_TravelCosts(cl);
+
+    if (!costs) {
+      return;
+    }
+
+    const GameAiChoice item = G_Ai_ChooseItem(cl, costs, task->radius, false, NULL);
+
+    if (G_Ai_GoToItem(cl, costs, &item, task->radius, false)) {
+      return;
+    }
+
+    if (ai->moveTarget.type == AI_GOAL_NONE || G_Ai_MoveEntity(cl)) {
+      G_Ai_ClearGoal(&ai->moveTarget);
+      G_Ai_PathTo(cl, G_Ai_TaskRoamNode(task, costs), AI_ROAM_PRIORITY, NULL);
+    }
+    return;
+  }
+
+  const GameAiNodeId node = G_Ai_TaskNode(task);
+
+  if (G_Ai_IsPathTo(&ai->moveTarget, node)) {
+    return;
+  }
+
+  if (!G_Ai_PathTo(cl, node, AI_PURSUE_PRIORITY, task->ent)) {
+    G_Ai_Profile_Task(cl, node, "nopath");
+
+    if (!task->urgent) {
+      ai->taskRetryTime = gameLevel.time + AI_TASK_RETRY_MILLIS;
+      G_Ai_Resume(cl);
+    }
+  }
+}
+
+/**
  * @return True if the bot follows a path and is in the air, out of water and off a ladder. A new
  * path chosen in the air starts at the node nearest the bot in flight, which is often beside or
  * behind where it lands, and the bot turns toward it in the air, off the edge of a walkway.
@@ -2185,12 +2355,18 @@ uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd) {
       ai->stateTime = ai->climbStateTime + (gameLevel.time - ai->stateTime);
     }
 
+    const bool tasked = G_Ai_IsTasked(cl);
+
     if (ai->state == AI_STATE_ESCAPE) {
       if (cl->entity->ground.ent || ai->moveTarget.type == AI_GOAL_NONE) {
         G_Ai_Resume(cl);
       }
-    } else if (ai->combatTarget.type == AI_GOAL_ENTITY) {
+    } else if (ai->combatTarget.type == AI_GOAL_ENTITY && !(tasked && ai->task.urgent)) {
       G_Ai_Enter(cl, G_Ai_WantsRetreat(cl) ? AI_STATE_RETREAT : AI_STATE_FIGHT);
+    } else if (tasked) {
+      G_Ai_Enter(cl, AI_STATE_TASK);
+    } else if (ai->state == AI_STATE_TASK) {
+      G_Ai_Resume(cl);
     } else if (ai->state == AI_STATE_FIGHT || ai->state == AI_STATE_RETREAT) {
       if (ai->combatTargetLost && G_Ai_WantsPursuit(cl)) {
         G_Ai_Enter(cl, AI_STATE_CHASE);
@@ -2226,6 +2402,9 @@ uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd) {
     case AI_STATE_ESCAPE:
       G_Ai_State_escape(cl);
       break;
+    case AI_STATE_TASK:
+      G_Ai_State_task(cl);
+      break;
     default:
       G_Error("Invalid state %d\n", ai->state);
   }
@@ -2253,6 +2432,7 @@ void G_Ai_State_Reset(GameClient *cl) {
   ai->waitTime = 0;
   ai->gateRestTime = 0;
   ai->alertInvestigated = false;
+  ai->taskRetryTime = 0;
 
   memset(ai->avoids, 0, sizeof(ai->avoids));
 

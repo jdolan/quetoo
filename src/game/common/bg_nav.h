@@ -564,9 +564,10 @@ const char *Nav_TravelName(const NavTravelType type);
 
 /**
  * @brief Flies a player from where `pm` stands on the push, with no input, as a bot rides one. The
- * push sets the velocity again in each move that the player's box touches it, as `G_trigger_push_Push` does, and so does each other push of `pushes` that the box
- * touches in flight, so that a pad that throws the player onto another is flown on. One move is one
- * server frame.
+ * push sets the velocity again in each move that the player's box touches it, as
+ * `G_trigger_push_Push` does, and so does each other push of `pushes` that the box touches in
+ * flight, so that a pad that throws the player onto another is flown on. One move is one server
+ * frame.
  * @param push The push to fly.
  * @param pushes The level's pushes, or NULL. Those that start off are passed through.
  * @param numPushes The count of `pushes`.
