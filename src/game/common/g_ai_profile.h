@@ -149,4 +149,12 @@ void G_Ai_Profile_Task(const GameClient *cl, const GameAiNodeId node, const char
  * @param team The team whose flag it is.
  */
 void G_Ai_Profile_Flag(const GameClient *cl, const char *event, const int32_t team);
+
+/**
+ * @brief Records points that a client earns for a capture the flag event, with `AI_PROFILE_BOTS`
+ * or `AI_PROFILE_PLAYERS`.
+ * @param event What earned them: `capture`, `team_capture`, `assist`, `steal`, `return`,
+ * `carrier_kill`, `carrier_danger`, `flag_defense` or `carrier_defense`.
+ */
+void G_Ai_Profile_Points(const GameClient *cl, const char *event, const int32_t points);
 #endif

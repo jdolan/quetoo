@@ -792,16 +792,22 @@ FLAG_EVENTS = ('steal', 'pickup', 'capture', 'return', 'drop', 'reset')
 
 
 def cmd_flags(args):
-    """Flag events per game minute over one or more logs, in total and by the team that did them."""
+    """Flag events per game minute over one or more logs, in total and by the team that did them,
+    and the capture the flag points that they earned."""
     minutes = 0.0
     totals = collections.Counter()
     teams = collections.defaultdict(collections.Counter)
     kills = 0
+    points = collections.Counter()
+    awards = collections.Counter()
     for log in args.logs:
         events = read_log(log)
         minutes += game_seconds(events) / 60.0
         for e in events:
-            if e.kind == 'FLAG':
+            if e.kind == 'POINTS':
+                awards[e['event']] += 1
+                points[e['event']] += int(e['points'])
+            elif e.kind == 'FLAG':
                 totals[e['event']] += 1
                 if e['event'] != 'reset':
                     teams[e['team']][e['event']] += 1
@@ -814,6 +820,10 @@ def cmd_flags(args):
     print(f'  {"all":<8}' + ''.join(f'{totals[name] / minutes:>9.2f}' for name in FLAG_EVENTS))
     for team in sorted(teams):
         print(f'  {"team " + team:<8}' + ''.join(f'{teams[team][name] / minutes:>9.2f}' for name in FLAG_EVENTS))
+    if awards:
+        print(f'  {"points":<16}{"per min":>9}{"points/min":>12}')
+        for name in sorted(awards, key=lambda n: -points[n]):
+            print(f'  {name:<16}{awards[name] / minutes:>9.2f}{points[name] / minutes:>12.2f}')
 
 
 # ---------------------------------------------------------------------------
