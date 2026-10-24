@@ -1015,9 +1015,11 @@ void G_DropInventoryItem(GameClient *cl, const GameItem *it) {
 
   const char *name = it->def.name;
 
-  // we don't drop in instagib or arena
+  // instagib and arena play with the weapons the client spawns with, so only those stay
   if (gameLevel.gameplay & ~GAMEPLAY_TEAMS) {
-    return;
+    if (it->def.type == ITEM_TYPE_WEAPON || it->def.type == ITEM_TYPE_AMMO) {
+      return;
+    }
   }
 
   if (cl->entity->dead) {
