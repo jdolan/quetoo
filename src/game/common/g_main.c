@@ -485,6 +485,35 @@ static void G_PostStats(void) {
 }
 
 /**
+ * @return The level's intermission point, else its first player spawn point, else the world.
+ */
+static const GameEntity *G_IntermissionPoint(void) {
+
+  static const char *classnames[] = {
+    "info_player_intermission", "info_player_start", "info_player_deathmatch"
+  };
+
+  for (size_t i = 0; i < lengthof(classnames); i++) {
+    const GameEntity *ent = G_Find(NULL, EOFS(classname), classnames[i]);
+    if (ent) {
+      return ent;
+    }
+  }
+
+  if (gameLevel.spawnPoints.count) {
+    return gameLevel.spawnPoints.spots[0];
+  }
+
+  for (int32_t t = 0; t < MAX_TEAMS; t++) {
+    if (gameTeamList[t].spawnPoints.count) {
+      return gameTeamList[t].spawnPoints.spots[0];
+    }
+  }
+
+  return ge.entities[0];
+}
+
+/**
  * @brief Starts an intermission sequence, moving all clients to the intermission viewpoint
  * and selecting the next map.
  */
@@ -505,14 +534,7 @@ static void G_BeginIntermission(void) {
     }
   });
 
-  // find an intermission spot
-  GameEntity *ent = G_Find(NULL, EOFS(classname), "info_player_intermission");
-  if (!ent) { // map does not have an intermission point
-    ent = G_Find(NULL, EOFS(classname), "info_player_start");
-    if (!ent) {
-      ent = G_Find(NULL, EOFS(classname), "info_player_deathmatch");
-    }
-  }
+  const GameEntity *ent = G_IntermissionPoint();
 
   gameLevel.intermissionOrigin = ent->s.origin;
   gameLevel.intermissionAngle = ent->s.angles;
