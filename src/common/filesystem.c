@@ -985,7 +985,7 @@ bool Fs_SetGame(const char *game, const char *cgame) {
 
   PHYSFS_freeList(paths);
 
-  if (Str_Compare(game, DEFAULT_GAME)) {
+  if (Str_Compare(game, DEFAULT_GAME) && !*module.writeDirOverride) {
     char path[MAX_OS_PATH];
     Str_Format(path, sizeof(path), "%s/%s", Sys_UserDir(), DEFAULT_GAME);
 
