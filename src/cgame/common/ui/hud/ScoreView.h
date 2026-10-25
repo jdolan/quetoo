@@ -49,7 +49,7 @@ typedef struct {
 /**
  * @brief The most fields a board may show.
  */
-#define SCORE_FIELDS_MAX 4
+#define SCORE_FIELDS_MAX 8
 
 /**
  * @brief One player on the scoreboard: the icon, a fill in the team colour, the name and

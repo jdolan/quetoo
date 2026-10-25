@@ -81,11 +81,6 @@ struct ScoreboardView {
   int32_t height;
 
   /**
-   * @brief The team totals, in a team game.
-   */
-  StackView *header;
-
-  /**
    * @brief The arrangement, from the variant's `scoreboard.json`.
    */
   ScoreboardLayout layout;
@@ -132,7 +127,8 @@ struct ScoreboardViewInterface {
 
   /**
    * @fn size_t ScoreboardView::fields(const ScoreboardView *self, const ScoreField **fields)
-   * @brief The columns this board counts: frags and deaths, and captures in CTF.
+   * @brief The columns this board counts: frags and deaths, and in CTF the score, captures and
+   * assists.
    * @param self The ScoreboardView.
    * @param fields Out; the fields, owned by the view.
    * @return The number of fields, at most `SCORE_FIELDS_MAX`.
@@ -142,7 +138,7 @@ struct ScoreboardViewInterface {
 
   /**
    * @fn void ScoreboardView::rebuild(ScoreboardView *self)
-   * @brief Rebuilds the header and the rows from the current scores.
+   * @brief Rebuilds the columns, with the team totals and the rows, from the current scores.
    * @param self The ScoreboardView.
    * @memberof ScoreboardView
    */

@@ -29,9 +29,15 @@
 #define SCORES_ROW_HEIGHT 52
 #define SCORES_ICON_WIDTH 48
 
+// the name's column in a table row, narrower than a card, so that two teams fit a small display
+#define SCORES_NAME_WIDTH 176
+
 // the column the ping keeps at the right of a table row, and the height of its header
 #define SCORES_PING_WIDTH 64
 #define SCORES_HEADER_HEIGHT 28
+
+// the height of a team's total, which heads its column
+#define SCORES_TOTAL_HEIGHT 40
 
 
 void Cg_ParseScores(void);

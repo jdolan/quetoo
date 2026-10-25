@@ -1,4 +1,5 @@
 {
   "class": "ScoreboardView",
-  "identifier": "scoreboard"
+  "identifier": "scoreboard",
+  "layout": "table"
 }

@@ -36,7 +36,6 @@ static void dealloc(Object *self) {
   ScoreboardView *this = (ScoreboardView *) self;
 
   release(this->columns);
-  release(this->header);
   release(this->title);
 
   super(Object, self, dealloc);
@@ -92,7 +91,7 @@ static int32_t tableRowWidth(ScoreboardView *self) {
   const ScoreField *f;
   const size_t count = $(self, fields, &f);
 
-  int32_t width = SCORES_ICON_WIDTH + SCORES_COL_WIDTH + SCORES_PING_WIDTH;
+  int32_t width = SCORES_ICON_WIDTH + SCORES_NAME_WIDTH + SCORES_PING_WIDTH;
 
   for (size_t i = 0; i < count; i++) {
     width += f[i].width;
@@ -139,11 +138,16 @@ static View *tableHeader(ScoreboardView *self) {
 }
 
 /**
- * @brief A column of rows, leading with the field captions in the table layout.
+ * @brief A column of rows, leading with `total` if a team game gives one, then with the field
+ * captions in the table layout.
  */
-static StackView *addRowsColumn(ScoreboardView *self) {
+static StackView *addRowsColumn(ScoreboardView *self, View *total) {
 
   StackView *column = $(self, addColumn);
+
+  if (total) {
+    $((View *) column, addSubview, total);
+  }
 
   if (self->layout == ScoreboardLayoutTable) {
 
@@ -181,12 +185,6 @@ static View *init(View *self) {
 
     $((View *) this->title, addClassName, "title");
     $(self, addSubview, (View *) this->title);
-
-    this->header = $(alloc(StackView), initWithFrame, NULL);
-    assert(this->header);
-
-    $((View *) this->header, addClassName, "header");
-    $(self, addSubview, (View *) this->header);
 
     this->columns = $(alloc(StackView), initWithFrame, NULL);
     assert(this->columns);
@@ -253,7 +251,7 @@ static StackView *addColumn(ScoreboardView *self) {
   StackView *column = $(alloc(StackView), initWithFrame, NULL);
   assert(column);
 
-  $((View *) column, addClassName, "column");
+  $((View *) column, addClassName, "rows");
 
   $((View *) self->columns, addSubview, (View *) column);
   release(column);
@@ -281,8 +279,10 @@ static ScoreView *scoreView(ScoreboardView *self, const GameScore *score) {
 
     const ScoreField *fields;
 
-    // clamped, rather than trusted: the values are gathered into a fixed array
-    const size_t count = min($((ScoreboardView *) self, fields, &fields), (size_t) SCORE_FIELDS_MAX);
+    // the values are gathered into a fixed array, and a board with more fields than it holds
+    // would put each value under the wrong caption
+    const size_t count = $((ScoreboardView *) self, fields, &fields);
+    assert(count <= SCORE_FIELDS_MAX);
 
     const char *values[SCORE_FIELDS_MAX];
     for (size_t i = 0; i < count; i++) {
@@ -311,14 +311,14 @@ static size_t fields(const ScoreboardView *self, const ScoreField **fields) {
   // lower case, as the prose reads it; the table's header uppercases it in the stylesheet
   static const ScoreField stock[] = {
 #if defined(G_CTF)
-    { "score", 80 },
+    { "score", 64 },
 #endif
-    { "frags", 80 },
+    { "frags", 64 },
 #if defined(G_CTF)
-    { "captures", 96 },
-    { "assists", 88 },
+    { "captures", 80 },
+    { "assists", 72 },
 #endif
-    { "deaths", 80 },
+    { "deaths", 64 },
   };
 
   *fields = stock;
@@ -362,23 +362,25 @@ static void describe(const ScoreboardView *self, const GameScore *score, const c
   const ScoreField *f;
   const size_t count = $((ScoreboardView *) self, fields, &f);
 
-  // every field but the last reads down the left; the last sits opposite it
-  char text[MAX_STRING_CHARS];
-  *text = '\0';
+  // a card has two lines on each side of the name: the first half of the fields reads down the
+  // left, and the rest down the right, beneath the ping
+#if defined(G_CTF)
+  // the score holds the frags, so a card leaves them to the table
+  static const size_t shown[] = { 0, 2, 3, 4 };
+#else
+  static const size_t shown[] = { 0, 1 };
+#endif
 
-  for (size_t i = 0; i + 1 < count; i++) {
-    const char *value = $((ScoreboardView *) self, valueForField, score, i);
-    Str_Append(text, va("%s%s %s", i ? "\n" : "", value, f[i].caption), sizeof(text));
+  char text[2][MAX_STRING_CHARS] = { "", "" };
+
+  for (size_t i = 0; i < lengthof(shown) && shown[i] < count; i++) {
+    char *side = text[i >= (lengthof(shown) + 1) / 2];
+    const char *value = $((ScoreboardView *) self, valueForField, score, shown[i]);
+    Str_Append(side, va("%s%s %s", *side ? "\n" : "", value, f[shown[i]].caption), MAX_STRING_CHARS);
   }
 
-  *detail = va("%s", text);
-
-  if (count) {
-    const char *value = $((ScoreboardView *) self, valueForField, score, count - 1);
-    *aside = va("%s %s", value, f[count - 1].caption);
-  } else {
-    *aside = NULL;
-  }
+  *detail = *text[0] ? va("%s", text[0]) : NULL;
+  *aside = *text[1] ? va("%s", text[1]) : NULL;
 }
 
 /**
@@ -389,12 +391,10 @@ static void rebuild(ScoreboardView *self) {
 
   $(self->title, setText, cgi.ConfigString(CS_MESSAGE));
 
-  $((View *) self->header, removeAllSubviews);
   $((View *) self->columns, removeAllSubviews);
 
   // layout treats an existing frame as authoritative, so a container that has been laid out
   // once never re-derives its size from new content: clear them, and they measure again
-  $((View *) self->header, resize, &MakeSize(0, 0));
   $((View *) self->columns, resize, &MakeSize(0, 0));
 
   size_t count;
@@ -409,8 +409,10 @@ static void rebuild(ScoreboardView *self) {
   }
 
   // The columns start 88 logical pixels down (scoreboard.css); the board used 64 for its title.
-  // A table's column leads with its field captions, which take room the rows then do not have
-  const int32_t reserved = self->layout == ScoreboardLayoutTable ? SCORES_HEADER_HEIGHT : 0;
+  // A team's column leads with its total, and a table's with its field captions, which take
+  // room the rows then do not have
+  const int32_t reserved = (self->layout == ScoreboardLayoutTable ? SCORES_HEADER_HEIGHT : 0) +
+                           (cgameState.numTeams ? SCORES_TOTAL_HEIGHT : 0);
   const size_t rows = rowsThatFit(self, 64, reserved);
 
   if (cgameState.numTeams) {
@@ -418,24 +420,22 @@ static void rebuild(ScoreboardView *self) {
     // the aggregate scores follow the players' in the array
     const GameScore *totals = scores + count;
 
+    StackView *spectators = $(self, addColumn);
+    $((View *) spectators, addClassName, "spectators");
+
     for (int32_t t = 0; t < cgameState.numTeams; t++) {
       Text *total = $(alloc(Text), initWithText, teamTotal(&cgameState.teams[t], &totals[t]), NULL);
       assert(total);
+
+      $((View *) total, addClassName, "total");
 
       const Color32 rgba = Color_Color32(cgameState.teams[t].color);
       const SDL_Color color = { rgba.r, rgba.g, rgba.b, 255 };
 
       $(total->view.style, addColorAttribute, "color", &color);
 
-      $((View *) self->header, addSubview, (View *) total);
+      StackView *column = addRowsColumn(self, (View *) total);
       release(total);
-    }
-
-    StackView *spectators = $(self, addColumn);
-    $((View *) spectators, addClassName, "spectators");
-
-    for (int32_t t = 0; t < cgameState.numTeams; t++) {
-      StackView *column = addRowsColumn(self);
 
       size_t added = 0;
       for (size_t i = 0; i < count && added < rows; i++) {
@@ -460,7 +460,7 @@ static void rebuild(ScoreboardView *self) {
     const size_t cols = self->layout == ScoreboardLayoutTable ? 1 : (count > rows ? 2 : 1);
 
     for (size_t c = 0; c < cols; c++) {
-      StackView *column = addRowsColumn(self);
+      StackView *column = addRowsColumn(self, NULL);
 
       for (size_t i = c * rows; i < count && i < (c + 1) * rows; i++) {
         addRow(self, column, &scores[i]);
