@@ -1125,8 +1125,10 @@ static bool G_Ai_Node_FlyPush(const GameEntity *push, const Vec3 origin, Vec3 *l
   pm.DebugMask = gi.DebugMask;
   pm.debugMask = DEBUG_PMOVE_SERVER;
 
-  if (!Nav_FlyPush(&nav, (const NavPush *) module.pushes->elements, (int32_t) module.pushes->count,
-                   &pm, NULL, 0, NULL, time)) {
+  const NavPush *pushes = module.pushes->elements;
+  const int32_t numPushes = (int32_t) module.pushes->count;
+
+  if (!Nav_FlyPush(&nav, pushes, numPushes, &pm, NULL, 0, NULL, time)) {
     *landing = pm.s.origin;
     return false;
   }
