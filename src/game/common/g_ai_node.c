@@ -222,6 +222,12 @@ static struct {
    * lava to leave.
    */
   bool escape;
+
+  /**
+   * @brief The level's `trigger_push` entities, as `NavPush`, which a flight passes on to each
+   * other: a pad can throw a player onto another.
+   */
+  Vector *pushes;
 } module;
 
 /**
@@ -1090,8 +1096,9 @@ static float G_Ai_Node_RiseTime(const float speed, const float gravity, const fl
 
 /**
  * @brief Flies a player from `origin` on a `trigger_push` with the level's movement and no input,
- * as a bot rides one, with `Nav_FlyPush`, which the client game draws the same flight with.
- * @param landing The player origin where the flight lands.
+ * as a bot rides one, with `Nav_FlyPush`, which the client game draws the same flight with. The
+ * flight passes on to each other push of the level that it touches.
+ * @param landing The player origin where the flight lands, or where it ends if it does not land.
  * @param time The duration of the flight, in seconds.
  * @return True if the flight lands within `NAV_FLIGHT_SECONDS`.
  */
@@ -1118,7 +1125,9 @@ static bool G_Ai_Node_FlyPush(const GameEntity *push, const Vec3 origin, Vec3 *l
   pm.DebugMask = gi.DebugMask;
   pm.debugMask = DEBUG_PMOVE_SERVER;
 
-  if (!Nav_FlyPush(&nav, &pm, NULL, 0, NULL, time)) {
+  if (!Nav_FlyPush(&nav, (const NavPush *) module.pushes->elements, (int32_t) module.pushes->count,
+                   &pm, NULL, 0, NULL, time)) {
+    *landing = pm.s.origin;
     return false;
   }
 
@@ -1345,6 +1354,7 @@ static void G_Ai_Node_LinkPush_angled(const GameEntity *push, const GameAiNodeId
   Vec3 floor;
   if (!G_Ai_Node_PushFloor(push, &floor)) {
     G_Ai_Debug("%s @ %s has no floor\n", push->classname, vtos(pad));
+    G_Ai_Profile_PadLink(push, "nofloor", start, -1, pad);
     return;
   }
 
@@ -1354,6 +1364,7 @@ static void G_Ai_Node_LinkPush_angled(const GameEntity *push, const GameAiNodeId
   if (!G_Ai_Node_FlyPush(push, floor, &landing, &time)) {
     G_Ai_Debug("%s @ %s does not land within %.0f seconds\n", push->classname, vtos(pad),
                NAV_FLIGHT_SECONDS);
+    G_Ai_Profile_PadLink(push, "noland", start, -1, landing);
     return;
   }
 
@@ -1363,11 +1374,14 @@ static void G_Ai_Node_LinkPush_angled(const GameEntity *push, const GameAiNodeId
   if (end == AI_NODE_INVALID || end == start || end == entry) {
     G_Ai_Debug("%s @ %s lands at %s, with no node in sight\n", push->classname, vtos(pad),
                vtos(landing));
+    G_Ai_Profile_PadLink(push, "nolanding", start, -1, landing);
     return;
   }
 
-  G_Ai_Node_LinkTravel(entry == AI_NODE_INVALID ? start : entry, end, G_Ai_Node_RideCost(time),
-                       NAV_TRAVEL_PUSH);
+  const GameAiNodeId from = entry == AI_NODE_INVALID ? start : entry;
+
+  G_Ai_Node_LinkTravel(from, end, G_Ai_Node_RideCost(time), NAV_TRAVEL_PUSH);
+  G_Ai_Profile_PadLink(push, "linked", from, end, landing);
 }
 
 /**
@@ -1391,6 +1405,7 @@ static void G_Ai_Node_LinkPush(const GameEntity *push) {
   const GameAiNodeId start = G_Ai_Node_FindClosestStatic(pad, AI_PUSH_NODE_DISTANCE, true, false);
   if (start == AI_NODE_INVALID) {
     G_Ai_Debug("No node at %s @ %s\n", push->classname, vtos(pad));
+    G_Ai_Profile_PadLink(push, "nonode", -1, -1, pad);
     return;
   }
 
@@ -1475,6 +1490,19 @@ static void G_Ai_Node_LinkPlat(const GameEntity *plat) {
  * @brief Links the graph's rides: jump pads and plats. Teleporters link themselves.
  */
 static void G_Ai_Node_LinkRides(void) {
+
+  release(module.pushes);
+  module.pushes = $(alloc(Vector), initWithSize, sizeof(NavPush));
+
+  G_ForEachEntity(ent, {
+    if (ent->classname && !Str_Compare(ent->classname, "trigger_push")) {
+      NavPush push;
+      push.bounds = ent->absBounds;
+      push.velocity = Vec3_Scale(ent->moveDir, ent->speed * 10.f);
+      push.startOff = ent->solid == SOLID_NOT;
+      $(module.pushes, add, &push);
+    }
+  });
 
   G_ForEachEntity(ent, {
     if (!ent->classname) {
@@ -2462,6 +2490,7 @@ void G_Ai_Node_Shutdown(void) {
   }
 
   module.platforms = release(module.platforms);
+  module.pushes = release(module.pushes);
 
   memset(module.doors, 0, sizeof(module.doors));
 

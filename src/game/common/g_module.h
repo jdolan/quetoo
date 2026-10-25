@@ -308,6 +308,25 @@ extern GameAllowHookHook G_AllowHook;
 
 /**
  * @}
+ * @defgroup hooks-ai AI
+ * @brief What a module asks of its bots, beyond the items that they collect. Tail in g_ai_state.c.
+ * @{
+ */
+
+/**
+ * @brief Gives the bot a task, such as to capture or defend a flag, which goes before the items
+ * that it collects. The game asks each time that the bot's state machine runs.
+ * @param task Receives the task. The bot's last task is still in `cl->ai->task` during the call.
+ * @return True if the bot has a task. The tail gives none.
+ * @details Chainable. A feature answers for the bots to which it gives a task, and defers to
+ * previous for the others.
+ */
+typedef bool (*GameAiTaskHook)(const GameClient *cl, GameAiTask *task);
+
+extern GameAiTaskHook G_Ai_Task;
+
+/**
+ * @}
  * @defgroup hooks-rules Rules
  * @brief The rules a module enforces, once per frame or once per level. Tails in
  * g_rules.c.

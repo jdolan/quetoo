@@ -446,9 +446,14 @@ static const char *G_Ai_Profile_Token(const char *name) {
 }
 
 /**
- * @return The class name of the bot's objective, or `none`.
+ * @return The class name of the entity of the bot's task while it does one, else of its objective,
+ * or `none`.
  */
 static const char *G_Ai_Profile_Objective(const GameClient *cl) {
+
+  if (cl->ai->state == AI_STATE_TASK && cl->ai->task.ent && cl->ai->task.ent->inUse) {
+    return cl->ai->task.ent->classname;
+  }
 
   const GameEntity *objective = G_Ai_State_Objective(cl);
 
@@ -1131,4 +1136,56 @@ void G_Ai_Profile_Killed(const GameClient *cl, const GameEntity *attacker, const
 
   c->numPositions = 0;
   c->jumping = c->pushed = false;
+}
+
+/**
+ * @see g_ai_profile.h
+ */
+void G_Ai_Profile_Flag(const GameClient *cl, const char *event, const int32_t team) {
+
+  const int32_t flags = cl ? (cl->ai ? AI_PROFILE_BOTS : AI_PROFILE_PLAYERS)
+                           : AI_PROFILE_BOTS | AI_PROFILE_PLAYERS;
+
+  if (!G_Ai_Profile_Records(flags)) {
+    return;
+  }
+
+  const int32_t carrierTeam = cl && cl->persistent.team ? cl->persistent.team->id : -1;
+
+  G_Ai_Profile_Print(cl ? cl->ps.client : -1, "FLAG", "event=%s flag=%d team=%d bot=%d", event,
+                     team, carrierTeam, cl && cl->ai != NULL);
+}
+
+/**
+ * @see g_ai_profile.h
+ */
+void G_Ai_Profile_Task(const GameClient *cl, const GameAiNodeId node, const char *reason) {
+
+  if (!G_Ai_Profile_Records(AI_PROFILE_BOTS)) {
+    return;
+  }
+
+  const GameAiTask *task = &cl->ai->task;
+
+  G_Ai_Profile_Print(cl->ps.client, "TASK", "reason=%s task=%s ent=%s node=%d pos=%d,%d,%d "
+                     "urgent=%d radius=%d", reason, task->name ?: "none",
+                     task->ent ? task->ent->classname : "none", (int32_t) node,
+                     AI_PROFILE_VEC3(cl->entity->s.origin), task->urgent, (int32_t) task->radius);
+}
+
+/**
+ * @see g_ai_profile.h
+ */
+void G_Ai_Profile_PadLink(const GameEntity *push, const char *result, const int32_t from,
+                          const int32_t to, const Vec3 landing) {
+
+  if (!G_Ai_Profile_Records(AI_PROFILE_GRAPH)) {
+    return;
+  }
+
+  G_Ai_Profile_Print(-1, "PADLINK", "result=%s center=%d,%d,%d dir=%.2f,%.2f,%.2f speed=%d "
+                     "from=%d to=%d landing=%d,%d,%d", result,
+                     AI_PROFILE_VEC3(Box3_Center(push->absBounds)), push->moveDir.x,
+                     push->moveDir.y, push->moveDir.z, (int32_t) push->speed, from, to,
+                     AI_PROFILE_VEC3(landing));
 }

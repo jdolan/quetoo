@@ -36,6 +36,9 @@
     <ClInclude Include="..\src\game\common\g_ctf.h">
       <Filter>src\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\game\common\g_ai_ctf.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\game\common\g_item.h">
       <Filter>src\common</Filter>
     </ClInclude>
@@ -168,6 +171,9 @@
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\common\g_ctf.c">
+      <Filter>src\common</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\game\common\g_ai_ctf.c">
       <Filter>src\common</Filter>
     </ClCompile>
     <ClCompile Include="..\src\game\common\g_item.c">

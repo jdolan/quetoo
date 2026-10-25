@@ -40,6 +40,7 @@
 #include "g_client.h"
 #include "g_effect.h"
 #if defined(G_CTF)
+#include "g_ai_ctf.h"
 #include "g_ctf.h"
 #endif
 #if defined(G_HOOK)

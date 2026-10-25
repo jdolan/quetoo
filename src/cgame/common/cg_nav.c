@@ -396,8 +396,8 @@ static void Cg_PrepareNavFlights(const ClientFrame *frame) {
     pm.debugMask = DEBUG_PMOVE_CLIENT;
 
     float seconds;
-    flight->lands = Nav_FlyPush(push, &pm, flight->points, CG_NAV_FLIGHT_POINTS, &flight->numPoints,
-                                &seconds);
+    flight->lands = Nav_FlyPush(push, graph->pushes, graph->numPushes, &pm, flight->points,
+                                CG_NAV_FLIGHT_POINTS, &flight->numPoints, &seconds);
   }
 }
 
