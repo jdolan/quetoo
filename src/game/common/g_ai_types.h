@@ -408,6 +408,22 @@ typedef struct {
   uint32_t glanceTime;
 
   /**
+   * @brief The index in the path of the node to which the bot moved when it last checked its path
+   * for the hook.
+   */
+  uint32_t checkIndex;
+
+  /**
+   * @brief The objective of the path that the bot last checked for the hook.
+   */
+  GameAiNodeId checkNode;
+
+  /**
+   * @brief Level time after which the bot MAY check its path again.
+   */
+  uint32_t checkTime;
+
+  /**
    * @brief The item that the bot hooks to, which no path reaches, or NULL for a node of its path.
    */
   const struct GameEntity *item;

@@ -65,6 +65,12 @@
 #define AI_HOOK_GLANCE_ERROR 10.f
 
 /**
+ * @brief The least time in milliseconds between two checks of the path for the hook without a
+ * glance (`G_Ai_Hook_ShouldCheck`).
+ */
+#define AI_HOOK_CHECK_MILLIS 500
+
+/**
  * @brief The longest aim in milliseconds, after which the bot gives up the hook.
  */
 #define AI_HOOK_AIM_MILLIS 1000
@@ -90,6 +96,14 @@
  * `PM_HOOK_MIN_DIST`.
  */
 #define AI_HOOK_SHORT_DISTANCE (PM_HOOK_MIN_DIST + 16.f)
+
+/**
+ * @brief The height in units above the position at which the bot lets go, from which
+ * `G_Ai_Hook_IsSafe` follows its flight. A pull with any upward speed lifts the bot off the floor
+ * (`Pm_CheckHookJump`), and a pull has no gravity, so the bot flies on at the pull speed after it
+ * lets go, until it falls back to the floor.
+ */
+#define AI_HOOK_RELEASE_LIFT 8.f
 
 /**
  * @brief The longest flight in seconds after the bot lets go, that `G_Ai_Hook_IsSafe` follows.
@@ -203,8 +217,8 @@ static Vec3 G_Ai_Hook_Eye(const GameClient *cl) {
  * @brief Finds where the hook catches, to pull the bot to the position: the bot's box MUST pass
  * from the bot to the position, and a structural surface MUST lie beyond it along the same line,
  * within `AI_HOOK_BEYOND`, but not nearer than `AI_HOOK_MIN_BEYOND`. The surface is the world or
- * a model that does not move, not a player or a mover, which can move before the hook gets there. Then the pull, which runs from
- * the bot to the hook, takes the bot through the position. The hook MUST reach the point from the
+ * a model that does not move, not a player or a mover, which can move before the hook gets there.
+ * Then the pull, which runs from the bot to the hook, takes the bot through the position. The hook MUST reach the point from the
  * bot's eye, within `g_hookDistance`.
  * @return NULL if the hook can pull the bot to the position, else why not, for the profiler:
  * `range`, `body` (the box does not pass), `beyond` (nothing to catch), `surface` (sky, a player,
@@ -279,28 +293,50 @@ static bool G_Ai_Hook_IsHazard(const GameEntity *ent, const Vec3 start, const Ve
 
 /**
  * @return True if the pull from the bot to the position, and the bot's flight after it lets go
- * there, keep out of lava, slime, `trigger_hurt` and `trigger_push`. The bot lets go at the pull speed, toward the
- * hook, and the flight is safe once it lands on a floor, or after `AI_HOOK_FLIGHT_SECONDS`.
+ * there, keep out of lava, slime, `trigger_hurt` and `trigger_push`. The bot lets go at the pull
+ * speed, toward the hook, `AI_HOOK_RELEASE_LIFT` above the position, and slides on a floor until
+ * friction, about as `Pm_Friction` applies it, slows it to its ground speed, at which it runs
+ * under its own control. The flight is also safe after `AI_HOOK_FLIGHT_SECONDS`.
  */
 static bool G_Ai_Hook_IsSafe(const GameClient *cl, const Vec3 dest, const Vec3 point) {
 
   const GameEntity *ent = cl->entity;
+  const PMoveParams *params = &cl->ps.pmState.params;
 
   if (G_Ai_Hook_IsHazard(ent, ent->s.origin, dest)) {
     return false;
   }
 
-  Vec3 origin = dest;
+  const Vec3 lift = Vec3_Add(dest, MakeVec3(0.f, 0.f, AI_HOOK_RELEASE_LIFT));
+  Vec3 origin = gi.Trace(dest, lift, ent->bounds, ent, ent->clipMask).end;
   Vec3 velocity = Vec3_Scale(Vec3_Normalize(Vec3_Subtract(point, ent->s.origin)),
                              g_hookPullSpeed->value);
 
   const float gravity = G_LevelGravity();
+  const float dt = AI_HOOK_FLIGHT_STEP_SECONDS;
 
-  for (float time = 0.f; time < AI_HOOK_FLIGHT_SECONDS; time += AI_HOOK_FLIGHT_STEP_SECONDS) {
+  bool ground = false, slick = false;
 
-    const Vec3 end = Vec3_Fmaf(origin, AI_HOOK_FLIGHT_STEP_SECONDS, velocity);
-    velocity.z -= gravity * AI_HOOK_FLIGHT_STEP_SECONDS;
+  for (float time = 0.f; time < AI_HOOK_FLIGHT_SECONDS; time += dt) {
 
+    if (ground) {
+      const float speed = Vec3_Length(MakeVec3(velocity.x, velocity.y, 0.f));
+
+      if (speed <= Maxf(1.f, params->speedGround)) {
+        return true;
+      }
+
+      const float friction = Maxf(0.f, slick ? params->frictionGroundSlick
+                                             : params->frictionGround);
+      const float control = Maxf(params->speedStop, speed);
+      const float scale = Maxf(0.f, speed - friction * control * dt) / speed;
+
+      velocity = MakeVec3(velocity.x * scale, velocity.y * scale, 0.f);
+    } else {
+      velocity.z -= gravity * dt;
+    }
+
+    const Vec3 end = Vec3_Fmaf(origin, dt, velocity);
     const CollisionTrace tr = gi.Trace(origin, end, ent->bounds, ent, ent->clipMask);
 
     if (tr.startSolid) {
@@ -318,7 +354,8 @@ static bool G_Ai_Hook_IsSafe(const GameClient *cl, const Vec3 dest, const Vec3 p
       }
 
       if (tr.plane.normal.z >= PM_STEP_NORMAL) {
-        return true;
+        ground = true;
+        slick = tr.surface & SURF_SLICK;
       }
 
       velocity = Vec3_Subtract(velocity,
@@ -326,6 +363,21 @@ static bool G_Ai_Hook_IsSafe(const GameClient *cl, const Vec3 dest, const Vec3 p
     }
 
     origin = tr.end;
+
+    if (ground) {
+      const Vec3 down = Vec3_Add(origin, MakeVec3(0.f, 0.f, -PM_STEP_HEIGHT));
+      const CollisionTrace floor = gi.Trace(origin, down, ent->bounds, ent, ent->clipMask);
+
+      ground = floor.fraction < 1.f && floor.plane.normal.z >= PM_STEP_NORMAL;
+
+      if (ground) {
+        if (G_Ai_Hook_IsHazard(ent, origin, floor.end)) {
+          return false;
+        }
+        origin = floor.end;
+        slick = floor.surface & SURF_SLICK;
+      }
+    }
   }
 
   return true;
@@ -370,13 +422,18 @@ static const char *G_Ai_Hook_Reach(const GameClient *cl, const Vec3 node, Vec3 *
  * @brief Looks along the bot's path, from its objective back toward the bot, for the farthest node
  * to which the hook can pull it (`G_Ai_Hook_Point`), and which is at least `AI_HOOK_MIN_PATH` along
  * the path.
+ * @param reason If not NULL, why most of the nodes failed (`G_Ai_Hook_Reach`), or `near` if no
+ * node is far enough along the path, for the profiler.
  * @return True if the bot has a node to hook to.
  */
-static bool G_Ai_Hook_FindNode(GameClient *cl) {
+static bool G_Ai_Hook_FindNode(GameClient *cl, const char **reason) {
 
   const GameAiGoal *goal = &cl->ai->moveTarget;
   const Vector *path = goal->path.path;
   GameAiHook *hook = &cl->ai->hook;
+
+  static const char *reasons[] = { "range", "body", "beyond", "surface", "sight", "hazard" };
+  uint32_t counts[lengthof(reasons)] = { 0 };
 
   float pathDistance = G_Ai_Hook_PathDistance(cl, (uint32_t) path->count - 1);
 
@@ -390,7 +447,8 @@ static bool G_Ai_Hook_FindNode(GameClient *cl) {
     const Vec3 prev = G_Ai_Node_GetPosition(VectorValue(path, GameAiNodeId, i - 1));
 
     Vec3 dest;
-    if (!G_Ai_Hook_Reach(cl, node, &dest, &hook->point)) {
+    const char *r = G_Ai_Hook_Reach(cl, node, &dest, &hook->point);
+    if (!r) {
       hook->dest = dest;
       hook->node = VectorValue(path, GameAiNodeId, i);
       hook->index = i;
@@ -399,32 +457,27 @@ static bool G_Ai_Hook_FindNode(GameClient *cl) {
       return true;
     }
 
+    for (size_t j = 0; j < lengthof(reasons); j++) {
+      if (!strcmp(r, reasons[j])) {
+        counts[j]++;
+      }
+    }
+
     pathDistance -= Vec3_Distance(prev, node);
   }
 
-  return false;
-}
-
-/**
- * @return True if the bot's box still passes along the pull, from the bot toward the hook's point,
- * as far as the node at which it lets go. The point stays where the bot found it while it aims.
- */
-static bool G_Ai_Hook_IsPullClear(const GameClient *cl) {
-
-  const GameEntity *ent = cl->entity;
-  const GameAiHook *hook = &cl->ai->hook;
-
-  const Vec3 dir = Vec3_Normalize(Vec3_Subtract(hook->point, ent->s.origin));
-  const float along = Vec3_Dot(Vec3_Subtract(hook->dest, ent->s.origin), dir);
-
-  if (along < AI_HOOK_MIN_DISTANCE) {
-    return false;
+  if (reason) {
+    *reason = "near";
+    uint32_t most = 0;
+    for (size_t j = 0; j < lengthof(reasons); j++) {
+      if (counts[j] > most) {
+        most = counts[j];
+        *reason = reasons[j];
+      }
+    }
   }
 
-  const Vec3 end = Vec3_Fmaf(ent->s.origin, along, dir);
-  const CollisionTrace trace = gi.Trace(ent->s.origin, end, ent->bounds, ent, ent->clipMask);
-
-  return !trace.startSolid && trace.fraction == 1.f;
+  return false;
 }
 
 /**
@@ -545,13 +598,21 @@ static bool G_Ai_Hook_FindItem(GameClient *cl) {
 }
 
 /**
- * @return True if the bot's path is long enough to consider the hook, and the bot did not glance
- * at its objective lately from about here.
+ * @return The last node of the bot's path, its objective. The bot MUST follow a path.
  */
-static bool G_Ai_Hook_ShouldGlance(const GameClient *cl) {
+static GameAiNodeId G_Ai_Hook_Objective(const GameClient *cl) {
+
+  const Vector *path = cl->ai->moveTarget.path.path;
+
+  return VectorValue(path, GameAiNodeId, path->count - 1);
+}
+
+/**
+ * @return True if the bot follows a path long enough to consider the hook, on foot.
+ */
+static bool G_Ai_Hook_IsPathReady(const GameClient *cl) {
 
   const GameAiGoal *goal = &cl->ai->moveTarget;
-  const GameAiHook *hook = &cl->ai->hook;
 
   if (goal->type != AI_GOAL_PATH || !goal->path.path ||
       goal->path.pathIndex + 1 >= goal->path.path->count) {
@@ -566,19 +627,57 @@ static bool G_Ai_Hook_ShouldGlance(const GameClient *cl) {
     return false;
   }
 
-  if (hook->glanceTime > gameLevel.time) {
+  return G_Ai_Hook_PathDistance(cl, (uint32_t) goal->path.path->count - 1) >= AI_HOOK_MIN_PATH;
+}
+
+/**
+ * @return True if the bot did not glance at its objective lately from about here, and its path is
+ * ready for the hook.
+ */
+static bool G_Ai_Hook_ShouldGlance(const GameClient *cl) {
+
+  const GameAiHook *hook = &cl->ai->hook;
+
+  if (hook->glanceTime > gameLevel.time || !G_Ai_Hook_IsPathReady(cl)) {
     return false;
   }
 
-  const uint32_t last = (uint32_t) goal->path.path->count - 1;
-  const GameAiNodeId objective = VectorValue(goal->path.path, GameAiNodeId, last);
-
-  if (objective == hook->glanceNode &&
+  if (G_Ai_Hook_Objective(cl) == hook->glanceNode &&
       Vec3_Distance(cl->entity->s.origin, hook->glanceOrigin) < AI_HOOK_GLANCE_MOVE) {
     return false;
   }
 
-  return G_Ai_Hook_PathDistance(cl, last) >= AI_HOOK_MIN_PATH;
+  return true;
+}
+
+/**
+ * @return True if the bot moved on to another node of its path, or has a new path, since it last
+ * checked its path for the hook, at most each `AI_HOOK_CHECK_MILLIS`, and its path is ready for
+ * the hook. The view along the path opens as the bot turns a corner.
+ */
+static bool G_Ai_Hook_ShouldCheck(const GameClient *cl) {
+
+  const GameAiHook *hook = &cl->ai->hook;
+
+  if (hook->checkTime > gameLevel.time || !G_Ai_Hook_IsPathReady(cl)) {
+    return false;
+  }
+
+  return cl->ai->moveTarget.path.pathIndex != hook->checkIndex ||
+         G_Ai_Hook_Objective(cl) != hook->checkNode;
+}
+
+/**
+ * @brief Records the node of the path to which the bot moves, and its objective, so that the bot
+ * checks its path again only after it moves on, or for a new path.
+ */
+static void G_Ai_Hook_Checked(GameClient *cl) {
+
+  GameAiHook *hook = &cl->ai->hook;
+
+  hook->checkIndex = cl->ai->moveTarget.path.pathIndex;
+  hook->checkNode = G_Ai_Hook_Objective(cl);
+  hook->checkTime = gameLevel.time + AI_HOOK_CHECK_MILLIS;
 }
 
 /**
@@ -598,6 +697,7 @@ static void G_Ai_Hook_Glance(GameClient *cl) {
   hook->glance = goal->path.pathTarget ? goal->path.pathTarget->s.origin
                                        : G_Ai_Node_GetPosition(hook->glanceNode);
 
+  G_Ai_Hook_Checked(cl);
   G_Ai_Hook_Enter(cl, AI_HOOK_GLANCE);
 }
 
@@ -770,8 +870,22 @@ bool G_Ai_Hook_Move(GameClient *cl, PMoveCmd *cmd) {
   switch (hook->phase) {
     case AI_HOOK_NONE:
       if (G_Ai_Hook_IsAvailable(cl) && G_Ai_Hook_IsStateAllowed(cl)) {
-        if (!G_Ai_Hook_FindItem(cl) && G_Ai_Hook_ShouldGlance(cl)) {
+        if (G_Ai_Hook_FindItem(cl)) {
+          return false;
+        }
+
+        if (G_Ai_Hook_ShouldGlance(cl)) {
           G_Ai_Hook_Glance(cl);
+        } else if (G_Ai_Hook_ShouldCheck(cl)) {
+          G_Ai_Hook_Checked(cl);
+
+          const char *reason;
+          if (G_Ai_Hook_FindNode(cl, &reason)) {
+            G_Ai_Profile_Hook(cl, "check", "hook");
+            G_Ai_Hook_Enter(cl, AI_HOOK_AIM);
+          } else {
+            G_Ai_Profile_Hook(cl, "check", va("none-%s", reason));
+          }
         }
       }
       return false;
@@ -796,8 +910,9 @@ bool G_Ai_Hook_Move(GameClient *cl, PMoveCmd *cmd) {
         found = reason == NULL;
         G_Ai_Profile_Hook(cl, "glance", found ? "item" : va("noitem-%s", reason));
       } else {
-        found = G_Ai_Hook_FindNode(cl);
-        G_Ai_Profile_Hook(cl, "glance", found ? "hook" : "none");
+        const char *reason;
+        found = G_Ai_Hook_FindNode(cl, &reason);
+        G_Ai_Profile_Hook(cl, "glance", found ? "hook" : va("none-%s", reason));
       }
 
       if (found) {
@@ -819,12 +934,6 @@ bool G_Ai_Hook_Move(GameClient *cl, PMoveCmd *cmd) {
         lost = hook->item ? "item" : "path";
       } else if (!hook->item && cl->ai->moveTarget.path.pathIndex >= hook->index) {
         lost = "passed";
-      } else if (!G_Ai_Hook_IsPullClear(cl)) {
-        if (hook->item ? G_Ai_Hook_Reach(cl, G_Ai_Node_GetPosition(hook->item->node),
-                                         &hook->dest, &hook->point) != NULL
-                       : !G_Ai_Hook_FindNode(cl)) {
-          lost = "blocked";
-        }
       }
 
       if (lost) {
@@ -913,6 +1022,7 @@ void G_Ai_Hook_Reset(GameClient *cl) {
     .phase = AI_HOOK_NONE,
     .node = AI_NODE_INVALID,
     .glanceNode = AI_NODE_INVALID,
+    .checkNode = AI_NODE_INVALID,
   };
 }
 

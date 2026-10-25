@@ -27,9 +27,10 @@
  * @brief Lets the bot use the grapple hook along its path, as a player does. A bot with a distant
  * objective glances at it, and looks for the farthest node of its path that it can be pulled to in
  * a straight line, with a wall or a floor at most `AI_HOOK_BEYOND` units beyond it for the hook to
- * catch. If it finds one, it turns to that point and fires, and keeps to its route until the hook
- * pulls it. It lets go at the node, and always lets go in time. The bot does not consider the hook
- * in a fight, only when it chases or retreats from an enemy.
+ * catch. It looks again without a glance as it moves on along its path, because the view opens
+ * past a corner. If it finds one, it turns to that point and fires, and keeps to its route until
+ * the hook pulls it. It lets go at the node, and always lets go in time. The bot does not consider
+ * the hook in a fight, only when it chases or retreats from an enemy.
  * @return True if the hook pulls the bot, which then moves no other way.
  */
 bool G_Ai_Hook_Move(GameClient *cl, PMoveCmd *cmd);

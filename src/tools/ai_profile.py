@@ -835,8 +835,8 @@ HOOK_FALL_MILLIS = 3000
 
 def cmd_hooks(args):
     """What bots do with the grapple hook, per game minute over one or more logs: glances at an
-    objective and whether they found a node to hook to, aims given up, fires, attaches, and releases
-    by reason. For each release at the node, the distance along the path that the pull saved, and
+    objective and checks of the path without a glance, and whether they found a node to hook to,
+    aims given up, fires, attaches, and releases by reason. For each release at the node, the distance along the path that the pull saved, and
     the time against a run along the path at PM_SPEED_RUN. A world death or a suicide within
     HOOK_FALL_MILLIS of a release counts as a fall after the hook."""
     minutes = 0.0
@@ -855,7 +855,7 @@ def cmd_hooks(args):
         for e in events:
             if e.kind == 'HOOK':
                 event = e['event']
-                if event in ('glance', 'aim', 'release'):
+                if event in ('glance', 'check', 'aim', 'release'):
                     counts[f'{event}:{e["result"]}'] += 1
                 else:
                     counts[event] += 1
