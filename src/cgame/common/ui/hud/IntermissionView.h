@@ -64,6 +64,11 @@ struct IntermissionView {
   StackView *strip;
 
   /**
+   * @brief The card that holds the result and the prompt, so that they read over any scene.
+   */
+  StackView *outcome;
+
+  /**
    * @brief The result of a practice match: Victory or Defeat.
    */
   Text *result;

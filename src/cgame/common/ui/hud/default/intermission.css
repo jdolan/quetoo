@@ -24,15 +24,36 @@ IntermissionView > .strip {
   padding-bottom: 40;
 }
 
+/* the result and the prompt share a card, so that they read over any scene */
+IntermissionView .outcome {
+  alignment: center;
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 4;
+  background-color: #08151acc;
+  border-radius: 4;
+  padding: 12 32 12 32;
+}
+
 /* the result of a practice match, over its choices */
 IntermissionView .result {
   alignment: top-center;
   font-family: Share Tech Mono;
-  font-size: 36;
+  font-size: 56;
 }
 
 IntermissionView .prompt {
   alignment: top-center;
+  font-size: 20;
+}
+
+/* the result takes the color of its outcome, so it reads at a glance */
+IntermissionView .result.victory {
+  color: #ffd75c;
+}
+
+IntermissionView .result.defeat {
+  color: #ff5c5c;
 }
 
 IntermissionView .maps {
