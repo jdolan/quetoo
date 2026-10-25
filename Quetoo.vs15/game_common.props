@@ -102,6 +102,8 @@
     <ClInclude Include="..\src\game\common\g_ctf.h" />
   </ItemGroup>
   <ItemGroup Condition="'$(QuetooGameHook)'=='true'">
+    <ClCompile Include="..\src\game\common\g_ai_hook.c" />
+    <ClInclude Include="..\src\game\common\g_ai_hook.h" />
     <ClCompile Include="..\src\game\common\g_hook.c" />
     <ClInclude Include="..\src\game\common\g_hook.h" />
     <ClInclude Include="..\src\game\common\bg_hook.h" />

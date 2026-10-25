@@ -454,6 +454,7 @@ static const char *const stateNames[AI_STATE_TOTAL] = {
   [AI_STATE_ESCAPE] = "escape",
   [AI_STATE_CLIMB] = "climb",
   [AI_STATE_TASK] = "task",
+  [AI_STATE_HOOK] = "hook",
 };
 
 static struct {
@@ -651,6 +652,13 @@ static float G_Ai_ItemValue(const GameClient *cl, const GameEntity *ent, const u
   }
 
   return value * G_Ai_AvoidScale(cl, ent);
+}
+
+/**
+ * @see g_ai_state.h
+ */
+float G_Ai_State_ItemValue(const GameClient *cl, const GameEntity *ent, const uint32_t eta) {
+  return G_Ai_ItemValue(cl, ent, eta, cl->ai->state == AI_STATE_RETREAT);
 }
 
 /**
@@ -2311,22 +2319,27 @@ static bool G_Ai_IsAirborne(const GameClient *cl) {
 }
 
 /**
- * @brief Enters `AI_STATE_CLIMB` and keeps the path: the climb owns the bot until it leaves the
- * ladder. A player who climbs is in the open and cannot fight back well, so the bot does not stop
- * to fight, or take a new objective, which would leave it on the ladder with no path.
+ * @brief Enters `AI_STATE_CLIMB` or `AI_STATE_HOOK` and keeps the path: the climb owns the bot
+ * until it leaves the ladder, and the hook until it lets go. A player who climbs is in the open and
+ * cannot fight back well, so the bot does not stop to fight, or take a new objective, which would
+ * leave it on the ladder with no path. A bot on the hook keeps the path that the hook follows. A
+ * bot that the hook lets go onto a ladder, before its state machine ran, climbs from the hook, and
+ * then returns to the state that the hook interrupted: an interruption never resumes another.
  */
-static void G_Ai_Climb(GameClient *cl) {
+static void G_Ai_Interrupt(GameClient *cl, const GameAiStateId state) {
 
   GameAi *ai = cl->ai;
 
-  if (ai->state == AI_STATE_CLIMB) {
+  if (ai->state == state) {
     return;
   }
 
-  ai->climbState = ai->state;
-  ai->climbStateTime = ai->stateTime;
+  if (ai->state != AI_STATE_CLIMB && ai->state != AI_STATE_HOOK) {
+    ai->interruptedState = ai->state;
+    ai->interruptedStateTime = ai->stateTime;
+  }
 
-  G_Ai_SwitchState(cl, AI_STATE_CLIMB);
+  G_Ai_SwitchState(cl, state);
 }
 
 /**
@@ -2349,13 +2362,19 @@ uint32_t G_Ai_State(GameClient *cl, PMoveCmd *cmd) {
   if (G_Ai_IsInLava(cl)) {
     G_Ai_Enter(cl, AI_STATE_ESCAPE);
   } else if (G_Ai_IsCommittedToClimb(cl)) {
-    G_Ai_Climb(cl);
+    G_Ai_Interrupt(cl, AI_STATE_CLIMB);
     return AI_STATE_MILLIS;
+#if defined(G_HOOK)
+  } else if (G_Ai_Hook_IsCommitted(cl)) {
+    G_Ai_Interrupt(cl, AI_STATE_HOOK);
+    return AI_STATE_MILLIS;
+#endif
   } else {
-    if (ai->state == AI_STATE_CLIMB) {
-      G_Ai_Debug("%s: climb -> %s\n", cl->persistent.netName, stateNames[ai->climbState]);
-      ai->state = ai->climbState;
-      ai->stateTime = ai->climbStateTime + (gameLevel.time - ai->stateTime);
+    if (ai->state == AI_STATE_CLIMB || ai->state == AI_STATE_HOOK) {
+      G_Ai_Debug("%s: %s -> %s\n", cl->persistent.netName, stateNames[ai->state],
+                 stateNames[ai->interruptedState]);
+      ai->state = ai->interruptedState;
+      ai->stateTime = ai->interruptedStateTime + (gameLevel.time - ai->stateTime);
     }
 
     const bool tasked = G_Ai_IsTasked(cl);
@@ -2431,7 +2450,7 @@ void G_Ai_State_Reset(GameClient *cl) {
   ai->gateNode = AI_NODE_INVALID;
   ai->shootTarget = NULL;
   ai->ladderLeaveTime = 0;
-  ai->climbState = AI_STATE_ROAM;
+  ai->interruptedState = AI_STATE_ROAM;
   ai->waitTime = 0;
   ai->gateRestTime = 0;
   ai->alertInvestigated = false;

@@ -59,6 +59,12 @@ const char *G_Ai_State_Name(const GameClient *cl);
 const GameEntity *G_Ai_State_Objective(const GameClient *cl);
 
 /**
+ * @return The value of the item to the bot, if it got there in `eta` milliseconds, or 0 if it would
+ * not value it.
+ */
+float G_Ai_State_ItemValue(const GameClient *cl, const GameEntity *ent, const uint32_t eta);
+
+/**
  * @brief Finds the gates, the doors that buttons move and whose doorways navigation links cross,
  * with their buttons, and the movers marked `"ai_hint" "trap"`, with their buttons. Called once the
  * level's entities and their nodes exist.

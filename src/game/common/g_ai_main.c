@@ -688,6 +688,19 @@ static bool G_Ai_AdvancePath(GameClient *cl, GameAiGoal *goal) {
 }
 
 /**
+ * @see g_ai_main.h
+ */
+void G_Ai_SkipPath(GameClient *cl, const uint32_t index) {
+
+  GameAiGoal *goal = &cl->ai->moveTarget;
+
+  assert(goal->type == AI_GOAL_PATH && index < goal->path.path->count);
+
+  goal->path.pathIndex = index - 1;
+  G_Ai_AdvancePath(cl, goal);
+}
+
+/**
  * @brief The minimum interval in milliseconds between attempts to path around a raised plat.
  */
 #define AI_REPLAN_MILLIS 1000
@@ -1028,11 +1041,9 @@ static bool G_Ai_IntersectsAny(const Box3 box, const Box3 *triggers, const size_
 }
 
 /**
- * @return True if the player's box, moved along the line from `start` to `end`, touches a
- * `trigger_push`, or with `hurt`, a `trigger_hurt`. Walk links keep out of both, but a bot that
- * cuts a corner of its path does not, and a jump pad beside the path throws it off.
+ * @see g_ai_main.h
  */
-static bool G_Ai_CrossesTrigger(const Vec3 start, const Vec3 end, const bool hurt) {
+bool G_Ai_CrossesTrigger(const Vec3 start, const Vec3 end, const bool hurt) {
 
   const Box3 bounds = G_PlayerBounds();
   const Box3 swept = Box3_Union(Box3_Translate(bounds, start), Box3_Translate(bounds, end));
@@ -3595,6 +3606,12 @@ static uint32_t G_Ai_Move(GameClient *cl, PMoveCmd *cmd) {
     cl->ai->strafeJumping = false;
   }
 
+#if defined(G_HOOK)
+  if (G_Ai_Hook_Move(cl, cmd)) {
+    return 0;
+  }
+#endif
+
   if (G_Ai_FollowPush(cl)) {
     cmd->forward = 0;
     cmd->right = 0;
@@ -3769,6 +3786,9 @@ static uint32_t G_Ai_Turn(GameClient *cl, PMoveCmd *cmd) {
 
   if (cl->ai->ladderLeaveTime > gameLevel.time) {
     idealAngles = MakeVec3(0.f, Vec3_Euler(cl->ai->ladderLeaveDir).y, 0.f);
+#if defined(G_HOOK)
+  } else if (G_Ai_Hook_Turn(cl, &idealAngles)) {
+#endif
   } else if (cl->ai->shootTarget && !climbing) {
     G_Ai_ShootViewAngles(cl, &idealAngles);
   } else if (combatTarget->type != AI_GOAL_ENTITY || climbing) {
@@ -3961,6 +3981,10 @@ void G_Ai_Respawn(GameClient *cl) {
 
   G_Ai_State_Reset(cl);
 
+#if defined(G_HOOK)
+  G_Ai_Hook_Reset(cl);
+#endif
+
   cl->ai->weaponCheckTime = 0;
   cl->ai->weaponHoldTime = 0;
   cl->ai->weaponNoiseSeed = Randomu();
@@ -4133,6 +4157,9 @@ static void G_Ai_ReloadNodes(void) {
   if (gameLevel.time > 1000) {
     G_Ai_Node_Ready();
     G_Ai_State_Load();
+#if defined(G_HOOK)
+    G_Ai_Hook_Load();
+#endif
   }
 
   G_ForEachClient(cl, {
@@ -4242,6 +4269,9 @@ void G_Ai_Frame(void) {
   if (gameLevel.time == 1000) {
     G_Ai_Node_Ready();
     G_Ai_State_Load();
+#if defined(G_HOOK)
+    G_Ai_Hook_Load();
+#endif
   }
 
   G_Ai_Node_UpdateMovers();

@@ -339,6 +339,7 @@
 		CE05B2973022486E0012862B /* g_entity_target.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D65D1C5C58C300CD0B13 /* g_entity_target.c */; };
 		CE05B2983022486E0012862B /* g_entity_trigger.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */; };
 		CE05B2993022486E0012862B /* g_hook.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000005 /* g_hook.c */; };
+		8E595400E9EAD1345F9BC11B /* g_ai_hook.c in Sources */ = {isa = PBXBuildFile; fileRef = 43A1A998C297035DA4C20D3E /* g_ai_hook.c */; };
 		CE05B29A3022486E0012862B /* g_physics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66A1C5C58C300CD0B13 /* g_physics.c */; };
 		CE05B29B3022486E0012862B /* g_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1296277D439B001E1500 /* g_sound.c */; };
 		CE05B29C3022486E0012862B /* g_tech.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFEEE0000000000000000C1 /* g_tech.c */; };
@@ -377,6 +378,7 @@
 		CE05B2C23022486E0012862B /* g_entity_target.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D65E1C5C58C300CD0B13 /* g_entity_target.h */; };
 		CE05B2C33022486E0012862B /* g_entity_trigger.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */; };
 		CE05B2C53022486E0012862B /* g_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000007 /* g_hook.h */; };
+		E9EAE021ED595A437A078284 /* g_ai_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = 19915B0B0FF98B9128CF9005 /* g_ai_hook.h */; };
 		CE05B2C63022486E0012862B /* bg_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000009 /* bg_hook.h */; };
 		CE05B2C73022486E0012862B /* g_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6621C5C58C300CD0B13 /* g_item.h */; };
 		CE05B2C83022486E0012862B /* g_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6631C5C58C300CD0B13 /* g_local.h */; };
@@ -1003,6 +1005,7 @@
 		CEC0FF002026010300000105 /* g_entity_misc.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D65B1C5C58C300CD0B13 /* g_entity_misc.c */; };
 		CEC0FF002026010300000106 /* g_entity_target.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D65D1C5C58C300CD0B13 /* g_entity_target.c */; };
 		CEC0FF002026010300000107 /* g_hook.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000005 /* g_hook.c */; };
+		2D5BA16BD68E3360586B51CB /* g_ai_hook.c in Sources */ = {isa = PBXBuildFile; fileRef = 43A1A998C297035DA4C20D3E /* g_ai_hook.c */; };
 		CEC0FF002026010300000108 /* g_physics.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D66A1C5C58C300CD0B13 /* g_physics.c */; };
 		CEC0FF002026010300000109 /* g_sound.c in Sources */ = {isa = PBXBuildFile; fileRef = CEFF1296277D439B001E1500 /* g_sound.c */; };
 		CEC0FF00202601030000010A /* bg_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC0FF002026010300000005 /* bg_item.h */; };
@@ -1035,6 +1038,7 @@
 		CEC0FF002026010300000125 /* g_entity_misc.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D65C1C5C58C300CD0B13 /* g_entity_misc.h */; };
 		CEC0FF002026010300000126 /* g_entity_target.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D65E1C5C58C300CD0B13 /* g_entity_target.h */; };
 		CEC0FF002026010300000127 /* g_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000007 /* g_hook.h */; };
+		61EE12F6CA92A88D58517872 /* g_ai_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = 19915B0B0FF98B9128CF9005 /* g_ai_hook.h */; };
 		CEC0FF002026010300000128 /* bg_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000009 /* bg_hook.h */; };
 		CEC0FF002026010300000129 /* g_physics.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D66B1C5C58C300CD0B13 /* g_physics.h */; };
 		CEC0FF00202601030000012A /* g_sound.h in Headers */ = {isa = PBXBuildFile; fileRef = CEFF1295277D439B001E1500 /* g_sound.h */; };
@@ -1329,6 +1333,7 @@
 		D2A5C1000000000000000024 /* g_entity_target.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D65D1C5C58C300CD0B13 /* g_entity_target.c */; };
 		D2A5C1000000000000000025 /* g_entity_trigger.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */; };
 		D2A5C1000000000000000026 /* g_hook.c in Sources */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000005 /* g_hook.c */; };
+		BB0AC8BA205D4D02509C5AEF /* g_ai_hook.c in Sources */ = {isa = PBXBuildFile; fileRef = 43A1A998C297035DA4C20D3E /* g_ai_hook.c */; };
 		D2A5C1000000000000000027 /* g_item.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6611C5C58C300CD0B13 /* g_item.c */; };
 		D2A5C1000000000000000028 /* g_main.c in Sources */ = {isa = PBXBuildFile; fileRef = CE12D6641C5C58C300CD0B13 /* g_main.c */; };
 		D2A5C1000000000000000029 /* g_module.c in Sources */ = {isa = PBXBuildFile; fileRef = D2A5C1000000000000000003 /* g_module.c */; };
@@ -1367,6 +1372,7 @@
 		D2A5C100000000000000004A /* g_entity_target.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D65E1C5C58C300CD0B13 /* g_entity_target.h */; };
 		D2A5C100000000000000004B /* g_entity_trigger.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */; };
 		D2A5C100000000000000004C /* g_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = CEC011002026010200000007 /* g_hook.h */; };
+		CB46FCF2B5868B2E659B1F83 /* g_ai_hook.h in Headers */ = {isa = PBXBuildFile; fileRef = 19915B0B0FF98B9128CF9005 /* g_ai_hook.h */; };
 		D2A5C100000000000000004D /* g_vote.h in Headers */ = {isa = PBXBuildFile; fileRef = D1A5B0000000000000000108 /* g_vote.h */; };
 		D2A5C100000000000000004E /* g_item.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6621C5C58C300CD0B13 /* g_item.h */; };
 		D2A5C100000000000000004F /* g_local.h in Headers */ = {isa = PBXBuildFile; fileRef = CE12D6631C5C58C300CD0B13 /* g_local.h */; };
@@ -3111,7 +3117,9 @@
 		CEC011002026010200000001 /* g_effect.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_effect.c; sourceTree = "<group>"; };
 		CEC011002026010200000003 /* g_effect.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_effect.h; sourceTree = "<group>"; };
 		CEC011002026010200000005 /* g_hook.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_hook.c; sourceTree = "<group>"; };
+		43A1A998C297035DA4C20D3E /* g_ai_hook.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ai_hook.c; sourceTree = "<group>"; };
 		CEC011002026010200000007 /* g_hook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_hook.h; sourceTree = "<group>"; };
+		19915B0B0FF98B9128CF9005 /* g_ai_hook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ai_hook.h; sourceTree = "<group>"; };
 		CEC011002026010200000009 /* bg_hook.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_hook.h; sourceTree = "<group>"; };
 		CEC0FA002026010800000001 /* g_ctf.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = g_ctf.c; sourceTree = "<group>"; };
 		CEC0FA002026010800000003 /* g_ctf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = g_ctf.h; sourceTree = "<group>"; };
@@ -5202,6 +5210,8 @@
 				CE12D65D1C5C58C300CD0B13 /* g_entity_target.c */,
 				CE12D6601C5C58C300CD0B13 /* g_entity_trigger.h */,
 				CE12D65F1C5C58C300CD0B13 /* g_entity_trigger.c */,
+				19915B0B0FF98B9128CF9005 /* g_ai_hook.h */,
+				43A1A998C297035DA4C20D3E /* g_ai_hook.c */,
 				CEC011002026010200000007 /* g_hook.h */,
 				CEC011002026010200000005 /* g_hook.c */,
 				D1A5B0000000000000000307 /* g_intermission.h */,
@@ -5395,6 +5405,7 @@
 				CE05B2C13022486E0012862B /* g_entity_misc.h in Headers */,
 				CE05B2C23022486E0012862B /* g_entity_target.h in Headers */,
 				CE05B2C33022486E0012862B /* g_entity_trigger.h in Headers */,
+				E9EAE021ED595A437A078284 /* g_ai_hook.h in Headers */,
 				CE05B2C53022486E0012862B /* g_hook.h in Headers */,
 				D1A5B0000000000000000110 /* g_vote.h in Headers */,
 				D1A5B0000000000000000308 /* g_intermission.h in Headers */,
@@ -5730,6 +5741,7 @@
 				CEC0FF002026010300000125 /* g_entity_misc.h in Headers */,
 				CEC0FF002026010300000126 /* g_entity_target.h in Headers */,
 				CEC0FF00202601030000011B /* g_entity_trigger.h in Headers */,
+				61EE12F6CA92A88D58517872 /* g_ai_hook.h in Headers */,
 				CEC0FF002026010300000127 /* g_hook.h in Headers */,
 				D1A5B0000000000000000111 /* g_vote.h in Headers */,
 				D1A5B0000000000000000309 /* g_intermission.h in Headers */,
@@ -5874,6 +5886,7 @@
 				D2A5C1000000000000000049 /* g_entity_misc.h in Headers */,
 				D2A5C100000000000000004A /* g_entity_target.h in Headers */,
 				D2A5C100000000000000004B /* g_entity_trigger.h in Headers */,
+				CB46FCF2B5868B2E659B1F83 /* g_ai_hook.h in Headers */,
 				D2A5C100000000000000004C /* g_hook.h in Headers */,
 				D2A5C100000000000000004D /* g_vote.h in Headers */,
 				D1A5B000000000000000030C /* g_intermission.h in Headers */,
@@ -6980,6 +6993,7 @@
 				CE05B2963022486E0012862B /* g_entity_misc.c in Sources */,
 				CE05B2973022486E0012862B /* g_entity_target.c in Sources */,
 				CE05B2983022486E0012862B /* g_entity_trigger.c in Sources */,
+				8E595400E9EAD1345F9BC11B /* g_ai_hook.c in Sources */,
 				CE05B2993022486E0012862B /* g_hook.c in Sources */,
 				CE05B2A63022486E0012862B /* g_item.c in Sources */,
 				CE05B2A73022486E0012862B /* g_main.c in Sources */,
@@ -7656,6 +7670,7 @@
 				CEC0FF002026010300000105 /* g_entity_misc.c in Sources */,
 				CEC0FF002026010300000106 /* g_entity_target.c in Sources */,
 				CEC0FF0020260103000000FE /* g_entity_trigger.c in Sources */,
+				2D5BA16BD68E3360586B51CB /* g_ai_hook.c in Sources */,
 				CEC0FF002026010300000107 /* g_hook.c in Sources */,
 				CEC0FF0020260103000000FF /* g_item.c in Sources */,
 				CEC0FF002026010300000100 /* g_main.c in Sources */,
@@ -7889,6 +7904,7 @@
 				D2A5C1000000000000000023 /* g_entity_misc.c in Sources */,
 				D2A5C1000000000000000024 /* g_entity_target.c in Sources */,
 				D2A5C1000000000000000025 /* g_entity_trigger.c in Sources */,
+				BB0AC8BA205D4D02509C5AEF /* g_ai_hook.c in Sources */,
 				D2A5C1000000000000000026 /* g_hook.c in Sources */,
 				D2A5C1000000000000000027 /* g_item.c in Sources */,
 				D2A5C1000000000000000028 /* g_main.c in Sources */,

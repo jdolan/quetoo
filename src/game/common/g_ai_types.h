@@ -291,8 +291,137 @@ typedef enum {
    */
   AI_STATE_TASK,
 
+  /**
+   * @brief Ride the grapple hook that the bot fired along its path, and nothing else: no fight, no
+   * new objective, until it lets go.
+   */
+  AI_STATE_HOOK,
+
   AI_STATE_TOTAL
 } GameAiStateId;
+
+/**
+ * @brief The phases of a bot's use of the grapple hook.
+ */
+typedef enum {
+  /**
+   * @brief The bot does not use the hook.
+   */
+  AI_HOOK_NONE,
+
+  /**
+   * @brief The bot looks at its objective, to see whether it can hook toward it.
+   */
+  AI_HOOK_GLANCE,
+
+  /**
+   * @brief The bot turns to the point where the hook will catch, to fire at it.
+   */
+  AI_HOOK_AIM,
+
+  /**
+   * @brief The hook flies to the point.
+   */
+  AI_HOOK_FIRED,
+
+  /**
+   * @brief The hook caught, and pulls the bot to the node.
+   */
+  AI_HOOK_PULL,
+} GameAiHookPhase;
+
+/**
+ * @brief What a bot does with the grapple hook: where it hooks to, and the node of its path that
+ * the pull takes it to.
+ */
+typedef struct {
+  /**
+   * @brief The phase.
+   */
+  GameAiHookPhase phase;
+
+  /**
+   * @brief Level time at which the bot entered the phase.
+   */
+  uint32_t phaseTime;
+
+  /**
+   * @brief The point at which the bot glances: its objective.
+   */
+  Vec3 glance;
+
+  /**
+   * @brief The point where the hook catches.
+   */
+  Vec3 point;
+
+  /**
+   * @brief The point at which the bot lets go: the node of its path, or the item.
+   */
+  Vec3 dest;
+
+  /**
+   * @brief The node of the bot's path at which it lets go. The state machine can plan the path
+   * again, so the bot finds the node in its path each frame.
+   */
+  GameAiNodeId node;
+
+  /**
+   * @brief The index of `node` in the bot's path, as the bot last found it.
+   */
+  uint32_t index;
+
+  /**
+   * @brief The distance along the path from the bot to `dest`, when it fired.
+   */
+  float pathDistance;
+
+  /**
+   * @brief The straight distance from the bot to `dest`, when it fired.
+   */
+  float distance;
+
+  /**
+   * @brief Level time at which the bot fired.
+   */
+  uint32_t fireTime;
+
+  /**
+   * @brief True once the hook flies. The game fires it at the next think of the hook, which can
+   * come a frame after the bot presses the button, and the bot aims until then.
+   */
+  bool launched;
+
+  /**
+   * @brief The last node of the path, the objective, at which the bot last glanced.
+   */
+  GameAiNodeId glanceNode;
+
+  /**
+   * @brief Where the bot was when it last glanced.
+   */
+  Vec3 glanceOrigin;
+
+  /**
+   * @brief Level time after which the bot MAY glance again.
+   */
+  uint32_t glanceTime;
+
+  /**
+   * @brief The item that the bot hooks to, which no path reaches, or NULL for a node of its path.
+   */
+  const struct GameEntity *item;
+
+  /**
+   * @brief The `spawnId` of `item`.
+   */
+  uint8_t itemSpawnId;
+
+  /**
+   * @brief Level time after which the bot MAY look for such an item again.
+   */
+  uint32_t itemTime;
+} GameAiHook;
 
 /**
  * @brief A task that the game module gives a bot through `G_Ai_Task`: an entity or a position to go
@@ -532,16 +661,21 @@ typedef struct GameAi {
   GameAiStateId state;
 
   /**
-   * @brief The state that `AI_STATE_CLIMB` interrupted, to which the bot returns, with its path,
-   * off the ladder.
+   * @brief The state that `AI_STATE_CLIMB` or `AI_STATE_HOOK` interrupted, to which the bot
+   * returns, with its path, off the ladder or the hook.
    */
-  GameAiStateId climbState;
+  GameAiStateId interruptedState;
 
   /**
-   * @brief The `stateTime` of `climbState`. The bot returns to it later by the time of the climb,
-   * so that the climb does not count against the timeouts of the state.
+   * @brief The `stateTime` of `interruptedState`. The bot returns to it later by the time of the
+   * interruption, so that a climb or a hook does not count against the timeouts of the state.
    */
-  uint32_t climbStateTime;
+  uint32_t interruptedStateTime;
+
+  /**
+   * @brief What the bot does with the grapple hook (`g_ai_hook.c`).
+   */
+  GameAiHook hook;
 
   /**
    * @brief Level time until which the bot leaves the ladder on which its climb was blocked.

@@ -44,6 +44,7 @@
 #include "g_ctf.h"
 #endif
 #if defined(G_HOOK)
+#include "g_ai_hook.h"
 #include "g_hook.h"
 #endif
 #include "g_cmd.h"

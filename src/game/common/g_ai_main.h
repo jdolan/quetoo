@@ -58,6 +58,19 @@ bool G_Ai_IsArmed(const GameClient *cl);
 const GameAiLink *G_Ai_PathLink(const GameClient *cl);
 
 /**
+ * @return True if the player's box, moved along the line from `start` to `end`, touches a
+ * `trigger_push`, or with `hurt`, a `trigger_hurt`. Walk links keep out of both, but a bot that
+ * cuts a corner of its path does not, and a jump pad beside the path throws it off.
+ */
+bool G_Ai_CrossesTrigger(const Vec3 start, const Vec3 end, const bool hurt);
+
+/**
+ * @brief Moves the bot's path on to the node at `index`, past the nodes before it, as a pull of the
+ * grapple hook takes the bot straight there.
+ */
+void G_Ai_SkipPath(GameClient *cl, const uint32_t index);
+
+/**
  * @return The name of what the bot does about the ladder of its climb, for the profiler.
  */
 const char *G_Ai_LadderPhaseName(const GameClient *cl);

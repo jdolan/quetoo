@@ -134,6 +134,16 @@ void G_Ai_Profile_PadLink(const GameEntity *push, const char *result, const int3
                           const int32_t to, const Vec3 landing);
 
 /**
+ * @brief Records what the bot does with the grapple hook, with `AI_PROFILE_BOTS`: a `glance` at
+ * its objective, with the `result` `hook` if it found a node to hook to or `none`, or at an item
+ * that no path reaches, `item` or `noitem-<why>`; an `aim` that it gave up, and why (`unavailable`,
+ * `state`, `item`, `path`, `passed`, `blocked` or `timeout`); the `fire`; the `attach` when the pull
+ * begins; and the `release`, with its reason. Each has the bot's position, the hook's point, the node at which the bot lets
+ * go, the distances to it along the path and straight, and the milliseconds since the fire.
+ */
+void G_Ai_Profile_Hook(const GameClient *cl, const char *event, const char *result);
+
+/**
  * @brief Records the bot's task, with `AI_PROFILE_BOTS`: its name, its entity, the node that the bot
  * goes to, and why the event is written, `begin` when the task changes or `nopath` when the bot
  * finds no path to it.

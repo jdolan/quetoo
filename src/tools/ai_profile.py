@@ -25,6 +25,7 @@ Usage:
     ai_profile.py strafe <log> [--client N]
     ai_profile.py linktimes <log> [<log> ...] [--min 3] [--count 20]   (logs of one graph build)
     ai_profile.py kills <log> [--module default]
+    ai_profile.py hooks <log> [<log> ...]   (grapple hook use, per game minute)
     ai_profile.py suite <out> [--seconds 40] [--bot NAME ...] [--maps M,M ...] [--jobs 7] [--graph]
                         [--tree DIR] [+set ...]
     ai_profile.py compare <base>[,<base> ...] <current>[,<current> ...]
@@ -50,6 +51,7 @@ import math
 import re
 import signal
 import socket
+import statistics
 import subprocess
 import sys
 import tempfile
@@ -826,6 +828,61 @@ def cmd_flags(args):
             print(f'  {name:<16}{awards[name] / minutes:>9.2f}{points[name] / minutes:>12.2f}')
 
 
+#: The time in milliseconds after a hook's release within which a world death or a suicide counts
+#: against the hook.
+HOOK_FALL_MILLIS = 3000
+
+
+def cmd_hooks(args):
+    """What bots do with the grapple hook, per game minute over one or more logs: glances at an
+    objective and whether they found a node to hook to, aims given up, fires, attaches, and releases
+    by reason. For each release at the node, the distance along the path that the pull saved, and
+    the time against a run along the path at PM_SPEED_RUN. A world death or a suicide within
+    HOOK_FALL_MILLIS of a release counts as a fall after the hook."""
+    minutes = 0.0
+    bot_minutes = 0.0
+    counts = collections.Counter()
+    saved = []
+    millis_saved = []
+    falls = 0
+    for log in args.logs:
+        events = read_log(log)
+        seconds = game_seconds(events)
+        minutes += seconds / 60.0
+        bots = {e.client for e in events if e.kind == 'POS'}
+        bot_minutes += len(bots) * seconds / 60.0
+        released = {}
+        for e in events:
+            if e.kind == 'HOOK':
+                event = e['event']
+                if event in ('glance', 'aim', 'release'):
+                    counts[f'{event}:{e["result"]}'] += 1
+                else:
+                    counts[event] += 1
+                if event == 'release':
+                    released[e.client] = e.time
+                    if e['result'] == 'reached':
+                        path, dist, millis = int(e['path']), int(e['dist']), int(e['millis'])
+                        saved.append(path - dist)
+                        millis_saved.append(path / 300.0 * 1000.0 - millis)
+            elif e.kind == 'KILL' and e.get('attacker') in ('-1', str(e.client)):
+                if e.client in released and e.time - released[e.client] <= HOOK_FALL_MILLIS:
+                    falls += 1
+    if not minutes:
+        sys.exit('No game time in the logs')
+    print(f'{minutes:.1f} game minutes, {bot_minutes:.1f} bot minutes')
+    print(f'  {"event":<18}{"total":>8}{"per min":>9}{"per bot min":>13}')
+    for name in sorted(counts, key=lambda n: (n.split(':')[0], -counts[n])):
+        print(f'  {name:<18}{counts[name]:>8}{counts[name] / minutes:>9.2f}'
+              f'{counts[name] / bot_minutes:>13.3f}')
+    print(f'  {"fall after hook":<18}{falls:>8}{falls / minutes:>9.2f}{falls / bot_minutes:>13.3f}')
+    if saved:
+        print(f'  reached: {len(saved)}, mean distance saved {statistics.mean(saved):.0f}, '
+              f'median {statistics.median(saved):.0f}, mean time saved '
+              f'{statistics.mean(millis_saved):.0f} ms, total {sum(millis_saved) / 1000.0 / minutes:.1f} '
+              f's/min')
+
+
 # ---------------------------------------------------------------------------
 # Suites
 # ---------------------------------------------------------------------------
@@ -1065,6 +1122,9 @@ def main():
     p = sub.add_parser('flags', help='CTF flag steals, pickups, captures, returns, drops and resets per game minute')
     p.add_argument('logs', nargs='+')
     p.set_defaults(func=cmd_flags)
+    p = sub.add_parser('hooks', help='grapple hook glances, fires, releases and distance saved per game minute')
+    p.add_argument('logs', nargs='+')
+    p.set_defaults(func=cmd_hooks)
 
     args, extra = parser.parse_known_args()
     if extra and args.command not in ('run', 'suite'):
