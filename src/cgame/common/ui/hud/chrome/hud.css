@@ -504,12 +504,6 @@ ChatView TextView > Text {
   color: #00ff00;
 }
 
-/* the held flag leads the powerups, so that it never covers a tech or a powerup */
-#hud .heldFlag {
-  alignment: left;
-  width: 64;
-  height: 64;
-}
 
 #hud .raceRun {
   alignment: top-center;

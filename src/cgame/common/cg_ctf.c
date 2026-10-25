@@ -22,23 +22,23 @@
 #include "cg_local.h"
 
 #include "ui/hud/HudViewController.h"
+#include "ui/hud/PowerupView.h"
 
 #define _Class _HeldFlagView
 
 /**
- * @brief The flag the player carries, pulsing, or hidden.
- * @extends ImageView
+ * @brief The flag the player carries, pulsing on a card like the tech's, or hidden.
+ * @extends PowerupView
  */
 typedef struct HeldFlagViewInterface HeldFlagViewInterface;
 
 typedef struct {
-  ImageView imageView;
+  PowerupView powerupView;
   HeldFlagViewInterface *interface[0];
-  GameItemTag flag;
 } HeldFlagView;
 
 struct HeldFlagViewInterface {
-  ImageViewInterface imageViewInterface;
+  PowerupViewInterface powerupViewInterface;
 };
 
 /**
@@ -52,7 +52,7 @@ static void HeldFlagView_updateBindings(View *self, ident data) {
     return;
   }
 
-  HeldFlagView *this = (HeldFlagView *) self;
+  PowerupView *this = (PowerupView *) self;
   const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
   GameItemTag flag = ITEM_NONE;
@@ -63,25 +63,19 @@ static void HeldFlagView_updateBindings(View *self, ident data) {
     }
   }
 
-  $(self, setVisibility, flag == ITEM_NONE ? ViewVisibilityHidden : ViewVisibilityVisible);
+  // a card like the tech's, with no number
+  $(this, update, flag, -1);
 
-  if (flag == ITEM_NONE) {
-    return;
+  if (flag != ITEM_NONE) {
+    this->icon->color.a = (Uint8) (Clampf(sinf(cgi.client->unclampedTime / 150.f), 0.75f, 1.f) * 255);
   }
-
-  if (flag != this->flag) {
-    this->flag = flag;
-    $((ImageView *) self, setImage, (Image *) Cg_HudImage(gameItemDefs[flag].icon));
-  }
-
-  ((ImageView *) self)->color.a = (Uint8) (Clampf(sinf(cgi.client->unclampedTime / 150.f), 0.75f, 1.f) * 255);
 }
 
 /**
  * @see View::init(View *)
  */
 static View *HeldFlagView_init(View *self) {
-  return super(View, self, init);
+  return (View *) $((PowerupView *) self, initWithPowerup, PowerupViewNone);
 }
 
 /**
@@ -100,7 +94,7 @@ Class *_HeldFlagView(void) {
   do_once(&once, {
     clazz = _initialize(&(const ClassDef) {
       .name = "HeldFlagView",
-      .superclass = _ImageView(),
+      .superclass = _PowerupView(),
       .instanceSize = sizeof(HeldFlagView),
       .interfaceSize = sizeof(HeldFlagViewInterface),
       .initialize = HeldFlagView_initialize,

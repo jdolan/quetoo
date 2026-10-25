@@ -138,6 +138,11 @@
   alignment: middle;
 }
 
+/* a card with no number, as the tech's and the held flag's, centers its icon */
+#hud PowerupView.iconOnly {
+  padding: 8 12 8 12;
+}
+
 #pickup {
   alignment: top-right;
   autoresizing-mask: contain;
@@ -403,12 +408,6 @@ ChatView TextView > Text {
   color: #00ff00;
 }
 
-/* the held flag leads the powerups, so that it never covers a tech or a powerup */
-#hud .heldFlag {
-  alignment: left;
-  width: 64;
-  height: 64;
-}
 
 #hud .raceRun {
   alignment: top-center;

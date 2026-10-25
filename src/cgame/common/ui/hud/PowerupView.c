@@ -119,9 +119,18 @@ static void update(PowerupView *self, GameItemTag item, int16_t value) {
     $(self->icon, setImage, icon ? (Image *) Cg_HudImage(icon) : NULL);
   }
 
+  // a card with no number, as a tech's, holds only its icon, centered
+  $((View *) self->value, setVisibility, value < 0 ? ViewVisibilityHidden : ViewVisibilityVisible);
+
   if (value < 0) {
-    $(self->value, setText, NULL);
+    if (!$((View *) self, hasClassName, "iconOnly")) {
+      $((View *) self, addClassName, "iconOnly");
+    }
   } else {
+    if ($((View *) self, hasClassName, "iconOnly")) {
+      $((View *) self, removeClassName, "iconOnly");
+    }
+
     const SDL_Color color = value < HUD_POWERUP_LOW ? Colors.Red : Colors.White;
 
     if (memcmp(&color, &self->value->color, sizeof(color))) {
