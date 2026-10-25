@@ -870,6 +870,8 @@ def cmd_hooks(args):
                     falls += 1
     if not minutes:
         sys.exit('No game time in the logs')
+    if not bot_minutes:
+        sys.exit('No bot time in the logs: they hold no POS events')
     print(f'{minutes:.1f} game minutes, {bot_minutes:.1f} bot minutes')
     print(f'  {"event":<18}{"total":>8}{"per min":>9}{"per bot min":>13}')
     for name in sorted(counts, key=lambda n: (n.split(':')[0], -counts[n])):

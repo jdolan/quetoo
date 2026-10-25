@@ -296,7 +296,8 @@ static bool G_Ai_Hook_IsHazard(const GameEntity *ent, const Vec3 start, const Ve
  * there, keep out of lava, slime, `trigger_hurt` and `trigger_push`. The bot lets go at the pull
  * speed, toward the hook, `AI_HOOK_RELEASE_LIFT` above the position, and slides on a floor until
  * friction, about as `Pm_Friction` applies it, slows it to its ground speed, at which it runs
- * under its own control. The flight is also safe after `AI_HOOK_FLIGHT_SECONDS`.
+ * under its own control. A flight that is not on a floor after `AI_HOOK_FLIGHT_SECONDS` is not
+ * safe.
  */
 static bool G_Ai_Hook_IsSafe(const GameClient *cl, const Vec3 dest, const Vec3 point) {
 
@@ -380,7 +381,7 @@ static bool G_Ai_Hook_IsSafe(const GameClient *cl, const Vec3 dest, const Vec3 p
     }
   }
 
-  return true;
+  return ground;
 }
 
 /**
@@ -547,8 +548,8 @@ static void G_Ai_Hook_Abandon(GameClient *cl) {
 }
 
 /**
- * @brief Looks for an item that no path reaches, that the bot sees within reach of the hook and
- * would value, and starts a glance at it.
+ * @brief Looks for an item that no path reaches, that the bot sees and would value, and to which
+ * the hook can pull it safely (`G_Ai_Hook_Reach`), and starts a glance at it.
  * @return True if the bot glances at such an item.
  */
 static bool G_Ai_Hook_FindItem(GameClient *cl) {
@@ -582,12 +583,18 @@ static bool G_Ai_Hook_FindItem(GameClient *cl) {
       continue;
     }
 
+    Vec3 dest, point;
+    if (G_Ai_Hook_Reach(cl, G_Ai_Node_GetPosition(ent->node), &dest, &point)) {
+      continue;
+    }
+
     hook->item = ent;
     hook->itemSpawnId = ent->s.spawnId;
     hook->node = AI_NODE_INVALID;
     hook->index = 0;
     hook->glance = ent->s.origin;
-    hook->dest = G_Ai_Node_GetPosition(ent->node);
+    hook->dest = dest;
+    hook->point = point;
     hook->glanceTime = gameLevel.time + AI_HOOK_GLANCE_INTERVAL;
 
     G_Ai_Hook_Enter(cl, AI_HOOK_GLANCE);
@@ -1075,7 +1082,7 @@ void G_Ai_Hook_Load(void) {
 
   const uint32_t count = G_Ai_Node_Count();
 
-  if (!count || !G_Hook_Enabled()) {
+  if (!count) {
     return;
   }
 

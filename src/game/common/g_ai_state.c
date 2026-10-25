@@ -2324,7 +2324,8 @@ static bool G_Ai_IsAirborne(const GameClient *cl) {
  * cannot fight back well, so the bot does not stop to fight, or take a new objective, which would
  * leave it on the ladder with no path. A bot on the hook keeps the path that the hook follows. A
  * bot that the hook lets go onto a ladder, before its state machine ran, climbs from the hook, and
- * then returns to the state that the hook interrupted: an interruption never resumes another.
+ * then returns to the state that the hook interrupted: an interruption never resumes another. The
+ * time of each interruption does not count toward the time of the interrupted state.
  */
 static void G_Ai_Interrupt(GameClient *cl, const GameAiStateId state) {
 
@@ -2337,6 +2338,8 @@ static void G_Ai_Interrupt(GameClient *cl, const GameAiStateId state) {
   if (ai->state != AI_STATE_CLIMB && ai->state != AI_STATE_HOOK) {
     ai->interruptedState = ai->state;
     ai->interruptedStateTime = ai->stateTime;
+  } else {
+    ai->interruptedStateTime += gameLevel.time - ai->stateTime;
   }
 
   G_Ai_SwitchState(cl, state);
