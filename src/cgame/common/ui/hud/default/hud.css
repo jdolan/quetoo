@@ -171,6 +171,12 @@
   axis: vertical;
   padding-top: 96;
   spacing: 16;
+  visibility: visible;
+}
+
+/* a free spectator has no counts of its own */
+#hud.spectating .counters {
+  visibility: hidden;
 }
 
 #hud CounterView {
@@ -393,9 +399,9 @@ ChatView TextView > Text {
   color: #00ff00;
 }
 
+/* the held flag leads the powerups, so that it never covers a tech or a powerup */
 #hud .heldFlag {
-  alignment: middle-left;
-  padding-bottom: 224;
+  alignment: left;
   width: 64;
   height: 64;
 }

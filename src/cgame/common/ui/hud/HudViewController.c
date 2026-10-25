@@ -518,6 +518,17 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
   if (self->hud) {
     $(self->hud, setVisibility, hidden ? ViewVisibilityHidden : ViewVisibilityVisible);
 
+    // a free spectator has no counts of its own, so the stylesheet hides them
+    const bool spectating = ps->stats[STAT_SPECTATOR] && !ps->stats[STAT_CHASE];
+
+    if (spectating != $(self->hud, hasClassName, "spectating")) {
+      if (spectating) {
+        $(self->hud, addClassName, "spectating");
+      } else {
+        $(self->hud, removeClassName, "spectating");
+      }
+    }
+
     if (cgi.client->paused != $(self->hud, hasClassName, "paused")) {
       if (cgi.client->paused) {
         $(self->hud, addClassName, "paused");

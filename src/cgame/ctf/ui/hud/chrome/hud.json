@@ -14,13 +14,6 @@
           "identifier": "crosshair"
         },
         {
-          "class": "HeldFlagView",
-          "identifier": "heldFlag",
-          "classNames": [
-            "heldFlag"
-          ]
-        },
-        {
           "class": "View",
           "identifier": "centerPrintAnchor",
           "subviews": [
@@ -79,6 +72,13 @@
           "identifier": "powerups",
           "subviews": [
             {
+              "class": "HeldFlagView",
+              "identifier": "heldFlag",
+              "classNames": [
+                "heldFlag"
+              ]
+            },
+            {
               "class": "PowerupView",
               "identifier": "quad",
               "powerup": "quad"
@@ -102,6 +102,9 @@
         {
           "class": "StackView",
           "identifier": "stats",
+          "classNames": [
+            "counters"
+          ],
           "subviews": [
             {
               "class": "CounterView",

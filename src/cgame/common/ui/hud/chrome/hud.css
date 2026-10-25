@@ -199,6 +199,12 @@
   corner-cut: 18 0 0 0;
   padding: 10 30 12 48;
   spacing: 24;
+  visibility: visible;
+}
+
+/* a free spectator has no counts of its own */
+#hud.spectating .counters {
+  visibility: hidden;
 }
 
 #hud #stats .divider {
@@ -494,9 +500,9 @@ ChatView TextView > Text {
   color: #00ff00;
 }
 
+/* the held flag leads the powerups, so that it never covers a tech or a powerup */
 #hud .heldFlag {
-  alignment: middle-left;
-  padding-bottom: 224;
+  alignment: left;
   width: 64;
   height: 64;
 }
