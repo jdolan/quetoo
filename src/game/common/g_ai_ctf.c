@@ -24,13 +24,13 @@
 /**
  * @brief The distance from its team's flag within which a defender stays.
  */
-#define AI_CTF_DEFEND_RADIUS 512.f
+#define AI_CTF_DEFEND_RADIUS 768.f
 
 /**
  * @brief The distance from its team's flag within which a carrier holds while its team's flag is
  * away, until the flag returns and the carrier can capture.
  */
-#define AI_CTF_HOLD_RADIUS 384.f
+#define AI_CTF_HOLD_RADIUS 512.f
 
 /**
  * @brief The distance from its team's carrier within which an escort stays.
@@ -207,7 +207,7 @@ static bool G_Ai_Task_Ctf(const GameClient *cl, GameAiTask *task) {
   const GameEntity *dropped = G_Ai_Ctf_DroppedFlag(team);
 
   const float reach = cl->ai->task.ent == dropped ? AI_CTF_RETURN_KEEP_DISTANCE
-                                                 : AI_CTF_RETURN_DISTANCE;
+                                                  : AI_CTF_RETURN_DISTANCE;
 
   if (dropped && (defender || Vec3_Distance(cl->entity->s.origin, dropped->s.origin) < reach)) {
     *task = (GameAiTask) { .name = "return", .ent = dropped };
