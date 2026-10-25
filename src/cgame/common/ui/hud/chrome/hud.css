@@ -403,13 +403,17 @@
   autoresizing-mask: fill;
 }
 
+/*
+ * Nothing covers the crosshair. The anchors that sit near it pad the side away from it, so
+ * that their text lands above or below it: the center print and the vote above, the target
+ * name below. An anchor is centered with its padding, so the text clears the middle by
+ * (padding - text height) / 2.
+ */
+
 #hud #centerPrintAnchor {
   alignment: middle-center;
   autoresizing-mask: contain;
-}
-
-#hud.paused #centerPrintAnchor {
-  padding-bottom: 160;
+  padding-bottom: 360;
 }
 
 #hud.paused #centerPrint {
@@ -463,7 +467,7 @@ ChatView TextView > Text {
 #hud #targetNameAnchor {
   alignment: middle-center;
   autoresizing-mask: contain;
-  padding-top: 80;
+  padding-top: 160;
 }
 
 #hud #targetName {

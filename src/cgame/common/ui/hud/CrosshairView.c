@@ -173,10 +173,6 @@ static bool visible(const PlayerState *ps) {
     return false;
   }
 
-  if (cgameState.centerPrint.time > cgi.client->unclampedTime) {
-    return false;
-  }
-
   return true;
 }
 
