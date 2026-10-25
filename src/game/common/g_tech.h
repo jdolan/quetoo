@@ -30,30 +30,32 @@ extern Cvar *g_techs;
 /**
  * @brief Haste scaling factor.
  */
-#define TECH_HASTE_FACTOR 0.75f
+#define TECH_HASTE_FACTOR 0.666f
 
 /**
  * @brief Resist scaling factors.
  */
-#define TECH_RESIST_DAMAGE_FACTOR 0.5f
-#define TECH_RESIST_KNOCKBACK_FACTOR 0.75f
+#define TECH_RESIST_DAMAGE_FACTOR 0.666f
+#define TECH_RESIST_KNOCKBACK_FACTOR 0.666f
 
 /**
  * @brief Strength scaling factors.
  */
-#define TECH_STRENGTH_DAMAGE_FACTOR 1.5f
-#define TECH_STRENGTH_KNOCKBACK_FACTOR 1.25f
+#define TECH_STRENGTH_DAMAGE_FACTOR 1.666f
+#define TECH_STRENGTH_KNOCKBACK_FACTOR 1.666f
 
 /**
  * @brief Regeneration constants.
  */
-#define TECH_REGEN_TICK_TIME 500
+#define TECH_REGEN_TICK_TIME 100
 #define TECH_REGEN_HEALTH 1
 
 /**
  * @brief Vampire scaling factor.
  */
-#define TECH_VAMPIRE_DAMAGE_FACTOR 0.25f
+#define TECH_VAMPIRE_DAMAGE_FACTOR 0.666f
+#define TECH_VAMPIRE_MAX_HEALTH_FACTOR 1.5f
+
 
 void G_Tech_Init(void);
 void G_Tech_CheckState(void);
