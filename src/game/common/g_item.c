@@ -976,6 +976,13 @@ GameEntity *G_DropItem(GameClient *cl, const GameItem *item) {
 
   it->s.model1 = item->modelIndex;
 
+#if defined(G_CTF)
+  // a dropped flag tints itself by its team, as G_SpawnItem has the flag at its base do
+  if (item->def.type == ITEM_TYPE_FLAG) {
+    it->s.animation1 = item->def.tag - FLAG_FIRST;
+  }
+#endif
+
   if (item->def.type == ITEM_TYPE_WEAPON) {
     const GameItem *ammo = item->def.ammo ? &gameItems[item->def.ammo] : NULL;
     if (ammo) {
