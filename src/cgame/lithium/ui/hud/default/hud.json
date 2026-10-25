@@ -145,6 +145,9 @@
         {
           "class": "StackView",
           "identifier": "stats",
+          "classNames": [
+            "counters"
+          ],
           "subviews": [
             {
               "class": "CounterView",

@@ -39,6 +39,7 @@ static void dealloc(Object *self) {
   IntermissionView *this = (IntermissionView *) self;
 
   release(this->strip);
+  release(this->outcome);
   release(this->result);
   release(this->prompt);
   release(this->maps);
@@ -282,6 +283,10 @@ static void rebuild(IntermissionView *self) {
     addMap(self, i);
   }
 
+  // a practice match shows its card once the result is final, so that it never shows empty
+  $((View *) self->outcome, setVisibility,
+    cgameState.nextMap.voting ? ViewVisibilityVisible : ViewVisibilityHidden);
+
   if (cgameState.nextMap.voting) {
     $(self->prompt, setText, va("Press 1 - %d to vote for the next map", cgameState.nextMap.numMaps));
     $((View *) self->prompt, setVisibility, ViewVisibilityVisible);
@@ -315,10 +320,15 @@ static void updatePractice(IntermissionView *self) {
 
   $(self->result, setText, won ? "Victory" : "Defeat");
 
+  $((View *) self->result, removeClassName, won ? "defeat" : "victory");
+  $((View *) self->result, addClassName, won ? "victory" : "defeat");
+
+  $((View *) self->outcome, setVisibility, ViewVisibilityVisible);
+
   if (won && Cg_Practice_Next()) {
-    $(self->prompt, setText, "1  Next     2  Retry     3  Exit");
+    $(self->prompt, setText, "^31^7  Next     ^32^7  Retry     ^33^7  Exit");
   } else {
-    $(self->prompt, setText, "2  Retry     3  Exit");
+    $(self->prompt, setText, "^32^7  Retry     ^33^7  Exit");
   }
 }
 
@@ -339,18 +349,25 @@ static View *init(View *self) {
     $((View *) this->strip, addClassName, "strip");
     $(self, addSubview, (View *) this->strip);
 
+    this->outcome = $(alloc(StackView), initWithFrame, NULL);
+    assert(this->outcome);
+
+    $((View *) this->outcome, addClassName, "outcome");
+    $((View *) this->strip, addSubview, (View *) this->outcome);
+    $((View *) this->outcome, setVisibility, ViewVisibilityHidden);
+
     this->result = $(alloc(Text), initWithText, "", NULL);
     assert(this->result);
 
     $((View *) this->result, addClassName, "result");
-    $((View *) this->strip, addSubview, (View *) this->result);
+    $((View *) this->outcome, addSubview, (View *) this->result);
     $((View *) this->result, setVisibility, ViewVisibilityHidden);
 
     this->prompt = $(alloc(Text), initWithText, "", NULL);
     assert(this->prompt);
 
     $((View *) this->prompt, addClassName, "prompt");
-    $((View *) this->strip, addSubview, (View *) this->prompt);
+    $((View *) this->outcome, addSubview, (View *) this->prompt);
     $((View *) this->prompt, setVisibility, ViewVisibilityHidden);
 
     this->maps = $(alloc(StackView), initWithFrame, NULL);

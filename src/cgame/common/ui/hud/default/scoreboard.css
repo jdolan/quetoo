@@ -1,6 +1,8 @@
 /*
- * The default variant's scoreboard. It shows through the intermission, when the HUD does not,
- * so it is arranged apart from hud.css. Rows are 240 by 48, as they have always been.
+ * The default variant's scoreboard: a table under the clock. The rows are one list under a row
+ * of field captions, striped so a long board stays readable, and a module's own fields fill the
+ * columns. It shows through the intermission, when the HUD does not, so it is arranged apart
+ * from hud.css.
  */
 
 ScoreboardView {
@@ -19,31 +21,61 @@ ScoreboardView > .title {
   padding-top: 24;
 }
 
-ScoreboardView > .header {
+ScoreboardView > .board {
   alignment: top-center;
   autoresizing-mask: contain;
-  axis: horizontal;
-  padding-top: 64;
-  spacing: 48;
-}
-
-ScoreboardView > .columns {
-  alignment: top-center;
-  autoresizing-mask: contain;
-  axis: horizontal;
+  axis: vertical;
   padding-top: 164;
+  spacing: 24;
 }
 
-ScoreboardView .column {
+ScoreboardView .columns {
+  alignment: center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 24;
+}
+
+ScoreboardView .rows {
   autoresizing-mask: contain;
   axis: vertical;
   spacing: 2;
 }
 
+/* a team's total heads its column, below the clock */
+ScoreboardView .total {
+  alignment: center;
+  font-size: 22;
+  padding-bottom: 4;
+}
+
+/* The header of field captions the rows line up under */
+
+ScoreboardView .fields .caption {
+  text-transform: uppercase;
+  font-size: 12;
+  color: #8fc7dc;
+}
+
+/*
+ * Every row is a card, so the board reads over any scene, and the striping is the difference
+ * between them. The local player's row takes the HUD's blue.
+ */
+
 ScoreboardView ScoreView {
-  background-color: #08151a66;
+  background-color: #08151ab3;
   border-radius: 4;
   padding: 2 4 2 4;
+}
+
+ScoreboardView ScoreView.odd {
+  background-color: #0f2229b3;
+}
+
+/* the player's color leads from the icon and fades out before the fields */
+ScoreboardView ScoreView > .fill {
+  background-gradient-color: #08151a01;
+  background-gradient-angle: 90;
 }
 
 /* the icon and the player color cover the row's corners, so they round them too */
@@ -52,12 +84,43 @@ ScoreboardView ScoreView > .fill {
   border-radius: 4;
 }
 
-ScoreboardView ScoreView.self {
-  background-color: #08151aaa;
+ScoreboardView ScoreView.self,
+ScoreboardView ScoreView.odd.self {
+  background-color: #163a49cc;
   border-color: #8fc7dc80;
   border-width: 1;
 }
 
+ScoreboardView .name {
+  font-size: 16;
+}
+
+ScoreboardView .field {
+  font-size: 18;
+}
+
+ScoreboardView .ping {
+  font-size: 12;
+  color: #dedede94;
+}
+
+/* the spectators, beneath the teams, a few to a line */
 ScoreboardView .spectators {
-  padding-right: 48;
+  alignment: center;
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 2;
+}
+
+ScoreboardView .spectators > .heading {
+  alignment: center;
+  color: #8fc7dc;
+  padding-bottom: 4;
+}
+
+ScoreboardView .spectators > .line {
+  alignment: center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 8;
 }

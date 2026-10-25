@@ -494,7 +494,7 @@ void G_Damage(const GameDamage *dmg) {
 #if defined(G_TECH)
     if (attacker->client && G_HasTech(attacker->client, TECH_VAMPIRE)) {
       if (!target->dead && attacker != target && !G_OnSameTeam(attacker->client, target->client)) {
-        attacker->health = Minf(attacker->health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->maxHealth);
+        attacker->health = Minf(attacker->health + (damage * TECH_VAMPIRE_DAMAGE_FACTOR), attacker->maxHealth * TECH_VAMPIRE_MAX_HEALTH_FACTOR);
         G_PlayTechSound(attacker->client);
       }
     }

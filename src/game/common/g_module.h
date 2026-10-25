@@ -475,6 +475,16 @@ typedef void (*GameClientDidBeginHook)(GameClient *cl);
 extern GameClientDidBeginHook G_ClientDidBegin;
 
 /**
+ * @brief The client was killed: the obituary is not printed yet, and their inventory is still
+ * intact, so a feature may still read what they carried.
+ * @param attacker The entity that killed the client, which MAY be the client's own entity.
+ * @details Notification; the tail does nothing.
+ */
+typedef void (*GameClientWillDieHook)(GameClient *cl, GameEntity *attacker, uint32_t mod);
+
+extern GameClientWillDieHook G_ClientWillDie;
+
+/**
  * @brief The client's user info is about to be applied: `cl->persistent` still
  * holds what it held, and `userInfo` what they sent, unvalidated.
  * @details Notification; the tail does nothing.

@@ -275,8 +275,9 @@ static void G_UpdateScore(const GameClient *cl, GameScore *s) {
     s->flags |= SCORE_SPECTATOR;
   } else {
 #if defined(G_CTF)
-    if (G_GetFlag(cl)) {
-      s->flags |= SCORE_CTF_FLAG;
+    const GameItem *flag = G_GetFlag(cl);
+    if (flag) {
+      s->flags |= SCORE_CTF_FLAG | SCORE_CTF_FLAG_TEAM(flag->def.tag - FLAG_FIRST);
     }
 #endif
     if (cl->persistent.team) {
@@ -287,10 +288,12 @@ static void G_UpdateScore(const GameClient *cl, GameScore *s) {
     }
   }
 
+  s->frags = cl->persistent.frags;
   s->score = cl->persistent.score;
   s->deaths = cl->persistent.deaths;
 #if defined(G_CTF)
   s->captures = cl->persistent.captures;
+  s->assists = cl->persistent.assists;
 #endif
 
   G_WriteScore(cl, s);
@@ -332,7 +335,8 @@ static size_t G_UpdateScores(GameScore *scores) {
       GameTeam *team = &gameTeamList[i];
 
       s->client = MAX_CLIENTS;
-      s->score = team->score;
+      s->frags = team->frags;
+      s->score = team->frags;
 #if defined(G_CTF)
       s->captures = team->captures;
 #endif
@@ -416,8 +420,10 @@ void G_ClientStats(GameClient *cl) {
 #endif
 
 #if defined(G_CTF)
-  // captures
+  // captures, assists and points
   cl->ps.stats[STAT_CAPTURES] = cl->persistent.captures;
+  cl->ps.stats[STAT_ASSISTS] = cl->persistent.assists;
+  cl->ps.stats[STAT_SCORE] = cl->persistent.score;
 #endif
 
   // damage received and inflicted
@@ -426,7 +432,7 @@ void G_ClientStats(GameClient *cl) {
   cl->ps.stats[STAT_DAMAGE_INFLICT] = cl->damageInflicted;
 
   // frags
-  cl->ps.stats[STAT_FRAGS] = cl->persistent.score;
+  cl->ps.stats[STAT_FRAGS] = cl->persistent.frags;
   cl->ps.stats[STAT_DEATHS] = cl->persistent.deaths;
   cl->score = cl->persistent.score;
 

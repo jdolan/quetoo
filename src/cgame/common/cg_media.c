@@ -258,6 +258,8 @@ void Cg_LoadMedia(void) {
 
   cgi.LoadingProgress(-1, "clients");
 
+  Cg_LoadConfigStrings();
+
   Cg_LoadClients();
 
   cgi.LoadingProgress(-1, "hud");

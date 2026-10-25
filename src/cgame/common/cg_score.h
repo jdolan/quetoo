@@ -29,9 +29,27 @@
 #define SCORES_ROW_HEIGHT 52
 #define SCORES_ICON_WIDTH 48
 
+// the flag a carrier wears in a table row, at the end of the name's column
+#define SCORES_BADGE_WIDTH 24
+
+// the name's column in a table row, narrower than a card, so that two teams fit a small display
+#define SCORES_NAME_WIDTH 176
+
 // the column the ping keeps at the right of a table row, and the height of its header
 #define SCORES_PING_WIDTH 64
 #define SCORES_HEADER_HEIGHT 28
+
+// a spectator's row in a table: the icon, the name and the ping, a few to a line
+#define SCORES_SPECTATOR_WIDTH (SCORES_ICON_WIDTH + SCORES_NAME_WIDTH + SCORES_PING_WIDTH)
+#define SCORES_SPECTATORS_PER_LINE 4
+#define SCORES_SPECTATOR_LINES_MAX 2
+
+// the room the spectators take beyond their lines: the gap above them, the heading and the
+// spacing between the lines (scoreboard.css)
+#define SCORES_SPECTATORS_MARGIN (24 + SCORES_HEADER_HEIGHT + 4)
+
+// the height of a team's total, which heads its column
+#define SCORES_TOTAL_HEIGHT 40
 
 
 void Cg_ParseScores(void);

@@ -261,7 +261,7 @@ void G_ResetTeams(void) {
 
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
     GameTeam *team = &gameTeamList[i];
-    team->score = 0;
+    team->frags = 0;
     team->spawnPoints = (GameSpawnPoints) { 0 };
 #if defined(G_CTF)
     team->captures = 0;
@@ -382,9 +382,12 @@ static void G_RestartGame(bool teamz) {
 
   G_ForEachClient(cl, {
 
+    cl->persistent.frags = 0;
     cl->persistent.score = 0;
 #if defined(G_CTF)
     cl->persistent.captures = 0;
+    cl->persistent.assists = 0;
+    memset(&cl->persistent.ctf, 0, sizeof(cl->persistent.ctf));
 #endif
     cl->persistent.deaths = 0;
 
@@ -420,7 +423,7 @@ static void G_RestartGame(bool teamz) {
   G_InitNumTeams();
 
   for (int32_t i = 0; i < MAX_TEAMS; i++) {
-    gameTeamList[i].score = 0;
+    gameTeamList[i].frags = 0;
 #if defined(G_CTF)
     gameTeamList[i].captures = 0;
 #endif

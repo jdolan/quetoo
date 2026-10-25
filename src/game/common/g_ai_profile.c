@@ -1159,6 +1159,19 @@ void G_Ai_Profile_Flag(const GameClient *cl, const char *event, const int32_t te
 /**
  * @see g_ai_profile.h
  */
+void G_Ai_Profile_Points(const GameClient *cl, const char *event, const int32_t points) {
+
+  if (!G_Ai_Profile_Records(cl->ai ? AI_PROFILE_BOTS : AI_PROFILE_PLAYERS)) {
+    return;
+  }
+
+  G_Ai_Profile_Print(cl->ps.client, "POINTS", "event=%s points=%d team=%d bot=%d", event, points,
+                     cl->persistent.team ? cl->persistent.team->id : -1, cl->ai != NULL);
+}
+
+/**
+ * @see g_ai_profile.h
+ */
 void G_Ai_Profile_Task(const GameClient *cl, const GameAiNodeId node, const char *reason) {
 
   if (!G_Ai_Profile_Records(AI_PROFILE_BOTS)) {

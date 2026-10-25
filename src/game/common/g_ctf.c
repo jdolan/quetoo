@@ -33,6 +33,11 @@ static struct {
   GameResetItemHook ResetItem;
   GameInhibitItemHook InhibitItem;
   GameInitItemHook InitItem;
+  GameModifyDamageHook ModifyDamage;
+  GameClientWillBeginHook ClientWillBegin;
+  GameClientWillDieHook ClientWillDie;
+  GameClientWillDisconnectHook ClientWillDisconnect;
+  GameFrameDidEndHook FrameDidEnd;
 } previous;
 
 static bool installed;
@@ -44,6 +49,37 @@ static struct {
   uint16_t return_;
   uint16_t steal;
 } module;
+
+/**
+ * @brief The points of each capture the flag event, as Quake II's CTF gives them.
+ */
+#define CTF_CAPTURE_POINTS 15
+#define CTF_TEAM_CAPTURE_POINTS 10
+#define CTF_STEAL_POINTS 1
+#define CTF_RETURN_POINTS 1
+#define CTF_CARRIER_KILL_POINTS 2
+#define CTF_CARRIER_DANGER_POINTS 2
+#define CTF_FLAG_DEFENSE_POINTS 1
+#define CTF_CARRIER_DEFENSE_POINTS 1
+#define CTF_RETURN_ASSIST_POINTS 1
+#define CTF_CARRIER_KILL_ASSIST_POINTS 2
+#define CTF_CARRIER_DEFENSE_ASSIST_POINTS 1
+
+/**
+ * @brief The distance from a flag or a carrier within which a kill defends it, as Quake III's
+ * CTF measures it.
+ */
+#define CTF_DEFENSE_RADIUS 1000.f
+
+/**
+ * @brief How long a client that hurt a carrier stays a danger to it.
+ */
+#define CTF_CARRIER_DANGER_MILLIS 8000
+
+/**
+ * @brief How long before a capture a return or a carrier kill earns an assist.
+ */
+#define CTF_ASSIST_MILLIS 10000
 
 /**
  * @brief Returns the team that owns the given flag entity, or `NULL` if the entity is not a flag.
@@ -222,6 +258,254 @@ static GamePlayId G_ClampGamePlay_Ctf(GamePlayId gameplay) {
 }
 
 /**
+ * @return True if `time` is set and is no more than `millis` ago.
+ */
+static bool G_Ctf_Recent(uint32_t time, uint32_t millis) {
+  return time && time <= gameLevel.time && gameLevel.time - time <= millis;
+}
+
+/**
+ * @brief Gives the client points, and tells the client why.
+ */
+static void G_Ctf_Award(GameClient *cl, int16_t points, const char *event, const char *reason) {
+
+  cl->persistent.score += points;
+
+  G_Ai_Profile_Points(cl, event, points);
+
+  G_ClientCenterPrint(cl, "%s ^2+%d", reason, points);
+}
+
+/**
+ * @return The team's flag where it lies, at its base or dropped, or NULL if it is carried.
+ */
+static const GameEntity *G_Ctf_LyingFlag(const GameTeam *team) {
+
+  const GameEntity *base = G_FlagForTeam(team);
+
+  if (!base) {
+    return NULL;
+  }
+
+  if (base->solid == SOLID_TRIGGER) {
+    return base;
+  }
+
+  G_ForEachEntity(ent, {
+    if (ent->item == base->item && (ent->spawnFlags & SF_ITEM_DROPPED)) {
+      return ent;
+    }
+  });
+
+  return NULL;
+}
+
+/**
+ * @brief Tells every client where each team's flag is. The server sends the string only when it
+ * changes, so this costs nothing while the flags stay put.
+ */
+static void G_FrameDidEnd_Ctf(void) {
+
+  char states[MAX_TEAMS + 1] = "";
+
+  for (int32_t t = 0; t < gameLevel.numTeams; t++) {
+    const GameTeam *team = &gameTeamList[t];
+    const GameEntity *base = G_FlagForTeam(team);
+
+    if (!base) {
+      states[0] = '\0';
+      break;
+    }
+
+    const GameEntity *lying = G_Ctf_LyingFlag(team);
+
+    if (lying == NULL) {
+      states[t] = CTF_FLAG_CARRIED;
+    } else if (lying == base) {
+      states[t] = CTF_FLAG_BASE;
+    } else {
+      states[t] = CTF_FLAG_DROPPED;
+    }
+  }
+
+  gi.SetConfigString(CS_CTF_FLAGS, states);
+
+  previous.FrameDidEnd();
+}
+
+/**
+ * @return True if `a` or `b` is within the defense radius of `point`, and in its view.
+ */
+static bool G_Ctf_Defends(const Vec3 point, const GameEntity *a, const GameEntity *b) {
+
+  const GameEntity *ents[] = { a, b };
+
+  for (size_t i = 0; i < lengthof(ents); i++) {
+
+    if (Vec3_Distance(point, ents[i]->s.origin) > CTF_DEFENSE_RADIUS) {
+      continue;
+    }
+
+    const CollisionTrace tr = gi.Trace(point, ents[i]->s.origin, Box3_Zero(), NULL, CONTENTS_SOLID);
+    if (tr.fraction == 1.f) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @brief Gives the attacker the one bonus, the largest, that a kill of an enemy earns: the
+ * kill of a carrier, of a danger to a carrier of the attacker's team, near a carrier of the
+ * attacker's team, or near the attacker's flag.
+ */
+static void G_ClientWillDie_Ctf(GameClient *cl, GameEntity *attacker, uint32_t mod) {
+
+  previous.ClientWillDie(cl, attacker, mod);
+
+  GameClient *killer = attacker ? attacker->client : NULL;
+
+  if (!killer || killer == cl) {
+    return;
+  }
+
+  const GameTeam *team = killer->persistent.team;
+
+  if (!team || team == cl->persistent.team) {
+    return;
+  }
+
+  if (G_GetFlag(cl)) {
+    killer->persistent.ctf.carrierKillTime = gameLevel.time;
+    G_Ctf_Award(killer, CTF_CARRIER_KILL_POINTS, "carrier_kill", "Flag carrier killed");
+    return;
+  }
+
+  const GameClient *hurt = cl->persistent.ctf.hurtCarrier;
+
+  if (hurt && hurt != killer && hurt->persistent.team == team &&
+      G_Ctf_Recent(cl->persistent.ctf.hurtCarrierTime, CTF_CARRIER_DANGER_MILLIS)) {
+    killer->persistent.ctf.defendedCarrier = hurt;
+    killer->persistent.ctf.defendTime = gameLevel.time;
+    G_Ctf_Award(killer, CTF_CARRIER_DANGER_POINTS, "carrier_danger", "Flag carrier defended");
+    return;
+  }
+
+  // a carrier defense goes before a flag defense, which earns the same, so that the kill also
+  // counts toward an assist if the carrier captures
+  G_ForEachClient(carrier, {
+    if (carrier != killer && carrier->persistent.team == team && G_GetFlag(carrier) &&
+        G_Ctf_Defends(carrier->entity->s.origin, cl->entity, killer->entity)) {
+      killer->persistent.ctf.defendedCarrier = carrier;
+      killer->persistent.ctf.defendTime = gameLevel.time;
+      G_Ctf_Award(killer, CTF_CARRIER_DEFENSE_POINTS, "carrier_defense", "Flag carrier defended");
+      return;
+    }
+  });
+
+  const GameEntity *flag = G_Ctf_LyingFlag(team);
+
+  if (flag && G_Ctf_Defends(flag->s.origin, cl->entity, killer->entity)) {
+    G_Ctf_Award(killer, CTF_FLAG_DEFENSE_POINTS, "flag_defense", "Flag defended");
+  }
+}
+
+/**
+ * @brief Remembers a client that hurts an enemy carrier, which a kill of that client defends.
+ */
+static bool G_ModifyDamage_Ctf(GameEntity *target, GameEntity *attacker, int32_t *damage, int32_t *knockback) {
+
+  if (!previous.ModifyDamage(target, attacker, damage, knockback)) {
+    return false;
+  }
+
+  // a hit that invulnerability or god mode stops, which G_Damage applies after this, hurts no one
+  if (*damage <= 0 || !target->client || (target->flags & FL_GOD_MODE) ||
+      target->client->inventory[POWERUP_INVULNERABILITY]) {
+    return true;
+  }
+
+  if (attacker && attacker->client && attacker != target &&
+      attacker->client->persistent.team != target->client->persistent.team && G_GetFlag(target->client)) {
+    attacker->client->persistent.ctf.hurtCarrier = target->client;
+    attacker->client->persistent.ctf.hurtCarrierTime = gameLevel.time;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Forgets what the client did on the last level.
+ */
+static void G_ClientWillBegin_Ctf(GameClient *cl) {
+
+  memset(&cl->persistent.ctf, 0, sizeof(cl->persistent.ctf));
+
+  previous.ClientWillBegin(cl);
+}
+
+/**
+ * @brief Forgets the client in what the other clients did, so that a client that takes its slot
+ * does not inherit a defense.
+ */
+static void G_ClientWillDisconnect_Ctf(GameClient *cl) {
+
+  G_ForEachClient(other, {
+    if (other->persistent.ctf.hurtCarrier == cl) {
+      other->persistent.ctf.hurtCarrier = NULL;
+    }
+    if (other->persistent.ctf.defendedCarrier == cl) {
+      other->persistent.ctf.defendedCarrier = NULL;
+    }
+  });
+
+  previous.ClientWillDisconnect(cl);
+}
+
+/**
+ * @brief Gives the carrier and its team their points for a capture. Each teammate also earns
+ * one assist, the largest, for a return or a carrier kill shortly before, or for a defense of
+ * this carrier during this carry.
+ */
+static void G_Ctf_AwardCapture(GameClient *carrier) {
+
+  const GameTeam *team = carrier->persistent.team;
+
+  G_Ctf_Award(carrier, CTF_CAPTURE_POINTS, "capture", "Capture");
+
+  G_ForEachClient(cl, {
+    if (cl == carrier || cl->persistent.team != team) {
+      continue;
+    }
+
+    const GameClientCtf *ctf = &cl->persistent.ctf;
+
+    int16_t assist = 0;
+    const char *reason = NULL;
+
+    if (G_Ctf_Recent(ctf->carrierKillTime, CTF_ASSIST_MILLIS)) {
+      assist = CTF_CARRIER_KILL_ASSIST_POINTS;
+      reason = "killing the enemy flag carrier";
+    } else if (G_Ctf_Recent(ctf->returnTime, CTF_ASSIST_MILLIS)) {
+      assist = CTF_RETURN_ASSIST_POINTS;
+      reason = "returning the flag";
+    } else if (ctf->defendedCarrier == carrier && ctf->defendTime >= carrier->persistent.ctf.carryTime) {
+      assist = CTF_CARRIER_DEFENSE_ASSIST_POINTS;
+      reason = "defending the flag carrier";
+    }
+
+    if (assist) {
+      cl->persistent.assists++;
+      gi.BroadcastPrint(PRINT_HIGH, "%s gets an assist for %s\n", cl->persistent.netName, reason);
+      G_Ctf_Award(cl, CTF_TEAM_CAPTURE_POINTS + assist, "assist", "Capture assist");
+    } else {
+      G_Ctf_Award(cl, CTF_TEAM_CAPTURE_POINTS, "team_capture", "Team capture");
+    }
+  });
+}
+
+/**
  * @brief Steal the enemy's flag. If our own flag is dropped, return it. Else, if we are
  * carrying the enemy's flag and touch our own flag, that is a capture.
  */
@@ -265,6 +549,9 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
 
       G_Ai_Profile_Flag(cl, "return", team->id);
 
+      cl->persistent.ctf.returnTime = gameLevel.time;
+      G_Ctf_Award(cl, CTF_RETURN_POINTS, "return", "Flag returned");
+
       return true;
     }
 
@@ -301,6 +588,8 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
 
         team->captures++;
         cl->persistent.captures++;
+
+        G_Ctf_AwardCapture(cl);
 
         {
           const bool playerAi = cl->ai != NULL;
@@ -350,6 +639,12 @@ static bool G_PickupFlag(GameClient *cl, GameEntity *ent) {
   gi.BroadcastPrint(PRINT_HIGH, "%s stole the %s flag :flag%d_steal:\n", cl->persistent.netName, team->name, team->id + 1);
 
   G_Ai_Profile_Flag(cl, ent->spawnFlags & SF_ITEM_DROPPED ? "pickup" : "steal", team->id);
+
+  cl->persistent.ctf.carryTime = gameLevel.time;
+
+  if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
+    G_Ctf_Award(cl, CTF_STEAL_POINTS, "steal", "Flag stolen");
+  }
 
   cl->entity->s.effects |= G_EffectForTeam(team);
   return true;
@@ -503,6 +798,21 @@ void G_Ctf_Init(void) {
 
     previous.InitMedia = G_InitMedia;
     G_InitMedia = G_InitMedia_Ctf;
+
+    previous.ModifyDamage = G_ModifyDamage;
+    G_ModifyDamage = G_ModifyDamage_Ctf;
+
+    previous.ClientWillBegin = G_ClientWillBegin;
+    G_ClientWillBegin = G_ClientWillBegin_Ctf;
+
+    previous.ClientWillDie = G_ClientWillDie;
+    G_ClientWillDie = G_ClientWillDie_Ctf;
+
+    previous.ClientWillDisconnect = G_ClientWillDisconnect;
+    G_ClientWillDisconnect = G_ClientWillDisconnect_Ctf;
+
+    previous.FrameDidEnd = G_FrameDidEnd;
+    G_FrameDidEnd = G_FrameDidEnd_Ctf;
   }
 
   g_captureLimit = gi.AddCvar("g_captureLimit", "default", CVAR_SERVER_INFO, "The capture limit per level: \"default\" defers to the level, else 8.");

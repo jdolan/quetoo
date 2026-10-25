@@ -14,13 +14,6 @@
           "identifier": "crosshair"
         },
         {
-          "class": "HeldFlagView",
-          "identifier": "heldFlag",
-          "classNames": [
-            "heldFlag"
-          ]
-        },
-        {
           "class": "View",
           "identifier": "centerPrintAnchor",
           "subviews": [
@@ -121,6 +114,13 @@
           "identifier": "powerups",
           "subviews": [
             {
+              "class": "HeldFlagView",
+              "identifier": "heldFlag",
+              "classNames": [
+                "heldFlag"
+              ]
+            },
+            {
               "class": "PowerupView",
               "identifier": "quad",
               "powerup": "quad"
@@ -152,7 +152,16 @@
         {
           "class": "StackView",
           "identifier": "stats",
+          "classNames": [
+            "counters"
+          ],
           "subviews": [
+            {
+              "class": "CounterView",
+              "identifier": "score",
+              "caption": "Score",
+              "stat": "score"
+            },
             {
               "class": "CounterView",
               "identifier": "frags",
@@ -170,37 +179,83 @@
               "identifier": "captures",
               "caption": "Captures",
               "stat": "captures"
+            },
+            {
+              "class": "CounterView",
+              "identifier": "assists",
+              "caption": "Assists",
+              "stat": "assists"
             }
           ]
         },
         {
           "class": "StackView",
-          "identifier": "clock",
+          "identifier": "clockRow",
           "subviews": [
             {
-              "class": "TimeView",
-              "identifier": "time",
-              "caption": "Time"
+              "class": "StackView",
+              "identifier": "flagsLeft",
+              "classNames": [
+                "flags"
+              ],
+              "subviews": [
+                {
+                  "class": "FlagStatusView",
+                  "team": 3
+                },
+                {
+                  "class": "FlagStatusView",
+                  "team": 1
+                }
+              ]
             },
             {
               "class": "StackView",
-              "identifier": "itemTimers",
+              "identifier": "clock",
               "subviews": [
                 {
-                  "class": "ItemTimerView",
-                  "item": "mega"
+                  "class": "TimeView",
+                  "identifier": "time",
+                  "caption": "Time"
                 },
                 {
-                  "class": "ItemTimerView",
-                  "item": "quad"
+                  "class": "StackView",
+                  "identifier": "itemTimers",
+                  "subviews": [
+                    {
+                      "class": "ItemTimerView",
+                      "item": "mega"
+                    },
+                    {
+                      "class": "ItemTimerView",
+                      "item": "quad"
+                    },
+                    {
+                      "class": "ItemTimerView",
+                      "item": "invulnerability"
+                    },
+                    {
+                      "class": "ItemTimerView",
+                      "item": "invisibility"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "identifier": "flagsRight",
+              "classNames": [
+                "flags"
+              ],
+              "subviews": [
+                {
+                  "class": "FlagStatusView",
+                  "team": 2
                 },
                 {
-                  "class": "ItemTimerView",
-                  "item": "invulnerability"
-                },
-                {
-                  "class": "ItemTimerView",
-                  "item": "invisibility"
+                  "class": "FlagStatusView",
+                  "team": 4
                 }
               ]
             }

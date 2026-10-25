@@ -45,7 +45,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1065
+#define PROTOCOL_MINOR 1066
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -112,7 +112,17 @@ typedef enum {
 #define CS_ITEM_TIMER_QUAD (CS_GAME + 10) // seconds until the next quad damage respawns (g_itemTimers)
 #define CS_ITEM_TIMER_INVULNERABILITY (CS_GAME + 11) // seconds until the next invulnerability respawns (g_itemTimers)
 #define CS_ITEM_TIMER_INVISIBILITY (CS_GAME + 12) // seconds until the next invisibility respawns (g_itemTimers)
-#define CS_CORPSES         (CS_GAME + 13) // the client info that corpses wear, MAX_CORPSES wide
+#define CS_CTF_FLAGS       (CS_GAME + 13) // where each team's flag is, one CtfFlagState for each team
+#define CS_CORPSES         (CS_GAME + 14) // the client info that corpses wear, MAX_CORPSES wide
+
+/**
+ * @brief Where a team's flag is, one character for each team in `CS_CTF_FLAGS`.
+ */
+typedef enum {
+  CTF_FLAG_BASE = '0',
+  CTF_FLAG_CARRIED = '1',
+  CTF_FLAG_DROPPED = '2',
+} CtfFlagState;
 
 
 /**
@@ -120,6 +130,7 @@ typedef enum {
  */
 typedef enum {
   STAT_ARMOR,
+  STAT_ASSISTS,
   STAT_CAPTURES,
   STAT_CHASE,
   STAT_DAMAGE_ARMOR,
@@ -133,6 +144,7 @@ typedef enum {
   STAT_PICKUP,
   STAT_PING,
   STAT_QUAD_TIME,
+  STAT_SCORE,
   STAT_SCORES,
   STAT_SPECTATOR,
   STAT_TEAM,
@@ -271,9 +283,20 @@ typedef struct {
   int16_t color;
 
   /**
-   * @brief Frag or point score.
+   * @brief Number of frags.
+   */
+  int16_t frags;
+
+  /**
+   * @brief Points, by which the scoreboard sorts: frags, and in capture the flag, the
+   * points of the flag events.
    */
   int16_t score;
+
+  /**
+   * @brief Number of assists.
+   */
+  int16_t assists;
 
   /**
    * @brief Number of flag captures.
@@ -302,6 +325,13 @@ typedef struct {
 #define SCORE_CTF_FLAG  (1 << 0)
 #define SCORE_SPECTATOR (1 << 2)
 #define SCORE_AGGREGATE (1 << 3)
+
+/**
+ * @brief The team of the flag that a carrier holds, 0-based, in bits 4 and 5 of the flags, so
+ * that the scoreboard shows the flag it carries and not the flag of its own team.
+ */
+#define SCORE_CTF_FLAG_TEAM(team) (((team) & 3) << 4)
+#define SCORE_CTF_FLAG_TEAM_OF(flags) (((flags) >> 4) & 3)
 
 /**
  * @brief Game-specific entity events.
@@ -1196,9 +1226,9 @@ typedef struct {
   int16_t effect;
 
   /**
-   * @brief Team score.
+   * @brief Team frag count.
    */
-  int16_t score;
+  int16_t frags;
 
   /**
    * @brief Team capture count.
@@ -1273,6 +1303,39 @@ typedef struct {
 } GameWeaponStats;
 
 /**
+ * @brief What a client did in capture the flag that can earn points later: a defense or an
+ * assist. Times are `gameLevel.time`, and 0 is never.
+ */
+typedef struct {
+  /**
+   * @brief When the client took the flag that it carries.
+   */
+  uint32_t carryTime;
+
+  /**
+   * @brief The enemy carrier that the client last hurt, and when.
+   */
+  const GameClient *hurtCarrier;
+  uint32_t hurtCarrierTime;
+
+  /**
+   * @brief When the client last returned its team's flag.
+   */
+  uint32_t returnTime;
+
+  /**
+   * @brief When the client last killed an enemy carrier.
+   */
+  uint32_t carrierKillTime;
+
+  /**
+   * @brief The teammate carrier that the client last defended, and when.
+   */
+  const GameClient *defendedCarrier;
+  uint32_t defendTime;
+} GameClientCtf;
+
+/**
  * @brief This structure contains client data that persists over multiple spawns.
  */
 typedef struct {
@@ -1338,9 +1401,19 @@ typedef struct {
   Color shirt, pants, helmet;
 
   /**
-   * @brief Current score.
+   * @brief Number of frags.
+   */
+  int16_t frags;
+
+  /**
+   * @brief Points: frags, and in capture the flag, the points of the flag events.
    */
   int16_t score;
+
+  /**
+   * @brief Number of assists.
+   */
+  int16_t assists;
 
   /**
    * @brief Number of flag captures.
@@ -1386,6 +1459,11 @@ typedef struct {
    * @brief Damage dealt to living enemies, and damage taken from any source.
    */
   uint32_t damageDealt, damageTaken;
+
+  /**
+   * @brief The capture the flag events that can earn points later.
+   */
+  GameClientCtf ctf;
 } GameClientPersistent;
 
 /**

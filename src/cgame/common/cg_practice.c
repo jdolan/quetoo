@@ -655,7 +655,7 @@ static int32_t Cg_Practice_TeamPoints(const GameScore *score) {
 #if defined(G_CTF)
   return score->captures;
 #else
-  return score->score;
+  return score->frags;
 #endif
 }
 

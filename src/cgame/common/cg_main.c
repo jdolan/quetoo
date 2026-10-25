@@ -384,6 +384,20 @@ static void Cg_UpdateConfigString(int32_t i) {
 }
 
 /**
+ * @see cg_main.h
+ */
+void Cg_LoadConfigStrings(void) {
+
+  static const int32_t indexes[] = { CS_GAMEPLAY, CS_NUM_TEAMS, CS_TEAM_INFO, CS_ITEM_SET };
+
+  for (size_t i = 0; i < lengthof(indexes); i++) {
+    if (*cgi.ConfigString(indexes[i])) {
+      Cg_UpdateConfigString(indexes[i]);
+    }
+  }
+}
+
+/**
  * @brief React to a parsed server command.
  */
 /**

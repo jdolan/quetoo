@@ -199,6 +199,12 @@
   corner-cut: 18 0 0 0;
   padding: 10 30 12 48;
   spacing: 24;
+  visibility: visible;
+}
+
+/* a free spectator has no counts of its own */
+#hud.spectating .counters {
+  visibility: hidden;
 }
 
 #hud #stats .divider {
@@ -257,6 +263,48 @@
   autoresizing-mask: contain;
   padding-top: 12;
   spacing: 8;
+}
+
+/*
+ * In CTF the clock sits between the teams' flags, teams 1 and 3 to its left and 2 and 4 to its
+ * right, so that each flag's state reads at a glance.
+ */
+
+#clockRow {
+  alignment: top-center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 32;
+}
+
+#clockRow > .flags {
+  alignment: top;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  padding-top: 12;
+  spacing: 16;
+}
+
+/* as wide as its widest label, so that a flag that changes state never moves the clock */
+#hud FlagStatusView {
+  alignment: top;
+  autoresizing-mask: contain;
+  axis: vertical;
+  min-width: 72;
+  spacing: 2;
+}
+
+#hud FlagStatusView > .icon {
+  alignment: center;
+  width: 40;
+  height: 40;
+}
+
+#hud FlagStatusView > .label {
+  alignment: center;
+  text-transform: uppercase;
+  font-size: 14;
+  color: #8fc7dc;
 }
 
 #hud #clock CounterView {
@@ -397,13 +445,17 @@
   autoresizing-mask: fill;
 }
 
+/*
+ * Nothing covers the crosshair. The anchors that sit near it pad the side away from it, so
+ * that their text lands above or below it: the center print and the vote above, the target
+ * name below. An anchor is centered with its padding, so the text clears the middle by
+ * (padding - text height) / 2.
+ */
+
 #hud #centerPrintAnchor {
   alignment: middle-center;
   autoresizing-mask: contain;
-}
-
-#hud.paused #centerPrintAnchor {
-  padding-bottom: 160;
+  padding-bottom: 360;
 }
 
 #hud.paused #centerPrint {
@@ -457,7 +509,7 @@ ChatView TextView > Text {
 #hud #targetNameAnchor {
   alignment: middle-center;
   autoresizing-mask: contain;
-  padding-top: 80;
+  padding-top: 160;
 }
 
 #hud #targetName {
@@ -494,12 +546,6 @@ ChatView TextView > Text {
   color: #00ff00;
 }
 
-#hud .heldFlag {
-  alignment: middle-left;
-  padding-bottom: 224;
-  width: 64;
-  height: 64;
-}
 
 #hud .raceRun {
   alignment: top-center;

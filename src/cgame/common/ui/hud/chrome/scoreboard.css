@@ -28,30 +28,55 @@ ScoreboardView > .title {
   color: #f2f5f6;
 }
 
-ScoreboardView > .header {
+ScoreboardView > .board {
   alignment: top-center;
   autoresizing-mask: contain;
-  axis: horizontal;
-  padding-top: 24;
-  spacing: 48;
-}
-
-ScoreboardView > .columns {
-  alignment: top-center;
-  autoresizing-mask: contain;
-  axis: horizontal;
+  axis: vertical;
   padding-top: 48;
   spacing: 24;
 }
 
-ScoreboardView .column {
+ScoreboardView .columns {
+  alignment: center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 24;
+}
+
+ScoreboardView .rows {
   autoresizing-mask: contain;
   axis: vertical;
   spacing: 3;
 }
 
+/* the spectators, beneath the teams, a few to a line */
 ScoreboardView .spectators {
-  padding-right: 26;
+  alignment: center;
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 2;
+}
+
+ScoreboardView .spectators > .heading {
+  alignment: center;
+  text-transform: uppercase;
+  color: #8fc7dc;
+  padding-bottom: 4;
+}
+
+ScoreboardView .spectators > .line {
+  alignment: center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 8;
+}
+
+/* a team's total heads its column, over the field captions */
+ScoreboardView .total {
+  alignment: center;
+  text-transform: uppercase;
+  font-size: 24;
+  padding-bottom: 4;
 }
 
 /* The header of field captions the rows line up under */
@@ -79,7 +104,8 @@ ScoreboardView ScoreView.odd {
   background-color: #0f2229e6;
 }
 
-ScoreboardView ScoreView.self {
+ScoreboardView ScoreView.self,
+ScoreboardView ScoreView.odd.self {
   background-color: #1e4e62e6;
   background-gradient-color: #08151acc;
   border-color: #8fc7dc80;

@@ -24,6 +24,13 @@
 #include "cg_types.h"
 
 #if defined(__CG_LOCAL_H__)
+/**
+ * @brief Reads again the configuration strings that the client game keeps its own state for.
+ * @details The server sends a configuration string only when it changes, and a reload of the
+ * module, as `r_restart` does, starts that state over, so the team colors went black.
+ */
+void Cg_LoadConfigStrings(void);
+
 #if defined(G_HOOK)
 float Cg_GetHookPullSpeed(void);
 #endif
