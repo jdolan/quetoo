@@ -106,6 +106,179 @@ Class *_HeldFlagView(void) {
 
 #undef _Class
 
+#define _Class _FlagStatusView
+
+/**
+ * @brief Where one team's flag is, beside the clock: its icon, and beneath it "Base", "Taken" or
+ * "Dropped". A taken flag pulses, and a dropped flag is dim.
+ * @extends StackView
+ */
+typedef struct FlagStatusViewInterface FlagStatusViewInterface;
+
+typedef struct {
+  StackView stackView;
+  FlagStatusViewInterface *interface[0];
+  int32_t team;
+  ImageView *icon;
+  Text *label;
+  char state;
+} FlagStatusView;
+
+struct FlagStatusViewInterface {
+  StackViewInterface stackViewInterface;
+};
+
+/**
+ * @see Object::dealloc(Object *)
+ */
+static void FlagStatusView_dealloc(Object *self) {
+
+  FlagStatusView *this = (FlagStatusView *) self;
+
+  release(this->icon);
+  release(this->label);
+
+  super(Object, self, dealloc);
+}
+
+/**
+ * @see View::awakeWithDictionary(View *, const Dictionary *)
+ */
+static void FlagStatusView_awakeWithDictionary(View *self, const Dictionary *dictionary) {
+
+  super(View, self, awakeWithDictionary, dictionary);
+
+  FlagStatusView *this = (FlagStatusView *) self;
+
+  const Inlet inlets[] = MakeInlets(
+    MakeInlet("team", InletTypeInteger, &this->team, NULL)
+  );
+
+  $(self, bind, inlets, dictionary);
+}
+
+/**
+ * @see View::init(View *)
+ */
+static View *FlagStatusView_init(View *self) {
+
+  self = (View *) super(StackView, self, initWithFrame, NULL);
+  if (self) {
+    FlagStatusView *this = (FlagStatusView *) self;
+
+    this->icon = $(alloc(ImageView), initWithFrame, &MakeRect(0, 0, HUD_PIC_HEIGHT, HUD_PIC_HEIGHT));
+    assert(this->icon);
+
+    $((View *) this->icon, addClassName, "icon");
+    $(self, addSubview, (View *) this->icon);
+
+    this->label = $(alloc(Text), initWithText, NULL, NULL);
+    assert(this->label);
+
+    $((View *) this->label, addClassName, "label");
+    $(self, addSubview, (View *) this->label);
+  }
+
+  return self;
+}
+
+/**
+ * @see View::updateBindings(View *, ident)
+ */
+static void FlagStatusView_updateBindings(View *self, ident data) {
+
+  super(View, self, updateBindings, data);
+
+  if (data == NULL) {
+    return;
+  }
+
+  FlagStatusView *this = (FlagStatusView *) self;
+
+  const char *states = cgi.ConfigString(CS_CTF_FLAGS);
+  const int32_t numTeams = (int32_t) strlen(states);
+
+  // teams 1 and 3 face teams 2 and 4 across the clock: a team that the level lacks keeps its
+  // place while the team that faces it plays, so that the clock stays centered
+  const int32_t facing = (this->team & 1) ? this->team + 1 : this->team - 1;
+
+  const bool plays = this->team > 0 && this->team <= numTeams;
+  const bool holds = plays || (facing > 0 && facing <= numTeams);
+
+  $(self, setVisibility, holds ? ViewVisibilityVisible : ViewVisibilityHidden);
+
+  if (!plays) {
+    if (this->state != ' ') {
+      this->state = ' ';
+      this->icon->color.a = 0;
+      $(this->label, setText, " ");
+    }
+    return;
+  }
+
+  const char state = states[this->team - 1];
+
+  if (this->icon->image == NULL) {
+    $(this->icon, setImage, (Image *) Cg_HudImage(va("pics/flag%d", this->team)));
+  }
+
+  if (state != this->state) {
+    this->state = state;
+
+    switch (state) {
+      case CTF_FLAG_BASE:
+        $(this->label, setText, "Base");
+        break;
+      case CTF_FLAG_CARRIED:
+        $(this->label, setText, "Taken");
+        break;
+      default:
+        $(this->label, setText, "Dropped");
+        break;
+    }
+  }
+
+  float alpha = 1.f;
+  if (state == CTF_FLAG_CARRIED) {
+    alpha = Clampf(sinf(cgi.client->unclampedTime / 150.f), 0.5f, 1.f);
+  } else if (state == CTF_FLAG_DROPPED) {
+    alpha = .4f;
+  }
+
+  this->icon->color.a = (Uint8) (alpha * 255);
+}
+
+/**
+ * @see Class::initialize(Class *)
+ */
+static void FlagStatusView_initialize(Class *clazz) {
+
+  ((ObjectInterface *) clazz->interface)->dealloc = FlagStatusView_dealloc;
+
+  ((ViewInterface *) clazz->interface)->awakeWithDictionary = FlagStatusView_awakeWithDictionary;
+  ((ViewInterface *) clazz->interface)->init = FlagStatusView_init;
+  ((ViewInterface *) clazz->interface)->updateBindings = FlagStatusView_updateBindings;
+}
+
+Class *_FlagStatusView(void) {
+  static Class *clazz;
+  static Once once;
+
+  do_once(&once, {
+    clazz = _initialize(&(const ClassDef) {
+      .name = "FlagStatusView",
+      .superclass = _StackView(),
+      .instanceSize = sizeof(FlagStatusView),
+      .interfaceSize = sizeof(FlagStatusViewInterface),
+      .initialize = FlagStatusView_initialize,
+    });
+  });
+
+  return clazz;
+}
+
+#undef _Class
+
 /**
  * @brief Captures are team deathmatch or team instagib: arena does not apply,
  * and teams are not optional. A single owner, like the game side's

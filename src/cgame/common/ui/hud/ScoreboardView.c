@@ -63,13 +63,23 @@ static void addRow(ScoreboardView *self, StackView *column, const GameScore *sco
 }
 
 /**
- * @brief The badge over a player's icon: in CTF, the flag they carry.
+ * @brief The badge of a player: in CTF, the flag they carry. A card wears it over the icon, and
+ * a table row at the end of the name's column, where it reads at a glance.
  */
-static void configureBadge(ScoreView *row, const GameScore *score) {
+static void configureBadge(const ScoreboardView *self, ScoreView *row, const GameScore *score) {
 #if defined(G_CTF)
   if (score->flags & SCORE_CTF_FLAG) {
-    $(row->badge, setImage, (Image *) Cg_HudImage(va("pics/flag%d", score->team)));
+    const int32_t team = SCORE_CTF_FLAG_TEAM_OF(score->flags) + 1;
+
+    $(row->badge, setImage, (Image *) Cg_HudImage(va("pics/flag%d", team)));
     $((View *) row->badge, setVisibility, ViewVisibilityVisible);
+
+    if (self->layout == ScoreboardLayoutTable) {
+      const int32_t x = SCORES_ICON_WIDTH + SCORES_NAME_WIDTH - SCORES_BADGE_WIDTH - 4;
+      const int32_t y = (SCORES_ROW_HEIGHT - SCORES_BADGE_WIDTH) / 2;
+
+      row->badge->view.frame = MakeRect(x, y, SCORES_BADGE_WIDTH, SCORES_BADGE_WIDTH);
+    }
   }
 #endif
 }
@@ -348,7 +358,7 @@ static ScoreView *scoreView(ScoreboardView *self, const GameScore *score) {
   ScoreView *row = $(alloc(ScoreView), initWithScore, score, width);
   assert(row);
 
-  configureBadge(row, score);
+  configureBadge(self, row, score);
 
   if (spectator) {
     if (self->layout == ScoreboardLayoutTable) {

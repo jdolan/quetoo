@@ -29,6 +29,9 @@
 #define SCORES_ROW_HEIGHT 52
 #define SCORES_ICON_WIDTH 48
 
+// the flag a carrier wears in a table row, at the end of the name's column
+#define SCORES_BADGE_WIDTH 24
+
 // the name's column in a table row, narrower than a card, so that two teams fit a small display
 #define SCORES_NAME_WIDTH 176
 

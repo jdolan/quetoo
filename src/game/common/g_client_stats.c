@@ -275,8 +275,9 @@ static void G_UpdateScore(const GameClient *cl, GameScore *s) {
     s->flags |= SCORE_SPECTATOR;
   } else {
 #if defined(G_CTF)
-    if (G_GetFlag(cl)) {
-      s->flags |= SCORE_CTF_FLAG;
+    const GameItem *flag = G_GetFlag(cl);
+    if (flag) {
+      s->flags |= SCORE_CTF_FLAG | SCORE_CTF_FLAG_TEAM(flag->def.tag - FLAG_FIRST);
     }
 #endif
     if (cl->persistent.team) {

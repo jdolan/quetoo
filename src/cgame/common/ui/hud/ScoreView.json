@@ -5,10 +5,6 @@
       "identifier": "icon"
     },
     {
-      "class": "ImageView",
-      "identifier": "badge"
-    },
-    {
       "class": "View",
       "identifier": "fill",
       "classNames": ["fill"]
@@ -32,6 +28,10 @@
       "class": "Text",
       "identifier": "aside",
       "classNames": ["aside"]
+    },
+    {
+      "class": "ImageView",
+      "identifier": "badge"
     }
   ]
 }

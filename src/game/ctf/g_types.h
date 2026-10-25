@@ -112,7 +112,17 @@ typedef enum {
 #define CS_ITEM_TIMER_QUAD (CS_GAME + 10) // seconds until the next quad damage respawns (g_itemTimers)
 #define CS_ITEM_TIMER_INVULNERABILITY (CS_GAME + 11) // seconds until the next invulnerability respawns (g_itemTimers)
 #define CS_ITEM_TIMER_INVISIBILITY (CS_GAME + 12) // seconds until the next invisibility respawns (g_itemTimers)
-#define CS_CORPSES         (CS_GAME + 13) // the client info that corpses wear, MAX_CORPSES wide
+#define CS_CTF_FLAGS       (CS_GAME + 13) // where each team's flag is, one CtfFlagState for each team
+#define CS_CORPSES         (CS_GAME + 14) // the client info that corpses wear, MAX_CORPSES wide
+
+/**
+ * @brief Where a team's flag is, one character for each team in `CS_CTF_FLAGS`.
+ */
+typedef enum {
+  CTF_FLAG_BASE = '0',
+  CTF_FLAG_CARRIED = '1',
+  CTF_FLAG_DROPPED = '2',
+} CtfFlagState;
 
 
 /**
@@ -315,6 +325,13 @@ typedef struct {
 #define SCORE_CTF_FLAG  (1 << 0)
 #define SCORE_SPECTATOR (1 << 2)
 #define SCORE_AGGREGATE (1 << 3)
+
+/**
+ * @brief The team of the flag that a carrier holds, 0-based, in bits 4 and 5 of the flags, so
+ * that the scoreboard shows the flag it carries and not the flag of its own team.
+ */
+#define SCORE_CTF_FLAG_TEAM(team) (((team) & 3) << 4)
+#define SCORE_CTF_FLAG_TEAM_OF(flags) (((flags) >> 4) & 3)
 
 /**
  * @brief Game-specific entity events.

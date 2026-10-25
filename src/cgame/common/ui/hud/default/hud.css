@@ -210,6 +210,47 @@
   spacing: 8;
 }
 
+/*
+ * In CTF the clock sits between the teams' flags, teams 1 and 3 to its left and 2 and 4 to its
+ * right, so that each flag's state reads at a glance.
+ */
+
+#clockRow {
+  alignment: top-center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 32;
+}
+
+#clockRow > .flags {
+  alignment: top;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  padding-top: 0;
+  spacing: 16;
+}
+
+/* as wide as its widest label, so that a flag that changes state never moves the clock */
+#hud FlagStatusView {
+  alignment: top;
+  autoresizing-mask: contain;
+  axis: vertical;
+  min-width: 72;
+  spacing: 2;
+}
+
+#hud FlagStatusView > .icon {
+  alignment: center;
+  width: 40;
+  height: 40;
+}
+
+#hud FlagStatusView > .label {
+  alignment: center;
+  font-size: 14;
+  color: #8fc7dc;
+}
+
 #hud #clock CounterView {
   alignment: center;
 }
