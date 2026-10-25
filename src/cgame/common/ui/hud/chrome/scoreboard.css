@@ -28,11 +28,18 @@ ScoreboardView > .title {
   color: #f2f5f6;
 }
 
-ScoreboardView > .columns {
+ScoreboardView > .board {
   alignment: top-center;
   autoresizing-mask: contain;
-  axis: horizontal;
+  axis: vertical;
   padding-top: 48;
+  spacing: 24;
+}
+
+ScoreboardView .columns {
+  alignment: center;
+  autoresizing-mask: contain;
+  axis: horizontal;
   spacing: 24;
 }
 
@@ -42,8 +49,26 @@ ScoreboardView .rows {
   spacing: 3;
 }
 
+/* the spectators, beneath the teams, a few to a line */
 ScoreboardView .spectators {
-  padding-right: 26;
+  alignment: center;
+  autoresizing-mask: contain;
+  axis: vertical;
+  spacing: 2;
+}
+
+ScoreboardView .spectators > .heading {
+  alignment: center;
+  text-transform: uppercase;
+  color: #8fc7dc;
+  padding-bottom: 4;
+}
+
+ScoreboardView .spectators > .line {
+  alignment: center;
+  autoresizing-mask: contain;
+  axis: horizontal;
+  spacing: 8;
 }
 
 /* a team's total heads its column, over the field captions */

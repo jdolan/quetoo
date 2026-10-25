@@ -103,8 +103,7 @@ static ScoreView *initWithScore(ScoreView *self, const GameScore *score, int32_t
  */
 static void setFields(ScoreView *self, const ScoreField *fields, const char **values, size_t count) {
 
-  assert(fields);
-  assert(values);
+  assert(count == 0 || (fields && values));
 
   $((View *) self, addClassName, "fields");
 

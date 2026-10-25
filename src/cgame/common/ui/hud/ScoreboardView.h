@@ -70,9 +70,19 @@ struct ScoreboardView {
   ScoreboardViewInterface *interface[0];
 
   /**
+   * @brief The columns over the spectators, centered as one.
+   */
+  StackView *board;
+
+  /**
    * @brief The row columns, and any a subclass adds.
    */
   StackView *columns;
+
+  /**
+   * @brief The spectators, beneath the columns.
+   */
+  StackView *spectators;
 
   /**
    * @brief The scores generation and view height the rows were last built for.

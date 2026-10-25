@@ -35,7 +35,9 @@ static void dealloc(Object *self) {
 
   ScoreboardView *this = (ScoreboardView *) self;
 
+  release(this->board);
   release(this->columns);
+  release(this->spectators);
   release(this->title);
 
   super(Object, self, dealloc);
@@ -167,6 +169,64 @@ static size_t rowsThatFit(const ScoreboardView *self, int32_t top, int32_t reser
   return (size_t) Maxi(3, (self->view.frame.h - 2 * top - reserved) / SCORES_ROW_HEIGHT);
 }
 
+/**
+ * @brief Lists the spectators beneath the columns, centered, a few to a line, and at most a few
+ * lines, so that a crowd never pushes the board off the screen. The heading counts them all.
+ * @return The number of lines.
+ */
+static size_t addSpectators(ScoreboardView *self, const GameScore *scores, size_t count) {
+
+  size_t total = 0;
+  for (size_t i = 0; i < count; i++) {
+    if (scores[i].flags & SCORE_SPECTATOR) {
+      total++;
+    }
+  }
+
+  if (total == 0) {
+    return 0;
+  }
+
+  Text *heading = $(alloc(Text), initWithText, va("Spectators (%zu)", total), NULL);
+  assert(heading);
+
+  $((View *) heading, addClassName, "heading");
+  $((View *) self->spectators, addSubview, (View *) heading);
+  release(heading);
+
+  const size_t shown = SCORES_SPECTATORS_PER_LINE * SCORES_SPECTATOR_LINES_MAX;
+
+  size_t lines = 0;
+  StackView *line = NULL;
+
+  for (size_t i = 0, added = 0; i < count && added < shown; i++) {
+    if (!(scores[i].flags & SCORE_SPECTATOR)) {
+      continue;
+    }
+
+    if (added % SCORES_SPECTATORS_PER_LINE == 0) {
+      line = $(alloc(StackView), initWithFrame, NULL);
+      assert(line);
+
+      $((View *) line, addClassName, "line");
+      $((View *) self->spectators, addSubview, (View *) line);
+      release(line);
+
+      lines++;
+    }
+
+    ScoreView *row = $(self, scoreView, &scores[i]);
+    assert(row);
+
+    $((View *) line, addSubview, (View *) row);
+    release(row);
+
+    added++;
+  }
+
+  return lines;
+}
+
 #pragma mark - View
 
 /**
@@ -186,11 +246,23 @@ static View *init(View *self) {
     $((View *) this->title, addClassName, "title");
     $(self, addSubview, (View *) this->title);
 
+    this->board = $(alloc(StackView), initWithFrame, NULL);
+    assert(this->board);
+
+    $((View *) this->board, addClassName, "board");
+    $(self, addSubview, (View *) this->board);
+
     this->columns = $(alloc(StackView), initWithFrame, NULL);
     assert(this->columns);
 
     $((View *) this->columns, addClassName, "columns");
-    $(self, addSubview, (View *) this->columns);
+    $((View *) this->board, addSubview, (View *) this->columns);
+
+    this->spectators = $(alloc(StackView), initWithFrame, NULL);
+    assert(this->spectators);
+
+    $((View *) this->spectators, addClassName, "spectators");
+    $((View *) this->board, addSubview, (View *) this->spectators);
   }
 
   return self;
@@ -265,18 +337,25 @@ static StackView *addColumn(ScoreboardView *self) {
  */
 static ScoreView *scoreView(ScoreboardView *self, const GameScore *score) {
 
-  // a spectator in a team game has a column of its own, and no fields to line up with a team's
-  const bool aside = (score->flags & SCORE_SPECTATOR) && cgameState.numTeams;
+  const bool spectator = score->flags & SCORE_SPECTATOR;
 
-  const int32_t width = aside ? SCORES_COL_WIDTH : self->rowWidth;
+  // a spectator has no fields to line up with, so its row holds only the name and the ping
+  int32_t width = self->rowWidth;
+  if (spectator) {
+    width = self->layout == ScoreboardLayoutTable ? SCORES_SPECTATOR_WIDTH : SCORES_COL_WIDTH;
+  }
 
   ScoreView *row = $(alloc(ScoreView), initWithScore, score, width);
   assert(row);
 
   configureBadge(row, score);
 
-  if (score->flags & SCORE_SPECTATOR) {
-    $(row, setDetails, "spectating", NULL);
+  if (spectator) {
+    if (self->layout == ScoreboardLayoutTable) {
+      $(row, setFields, NULL, NULL, 0);
+    } else {
+      $(row, setDetails, "spectating", NULL);
+    }
     return row;
   }
 
@@ -397,10 +476,13 @@ static void rebuild(ScoreboardView *self) {
   $(self->title, setText, cgi.ConfigString(CS_MESSAGE));
 
   $((View *) self->columns, removeAllSubviews);
+  $((View *) self->spectators, removeAllSubviews);
 
   // layout treats an existing frame as authoritative, so a container that has been laid out
   // once never re-derives its size from new content: clear them, and they measure again
+  $((View *) self->board, resize, &MakeSize(0, 0));
   $((View *) self->columns, resize, &MakeSize(0, 0));
+  $((View *) self->spectators, resize, &MakeSize(0, 0));
 
   size_t count;
   const GameScore *scores = Cg_Scores(&count);
@@ -416,17 +498,24 @@ static void rebuild(ScoreboardView *self) {
   // The columns start 88 logical pixels down (scoreboard.css); the board used 64 for its title.
   // A team's column leads with its total, and a table's with its field captions, which take
   // room the rows then do not have
-  const int32_t reserved = (self->layout == ScoreboardLayoutTable ? SCORES_HEADER_HEIGHT : 0) +
-                           (cgameState.numTeams ? SCORES_TOTAL_HEIGHT : 0);
+  const size_t spectators = addSpectators(self, scores, count);
+
+  int32_t reserved = self->layout == ScoreboardLayoutTable ? SCORES_HEADER_HEIGHT : 0;
+
+  if (cgameState.numTeams) {
+    reserved += SCORES_TOTAL_HEIGHT;
+  }
+
+  // the spectators' heading and lines, beneath the columns
+  if (spectators) {
+    reserved += SCORES_SPECTATORS_MARGIN + (int32_t) spectators * (SCORES_ROW_HEIGHT + 2);
+  }
   const size_t rows = rowsThatFit(self, 64, reserved);
 
   if (cgameState.numTeams) {
 
     // the aggregate scores follow the players' in the array
     const GameScore *totals = scores + count;
-
-    StackView *spectators = $(self, addColumn);
-    $((View *) spectators, addClassName, "spectators");
 
     for (int32_t t = 0; t < cgameState.numTeams; t++) {
       Text *total = $(alloc(Text), initWithText, teamTotal(&cgameState.teams[t], &totals[t]), NULL);
@@ -451,24 +540,28 @@ static void rebuild(ScoreboardView *self) {
       }
     }
 
-    size_t added = 0;
-    for (size_t i = 0; i < count && added < rows; i++) {
-      if (scores[i].flags & SCORE_SPECTATOR) {
-        addRow(self, spectators, &scores[i]);
-        added++;
+  } else {
+
+    size_t players = 0;
+    for (size_t i = 0; i < count; i++) {
+      if (!(scores[i].flags & SCORE_SPECTATOR)) {
+        players++;
       }
     }
 
-  } else {
+    const size_t cols = players > rows ? 2 : 1;
 
-    const size_t cols = count > rows ? 2 : 1;
+    StackView *column = NULL;
 
-    for (size_t c = 0; c < cols; c++) {
-      StackView *column = addRowsColumn(self, NULL);
-
-      for (size_t i = c * rows; i < count && i < (c + 1) * rows; i++) {
-        addRow(self, column, &scores[i]);
+    for (size_t i = 0, added = 0; i < count && added < cols * rows; i++) {
+      if (scores[i].flags & SCORE_SPECTATOR) {
+        continue;
       }
+      if (added % rows == 0) {
+        column = addRowsColumn(self, NULL);
+      }
+      addRow(self, column, &scores[i]);
+      added++;
     }
   }
 }

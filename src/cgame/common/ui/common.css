@@ -293,7 +293,11 @@ ScoreboardView {
   autoresizing-mask: fill;
 }
 
-ScoreboardView > .columns {
+ScoreboardView > .board {
+  axis: vertical;
+}
+
+ScoreboardView .columns {
   axis: horizontal;
 }
 

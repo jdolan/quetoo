@@ -132,9 +132,9 @@ struct ScoreViewInterface {
    * @details The columns are measured from the right, so they line up with the header the
    * board draws above them however long a name is. Hides the prose lines.
    * @param self The ScoreView.
-   * @param fields The fields, which give the column widths.
-   * @param values The value of each field for this row.
-   * @param count The number of fields.
+   * @param fields The fields, which give the column widths, or `NULL` if `count` is 0.
+   * @param values The value of each field for this row, or `NULL` if `count` is 0.
+   * @param count The number of fields: 0 leaves only the name and the ping.
    * @memberof ScoreView
    */
   void (*setFields)(ScoreView *self, const ScoreField *fields, const char **values, size_t count);
