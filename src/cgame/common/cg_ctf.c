@@ -109,8 +109,8 @@ Class *_HeldFlagView(void) {
 #define _Class _FlagStatusView
 
 /**
- * @brief Where one team's flag is, beside the clock: its icon, and beneath it "Base", "Taken" or
- * "Dropped". A taken flag pulses, and a dropped flag is dim.
+ * @brief Where one team's flag is, beside the clock: its icon, and beneath it "Base", "Stolen" or
+ * "Dropped". A stolen flag pulses, and a dropped flag is dim.
  * @extends StackView
  */
 typedef struct FlagStatusViewInterface FlagStatusViewInterface;
@@ -230,7 +230,7 @@ static void FlagStatusView_updateBindings(View *self, ident data) {
         $(this->label, setText, "Base");
         break;
       case CTF_FLAG_CARRIED:
-        $(this->label, setText, "Taken");
+        $(this->label, setText, "Stolen");
         break;
       default:
         $(this->label, setText, "Dropped");
