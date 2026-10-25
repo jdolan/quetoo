@@ -1647,6 +1647,7 @@ void G_ClientRespawn(GameClient *cl, bool voluntary) {
     cl->persistent.frags = cl->persistent.score = cl->persistent.deaths = 0;
 #if defined(G_CTF)
     cl->persistent.captures = cl->persistent.assists = 0;
+    memset(&cl->persistent.ctf, 0, sizeof(cl->persistent.ctf));
 #endif
 
     G_ClientResetStats(cl);

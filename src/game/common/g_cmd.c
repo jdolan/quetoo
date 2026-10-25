@@ -595,6 +595,11 @@ bool G_AddClientToTeam(GameClient *cl, const char *teamName) {
   cl->persistent.team = team;
   cl->persistent.spectator = false;
 
+#if defined(G_CTF)
+  // what the client did for its old team earns nothing for its new one
+  memset(&cl->persistent.ctf, 0, sizeof(cl->persistent.ctf));
+#endif
+
   char *userInfo = Str_Duplicate(cl->persistent.userInfo);
   G_ClientUserInfoChanged(cl, userInfo);
   free(userInfo);

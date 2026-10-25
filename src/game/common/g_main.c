@@ -387,6 +387,7 @@ static void G_RestartGame(bool teamz) {
 #if defined(G_CTF)
     cl->persistent.captures = 0;
     cl->persistent.assists = 0;
+    memset(&cl->persistent.ctf, 0, sizeof(cl->persistent.ctf));
 #endif
     cl->persistent.deaths = 0;
 

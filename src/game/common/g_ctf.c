@@ -323,8 +323,8 @@ static bool G_Ctf_Defends(const Vec3 point, const GameEntity *a, const GameEntit
 
 /**
  * @brief Gives the attacker the one bonus, the largest, that a kill of an enemy earns: the
- * kill of a carrier, of a danger to a carrier of the attacker's team, near the attacker's flag,
- * or near a carrier of the attacker's team.
+ * kill of a carrier, of a danger to a carrier of the attacker's team, near a carrier of the
+ * attacker's team, or near the attacker's flag.
  */
 static void G_ClientWillDie_Ctf(GameClient *cl, GameEntity *attacker, uint32_t mod) {
 
@@ -358,13 +358,8 @@ static void G_ClientWillDie_Ctf(GameClient *cl, GameEntity *attacker, uint32_t m
     return;
   }
 
-  const GameEntity *flag = G_Ctf_LyingFlag(team);
-
-  if (flag && G_Ctf_Defends(flag->s.origin, cl->entity, killer->entity)) {
-    G_Ctf_Award(killer, CTF_FLAG_DEFENSE_POINTS, "flag_defense", "Flag defended");
-    return;
-  }
-
+  // a carrier defense goes before a flag defense, which earns the same, so that the kill also
+  // counts toward an assist if the carrier captures
   G_ForEachClient(carrier, {
     if (carrier != killer && carrier->persistent.team == team && G_GetFlag(carrier) &&
         G_Ctf_Defends(carrier->entity->s.origin, cl->entity, killer->entity)) {
@@ -374,6 +369,12 @@ static void G_ClientWillDie_Ctf(GameClient *cl, GameEntity *attacker, uint32_t m
       return;
     }
   });
+
+  const GameEntity *flag = G_Ctf_LyingFlag(team);
+
+  if (flag && G_Ctf_Defends(flag->s.origin, cl->entity, killer->entity)) {
+    G_Ctf_Award(killer, CTF_FLAG_DEFENSE_POINTS, "flag_defense", "Flag defended");
+  }
 }
 
 /**
@@ -385,7 +386,13 @@ static bool G_ModifyDamage_Ctf(GameEntity *target, GameEntity *attacker, int32_t
     return false;
   }
 
-  if (target->client && attacker && attacker->client && attacker != target &&
+  // a hit that invulnerability or god mode stops, which G_Damage applies after this, hurts no one
+  if (*damage <= 0 || !target->client || (target->flags & FL_GOD_MODE) ||
+      target->client->inventory[POWERUP_INVULNERABILITY]) {
+    return true;
+  }
+
+  if (attacker && attacker->client && attacker != target &&
       attacker->client->persistent.team != target->client->persistent.team && G_GetFlag(target->client)) {
     attacker->client->persistent.ctf.hurtCarrier = target->client;
     attacker->client->persistent.ctf.hurtCarrierTime = gameLevel.time;
