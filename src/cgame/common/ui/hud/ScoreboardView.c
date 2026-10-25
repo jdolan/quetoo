@@ -265,7 +265,12 @@ static StackView *addColumn(ScoreboardView *self) {
  */
 static ScoreView *scoreView(ScoreboardView *self, const GameScore *score) {
 
-  ScoreView *row = $(alloc(ScoreView), initWithScore, score, self->rowWidth);
+  // a spectator in a team game has a column of its own, and no fields to line up with a team's
+  const bool aside = (score->flags & SCORE_SPECTATOR) && cgameState.numTeams;
+
+  const int32_t width = aside ? SCORES_COL_WIDTH : self->rowWidth;
+
+  ScoreView *row = $(alloc(ScoreView), initWithScore, score, width);
   assert(row);
 
   configureBadge(row, score);
@@ -456,8 +461,7 @@ static void rebuild(ScoreboardView *self) {
 
   } else {
 
-    // a table reads as one list, however long it is
-    const size_t cols = self->layout == ScoreboardLayoutTable ? 1 : (count > rows ? 2 : 1);
+    const size_t cols = count > rows ? 2 : 1;
 
     for (size_t c = 0; c < cols; c++) {
       StackView *column = addRowsColumn(self, NULL);
