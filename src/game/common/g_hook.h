@@ -36,6 +36,11 @@ extern Cvar *g_hookSpeed;
 extern Cvar *g_hookStyle;
 
 void G_Hook_Init(void);
+
+/**
+ * @return True if the hook is enabled for this level.
+ */
+bool G_Hook_Enabled(void);
 void G_Hook_CheckState(void);
 
 void G_HookDetach(GameClient *cl);

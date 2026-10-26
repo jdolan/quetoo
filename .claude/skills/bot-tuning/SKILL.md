@@ -123,6 +123,7 @@ milliseconds. The client is -1 for an event of the level. A value MUST NOT conta
 | `TASK` | With flag 1, the task that the game module gives a bot (`G_Ai_Task`): `begin` when it changes, `nopath` when the bot finds no path to it, with its name, entity, node, whether it is urgent and its radius. A bot in a task shows the task's name as its `state`, and the task's entity as its `goal` |
 | `FLAG` | In CTF, with flag 1 or 4, what happens to a team's flag: `steal` from its base, `pickup` where it lies dropped, `capture`, `return` by its own team, `drop`, and `reset` (client -1) when it lay dropped too long or fell into a `trigger_hurt`. `flag` is the flag's team, `team` the team of the client that did it |
 | `STUCK` | Each second that a bot on a path, out of combat, has stayed within 96 units over its last 6 `POS` events, which span 5 seconds, with `HIST reason=stuck` at the first |
+| `HOOK` | What a bot does with the grapple hook (`g_ai_hook.c`), in a module with the hook: a `glance` at its objective, with the `result` `hook` (a node to hook to) or `none-<why>`, where `<why>` is the reason that most nodes failed (`range`, `body`, `beyond`, `surface`, `sight`, `hazard`, or `near` if no node is far enough along the path); a `check` of the path without a glance, each time that the bot moves on to another node or gets a new path, at most each half second, with the same results; a `glance` at an item that no path reaches, `item` or `noitem-<why>`; an `aim` that it gave up, and why: `unavailable`, `state`, `item`, `path`, `passed` or `timeout`; the `fire`; the `attach` when the pull begins; and the `release`, with its reason: `reached` (the node), `taken` (the item), `short`, `timeout`, `late` (the hook did not catch in time), `unfired`, `miss`, `detach`, `path`, or `item` (the item went before the hook caught). Each has the bot's position, the hook's `point`, the `dest` at which it lets go, the distances to it along the path (`path`) and straight (`dist`), and the `millis` since the fire |
 
 Link types are the `NavTravelType` values, which `ai_profile.py` and `navInfo` name as
 `Nav_TravelName` does: 0 `none`, for the links that `G_Ai_Node_Link` adds to splice item and spawn
@@ -154,6 +155,7 @@ python3 src/tools/ai_profile.py linktimes "$LOG"                 # the node pair
 python3 src/tools/ai_profile.py moves "$LOG" --link 1458-1459    # the player's commands over a link
 python3 src/tools/ai_profile.py strafe "$LOG"                    # the player's jumps by takeoff speed
 python3 src/tools/ai_profile.py kills "$LOG"                     # kills by attacker, weapon and range
+python3 src/tools/ai_profile.py hooks "$LOG"                     # grapple hook glances, fires, releases, time saved
 ```
 
 - `linktimes` compares the time between two consecutive `VISIT` nodes, for players and bots. A

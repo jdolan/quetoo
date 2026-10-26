@@ -1189,6 +1189,27 @@ void G_Ai_Profile_Task(const GameClient *cl, const GameAiNodeId node, const char
 /**
  * @see g_ai_profile.h
  */
+void G_Ai_Profile_Hook(const GameClient *cl, const char *event, const char *result) {
+
+  if (!G_Ai_Profile_Records(AI_PROFILE_BOTS)) {
+    return;
+  }
+
+  const GameAiHook *hook = &cl->ai->hook;
+  const uint32_t millis = hook->fireTime ? gameLevel.time - hook->fireTime : 0;
+
+  G_Ai_Profile_Print(cl->ps.client, "HOOK", "event=%s result=%s pos=%d,%d,%d point=%d,%d,%d "
+                     "dest=%d,%d,%d path=%d dist=%d left=%d millis=%u state=%s",
+                     event, result ?: "-", AI_PROFILE_VEC3(cl->entity->s.origin),
+                     AI_PROFILE_VEC3(hook->point), AI_PROFILE_VEC3(hook->dest),
+                     (int32_t) hook->pathDistance, (int32_t) hook->distance,
+                     (int32_t) Vec3_Distance(cl->entity->s.origin, hook->dest), millis,
+                     G_Ai_State_Name(cl));
+}
+
+/**
+ * @see g_ai_profile.h
+ */
 void G_Ai_Profile_PadLink(const GameEntity *push, const char *result, const int32_t from,
                           const int32_t to, const Vec3 landing) {
 

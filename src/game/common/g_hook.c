@@ -66,9 +66,9 @@ static struct {
 static bool hookEnabled;
 
 /**
- * @return True if the hook is enabled for this level.
+ * @see g_hook.h
  */
-static bool G_Hook_Enabled(void) {
+bool G_Hook_Enabled(void) {
   return hookEnabled;
 }
 
