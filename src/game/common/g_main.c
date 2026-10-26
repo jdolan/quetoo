@@ -299,6 +299,29 @@ void G_SetTeamNames(void) {
 }
 
 /**
+ * @brief Tells every client each team's score. The server sends the string only when it
+ * changes, so this costs nothing while the scores stay the same.
+ */
+void G_SetTeamState(void) {
+  char teamState[MAX_STRING_CHARS] = { '\0' };
+
+  if (gameLevel.teams) {
+    for (int32_t i = 0; i < gameLevel.numTeams; i++) {
+      char state[64] = { '\0' };
+      G_FormatTeamState(&gameTeamList[i], state, sizeof(state));
+
+      if (i) {
+        Str_Append(teamState, "\\", sizeof(teamState));
+      }
+
+      Str_Append(teamState, state, sizeof(teamState));
+    }
+  }
+
+  gi.SetConfigString(CS_TEAM_STATE, teamState);
+}
+
+/**
  * @brief Reset all items in the level based on gameplay, CTF, etc.
  */
 void G_ResetItems(void) {
@@ -1010,6 +1033,9 @@ static void G_Frame(void) {
 
   // inspect and enforce gameplay rules
   G_CheckRules();
+
+  // tell the clients each team's score
+  G_SetTeamState();
 
   // build the PlayerState structures for all players
   G_EndClientFrames();

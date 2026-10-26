@@ -202,9 +202,9 @@
           "subviews": [
             {
               "class": "StackView",
-              "identifier": "flagsLeft",
+              "identifier": "teamsLeft",
               "classNames": [
-                "flags"
+                "teams"
               ],
               "subviews": [
                 {
@@ -252,9 +252,9 @@
             },
             {
               "class": "StackView",
-              "identifier": "flagsRight",
+              "identifier": "teamsRight",
               "classNames": [
-                "flags"
+                "teams"
               ],
               "subviews": [
                 {

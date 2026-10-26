@@ -45,7 +45,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1067
+#define PROTOCOL_MINOR 1068
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -112,7 +112,8 @@ typedef enum {
 #define CS_ITEM_TIMER_QUAD (CS_GAME + 10) // seconds until the next quad damage respawns (g_itemTimers)
 #define CS_ITEM_TIMER_INVULNERABILITY (CS_GAME + 11) // seconds until the next invulnerability respawns (g_itemTimers)
 #define CS_ITEM_TIMER_INVISIBILITY (CS_GAME + 12) // seconds until the next invisibility respawns (g_itemTimers)
-#define CS_CORPSES         (CS_GAME + 13) // the client info that corpses wear, MAX_CORPSES wide
+#define CS_TEAM_STATE      (CS_GAME + 13) // each team's score, separated by \, and after a ':' what a feature adds (CTF: its flag)
+#define CS_CORPSES         (CS_GAME + 14) // the client info that corpses wear, MAX_CORPSES wide
 
 /**
  * @brief Player state statistics (inventory, score, etc).

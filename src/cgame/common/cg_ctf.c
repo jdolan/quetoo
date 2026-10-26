@@ -23,6 +23,7 @@
 
 #include "ui/hud/HudViewController.h"
 #include "ui/hud/PowerupView.h"
+#include "ui/hud/TeamScoreView.h"
 
 #define _Class _HeldFlagView
 
@@ -109,24 +110,31 @@ Class *_HeldFlagView(void) {
 #define _Class _FlagStatusView
 
 /**
- * @brief Where one team's flag is, beside the clock: its icon, and beneath it "Base", "Stolen" or
- * "Dropped". A stolen flag pulses, and a dropped flag is dim.
- * @extends StackView
+ * @brief A team's captures beside the clock, under the team's flag: "Base", "Stolen" or "Dropped"
+ * over the captures. A stolen flag pulses, and a dropped flag is dim.
+ * @extends TeamScoreView
  */
 typedef struct FlagStatusViewInterface FlagStatusViewInterface;
 
 typedef struct {
-  StackView stackView;
+  TeamScoreView teamScoreView;
   FlagStatusViewInterface *interface[0];
-  int32_t team;
   ImageView *icon;
-  Text *label;
-  char state;
 } FlagStatusView;
 
 struct FlagStatusViewInterface {
-  StackViewInterface stackViewInterface;
+  TeamScoreViewInterface teamScoreViewInterface;
 };
+
+/**
+ * @return Where the team's flag is, or '\0' if the level has no flag for it.
+ */
+static char FlagStatusView_flagState(const TeamScoreView *self) {
+
+  const char *flag = strchr(self->state, ':');
+
+  return flag ? flag[1] : '\0';
+}
 
 /**
  * @see Object::dealloc(Object *)
@@ -136,25 +144,8 @@ static void FlagStatusView_dealloc(Object *self) {
   FlagStatusView *this = (FlagStatusView *) self;
 
   release(this->icon);
-  release(this->label);
 
   super(Object, self, dealloc);
-}
-
-/**
- * @see View::awakeWithDictionary(View *, const Dictionary *)
- */
-static void FlagStatusView_awakeWithDictionary(View *self, const Dictionary *dictionary) {
-
-  super(View, self, awakeWithDictionary, dictionary);
-
-  FlagStatusView *this = (FlagStatusView *) self;
-
-  const Inlet inlets[] = MakeInlets(
-    MakeInlet("team", InletTypeInteger, &this->team, NULL)
-  );
-
-  $(self, bind, inlets, dictionary);
 }
 
 /**
@@ -162,7 +153,7 @@ static void FlagStatusView_awakeWithDictionary(View *self, const Dictionary *dic
  */
 static View *FlagStatusView_init(View *self) {
 
-  self = (View *) super(StackView, self, initWithFrame, NULL);
+  self = super(View, self, init);
   if (self) {
     FlagStatusView *this = (FlagStatusView *) self;
 
@@ -170,13 +161,7 @@ static View *FlagStatusView_init(View *self) {
     assert(this->icon);
 
     $((View *) this->icon, addClassName, "icon");
-    $(self, addSubview, (View *) this->icon);
-
-    this->label = $(alloc(Text), initWithText, NULL, NULL);
-    assert(this->label);
-
-    $((View *) this->label, addClassName, "label");
-    $(self, addSubview, (View *) this->label);
+    $(self, addSubviewRelativeTo, (View *) this->icon, (View *) ((CounterView *) self)->caption, ViewPositionBefore);
   }
 
   return self;
@@ -194,48 +179,17 @@ static void FlagStatusView_updateBindings(View *self, ident data) {
   }
 
   FlagStatusView *this = (FlagStatusView *) self;
+  const TeamScoreView *teamScore = (TeamScoreView *) self;
 
-  const char *states = cgi.ConfigString(CS_CTF_FLAGS);
-  const int32_t numTeams = (int32_t) strlen(states);
+  const char state = FlagStatusView_flagState(teamScore);
 
-  // teams 1 and 3 face teams 2 and 4 across the clock: a team that the level lacks keeps its
-  // place while the team that faces it plays, so that the clock stays centered
-  const int32_t facing = (this->team & 1) ? this->team + 1 : this->team - 1;
-
-  const bool plays = this->team > 0 && this->team <= numTeams;
-  const bool holds = plays || (facing > 0 && facing <= numTeams);
-
-  $(self, setVisibility, holds ? ViewVisibilityVisible : ViewVisibilityHidden);
-
-  if (!plays) {
-    if (this->state != ' ') {
-      this->state = ' ';
-      this->icon->color.a = 0;
-      $(this->label, setText, " ");
-    }
+  if (state == '\0') {
+    this->icon->color.a = 0;
     return;
   }
 
-  const char state = states[this->team - 1];
-
   if (this->icon->image == NULL) {
-    $(this->icon, setImage, (Image *) Cg_HudImage(va("pics/flag%d", this->team)));
-  }
-
-  if (state != this->state) {
-    this->state = state;
-
-    switch (state) {
-      case CTF_FLAG_BASE:
-        $(this->label, setText, "Base");
-        break;
-      case CTF_FLAG_CARRIED:
-        $(this->label, setText, "Stolen");
-        break;
-      default:
-        $(this->label, setText, "Dropped");
-        break;
-    }
+    $(this->icon, setImage, (Image *) Cg_HudImage(va("pics/flag%d", teamScore->team)));
   }
 
   float alpha = 1.f;
@@ -249,15 +203,33 @@ static void FlagStatusView_updateBindings(View *self, ident data) {
 }
 
 /**
+ * @see TeamScoreView::captionForTeam(const TeamScoreView *, const CGameTeamInfo *)
+ */
+static const char *FlagStatusView_captionForTeam(const TeamScoreView *self, const CGameTeamInfo *team) {
+
+  switch (FlagStatusView_flagState(self)) {
+    case CTF_FLAG_BASE:
+      return "Base";
+    case CTF_FLAG_CARRIED:
+      return "Stolen";
+    case CTF_FLAG_DROPPED:
+      return "Dropped";
+    default:
+      return team->name;
+  }
+}
+
+/**
  * @see Class::initialize(Class *)
  */
 static void FlagStatusView_initialize(Class *clazz) {
 
   ((ObjectInterface *) clazz->interface)->dealloc = FlagStatusView_dealloc;
 
-  ((ViewInterface *) clazz->interface)->awakeWithDictionary = FlagStatusView_awakeWithDictionary;
   ((ViewInterface *) clazz->interface)->init = FlagStatusView_init;
   ((ViewInterface *) clazz->interface)->updateBindings = FlagStatusView_updateBindings;
+
+  ((TeamScoreViewInterface *) clazz->interface)->captionForTeam = FlagStatusView_captionForTeam;
 }
 
 Class *_FlagStatusView(void) {
@@ -267,7 +239,7 @@ Class *_FlagStatusView(void) {
   do_once(&once, {
     clazz = _initialize(&(const ClassDef) {
       .name = "FlagStatusView",
-      .superclass = _StackView(),
+      .superclass = _TeamScoreView(),
       .instanceSize = sizeof(FlagStatusView),
       .interfaceSize = sizeof(FlagStatusViewInterface),
       .initialize = FlagStatusView_initialize,

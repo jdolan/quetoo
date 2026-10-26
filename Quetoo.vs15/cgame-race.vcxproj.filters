@@ -264,6 +264,9 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\TeamBannerView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\cgame\common\ui\hud\TeamScoreView.h">
+      <Filter>src\common\ui\hud</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\cgame\common\ui\hud\FpsView.h">
       <Filter>src\common\ui\hud</Filter>
     </ClInclude>
@@ -633,6 +636,9 @@
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\TeamBannerView.c">
+      <Filter>src\common\ui\hud</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\cgame\common\ui\hud\TeamScoreView.c">
       <Filter>src\common\ui\hud</Filter>
     </ClCompile>
     <ClCompile Include="..\src\cgame\common\ui\hud\FpsView.c">

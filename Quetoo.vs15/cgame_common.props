@@ -187,6 +187,8 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\TargetNameView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\TeamBannerView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\TeamBannerView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\hud\TeamScoreView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\hud\TeamScoreView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\FpsView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\FpsView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\TimeView.c" />

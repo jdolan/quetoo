@@ -39,7 +39,7 @@ void Cg_Ctf_Init(void);
 CGAME_EXPORT Class *_HeldFlagView(void);
 
 /**
- * @brief Where one team's flag is, beside the clock, for a module's HUD JSON.
+ * @brief A team's captures and where its flag is, beside the clock, for a module's HUD JSON.
  */
 CGAME_EXPORT Class *_FlagStatusView(void);
 

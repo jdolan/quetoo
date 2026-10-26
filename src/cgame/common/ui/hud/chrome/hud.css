@@ -266,8 +266,8 @@
 }
 
 /*
- * In CTF the clock sits between the teams' flags, teams 1 and 3 to its left and 2 and 4 to its
- * right, so that each flag's state reads at a glance.
+ * In team play the clock sits between the team scores, teams 1 and 3 to its left and 2 and 4 to
+ * its right, so that the score reads at a glance. In CTF each score sits under its team's flag.
  */
 
 #clockRow {
@@ -277,7 +277,7 @@
   spacing: 32;
 }
 
-#clockRow > .flags {
+#clockRow > .teams {
   alignment: top;
   autoresizing-mask: contain;
   axis: horizontal;
@@ -285,8 +285,8 @@
   spacing: 16;
 }
 
-/* as wide as its widest label, so that a flag that changes state never moves the clock */
-#hud FlagStatusView {
+/* as wide as its widest caption, so that a score or a flag that changes never moves the clock */
+#hud TeamScoreView {
   alignment: top;
   autoresizing-mask: contain;
   axis: vertical;
@@ -300,10 +300,18 @@
   height: 40;
 }
 
-#hud FlagStatusView > .label {
+#hud TeamScoreView > .caption {
   alignment: center;
   text-transform: uppercase;
   font-size: 14;
+}
+
+#hud TeamScoreView > .value {
+  alignment: center;
+  font-size: 32;
+}
+
+#hud FlagStatusView > .caption {
   color: #8fc7dc;
 }
 

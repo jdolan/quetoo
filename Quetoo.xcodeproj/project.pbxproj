@@ -135,8 +135,10 @@
 		5183CDCD1E2C497586ABBEB2 /* NotifyView.c in Sources */ = {isa = PBXBuildFile; fileRef = EB4A4D641AA8495FB08D9F0E /* NotifyView.c */; };
 		522B158EA7384E83CD005789 /* manifest.c in Sources */ = {isa = PBXBuildFile; fileRef = D126FFD46C343DDC86C13E17 /* manifest.c */; };
 		52367ABAA22B6D5586284093 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		DA776942C187C5352F9B1A2E /* TeamScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 474D0188C1E8EA1C39DA01B3 /* TeamScoreView.c */; };
 		5353FBA06CC14AA034C4C9CD /* TargetNameView.c in Sources */ = {isa = PBXBuildFile; fileRef = E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */; };
 		537E3B2A605E2005BA5F4928 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		A69263E40A6EBBF8C8D92466 /* TeamScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 474D0188C1E8EA1C39DA01B3 /* TeamScoreView.c */; };
 		54194A7922708C783B541F5B /* CrosshairView.c in Sources */ = {isa = PBXBuildFile; fileRef = 1A75866341F13821D2FC91FA /* CrosshairView.c */; };
 		544522FFCEEDAAC1EBEB6750 /* scoreboard.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 92AA3129971ABAAB21EE5BAD /* scoreboard.json */; };
 		547AC46C9A45CC44AB005215 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
@@ -277,6 +279,7 @@
 		C3241FC475F3D3E3E573AC7B /* CounterView.c in Sources */ = {isa = PBXBuildFile; fileRef = A59EB892C12DF10ACA8253DD /* CounterView.c */; };
 		C3E41F914FCEA12782E83182 /* DemoList.c in Sources */ = {isa = PBXBuildFile; fileRef = 3F2DF6B726C775FE05708017 /* DemoList.c */; };
 		C55D95D65959615823A138F8 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		A9BE512D3E73DCE425458EC8 /* TeamScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 474D0188C1E8EA1C39DA01B3 /* TeamScoreView.c */; };
 		C5BD795EA472E6C067A6EB72 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
 		C6003D3330E811D015D2DFAF /* asset.h in Headers */ = {isa = PBXBuildFile; fileRef = 5BBBA6607E11C1453041B2A3 /* asset.h */; };
 		C6BE5C361D7A11928CC7373B /* SDL3.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = CE1643492FF5A12100863996 /* SDL3.framework */; };
@@ -1589,6 +1592,7 @@
 		E16A533FF7C34A2BA65E1BFF /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
 		E341E163CFFD547C44106673 /* DemosViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2DA349510962B7CDA15CFEC5 /* DemosViewController.json */; };
 		E613CE6B3A9634DB694DA689 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
+		D65DE4C1AF1998175F3C03EB /* TeamScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 474D0188C1E8EA1C39DA01B3 /* TeamScoreView.c */; };
 		E70AD75417615E311748DB70 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
 		E7A9F8759B856BBB62D69C03 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
 		7F3F9A885D940D7E0B0786DD /* RespawnTimerView.c in Sources */ = {isa = PBXBuildFile; fileRef = 49BAAC74B246E09899D1B849 /* RespawnTimerView.c */; };
@@ -2349,6 +2353,7 @@
 		6FAE0DA7D76F4C80B32F5DF2 /* post_fs.glsl */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = post_fs.glsl; sourceTree = "<group>"; };
 		73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = DemosCollectionView.c; sourceTree = "<group>"; };
 		740BEA7DBF2B020A6D1B29C7 /* TeamBannerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamBannerView.h; sourceTree = "<group>"; };
+		17BBA62F90143F5F374EF751 /* TeamScoreView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TeamScoreView.h; sourceTree = "<group>"; };
 		743CD3FB2DAA4893BBF6DAF0 /* NotifyView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = NotifyView.h; sourceTree = "<group>"; };
 		755F8C8CBA7F7C48E79A578C /* PowerupView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PowerupView.c; sourceTree = "<group>"; };
 		7610ECCDD66E323A33218A5E /* g_ai_combat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = g_ai_combat.h; sourceTree = "<group>"; };
@@ -2381,6 +2386,7 @@
 		A499587CCAB9D1B603E5A857 /* StageView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = StageView.json; sourceTree = "<group>"; };
 		A59EB892C12DF10ACA8253DD /* CounterView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = CounterView.c; sourceTree = "<group>"; };
 		A73DD77B1D5B8231028B01FA /* TeamBannerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamBannerView.c; sourceTree = "<group>"; };
+		474D0188C1E8EA1C39DA01B3 /* TeamScoreView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TeamScoreView.c; sourceTree = "<group>"; };
 		A8EE5A964B0C7980A2D249D0 /* DemosCollectionView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DemosCollectionView.h; sourceTree = "<group>"; };
 		A980A8F791ED9C0A50C6C948 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = hud.json; sourceTree = "<group>"; };
 		AA5E00000000000000000001 /* g_ai_state.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = g_ai_state.c; sourceTree = "<group>"; };
@@ -3814,7 +3820,9 @@
 				4CA3522A5AE19B0F18CF79C6 /* TargetNameView.h */,
 				E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */,
 				740BEA7DBF2B020A6D1B29C7 /* TeamBannerView.h */,
+				17BBA62F90143F5F374EF751 /* TeamScoreView.h */,
 				A73DD77B1D5B8231028B01FA /* TeamBannerView.c */,
+				474D0188C1E8EA1C39DA01B3 /* TeamScoreView.c */,
 				9EB3BF772B595B2E11DA92E7 /* TimeView.h */,
 				3494245DD788522E06772B19 /* ItemTimerView.h */,
 				C92F4D9E4BF61FF1C7E51B0C /* TimeView.c */,
@@ -7056,6 +7064,7 @@
 				D1A5B0000000000000000404 /* IntermissionView.c in Sources */,
 				D8F2715333902B56A81AC28C /* StatView.c in Sources */,
 				52367ABAA22B6D5586284093 /* TeamBannerView.c in Sources */,
+				DA776942C187C5352F9B1A2E /* TeamScoreView.c in Sources */,
 				C1B4D8275ABD425EB6C332C6 /* DiagnosticsView.c in Sources */,
 				719CDF30AE6EB1DC2261140E /* FpsView.c in Sources */,
 				5183CDCD1E2C497586ABBEB2 /* NotifyView.c in Sources */,
@@ -7238,6 +7247,7 @@
 				D1A5B000000000000000040B /* IntermissionView.c in Sources */,
 				1D9F8ACA8B6EBADDC9A571F5 /* StatView.c in Sources */,
 				537E3B2A605E2005BA5F4928 /* TeamBannerView.c in Sources */,
+				A69263E40A6EBBF8C8D92466 /* TeamScoreView.c in Sources */,
 				89E8FCDD68D14AE6B3954385 /* DiagnosticsView.c in Sources */,
 				78965577428364713231086F /* FpsView.c in Sources */,
 				D9F4D7BEB0EE4A87B8529DDA /* NotifyView.c in Sources */,
@@ -7735,6 +7745,7 @@
 				D1A5B0000000000000000403 /* IntermissionView.c in Sources */,
 				18831DC74740CDF73E54CF63 /* StatView.c in Sources */,
 				E613CE6B3A9634DB694DA689 /* TeamBannerView.c in Sources */,
+				D65DE4C1AF1998175F3C03EB /* TeamScoreView.c in Sources */,
 				96C482990EB9434FACFB0B5B /* DiagnosticsView.c in Sources */,
 				2D0110BBB9C57DC4DAA49389 /* FpsView.c in Sources */,
 				0B59BE03B414411797329FD1 /* NotifyView.c in Sources */,
@@ -7973,6 +7984,7 @@
 				D1A5B0000000000000000402 /* IntermissionView.c in Sources */,
 				3B497D93EA892C673165469D /* StatView.c in Sources */,
 				C55D95D65959615823A138F8 /* TeamBannerView.c in Sources */,
+				A9BE512D3E73DCE425458EC8 /* TeamScoreView.c in Sources */,
 				28D9703AF85F475F866BAA51 /* DiagnosticsView.c in Sources */,
 				77C2AFA7D92DAC05CE4E7996 /* FpsView.c in Sources */,
 				9A8A8F490F0A41FDB55A317F /* NotifyView.c in Sources */,
