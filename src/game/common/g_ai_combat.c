@@ -677,76 +677,6 @@ static bool G_Ai_CanSpam(const GameClient *cl) {
 }
 
 /**
- * @brief Lobs grenades at spots where players gather while the bot has no combat target.
- */
-static void G_Ai_Weaponry_spam(GameClient *cl, PMoveCmd *cmd) {
-
-  const GameItem *weapon = G_Ai_SpamWeapon(cl);
-
-  if (!G_Ai_CanSpam(cl)) {
-    if (G_Ai_IsSpamming(cl)) {
-      G_Ai_EndSpam(cl);
-    }
-    return;
-  }
-
-  if (!G_Ai_IsSpamming(cl)) {
-    if (cl->ai->spamTime > gameLevel.time) {
-      return;
-    }
-
-    G_Ai_EndSpam(cl);
-
-    if (weapon == NULL || !G_Ai_SpamPoint(cl, weapon, &cl->ai->spamPoint)) {
-      return;
-    }
-
-    cl->ai->spamAmmo = cl->inventory[weapon->def.ammo] - RandomRangei(1, 4);
-    cl->ai->spamTime = gameLevel.time + AI_SPAM_BURST_MILLIS;
-    G_Ai_Debug("spamming %s\n", weapon->def.name);
-  }
-
-  const bool expired = gameLevel.time > cl->ai->spamTime && !cl->grenadeHoldTime;
-
-  if (weapon == NULL || expired || cl->inventory[weapon->def.ammo] <= cl->ai->spamAmmo) {
-    G_Ai_EndSpam(cl);
-    return;
-  }
-
-  if (cl->weapon != weapon) {
-    if (cl->ai->weaponCheckTime < gameLevel.time && cl->ai->weaponHoldTime <= gameLevel.time &&
-        cl->weaponChangeTime <= gameLevel.time) {
-      G_Ai_Profile_WeaponChange(cl, weapon, "spam");
-
-      gi.TokenizeString(va("use %s", weapon->def.name));
-      ge.ClientCommand(cl);
-      cl->ai->weaponCheckTime = gameLevel.time + 300;
-    }
-    return;
-  }
-
-  Vec3 angles;
-  uint32_t holdMillis;
-  if (!G_Ai_SpamAngles(cl, weapon, cl->ai->spamPoint, &angles, &holdMillis)) {
-    G_Ai_EndSpam(cl);
-    return;
-  }
-
-  if (cl->grenadeHoldTime) {
-    if (gameLevel.time - cl->grenadeHoldTime < holdMillis) {
-      cmd->buttons |= BUTTON_ATTACK;
-    }
-    return;
-  }
-
-  const Vec3 view = cl->angles;
-  if (fabsf(G_Ai_AngleDelta(view.x, angles.x)) < AI_SPAM_AIM_DEGREES &&
-      fabsf(G_Ai_AngleDelta(view.y, angles.y)) < AI_SPAM_AIM_DEGREES) {
-    cmd->buttons |= BUTTON_ATTACK;
-  }
-}
-
-/**
  * @return True if the weapon lobs its projectile in an arc: the grenade launchers and hand
  * grenades.
  */
@@ -836,8 +766,34 @@ static float G_Ai_SplashReach(const GameItem *weapon) {
 }
 
 /**
+ * @return True if nothing solid lies between the point and the player, as `G_CanDamage` tests it:
+ * to its origin, or to one of four corners around it.
+ */
+static bool G_Ai_IsExposed(const Vec3 point, const GameEntity *ent) {
+
+  const Vec3 offsets[] = {
+    { { 0.f, 0.f, 0.f } },
+    { { 15.f, 15.f, 0.f } },
+    { { 15.f, -15.f, 0.f } },
+    { { -15.f, 15.f, 0.f } },
+    { { -15.f, -15.f, 0.f } },
+  };
+
+  for (size_t i = 0; i < lengthof(offsets); i++) {
+    const Vec3 dest = Vec3_Add(ent->s.origin, offsets[i]);
+
+    if (gi.Trace(point, dest, Box3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction == 1.f) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * @return True if a living teammate of the bot is within `reach` of the segment from `start` to
- * `end`, measured to its bounds as `G_RadiusDamage` measures it.
+ * `end`, measured to its bounds as `G_RadiusDamage` measures it, and exposed to the nearest point
+ * of the segment (`G_Ai_IsExposed`).
  */
 static bool G_Ai_IsTeammateNear(const GameClient *cl, const Vec3 start, const Vec3 end,
                                 const float reach) {
@@ -856,7 +812,8 @@ static bool G_Ai_IsTeammateNear(const GameClient *cl, const Vec3 start, const Ve
     const float t = length > 0.f ? Clampf(along / length, 0.f, 1.f) : 0.f;
     const Vec3 point = Vec3_Fmaf(start, t, dir);
 
-    if (Vec3_Distance(ent->s.origin, point) - Box3_Radius(ent->bounds) < reach) {
+    if (Vec3_Distance(ent->s.origin, point) - Box3_Radius(ent->bounds) < reach &&
+        G_Ai_IsExposed(point, ent)) {
       return true;
     }
   });
@@ -903,6 +860,78 @@ static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
   }
 
   return true;
+}
+
+/**
+ * @brief Lobs grenades at spots where players gather while the bot has no combat target, if its
+ * line of fire is clear (`G_Ai_ClearToFire`).
+ */
+static void G_Ai_Weaponry_spam(GameClient *cl, PMoveCmd *cmd) {
+
+  const GameItem *weapon = G_Ai_SpamWeapon(cl);
+
+  if (!G_Ai_CanSpam(cl)) {
+    if (G_Ai_IsSpamming(cl)) {
+      G_Ai_EndSpam(cl);
+    }
+    return;
+  }
+
+  if (!G_Ai_IsSpamming(cl)) {
+    if (cl->ai->spamTime > gameLevel.time) {
+      return;
+    }
+
+    G_Ai_EndSpam(cl);
+
+    if (weapon == NULL || !G_Ai_SpamPoint(cl, weapon, &cl->ai->spamPoint)) {
+      return;
+    }
+
+    cl->ai->spamAmmo = cl->inventory[weapon->def.ammo] - RandomRangei(1, 4);
+    cl->ai->spamTime = gameLevel.time + AI_SPAM_BURST_MILLIS;
+    G_Ai_Debug("spamming %s\n", weapon->def.name);
+  }
+
+  const bool expired = gameLevel.time > cl->ai->spamTime && !cl->grenadeHoldTime;
+
+  if (weapon == NULL || expired || cl->inventory[weapon->def.ammo] <= cl->ai->spamAmmo) {
+    G_Ai_EndSpam(cl);
+    return;
+  }
+
+  if (cl->weapon != weapon) {
+    if (cl->ai->weaponCheckTime < gameLevel.time && cl->ai->weaponHoldTime <= gameLevel.time &&
+        cl->weaponChangeTime <= gameLevel.time) {
+      G_Ai_Profile_WeaponChange(cl, weapon, "spam");
+
+      gi.TokenizeString(va("use %s", weapon->def.name));
+      ge.ClientCommand(cl);
+      cl->ai->weaponCheckTime = gameLevel.time + 300;
+    }
+    return;
+  }
+
+  Vec3 angles;
+  uint32_t holdMillis;
+  if (!G_Ai_SpamAngles(cl, weapon, cl->ai->spamPoint, &angles, &holdMillis)) {
+    G_Ai_EndSpam(cl);
+    return;
+  }
+
+  if (cl->grenadeHoldTime) {
+    if (gameLevel.time - cl->grenadeHoldTime < holdMillis) {
+      cmd->buttons |= BUTTON_ATTACK;
+    }
+    return;
+  }
+
+  const Vec3 view = cl->angles;
+  if (fabsf(G_Ai_AngleDelta(view.x, angles.x)) < AI_SPAM_AIM_DEGREES &&
+      fabsf(G_Ai_AngleDelta(view.y, angles.y)) < AI_SPAM_AIM_DEGREES &&
+      G_Ai_ClearToFire(cl, NULL)) {
+    cmd->buttons |= BUTTON_ATTACK;
+  }
 }
 
 /**
