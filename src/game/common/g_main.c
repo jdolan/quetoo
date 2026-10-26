@@ -1165,7 +1165,7 @@ void G_Init(void) {
   g_balanceMachinegunSpreadY = gi.AddCvar("g_balanceMachinegunSpreadY", "200", 0, NULL);
   g_balanceGrenadelauncherDamage = gi.AddCvar("g_balanceGrenadelauncherDamage", "120", 0, NULL);
   g_balanceGrenadelauncherKnockback = gi.AddCvar("g_balanceGrenadelauncherKnockback", "120", 0, NULL);
-  g_balanceGrenadelauncherRadius = gi.AddCvar("g_balanceGrenadelauncherRadius", "185", 0, NULL);
+  g_balanceGrenadelauncherRadius = gi.AddCvar("g_balanceGrenadelauncherRadius", "240", 0, NULL);
   g_balanceGrenadelauncherRefire = gi.AddCvar("g_balanceGrenadelauncherRefire", "1", 0, NULL);
   g_balanceGrenadelauncherSpeed = gi.AddCvar("g_balanceGrenadelauncherSpeed", "800", 0, NULL);
   g_balanceGrenadelauncherTimer = gi.AddCvar("g_balanceGrenadelauncherTimer", "2.5", 0, NULL);
@@ -1193,13 +1193,13 @@ void G_Init(void) {
   g_balanceQuakeSupernailgunSpeed = gi.AddCvar("g_balanceQuakeSupernailgunSpeed", "2000", 0, NULL);
   g_balanceQuakeGrenadelauncherDamage = gi.AddCvar("g_balanceQuakeGrenadelauncherDamage", "120", 0, NULL);
   g_balanceQuakeGrenadelauncherKnockback = gi.AddCvar("g_balanceQuakeGrenadelauncherKnockback", "120", 0, NULL);
-  g_balanceQuakeGrenadelauncherRadius = gi.AddCvar("g_balanceQuakeGrenadelauncherRadius", "185", 0, NULL);
+  g_balanceQuakeGrenadelauncherRadius = gi.AddCvar("g_balanceQuakeGrenadelauncherRadius", "240", 0, NULL);
   g_balanceQuakeGrenadelauncherRefire = gi.AddCvar("g_balanceQuakeGrenadelauncherRefire", "0.8", 0, NULL);
   g_balanceQuakeGrenadelauncherSpeed = gi.AddCvar("g_balanceQuakeGrenadelauncherSpeed", "700", 0, NULL);
   g_balanceQuakeGrenadelauncherTimer = gi.AddCvar("g_balanceQuakeGrenadelauncherTimer", "2.5", 0, NULL);
   g_balanceQuakeRocketlauncherDamage = gi.AddCvar("g_balanceQuakeRocketlauncherDamage", "100", 0, NULL);
   g_balanceQuakeRocketlauncherKnockback = gi.AddCvar("g_balanceQuakeRocketlauncherKnockback", "75", 0, NULL);
-  g_balanceQuakeRocketlauncherRadius = gi.AddCvar("g_balanceQuakeRocketlauncherRadius", "150", 0, NULL);
+  g_balanceQuakeRocketlauncherRadius = gi.AddCvar("g_balanceQuakeRocketlauncherRadius", "200", 0, NULL);
   g_balanceQuakeRocketlauncherRefire = gi.AddCvar("g_balanceQuakeRocketlauncherRefire", "0.8", 0, NULL);
   g_balanceQuakeRocketlauncherSpeed = gi.AddCvar("g_balanceQuakeRocketlauncherSpeed", "1000", 0, NULL);
   g_balanceQuakeThunderboltDamage = gi.AddCvar("g_balanceQuakeThunderboltDamage", "14", 0, NULL);
@@ -1215,7 +1215,7 @@ void G_Init(void) {
   g_balanceRailgunRefire = gi.AddCvar("g_balanceRailgunRefire", "1.4", 0, NULL);
   g_balanceRocketlauncherDamage = gi.AddCvar("g_balanceRocketlauncherDamage", "100", 0, NULL);
   g_balanceRocketlauncherKnockback = gi.AddCvar("g_balanceRocketlauncherKnockback", "75", 0, NULL);
-  g_balanceRocketlauncherRadius = gi.AddCvar("g_balanceRocketlauncherRadius", "150", 0, NULL);
+  g_balanceRocketlauncherRadius = gi.AddCvar("g_balanceRocketlauncherRadius", "200", 0, NULL);
   g_balanceRocketlauncherRefire = gi.AddCvar("g_balanceRocketlauncherRefire", "1", 0, NULL);
   g_balanceRocketlauncherSpeed = gi.AddCvar("g_balanceRocketlauncherSpeed", "1000", 0, NULL);
   g_balanceShotgunDamage = gi.AddCvar("g_balanceShotgunDamage", "4", 0, NULL);
