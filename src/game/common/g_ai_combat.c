@@ -738,31 +738,38 @@ static CollisionTrace G_Ai_LobTrace(const GameClient *cl) {
 
 /**
  * @return The distance from a burst of the weapon within which its splash damages a player, or 0
- * for a weapon without splash, or if teammates take no damage. `G_RadiusDamage` subtracts half a
- * point of damage for each unit from the burst to the player's bounds, so the reach is twice the
- * damage.
+ * for a weapon without splash, or if teammates take no damage. `G_RadiusDamage` reaches as far as
+ * the weapon's radius, and subtracts half a point of damage for each unit from the burst to the
+ * player's bounds, so the reach is also at most twice the damage.
  */
-static float G_Ai_SplashReach(const GameItem *weapon) {
+static float G_Ai_SplashRadius(const GameItem *weapon) {
 
   if (!g_friendlyFire->value) {
     return 0.f;
   }
 
-  float damage = 0.f;
+  const Cvar *damage = NULL, *radius = NULL;
 
   if (weapon == &gameItems[WEAPON_ROCKET_LAUNCHER]) {
-    damage = g_balanceRocketlauncherDamage->value;
+    damage = g_balanceRocketlauncherDamage;
+    radius = g_balanceRocketlauncherRadius;
   } else if (weapon == &gameItems[WEAPON_GRENADE_LAUNCHER]) {
-    damage = g_balanceGrenadelauncherDamage->value;
+    damage = g_balanceGrenadelauncherDamage;
+    radius = g_balanceGrenadelauncherRadius;
   } else if (weapon == &gameItems[WEAPON_BFG10K]) {
-    damage = g_balanceBfgDamage->value;
+    damage = g_balanceBfgDamage;
+    radius = g_balanceBfgRadius;
   } else if (weapon == &gameItems[WEAPON_QUAKE_ROCKET_LAUNCHER]) {
-    damage = g_balanceQuakeRocketlauncherDamage->value;
+    damage = g_balanceQuakeRocketlauncherDamage;
+    radius = g_balanceQuakeRocketlauncherRadius;
   } else if (weapon == &gameItems[WEAPON_QUAKE_GRENADE_LAUNCHER]) {
-    damage = g_balanceQuakeGrenadelauncherDamage->value;
+    damage = g_balanceQuakeGrenadelauncherDamage;
+    radius = g_balanceQuakeGrenadelauncherRadius;
+  } else {
+    return 0.f;
   }
 
-  return Maxf(0.f, damage * 2.f);
+  return Maxf(0.f, Minf(damage->integer * 2.f, radius->value));
 }
 
 /**
@@ -848,7 +855,7 @@ static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
     return false;
   }
 
-  const float reach = G_Ai_SplashReach(cl->weapon);
+  const float reach = G_Ai_SplashRadius(cl->weapon);
 
   if (reach > 0.f && G_Ai_IsTeammateNear(cl, trace.end, trace.end, reach)) {
     return false;
