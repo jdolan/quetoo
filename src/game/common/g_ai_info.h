@@ -27,6 +27,19 @@ void G_Ai_ShutdownSkins(void);
 void G_Ai_GetRosterInfo(const GameClient *cl, const GameAiRoster *entry, char *info);
 const GameAiRoster *G_Ai_GetRoster(const GameClient *cl, char *info);
 const GameAiRoster *G_Ai_FindRoster(const char *name);
+
+/**
+ * @return The highest skill of the AI players that join: `g_aiMaxSkill`, from 0 to 1, or 1 in a
+ * practice match, whose ladder names its AI players.
+ */
+float G_Ai_MaxSkill(void);
+
+/**
+ * @return True if the roster entry's skill is at most `G_Ai_MaxSkill`, so that it MAY join. The
+ * fill and the level's `ai` key never add an entry above it, nor with a lower skill than its own,
+ * because players know each AI player by its name. Only `addAi` with a skill MAY do so.
+ */
+bool G_Ai_IsAllowed(const GameAiRoster *entry);
 uint32_t G_Ai_RosterCount(void);
 int32_t G_Ai_LevelRosterCount(void);
 bool G_Ai_IsLevelRoster(const GameAiRoster *entry);

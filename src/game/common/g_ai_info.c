@@ -24,6 +24,7 @@
 #include "g_local.h"
 
 static Cvar *g_aiNamePrefix;
+static Cvar *g_aiMaxSkill;
 
 /**
  * @brief The roster file, in the map list format: one entity of keys for each AI player.
@@ -255,6 +256,20 @@ void G_Ai_GetRosterInfo(const GameClient *cl, const GameAiRoster *entry, char *i
 }
 
 /**
+ * @see g_ai_info.h
+ */
+float G_Ai_MaxSkill(void) {
+  return gameLevel.practice ? 1.f : Clampf(g_aiMaxSkill->value, 0.f, 1.f);
+}
+
+/**
+ * @see g_ai_info.h
+ */
+bool G_Ai_IsAllowed(const GameAiRoster *entry) {
+  return entry->skill <= G_Ai_MaxSkill();
+}
+
+/**
  * @return True if a connected AI player has the roster entry.
  */
 static bool G_Ai_RosterInGame(const GameAiRoster *entry) {
@@ -269,7 +284,8 @@ static bool G_Ai_RosterInGame(const GameAiRoster *entry) {
 }
 
 /**
- * @return The level's first AI player, by the `ai` key, that is not in the game, or NULL.
+ * @return The level's first AI player, by the `ai` key, that `g_aiMaxSkill` allows and that is
+ * not in the game, or NULL.
  */
 static const GameAiRoster *G_Ai_GetRoster_level(void) {
 
@@ -279,7 +295,7 @@ static const GameAiRoster *G_Ai_GetRoster_level(void) {
   char *save;
   for (char *name = Str_Tokenize(names, " \t", &save); name; name = Str_Tokenize(NULL, " \t", &save)) {
     const GameAiRoster *entry = G_Ai_FindRoster(name);
-    if (entry && !G_Ai_RosterInGame(entry)) {
+    if (entry && G_Ai_IsAllowed(entry) && !G_Ai_RosterInGame(entry)) {
       return entry;
     }
   }
@@ -290,11 +306,12 @@ static const GameAiRoster *G_Ai_GetRoster_level(void) {
 /**
  * @brief Create the user info for the specified bot and return its roster entry.
  *
- * @details Assigns the level's first AI player, by the `ai` key, that is not in the game. Once
- * none is left, assigns the next roster entry from a shuffled order that is not in the game, so
- * that entries are handed out in a random sequence without repeating until every entry has been
- * used, at which point the order is reshuffled. If every entry is in the game, one repeats.
- * @return The roster entry, or NULL if the roster is empty.
+ * @details Only the entries that `g_aiMaxSkill` allows (`G_Ai_IsAllowed`) are assigned. Assigns
+ * the level's first allowed AI player, by the `ai` key, that is not in the game. Once none is left,
+ * assigns the next allowed roster entry from a shuffled order that is not in the game, so that
+ * entries are handed out in a random sequence without repeating until every entry has been used,
+ * at which point the order is reshuffled. If every allowed entry is in the game, one repeats.
+ * @return The roster entry, or NULL if the roster has no entry that `g_aiMaxSkill` allows.
  */
 const GameAiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
 
@@ -303,6 +320,7 @@ const GameAiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
   }
 
   const GameAiRoster *entry = G_Ai_GetRoster_level();
+  const GameAiRoster *repeat = NULL;
 
   bool reshuffled = false;
 
@@ -317,9 +335,21 @@ const GameAiRoster *G_Ai_GetRoster(const GameClient *cl, char *info) {
 
     const GameAiRoster *next = &aiRoster[aiRosterOrder[aiRosterIndex++]];
 
-    if (!G_Ai_RosterInGame(next) || i == aiRosterCount - 1) {
+    if (!G_Ai_IsAllowed(next)) {
+      continue;
+    }
+
+    if (G_Ai_RosterInGame(next)) {
+      repeat = repeat ?: next;
+    } else {
       entry = next;
     }
+  }
+
+  entry = entry ?: repeat;
+
+  if (!entry) {
+    return NULL;
   }
 
   G_Ai_GetRosterInfo(cl, entry, info);
@@ -342,7 +372,8 @@ const GameAiRoster *G_Ai_FindRoster(const char *name) {
 }
 
 /**
- * @return The number of distinct roster entries that the level's `ai` key names.
+ * @return The number of distinct roster entries that the level's `ai` key names, and that
+ * `g_aiMaxSkill` allows.
  */
 int32_t G_Ai_LevelRosterCount(void) {
 
@@ -356,7 +387,7 @@ int32_t G_Ai_LevelRosterCount(void) {
   for (char *name = Str_Tokenize(names, " \t", &save); name && count < MAX_CLIENTS;
        name = Str_Tokenize(NULL, " \t", &save)) {
     const GameAiRoster *entry = G_Ai_FindRoster(name);
-    if (!entry) {
+    if (!entry || !G_Ai_IsAllowed(entry)) {
       continue;
     }
 
@@ -427,10 +458,13 @@ void G_Ai_PrintRoster(void) {
 }
 
 /**
- * @brief Initializes the AI name prefix console variable, and loads the roster.
+ * @brief Initializes the AI name prefix and skill cap console variables, and loads the roster.
  */
 void G_Ai_InitSkins(void) {
   g_aiNamePrefix = gi.AddCvar("g_aiNamePrefix", "^0[^1BOT^0] ^7", 0, NULL);
+  g_aiMaxSkill = gi.AddCvar("g_aiMaxSkill", "1", 0, "The highest skill, from 0 to 1, of the AI "
+                            "players that join, for a server that is friendly to new players. "
+                            "Practice matches ignore it.");
   G_Ai_LoadRoster();
   G_Ai_ShuffleRoster();
 }
