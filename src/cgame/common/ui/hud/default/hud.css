@@ -148,6 +148,13 @@
   autoresizing-mask: contain;
 }
 
+/* the respawn countdown takes the center, below the clock and its item timers */
+
+#hud.respawn #pickup {
+  alignment: top-center;
+  padding-top: 136;
+}
+
 #pickup > PickupView {
   autoresizing-mask: contain;
   background-color: #08151aa8;

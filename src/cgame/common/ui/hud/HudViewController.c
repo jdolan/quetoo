@@ -529,6 +529,17 @@ static void updateWithFrame(HudViewController *self, const ClientFrame *frame) {
       }
     }
 
+    // a HUD MAY move the respawn countdown, which shows in the pickup's place, while it runs
+    const bool respawn = ps->stats[STAT_RESPAWN] > 0;
+
+    if (respawn != $(self->hud, hasClassName, "respawn")) {
+      if (respawn) {
+        $(self->hud, addClassName, "respawn");
+      } else {
+        $(self->hud, removeClassName, "respawn");
+      }
+    }
+
     if (cgi.client->paused != $(self->hud, hasClassName, "paused")) {
       if (cgi.client->paused) {
         $(self->hud, addClassName, "paused");
