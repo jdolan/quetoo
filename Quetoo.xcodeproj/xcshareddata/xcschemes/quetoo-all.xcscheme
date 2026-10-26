@@ -102,11 +102,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_windowWidth 1920 +set r_windowHeight 1080"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set r_fullscreen 0"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+set s_volume 0"
@@ -133,8 +133,12 @@
             isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
-            argument = "+game race"
-            isEnabled = "NO">
+            argument = "+game ctf"
+            isEnabled = "YES">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "+map longyard-ctf"
+            isEnabled = "YES">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map claustrophobopolis"
