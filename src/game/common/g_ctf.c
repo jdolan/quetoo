@@ -37,7 +37,6 @@ static struct {
   GameClientWillBeginHook ClientWillBegin;
   GameClientWillDieHook ClientWillDie;
   GameClientWillDisconnectHook ClientWillDisconnect;
-  GameFrameDidEndHook FrameDidEnd;
 } previous;
 
 static bool installed;
@@ -301,36 +300,30 @@ static const GameEntity *G_Ctf_LyingFlag(const GameTeam *team) {
 }
 
 /**
- * @brief Tells every client where each team's flag is. The server sends the string only when it
- * changes, so this costs nothing while the flags stay put.
+ * @brief Scores a team by its captures, and appends where its flag is, if the level has one.
+ * Plays for captures rather than frags, and so does not defer to previous.
  */
-static void G_FrameDidEnd_Ctf(void) {
+static void G_FormatTeamState_Ctf(const GameTeam *team, char *state, size_t size) {
 
-  char states[MAX_TEAMS + 1] = "";
+  const GameEntity *base = G_FlagForTeam(team);
 
-  for (int32_t t = 0; t < gameLevel.numTeams; t++) {
-    const GameTeam *team = &gameTeamList[t];
-    const GameEntity *base = G_FlagForTeam(team);
-
-    if (!base) {
-      states[0] = '\0';
-      break;
-    }
-
-    const GameEntity *lying = G_Ctf_LyingFlag(team);
-
-    if (lying == NULL) {
-      states[t] = CTF_FLAG_CARRIED;
-    } else if (lying == base) {
-      states[t] = CTF_FLAG_BASE;
-    } else {
-      states[t] = CTF_FLAG_DROPPED;
-    }
+  if (!base) {
+    snprintf(state, size, "%d", team->captures);
+    return;
   }
 
-  gi.SetConfigString(CS_CTF_FLAGS, states);
+  const GameEntity *lying = G_Ctf_LyingFlag(team);
 
-  previous.FrameDidEnd();
+  char flag;
+  if (lying == NULL) {
+    flag = CTF_FLAG_CARRIED;
+  } else if (lying == base) {
+    flag = CTF_FLAG_BASE;
+  } else {
+    flag = CTF_FLAG_DROPPED;
+  }
+
+  snprintf(state, size, "%d:%c", team->captures, flag);
 }
 
 /**
@@ -811,8 +804,7 @@ void G_Ctf_Init(void) {
     previous.ClientWillDisconnect = G_ClientWillDisconnect;
     G_ClientWillDisconnect = G_ClientWillDisconnect_Ctf;
 
-    previous.FrameDidEnd = G_FrameDidEnd;
-    G_FrameDidEnd = G_FrameDidEnd_Ctf;
+    G_FormatTeamState = G_FormatTeamState_Ctf;
   }
 
   g_captureLimit = gi.AddCvar("g_captureLimit", "default", CVAR_SERVER_INFO, "The capture limit per level: \"default\" defers to the level, else 8.");

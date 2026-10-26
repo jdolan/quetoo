@@ -415,6 +415,18 @@ typedef void (*GameFormatGameNameHook)(char *name, size_t size);
 extern GameFormatGameNameHook G_FormatGameName;
 
 /**
+ * @brief Formats one team's entry in `CS_TEAM_STATE`, which the HUD shows beside the clock.
+ * @param team The team.
+ * @param state The buffer to format into, empty.
+ * @param size The size of that buffer.
+ * @details The entry MUST start with the team's score, because the client finds a team's entry
+ * by its place. A feature MAY append its own state after a ':'. A feature that scores teams by other means replaces this, and does not defer to previous.
+ */
+typedef void (*GameFormatTeamStateHook)(const GameTeam *team, char *state, size_t size);
+
+extern GameFormatTeamStateHook G_FormatTeamState;
+
+/**
  * @}
  * @defgroup hooks-clients Clients
  * @brief A client's life on the server, from connection to disconnection. Tails

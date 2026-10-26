@@ -305,6 +305,7 @@ cgame_la_SOURCES = \
 	ui/hud/StatView.c \
 	ui/hud/TargetNameView.c \
 	ui/hud/TeamBannerView.c \
+	ui/hud/TeamScoreView.c \
 	ui/hud/TimeView.c \
 	ui/hud/VoiceView.c \
 	ui/hud/VoteView.c \

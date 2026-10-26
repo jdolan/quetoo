@@ -94,3 +94,12 @@ static void G_FormatGameName_Common(char *name, size_t size) {
 }
 
 GameFormatGameNameHook G_FormatGameName = G_FormatGameName_Common;
+
+/**
+ * @brief The tail of the `G_FormatTeamState` chain: a team scores its frags.
+ */
+static void G_FormatTeamState_Common(const GameTeam *team, char *state, size_t size) {
+  snprintf(state, size, "%d", team->frags);
+}
+
+GameFormatTeamStateHook G_FormatTeamState = G_FormatTeamState_Common;

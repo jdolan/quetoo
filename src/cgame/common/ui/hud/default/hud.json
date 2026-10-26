@@ -169,32 +169,72 @@
         },
         {
           "class": "StackView",
-          "identifier": "clock",
+          "identifier": "clockRow",
           "subviews": [
             {
-              "class": "TimeView",
-              "identifier": "time",
-              "caption": "Time"
+              "class": "StackView",
+              "identifier": "teamsLeft",
+              "classNames": [
+                "teams"
+              ],
+              "subviews": [
+                {
+                  "class": "TeamScoreView",
+                  "team": 3
+                },
+                {
+                  "class": "TeamScoreView",
+                  "team": 1
+                }
+              ]
             },
             {
               "class": "StackView",
-              "identifier": "itemTimers",
+              "identifier": "clock",
               "subviews": [
                 {
-                  "class": "ItemTimerView",
-                  "item": "mega"
+                  "class": "TimeView",
+                  "identifier": "time",
+                  "caption": "Time"
                 },
                 {
-                  "class": "ItemTimerView",
-                  "item": "quad"
+                  "class": "StackView",
+                  "identifier": "itemTimers",
+                  "subviews": [
+                    {
+                      "class": "ItemTimerView",
+                      "item": "mega"
+                    },
+                    {
+                      "class": "ItemTimerView",
+                      "item": "quad"
+                    },
+                    {
+                      "class": "ItemTimerView",
+                      "item": "invulnerability"
+                    },
+                    {
+                      "class": "ItemTimerView",
+                      "item": "invisibility"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "class": "StackView",
+              "identifier": "teamsRight",
+              "classNames": [
+                "teams"
+              ],
+              "subviews": [
+                {
+                  "class": "TeamScoreView",
+                  "team": 2
                 },
                 {
-                  "class": "ItemTimerView",
-                  "item": "invulnerability"
-                },
-                {
-                  "class": "ItemTimerView",
-                  "item": "invisibility"
+                  "class": "TeamScoreView",
+                  "team": 4
                 }
               ]
             }
