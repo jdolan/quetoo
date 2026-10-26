@@ -319,6 +319,7 @@ void Cl_Disconnect(void) {
   memset(&cls.server.addr, 0, sizeof(cls.server.addr));
 
   cls.server.connectTime = 0;
+  cls.server.challengeTime = 0;
   cls.state = CL_DISCONNECTED;
 
   Cl_SetKeyDest(timeDemo->value ? KEY_CONSOLE : KEY_UI);
@@ -432,7 +433,19 @@ static void Cl_ConnectionlessPacket(void) {
       Com_Warn("Ignoring challenge from %s\n", Net_NetaddrToString(&netFrom));
       return;
     }
-    cls.server.challenge = (uint32_t) strtoul(Cmd_Argv(1), NULL, 10);
+
+    // a server that loads a map answers each queued getChallenge with the same challenge, and the
+    // server refuses or duplicates a second connect with it
+    const uint32_t challenge = (uint32_t) strtoul(Cmd_Argv(1), NULL, 10);
+    if (challenge == cls.server.challenge && cls.server.challengeTime &&
+        quetoo.ticks - cls.server.challengeTime < 1000) {
+      Com_Debug(DEBUG_CLIENT, "Ignoring repeated challenge from %s\n",
+                Net_NetaddrToString(&netFrom));
+      return;
+    }
+
+    cls.server.challenge = challenge;
+    cls.server.challengeTime = quetoo.ticks;
     Cl_SendConnect();
     return;
   }
