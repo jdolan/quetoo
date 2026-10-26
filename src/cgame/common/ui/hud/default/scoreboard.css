@@ -21,7 +21,7 @@ ScoreboardView > .title {
   padding-top: 24;
 }
 
-/* below the clock, its item timers, and the respawn countdown */
+/* below the clock, its item timers, and the respawn countdown (`#respawnTimer`) */
 
 ScoreboardView > .board {
   alignment: top-center;

@@ -68,31 +68,6 @@ static void updateBindings(View *self, ident data) {
 
   const PlayerState *ps = &((const ClientFrame *) data)->ps;
 
-  const int16_t respawn = ps->stats[STAT_RESPAWN];
-
-  if (respawn > 0) {
-    $(self, setVisibility, ViewVisibilityVisible);
-    $((View *) this->icon, setVisibility, ViewVisibilityHidden);
-
-    if (!this->respawn) {
-      $(self, addClassName, "respawn");
-    }
-
-    if (respawn != this->respawn) {
-      this->respawn = respawn;
-      $(this->name, setText, va("Respawn in %d", respawn));
-    }
-
-    this->item = ITEM_NONE;
-    return;
-  }
-
-  if (this->respawn) {
-    this->respawn = 0;
-    $(self, removeClassName, "respawn");
-    $((View *) this->icon, setVisibility, ViewVisibilityVisible);
-  }
-
   const int16_t pickup = ps->stats[STAT_PICKUP] & ~STAT_TOGGLE_BIT;
   const bool valid = pickup > ITEM_NONE && pickup < ITEM_TOTAL;
 
