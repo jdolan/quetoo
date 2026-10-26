@@ -151,10 +151,10 @@ static void Sv_GetChallenge_f(void) {
   oldest = 0;
   oldestTime = UINT32_MAX;
 
-  // see if we already have a challenge for this ip
+  // see if we already have a challenge for this address; players behind one NAT share an ip
   for (i = 0; i < MAX_CHALLENGES; i++) {
 
-    if (Net_CompareClientNetaddr(&netFrom, &svs.challenges[i].addr)) {
+    if (Net_CompareNetaddr(&netFrom, &svs.challenges[i].addr)) {
       break;
     }
 
@@ -165,10 +165,13 @@ static void Sv_GetChallenge_f(void) {
   }
 
   if (i == MAX_CHALLENGES) { // overwrite the oldest
-    svs.challenges[oldest].challenge = Randomu();
+    svs.challenges[oldest].challenge = Randomu() ?: 1;
     svs.challenges[oldest].addr = netFrom;
     svs.challenges[oldest].time = quetoo.ticks;
     i = oldest;
+  } else if (svs.challenges[i].challenge == 0) { // a connect used it, so it must not match again
+    svs.challenges[i].challenge = Randomu() ?: 1;
+    svs.challenges[i].time = quetoo.ticks;
   }
 
   // send it back
@@ -236,8 +239,8 @@ static void Sv_Connect_f(void) {
   // enforce a valid challenge to avoid denial of service attack
   int32_t i;
   for (i = 0; i < MAX_CHALLENGES; i++) {
-    if (Net_CompareClientNetaddr(addr, &svs.challenges[i].addr)) {
-      if (challenge == svs.challenges[i].challenge) {
+    if (Net_CompareNetaddr(addr, &svs.challenges[i].addr)) {
+      if (challenge && challenge == svs.challenges[i].challenge) {
         svs.challenges[i].challenge = 0;
         break; // good
       }

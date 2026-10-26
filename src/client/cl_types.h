@@ -705,6 +705,11 @@ typedef struct {
   uint32_t challenge;
 
   /**
+   * @brief System time at which the client last sent a connect with `challenge`.
+   */
+  uint32_t challengeTime;
+
+  /**
    * @brief Server spawn count, used to detect map changes.
    */
   uint32_t spawnCount;
