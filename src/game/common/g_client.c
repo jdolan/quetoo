@@ -1038,7 +1038,12 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
   ent->Pain = NULL;
 
   ent->clipMask = CONTENTS_MASK_CLIP_CORPSE;
-  cl->respawnTime = gameLevel.time + 1800; // respawn delay, independent of death animation length
+  const float delay = Maxf(0.f, g_respawnDelay->value);
+  cl->respawnTime = gameLevel.time + SECONDS_TO_MILLIS(delay);
+  cl->forceRespawnTime = g_forceRespawn->value > 0.f ?
+    gameLevel.time + SECONDS_TO_MILLIS(Maxf(g_forceRespawn->value, delay)) : 0;
+  cl->pickupMsgTime = 0;
+  cl->ps.stats[STAT_PICKUP] = 0;
   cl->showScores = true;
   cl->persistent.deaths++;
 
@@ -2518,7 +2523,8 @@ void G_ClientBeginFrame(GameClient *cl) {
 
   if (ent->dead) {
     if (gameLevel.time > cl->respawnTime) {
-      if (cl->latchedButtons & BUTTON_ATTACK) {
+      if ((cl->latchedButtons & BUTTON_ATTACK) ||
+          (cl->forceRespawnTime && gameLevel.time >= cl->forceRespawnTime)) {
         G_ClientRespawn(cl, false);
       }
     }

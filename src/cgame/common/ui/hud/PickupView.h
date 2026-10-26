@@ -27,14 +27,17 @@
 
 /**
  * @file
- * @brief The item most recently picked up: its icon beside its name.
+ * @brief The item most recently picked up: its icon beside its name. While the player waits to
+ * respawn, the seconds until they may respawn.
  */
 
 typedef struct PickupView PickupView;
 typedef struct PickupViewInterface PickupViewInterface;
 
 /**
- * @brief The item most recently picked up: its icon beside its name. Hidden when none.
+ * @brief The item most recently picked up: its icon beside its name. While the player waits to
+ * respawn after a long delay, the seconds until it may, in place of the item: a dead player picks
+ * nothing up. Hidden when neither.
  * @extends StackView
  */
 struct PickupView {
@@ -61,9 +64,14 @@ struct PickupView {
   GameItemTag item;
 
   /**
-   * @brief The item name.
+   * @brief The item name, or the respawn countdown.
    */
   Text *name;
+
+  /**
+   * @brief The seconds shown until the player may respawn, or 0.
+   */
+  int16_t respawn;
 };
 
 struct PickupViewInterface {

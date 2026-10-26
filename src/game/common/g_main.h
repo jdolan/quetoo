@@ -208,6 +208,8 @@ extern Cvar *g_motd;
 extern Cvar *g_password;
 extern Cvar *g_playerProjectile;
 extern Cvar *g_spawnProtection;
+extern Cvar *g_respawnDelay;
+extern Cvar *g_forceRespawn;
 extern Cvar *g_fallDamage;
 extern Cvar *g_selfDamage;
 extern Cvar *g_selfKnockback;

@@ -43,7 +43,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1066
+#define PROTOCOL_MINOR 1067
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -128,6 +128,7 @@ typedef enum {
   STAT_PICKUP,
   STAT_PING,
   STAT_QUAD_TIME,
+  STAT_RESPAWN,
   STAT_SCORES,
   STAT_SPECTATOR,
   STAT_TEAM,
@@ -1485,6 +1486,12 @@ struct GameClient {
    * @brief Client may respawn when time exceeds this.
    */
   uint32_t respawnTime;
+
+  /**
+   * @brief Level time at which a dead client respawns without a press of attack, or 0 if
+   * `g_forceRespawn` is off or the client is alive.
+   */
+  uint32_t forceRespawnTime;
 
   /**
    * @brief The corpse or head giblet this client watches while dead, until they respawn.

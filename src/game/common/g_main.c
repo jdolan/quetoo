@@ -173,6 +173,8 @@ Cvar *g_numTeams;
 Cvar *g_password;
 Cvar *g_playerProjectile;
 Cvar *g_spawnProtection;
+Cvar *g_respawnDelay;
+Cvar *g_forceRespawn;
 Cvar *g_fallDamage;
 Cvar *g_selfDamage;
 Cvar *g_selfKnockback;
@@ -1287,6 +1289,8 @@ void G_Init(void) {
   g_password = gi.AddCvar("g_password", "", CVAR_USER_INFO, "The server password.");
   g_playerProjectile = gi.AddCvar("g_playerProjectile", "1", CVAR_SERVER_INFO, "Scales player velocity to projectiles.");
   g_spawnProtection = gi.AddCvar("g_spawnProtection", "0", 0, "Spawn protection in seconds. It ends when the player fires.");
+  g_respawnDelay = gi.AddCvar("g_respawnDelay", "1.8", 0, "The least time in seconds from death to respawn. The HUD counts down a delay of more than 2 seconds.");
+  g_forceRespawn = gi.AddCvar("g_forceRespawn", "0", 0, "Respawns a dead player after this many seconds, without a press of attack. 0 disables it.");
   g_fallDamage = gi.AddCvar("g_fallDamage", "1", CVAR_SERVER_INFO, "Scales fall damage. 0 disables fall damage entirely (cf. Quake2 DF_NO_FALLING).");
   g_selfDamage = gi.AddCvar("g_selfDamage", "1", CVAR_SERVER_INFO, "Scales self-inflicted damage (rocket splash, grenade splash, etc)");
   g_selfKnockback = gi.AddCvar("g_selfKnockback", "1", CVAR_SERVER_INFO, "Scales self-inflicted knockback (rocket jump, plasma climb, etc)");

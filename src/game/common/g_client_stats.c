@@ -448,6 +448,14 @@ void G_ClientStats(GameClient *cl) {
     cl->ps.stats[STAT_PICKUP] = 0;
   }
 
+  // seconds until a dead player may respawn, for the HUD's countdown of a long delay
+  if (cl->entity->dead && g_respawnDelay->value > 2.f && gameLevel.time < cl->respawnTime) {
+    cl->ps.stats[STAT_RESPAWN] = (int16_t) Mini(ceil((cl->respawnTime - gameLevel.time) / 1000.0),
+                                                INT16_MAX);
+  } else {
+    cl->ps.stats[STAT_RESPAWN] = 0;
+  }
+
   // ping, as the server measures it, so that the HUD and the scoreboard agree
   cl->ps.stats[STAT_PING] = (int16_t) Mini(cl->ping, 999);
 
