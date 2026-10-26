@@ -74,6 +74,10 @@ static void updateBindings(View *self, ident data) {
     $(self, setVisibility, ViewVisibilityVisible);
     $((View *) this->icon, setVisibility, ViewVisibilityHidden);
 
+    if (!this->respawn) {
+      $(self, addClassName, "respawn");
+    }
+
     if (respawn != this->respawn) {
       this->respawn = respawn;
       $(this->name, setText, va("Respawn in %d", respawn));
@@ -85,6 +89,7 @@ static void updateBindings(View *self, ident data) {
 
   if (this->respawn) {
     this->respawn = 0;
+    $(self, removeClassName, "respawn");
     $((View *) this->icon, setVisibility, ViewVisibilityVisible);
   }
 

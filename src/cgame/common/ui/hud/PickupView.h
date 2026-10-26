@@ -37,7 +37,7 @@ typedef struct PickupViewInterface PickupViewInterface;
 /**
  * @brief The item most recently picked up: its icon beside its name. While the player waits to
  * respawn after a long delay, the seconds until it may, in place of the item: a dead player picks
- * nothing up. Hidden when neither.
+ * nothing up. The view has the class `respawn` while it counts down. Hidden when neither.
  * @extends StackView
  */
 struct PickupView {

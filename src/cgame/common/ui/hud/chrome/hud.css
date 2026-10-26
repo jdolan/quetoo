@@ -419,6 +419,13 @@
   color: #dedededb;
 }
 
+/* the respawn countdown, in the pickup's place while dead, draws the eye */
+
+#hud PickupView.respawn > Text {
+  font-size: 26;
+  color: #ffd75c;
+}
+
 #hud #fps {
   alignment: bottom-right;
   padding-bottom: 162;
