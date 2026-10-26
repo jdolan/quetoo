@@ -4215,6 +4215,10 @@ static void G_Ai_Populate(void) {
     return;
   }
 
+  if ((gameLevel.minClients > 0 || *gameLevel.ai) && !G_Ai_IsAnyAllowed()) {
+    G_Warn("No bots match the server's configuration\n");
+  }
+
   int32_t humanClients, aiClients;
   G_Ai_CountClients(&humanClients, &aiClients);
 
@@ -4296,6 +4300,12 @@ void G_Ai_Frame(void) {
           kick = cl;
         }
       });
+      G_ForEachClient(cl, {
+        if (cl->ai && !cl->ai->added && !G_Ai_IsAllowed(cl->ai->roster)) {
+          kick = cl;
+          break;
+        }
+      });
       if (kick) {
         gi.Cbuf(va("kick %d\n", kick->ps.client));
       }
@@ -4310,7 +4320,8 @@ void G_Ai_Frame(void) {
 }
 
 /**
- * @brief Console command handler to add a bot from the roster, with optional traits.
+ * @brief Console command handler to add a bot from the roster, with optional traits. A bot whose
+ * skill is above `g_aiMaxSkill` is refused, and a skill given is limited to it.
  */
 static void G_Ai_Add_f(void) {
 
@@ -4327,6 +4338,12 @@ static void G_Ai_Add_f(void) {
     return;
   }
 
+  if (gi.Argc() < 3 && !G_Ai_IsAllowed(roster)) {
+    gi.Print("%s has skill %.2f, above g_aiMaxSkill %.2f\n", roster->name, roster->skill,
+             G_Ai_MaxSkill());
+    return;
+  }
+
   float traits[] = { roster->skill, roster->aggression, roster->awareness };
 
   for (int32_t i = 2; i < gi.Argc(); i++) {
@@ -4339,6 +4356,11 @@ static void G_Ai_Add_f(void) {
     }
 
     traits[i - 2] = value;
+  }
+
+  if (traits[0] > G_Ai_MaxSkill()) {
+    traits[0] = G_Ai_MaxSkill();
+    gi.Print("Skill limited to g_aiMaxSkill %.2f\n", traits[0]);
   }
 
   G_ForEachFreeClient(cl, {
