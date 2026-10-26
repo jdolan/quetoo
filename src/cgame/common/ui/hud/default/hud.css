@@ -152,7 +152,7 @@
 
 #hud.respawn #pickup {
   alignment: top-center;
-  padding-top: 136;
+  padding-top: 120;
 }
 
 #pickup > PickupView {
