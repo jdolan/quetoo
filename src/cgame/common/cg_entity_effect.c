@@ -109,7 +109,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
   }
 
   if (e->effects & EF_SPAWN_PROTECTION) {
-    const Vec3 color = Cg_EffectColor(NULL, 0.167f);
+    const Vec3 color = Cg_EffectColor(NULL, COLOR_HUE_YELLOW);
     e->shell = Vec4_Fmaf(e->shell, 0.5f, Vec3_ToVec4(color, 0.f));
     e->shell.w = fmaxf(e->shell.w, 0.333f);
   }
