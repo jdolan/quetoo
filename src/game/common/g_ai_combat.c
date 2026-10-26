@@ -742,7 +742,7 @@ static CollisionTrace G_Ai_LobTrace(const GameClient *cl) {
  * the weapon's radius, and subtracts half a point of damage for each unit from the burst to the
  * player's bounds, so the reach is also at most twice the damage.
  */
-static float G_Ai_SplashReach(const GameItem *weapon) {
+static float G_Ai_SplashRadius(const GameItem *weapon) {
 
   if (!g_friendlyFire->value) {
     return 0.f;
@@ -855,7 +855,7 @@ static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
     return false;
   }
 
-  const float reach = G_Ai_SplashReach(cl->weapon);
+  const float reach = G_Ai_SplashRadius(cl->weapon);
 
   if (reach > 0.f && G_Ai_IsTeammateNear(cl, trace.end, trace.end, reach)) {
     return false;
