@@ -580,7 +580,7 @@ void G_Damage(const GameDamage *dmg) {
 /**
  * @brief Deals damage and knockback to all damageable entities within the radius of the inflictor,
  * measured to their bounding radius. Both fall by half a point for each unit of that distance, so
- * that the splash reaches no farther than twice the larger of the two, whatever the radius.
+ * that the splash reaches no farther than the radius, nor than twice the larger of the two.
  */
 void G_RadiusDamage(GameEntity *inflictor, GameEntity *attacker, GameEntity *ignore, int32_t damage,
                     int32_t knockback, float radius, GameMeansOfDeath mod) {
