@@ -661,7 +661,7 @@ void G_FireHandGrenade(GameClient *cl) {
       (uint32_t) throwSpeed, // how fast does it fly
       120,                    // damage dealt
       120,                    // knockback
-      185.0,                  // blast radius
+      240.0,                  // blast radius
       fuse                    // time before explode (next think)
   );
 

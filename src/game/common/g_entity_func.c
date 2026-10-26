@@ -496,7 +496,7 @@ static void G_MoveType_Push_Blocked(GameEntity *ent, GameEntity *other) {
       .mod = mod
     });
     if (other->inUse) {
-      G_Explode(other, 60, 60, 80.0, 0);
+      G_Explode(other, 60, 60, 120.0, 0);
     }
   }
 }

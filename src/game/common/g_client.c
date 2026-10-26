@@ -977,7 +977,7 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
         0,            // how fast it flies
         120,          // damage dealt
         120,          // knockback
-        185.0,          // blast radius
+        240.0,          // blast radius
         Clampf(3000 - (int32_t) (gameLevel.time - nadeHoldTime), 1, 3000) // time before explode (next think)
     );
   }

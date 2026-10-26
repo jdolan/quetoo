@@ -578,7 +578,9 @@ void G_Damage(const GameDamage *dmg) {
 }
 
 /**
- * @brief Deals damage and knockback to all damageable entities within the specified radius of the inflictor.
+ * @brief Deals damage and knockback to all damageable entities within the radius of the inflictor,
+ * measured to their bounding radius. Both fall by half a point for each unit of that distance, so
+ * that the splash reaches no farther than twice the larger of the two, whatever the radius.
  */
 void G_RadiusDamage(GameEntity *inflictor, GameEntity *attacker, GameEntity *ignore, int32_t damage,
                     int32_t knockback, float radius, GameMeansOfDeath mod) {
@@ -594,6 +596,10 @@ void G_RadiusDamage(GameEntity *inflictor, GameEntity *attacker, GameEntity *ign
 
     Vec3 dir = Vec3_Subtract(ent->s.origin, inflictor->s.origin);
     const float dist = Vec3_Length(dir) - Box3_Radius(ent->bounds);
+
+    if (dist > radius) {
+      continue;
+    }
 
     float d = Maxf(damage - 0.5 * dist, 0.f);
     const float k = Maxf(knockback - 0.5 * dist, 0.f);
