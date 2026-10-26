@@ -117,6 +117,7 @@ cguihud_DATA = \
 	$(CGUI_DIR)/hud/DemoControlsView.json \
 	$(CGUI_DIR)/hud/PickupView.json \
 	$(CGUI_DIR)/hud/PowerupView.json \
+	$(CGUI_DIR)/hud/RespawnTimerView.json \
 	$(CGUI_DIR)/hud/ScoreView.json \
 	$(CGUI_DIR)/hud/StatView.json
 
@@ -297,6 +298,7 @@ cgame_la_SOURCES = \
 	ui/hud/PickupView.c \
 	ui/hud/PingView.c \
 	ui/hud/PowerupView.c \
+	ui/hud/RespawnTimerView.c \
 	ui/hud/ScoreView.c \
 	ui/hud/ScoreboardView.c \
 	ui/hud/SpectatorView.c \

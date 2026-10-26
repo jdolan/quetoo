@@ -9,9 +9,11 @@
  * misfit rectangle.
  */
 
+/* below the clock, its item timers, the pickup, and the respawn countdown (`#respawnTimer`) */
+
 ScoreboardView {
   autoresizing-mask: fill;
-  top: 168;
+  top: 200;
 }
 
 ScoreboardView Text {

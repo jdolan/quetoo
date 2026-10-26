@@ -117,8 +117,10 @@
 		457008C2AC171BAD836BC9D8 /* HudViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = C21FD90BD08D804DE1A792B1 /* HudViewController.c */; };
 		46EE82019B925D394B363E01 /* VoteView.c in Sources */ = {isa = PBXBuildFile; fileRef = D7275B0BE3C194B1854A8FD6 /* VoteView.c */; };
 		47E832E190C339999881A094 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
+		6909D62AE11FE2AB1D09671E /* RespawnTimerView.c in Sources */ = {isa = PBXBuildFile; fileRef = 49BAAC74B246E09899D1B849 /* RespawnTimerView.c */; };
 		4884D62AC7509A737141A1F5 /* DemosCollectionView.c in Sources */ = {isa = PBXBuildFile; fileRef = 73D76D16B380D05D4DE32AEE /* DemosCollectionView.c */; };
 		48F10F5D3A8711EABB25DB34 /* PickupView.c in Sources */ = {isa = PBXBuildFile; fileRef = E106ACFB28FF47443FB3C9FE /* PickupView.c */; };
+		23025326CB8D43FA04E1953D /* RespawnTimerView.c in Sources */ = {isa = PBXBuildFile; fileRef = 49BAAC74B246E09899D1B849 /* RespawnTimerView.c */; };
 		4932286FA54FFE0479DD188C /* DemoControlsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */; };
 		4D083582577CFE4F42B87053 /* g_ai_combat.h in Headers */ = {isa = PBXBuildFile; fileRef = 7610ECCDD66E323A33218A5E /* g_ai_combat.h */; };
 		4DA60E0E0E86520782FCF112 /* DemoControlsView.c in Sources */ = {isa = PBXBuildFile; fileRef = 7BC864F2F7EB0F4254F1ABAA /* DemoControlsView.c */; };
@@ -150,6 +152,7 @@
 		5F30C8395773D766335F5B9D /* ScoreView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = F2440E567EED9135ED4DDDC8 /* ScoreView.json */; };
 		622B0D6DA98C42AA8A8D582B /* ChatView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */; };
 		665046BB6961C443C731A077 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
+		6E21F4F1589C46A772DD5368 /* RespawnTimerView.c in Sources */ = {isa = PBXBuildFile; fileRef = 49BAAC74B246E09899D1B849 /* RespawnTimerView.c */; };
 		6681071D48F7B492ADC27385 /* BlendView.c in Sources */ = {isa = PBXBuildFile; fileRef = 4BF47DA7893C8563C1D59CDA /* BlendView.c */; };
 		68157F8A4AF07ADDE8951670 /* SpectatorView.c in Sources */ = {isa = PBXBuildFile; fileRef = 94D1F06AFA9AE2182216CC46 /* SpectatorView.c */; };
 		68D440FA613EE2594A4D6DB6 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
@@ -210,6 +213,7 @@
 		A04BD89F5AAC7CE024786A3C /* ImageQueue.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* ImageQueue.c */; };
 		D892B7966CA5B28DD9D790A1 /* MapshotThumbnailView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2ED568F0033A530D0DF9F821 /* MapshotThumbnailView.c */; };
 		A1F809FD3D4907D862309E48 /* PickupView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 2E9A665C836946BF25073235 /* PickupView.json */; };
+		E8D9E1C5A8CC18B58746E1D6 /* RespawnTimerView.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = 54D4BB07F3BA5B046C09D974 /* RespawnTimerView.json */; };
 		A2E677309CBD4262ADCE7EA5 /* ConsoleViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = 9352803A21064843A7D64A86 /* ConsoleViewController.c */; };
 		A36A95B1FECEDF46C0B15D62 /* BarlowCondensed-SemiBold.ttf in CopyFiles */ = {isa = PBXBuildFile; fileRef = 02E20C6F468B8DCFDF5BB1A0 /* BarlowCondensed-SemiBold.ttf */; };
 		A6129EABAA31EC923157E0CF /* g_ai_combat.h in Headers */ = {isa = PBXBuildFile; fileRef = 7610ECCDD66E323A33218A5E /* g_ai_combat.h */; };
@@ -1587,6 +1591,7 @@
 		E613CE6B3A9634DB694DA689 /* TeamBannerView.c in Sources */ = {isa = PBXBuildFile; fileRef = A73DD77B1D5B8231028B01FA /* TeamBannerView.c */; };
 		E70AD75417615E311748DB70 /* ScoreboardView.c in Sources */ = {isa = PBXBuildFile; fileRef = 45969B731C08AA84C8D318F6 /* ScoreboardView.c */; };
 		E7A9F8759B856BBB62D69C03 /* PowerupView.c in Sources */ = {isa = PBXBuildFile; fileRef = 755F8C8CBA7F7C48E79A578C /* PowerupView.c */; };
+		7F3F9A885D940D7E0B0786DD /* RespawnTimerView.c in Sources */ = {isa = PBXBuildFile; fileRef = 49BAAC74B246E09899D1B849 /* RespawnTimerView.c */; };
 		E8C4BDED96CEB68BD78AA055 /* drawelements.c in Sources */ = {isa = PBXBuildFile; fileRef = 798D1D350CCC161F92103924 /* drawelements.c */; };
 		E8E576F4F02CD6018C8D7B7C /* MapList.c in Sources */ = {isa = PBXBuildFile; fileRef = 90D8067392DE8E9D0A68FFBF /* MapList.c */; };
 		E937CDDABD9E664EDD139955 /* CameraControlsView.c in Sources */ = {isa = PBXBuildFile; fileRef = C22C8B9ED966181A40EEE5A3 /* CameraControlsView.c */; };
@@ -2262,6 +2267,7 @@
 				DA0022000000000000000001 /* DemoControlsView.json in CopyFiles */,
 				A1F809FD3D4907D862309E48 /* PickupView.json in CopyFiles */,
 				F53A30D93664CE4B8E4B92F8 /* PowerupView.json in CopyFiles */,
+				E8D9E1C5A8CC18B58746E1D6 /* RespawnTimerView.json in CopyFiles */,
 				5F30C8395773D766335F5B9D /* ScoreView.json in CopyFiles */,
 				25BC89DD24A937543466EBF8 /* StatView.json in CopyFiles */,
 			);
@@ -2311,6 +2317,7 @@
 		2E9A665C836946BF25073235 /* PickupView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PickupView.json; sourceTree = "<group>"; };
 		2EA8B25732BD4FBCA2BCECC4 /* ChatView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ChatView.c; sourceTree = "<group>"; };
 		303177B0E2D33EB62F047DDC /* PowerupView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = PowerupView.json; sourceTree = "<group>"; };
+		54D4BB07F3BA5B046C09D974 /* RespawnTimerView.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = RespawnTimerView.json; sourceTree = "<group>"; };
 		3487B5AD7D47E8DFBDDAE5C4 /* hud.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = hud.json; sourceTree = "<group>"; };
 		39EBD366CBE94F4CACE5CD03 /* check_material */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = check_material; sourceTree = BUILT_PRODUCTS_DIR; };
 		3B5E2E164CF77588FE00447F /* cl_analytics.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; lineEnding = 0; path = cl_analytics.c; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.c; };
@@ -2320,6 +2327,7 @@
 		4BF47DA7893C8563C1D59CDA /* BlendView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = BlendView.c; sourceTree = "<group>"; };
 		4CA3522A5AE19B0F18CF79C6 /* TargetNameView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TargetNameView.h; sourceTree = "<group>"; };
 		51B36F4226CEC7C84538DC2F /* PickupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PickupView.h; sourceTree = "<group>"; };
+		E18F7AF0A808DC8CC42C99AD /* RespawnTimerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RespawnTimerView.h; sourceTree = "<group>"; };
 		52CCC184568D9A04E0D91F1A /* asset.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = asset.c; sourceTree = "<group>"; };
 		5624F1C74F4646918DA71088 /* PingView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PingView.c; sourceTree = "<group>"; };
 		57941D4E858E897A2E3083ED /* manifest.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = manifest.c; sourceTree = "<group>"; };
@@ -3260,6 +3268,7 @@
 		DF0B9374573E39DECA0D8E4C /* manifest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = manifest.h; sourceTree = "<group>"; };
 		E0F247635165E5338AAD8494 /* scoreboard.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = scoreboard.css; sourceTree = "<group>"; };
 		E106ACFB28FF47443FB3C9FE /* PickupView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PickupView.c; sourceTree = "<group>"; };
+		49BAAC74B246E09899D1B849 /* RespawnTimerView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = RespawnTimerView.c; sourceTree = "<group>"; };
 		E642B6640D82AE6F5A36526A /* drawelements.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = drawelements.h; sourceTree = "<group>"; };
 		E6ACB2EEAD95B3757AE36A7A /* TargetNameView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = TargetNameView.c; sourceTree = "<group>"; };
 		E960839170EAFC21DD702B32 /* cg_portal.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = cg_portal.c; sourceTree = "<group>"; };
@@ -3789,6 +3798,9 @@
 				C853849AF0A2CC2F7C531245 /* PowerupView.h */,
 				755F8C8CBA7F7C48E79A578C /* PowerupView.c */,
 				303177B0E2D33EB62F047DDC /* PowerupView.json */,
+				E18F7AF0A808DC8CC42C99AD /* RespawnTimerView.h */,
+				49BAAC74B246E09899D1B849 /* RespawnTimerView.c */,
+				54D4BB07F3BA5B046C09D974 /* RespawnTimerView.json */,
 				40A40999BE66FAEBBBCCD450 /* ScoreboardView.h */,
 				45969B731C08AA84C8D318F6 /* ScoreboardView.c */,
 				671265A640259697D1AA363E /* ScoreView.h */,
@@ -7038,6 +7050,7 @@
 				24AE762AB44CC3A34BCF6911 /* HudViewController.c in Sources */,
 				48F10F5D3A8711EABB25DB34 /* PickupView.c in Sources */,
 				E7A9F8759B856BBB62D69C03 /* PowerupView.c in Sources */,
+				23025326CB8D43FA04E1953D /* RespawnTimerView.c in Sources */,
 				C24304F353C77693015A7736 /* ScoreView.c in Sources */,
 				BB08F021CF5059A8915C8DDF /* ScoreboardView.c in Sources */,
 				D1A5B0000000000000000404 /* IntermissionView.c in Sources */,
@@ -7219,6 +7232,7 @@
 				9C1E56948C90F9D9DD714DF6 /* HudViewController.c in Sources */,
 				E16A533FF7C34A2BA65E1BFF /* PickupView.c in Sources */,
 				F956F2A93BABE228BC99C9E4 /* PowerupView.c in Sources */,
+				7F3F9A885D940D7E0B0786DD /* RespawnTimerView.c in Sources */,
 				0BF82540ADD285E5DF358C72 /* ScoreView.c in Sources */,
 				E70AD75417615E311748DB70 /* ScoreboardView.c in Sources */,
 				D1A5B000000000000000040B /* IntermissionView.c in Sources */,
@@ -7715,6 +7729,7 @@
 				457008C2AC171BAD836BC9D8 /* HudViewController.c in Sources */,
 				547AC46C9A45CC44AB005215 /* PickupView.c in Sources */,
 				665046BB6961C443C731A077 /* PowerupView.c in Sources */,
+				6E21F4F1589C46A772DD5368 /* RespawnTimerView.c in Sources */,
 				9EBBE79D07E30BB784FC188F /* ScoreView.c in Sources */,
 				68D440FA613EE2594A4D6DB6 /* ScoreboardView.c in Sources */,
 				D1A5B0000000000000000403 /* IntermissionView.c in Sources */,
@@ -7952,6 +7967,7 @@
 				16842F99305E37AEE91A82E4 /* HudViewController.c in Sources */,
 				47E832E190C339999881A094 /* PickupView.c in Sources */,
 				D36054C7E2858790984E15E0 /* PowerupView.c in Sources */,
+				6909D62AE11FE2AB1D09671E /* RespawnTimerView.c in Sources */,
 				9F948D38BAB2AE44F4A87F61 /* ScoreView.c in Sources */,
 				50A656139CC3317E925D0231 /* ScoreboardView.c in Sources */,
 				D1A5B0000000000000000402 /* IntermissionView.c in Sources */,

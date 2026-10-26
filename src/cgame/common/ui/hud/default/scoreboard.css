@@ -21,11 +21,13 @@ ScoreboardView > .title {
   padding-top: 24;
 }
 
+/* below the clock, its item timers, and the respawn countdown (`#respawnTimer`) */
+
 ScoreboardView > .board {
   alignment: top-center;
   autoresizing-mask: contain;
   axis: vertical;
-  padding-top: 164;
+  padding-top: 200;
   spacing: 24;
 }
 

@@ -170,6 +170,30 @@
   color: #dedededb;
 }
 
+/* the respawn countdown takes the center, below the clock and its item timers, to draw the eye */
+
+#respawnTimer {
+  alignment: top-center;
+  autoresizing-mask: contain;
+  padding-top: 120;
+}
+
+#respawnTimer > RespawnTimerView {
+  autoresizing-mask: contain;
+  background-color: #08151aa8;
+  border-color: #9fb8c433;
+  border-width: 1;
+  border-radius: 10;
+  padding: 6 20 6 20;
+}
+
+#hud RespawnTimerView > Text {
+  alignment: middle;
+  text-transform: uppercase;
+  font-size: 28;
+  color: #ffd75c;
+}
+
 #stats {
   alignment: top-right;
   autoresizing-mask: contain;

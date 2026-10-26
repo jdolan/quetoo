@@ -419,6 +419,30 @@
   color: #dedededb;
 }
 
+/* the respawn countdown sits where the pickup does, below the clock, and draws the eye */
+
+#respawnTimer {
+  alignment: top-center;
+  autoresizing-mask: contain;
+  padding-top: 128;
+}
+
+#respawnTimer > RespawnTimerView {
+  autoresizing-mask: contain;
+  background-color: #08151ae6;
+  background-gradient-color: #08151a9e;
+  background-gradient-angle: 90;
+  corner-cut: 14 0 14 0;
+  padding: 6 24 6 24;
+}
+
+#hud RespawnTimerView > Text {
+  alignment: middle;
+  text-transform: uppercase;
+  font-size: 26;
+  color: #ffd75c;
+}
+
 #hud #fps {
   alignment: bottom-right;
   padding-bottom: 162;

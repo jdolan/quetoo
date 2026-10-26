@@ -1,0 +1,8 @@
+{
+  "subviews": [
+    {
+      "class": "Text",
+      "identifier": "text"
+    }
+  ]
+}

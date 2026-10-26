@@ -240,6 +240,14 @@
           ]
         },
         {
+          "identifier": "respawnTimer",
+          "subviews": [
+            {
+              "class": "RespawnTimerView"
+            }
+          ]
+        },
+        {
           "class": "StackView",
           "identifier": "vitals",
           "subviews": [

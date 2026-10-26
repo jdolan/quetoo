@@ -141,6 +141,7 @@ cgame_la_SOURCES = \
 	ui/hud/PickupView.c \
 	ui/hud/PingView.c \
 	ui/hud/PowerupView.c \
+	ui/hud/RespawnTimerView.c \
 	ui/hud/ScoreView.c \
 	ui/hud/ScoreboardView.c \
 	ui/hud/SpectatorView.c \
