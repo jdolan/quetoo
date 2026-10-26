@@ -677,7 +677,194 @@ static bool G_Ai_CanSpam(const GameClient *cl) {
 }
 
 /**
- * @brief Lobs grenades at spots where players gather while the bot has no combat target.
+ * @return True if the weapon lobs its projectile in an arc: the grenade launchers and hand
+ * grenades.
+ */
+static bool G_Ai_IsLobbed(const GameItem *weapon) {
+  return weapon == &gameItems[WEAPON_GRENADE_LAUNCHER] ||
+         weapon == &gameItems[WEAPON_QUAKE_GRENADE_LAUNCHER] ||
+         weapon == &gameItems[WEAPON_HAND_GRENADE];
+}
+
+/**
+ * @brief The time step in seconds of the arc that `G_Ai_LobTrace` follows.
+ */
+#define AI_LOB_STEP .05f
+
+/**
+ * @brief The longest flight in seconds that `G_Ai_LobTrace` follows.
+ */
+#define AI_LOB_SECONDS 2.f
+
+/**
+ * @return The trace of the bot's grenade from its eye along its view, on the arc that gravity
+ * bends, to where it first strikes: the launch speed and loft of `G_Ai_SpamAngles`, with the hand
+ * grenade's speed from `aimHoldMillis`, as `G_FireHandGrenade` throws it.
+ */
+static CollisionTrace G_Ai_LobTrace(const GameClient *cl) {
+
+  const bool timed = (cl->weapon->def.flags & WF_TIMED) != 0;
+  const float speed = timed ? Clampf(cl->ai->aimHoldMillis * .5f, 500.f, 1200.f) :
+                              G_Ai_ProjectileSpeed(cl->weapon);
+  const float loft = timed ? AI_HAND_GRENADE_LOFT : AI_GRENADE_LOFT;
+  const float gravity = G_LevelGravity();
+
+  Vec3 origin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+  Vec3 velocity = Vec3_Fmaf(MakeVec3(0.f, 0.f, loft), speed, cl->forward);
+
+  CollisionTrace trace = { .fraction = 1.f, .end = origin };
+
+  for (float t = 0.f; t < AI_LOB_SECONDS; t += AI_LOB_STEP) {
+
+    velocity.z -= gravity * AI_LOB_STEP;
+    const Vec3 next = Vec3_Fmaf(origin, AI_LOB_STEP, velocity);
+
+    trace = gi.Trace(origin, next, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
+    if (trace.fraction < 1.f) {
+      break;
+    }
+
+    origin = next;
+  }
+
+  return trace;
+}
+
+/**
+ * @brief The distance within which a bot holds fire with an explosive weapon, so that its own
+ * splash does not hit it.
+ */
+#define AI_SELF_SPLASH_DISTANCE 160.f
+
+/**
+ * @return The distance from a burst of the weapon within which its splash damages a player, or 0
+ * for a weapon without splash, or if teammates take no damage. `G_RadiusDamage` subtracts half a
+ * point of damage for each unit from the burst to the player's bounds, so the reach is twice the
+ * damage.
+ */
+static float G_Ai_SplashReach(const GameItem *weapon) {
+
+  if (!g_friendlyFire->value) {
+    return 0.f;
+  }
+
+  float damage = 0.f;
+
+  if (weapon == &gameItems[WEAPON_ROCKET_LAUNCHER]) {
+    damage = g_balanceRocketlauncherDamage->value;
+  } else if (weapon == &gameItems[WEAPON_GRENADE_LAUNCHER]) {
+    damage = g_balanceGrenadelauncherDamage->value;
+  } else if (weapon == &gameItems[WEAPON_BFG10K]) {
+    damage = g_balanceBfgDamage->value;
+  } else if (weapon == &gameItems[WEAPON_QUAKE_ROCKET_LAUNCHER]) {
+    damage = g_balanceQuakeRocketlauncherDamage->value;
+  } else if (weapon == &gameItems[WEAPON_QUAKE_GRENADE_LAUNCHER]) {
+    damage = g_balanceQuakeGrenadelauncherDamage->value;
+  }
+
+  return Maxf(0.f, damage * 2.f);
+}
+
+/**
+ * @return True if nothing solid lies between the point and the player, as `G_CanDamage` tests it:
+ * to its origin, or to one of four corners around it.
+ */
+static bool G_Ai_IsExposed(const Vec3 point, const GameEntity *ent) {
+
+  const Vec3 offsets[] = {
+    { { 0.f, 0.f, 0.f } },
+    { { 15.f, 15.f, 0.f } },
+    { { 15.f, -15.f, 0.f } },
+    { { -15.f, 15.f, 0.f } },
+    { { -15.f, -15.f, 0.f } },
+  };
+
+  for (size_t i = 0; i < lengthof(offsets); i++) {
+    const Vec3 dest = Vec3_Add(ent->s.origin, offsets[i]);
+
+    if (gi.Trace(point, dest, Box3_Zero(), NULL, CONTENTS_MASK_SOLID).fraction == 1.f) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @return True if a living teammate of the bot is within `reach` of the segment from `start` to
+ * `end`, measured to its bounds as `G_RadiusDamage` measures it, and exposed to the nearest point
+ * of the segment (`G_Ai_IsExposed`).
+ */
+static bool G_Ai_IsTeammateNear(const GameClient *cl, const Vec3 start, const Vec3 end,
+                                const float reach) {
+
+  const Vec3 dir = Vec3_Subtract(end, start);
+  const float length = Vec3_Dot(dir, dir);
+
+  G_ForEachClient(other, {
+    const GameEntity *ent = other->entity;
+
+    if (other == cl || ent->dead || ent->solid != SOLID_BOX || !G_OnSameTeam(cl, other)) {
+      continue;
+    }
+
+    const float along = Vec3_Dot(Vec3_Subtract(ent->s.origin, start), dir);
+    const float t = length > 0.f ? Clampf(along / length, 0.f, 1.f) : 0.f;
+    const Vec3 point = Vec3_Fmaf(start, t, dir);
+
+    if (Vec3_Distance(ent->s.origin, point) - Box3_Radius(ent->bounds) < reach &&
+        G_Ai_IsExposed(point, ent)) {
+      return true;
+    }
+  });
+
+  return false;
+}
+
+/**
+ * @return True if the bot's line of fire is clear: no teammate is in it, no teammate is within the
+ * splash of a burst at its end (`G_Ai_SplashReach`), or for the BFG, within the reach of its laser
+ * along it, and an explosive weapon would not burst within `AI_SELF_SPLASH_DISTANCE` of the bot, on
+ * a wall or on the enemy. A lobbed weapon's line of fire is its arc, to where the grenade first
+ * strikes. A grenade bounces from a wall, so the burst there is an estimate.
+ */
+static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
+
+  const Vec3 eye = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
+  const Vec3 end = Vec3_Fmaf(eye, MAX_WORLD_DIST, cl->forward);
+
+  const CollisionTrace trace = G_Ai_IsLobbed(cl->weapon) ? G_Ai_LobTrace(cl) :
+                               gi.Trace(eye, end, Box3_Zero(), cl->entity,
+                                        CONTENTS_MASK_CLIP_PROJECTILE);
+
+  const GameEntity *hit = trace.ent;
+
+  if (hit && hit != enemy && hit->client && G_OnSameTeam(cl, hit->client)) {
+    return false;
+  }
+
+  if ((cl->weapon->def.flags & WF_EXPLOSIVE) &&
+      Vec3_Distance(eye, trace.end) < AI_SELF_SPLASH_DISTANCE) {
+    return false;
+  }
+
+  const float reach = G_Ai_SplashReach(cl->weapon);
+
+  if (reach > 0.f && G_Ai_IsTeammateNear(cl, trace.end, trace.end, reach)) {
+    return false;
+  }
+
+  if (reach > 0.f && cl->weapon == &gameItems[WEAPON_BFG10K] &&
+      G_Ai_IsTeammateNear(cl, eye, trace.end, g_balanceBfgRadius->value)) {
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Lobs grenades at spots where players gather while the bot has no combat target, if its
+ * line of fire is clear (`G_Ai_ClearToFire`).
  */
 static void G_Ai_Weaponry_spam(GameClient *cl, PMoveCmd *cmd) {
 
@@ -741,97 +928,10 @@ static void G_Ai_Weaponry_spam(GameClient *cl, PMoveCmd *cmd) {
 
   const Vec3 view = cl->angles;
   if (fabsf(G_Ai_AngleDelta(view.x, angles.x)) < AI_SPAM_AIM_DEGREES &&
-      fabsf(G_Ai_AngleDelta(view.y, angles.y)) < AI_SPAM_AIM_DEGREES) {
+      fabsf(G_Ai_AngleDelta(view.y, angles.y)) < AI_SPAM_AIM_DEGREES &&
+      G_Ai_ClearToFire(cl, NULL)) {
     cmd->buttons |= BUTTON_ATTACK;
   }
-}
-
-/**
- * @return True if the weapon lobs its projectile in an arc: the grenade launchers and hand
- * grenades.
- */
-static bool G_Ai_IsLobbed(const GameItem *weapon) {
-  return weapon == &gameItems[WEAPON_GRENADE_LAUNCHER] ||
-         weapon == &gameItems[WEAPON_QUAKE_GRENADE_LAUNCHER] ||
-         weapon == &gameItems[WEAPON_HAND_GRENADE];
-}
-
-/**
- * @brief The time step in seconds of the arc that `G_Ai_LobTrace` follows.
- */
-#define AI_LOB_STEP .05f
-
-/**
- * @brief The longest flight in seconds that `G_Ai_LobTrace` follows.
- */
-#define AI_LOB_SECONDS 2.f
-
-/**
- * @return The trace of the bot's grenade from its eye along its view, on the arc that gravity
- * bends, to where it first strikes: the launch speed and loft of `G_Ai_SpamAngles`, with the hand
- * grenade's speed from `aimHoldMillis`, as `G_FireHandGrenade` throws it.
- */
-static CollisionTrace G_Ai_LobTrace(const GameClient *cl) {
-
-  const bool timed = (cl->weapon->def.flags & WF_TIMED) != 0;
-  const float speed = timed ? Clampf(cl->ai->aimHoldMillis * .5f, 500.f, 1200.f) :
-                              G_Ai_ProjectileSpeed(cl->weapon);
-  const float loft = timed ? AI_HAND_GRENADE_LOFT : AI_GRENADE_LOFT;
-  const float gravity = G_LevelGravity();
-
-  Vec3 origin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
-  Vec3 velocity = Vec3_Fmaf(MakeVec3(0.f, 0.f, loft), speed, cl->forward);
-
-  CollisionTrace trace = { .fraction = 1.f, .end = origin };
-
-  for (float t = 0.f; t < AI_LOB_SECONDS; t += AI_LOB_STEP) {
-
-    velocity.z -= gravity * AI_LOB_STEP;
-    const Vec3 next = Vec3_Fmaf(origin, AI_LOB_STEP, velocity);
-
-    trace = gi.Trace(origin, next, Box3_Zero(), cl->entity, CONTENTS_MASK_CLIP_PROJECTILE);
-    if (trace.fraction < 1.f) {
-      break;
-    }
-
-    origin = next;
-  }
-
-  return trace;
-}
-
-/**
- * @brief The distance within which a bot holds fire with an explosive weapon, so that its own
- * splash does not hit it.
- */
-#define AI_SELF_SPLASH_DISTANCE 160.f
-
-/**
- * @return True if the bot's line of fire is clear: no teammate is in it, and an explosive weapon
- * would not burst within `AI_SELF_SPLASH_DISTANCE` of the bot, on a wall or on the enemy. A lobbed
- * weapon's line of fire is its arc.
- */
-static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
-
-  const Vec3 eye = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
-  const Vec3 end = Vec3_Fmaf(eye, MAX_WORLD_DIST, cl->forward);
-
-  const CollisionTrace trace = G_Ai_IsLobbed(cl->weapon) ? G_Ai_LobTrace(cl) :
-                               gi.Trace(eye, end, Box3_Zero(), cl->entity,
-                                        CONTENTS_MASK_CLIP_PROJECTILE);
-
-  const GameEntity *hit = trace.ent;
-
-  if (hit && hit != enemy && hit->client && G_OnSameTeam(cl, hit->client)) {
-    return false;
-  }
-
-  if ((cl->weapon->def.flags & WF_EXPLOSIVE) &&
-      Vec3_Distance(eye, trace.end) < AI_SELF_SPLASH_DISTANCE) {
-    return false;
-  }
-
-  return true;
 }
 
 /**
