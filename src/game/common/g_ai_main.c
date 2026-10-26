@@ -4215,6 +4215,10 @@ static void G_Ai_Populate(void) {
     return;
   }
 
+  if ((gameLevel.minClients > 0 || *gameLevel.ai) && !G_Ai_IsAnyAllowed()) {
+    G_Warn("No AI player has a skill of at most g_aiMaxSkill %.2f\n", G_Ai_MaxSkill());
+  }
+
   int32_t humanClients, aiClients;
   G_Ai_CountClients(&humanClients, &aiClients);
 
@@ -4250,13 +4254,6 @@ static void G_Ai_Populate(void) {
       G_Ai_Connect(cl, NULL);
       break;
     });
-  }
-
-  if (wanted > aiClients) {
-    G_Ai_CountClients(&humanClients, &aiClients);
-    if (aiClients == 0) {
-      G_Warn("No AI player has a skill of at most g_aiMaxSkill %.2f\n", G_Ai_MaxSkill());
-    }
   }
 }
 

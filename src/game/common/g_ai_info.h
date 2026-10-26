@@ -40,6 +40,11 @@ float G_Ai_MaxSkill(void);
  * because players know each AI player by its name. Only `addAi` with a skill MAY do so.
  */
 bool G_Ai_IsAllowed(const GameAiRoster *entry);
+
+/**
+ * @return True if `g_aiMaxSkill` allows a roster entry (`G_Ai_IsAllowed`).
+ */
+bool G_Ai_IsAnyAllowed(void);
 uint32_t G_Ai_RosterCount(void);
 int32_t G_Ai_LevelRosterCount(void);
 bool G_Ai_IsLevelRoster(const GameAiRoster *entry);

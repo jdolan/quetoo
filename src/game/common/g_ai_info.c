@@ -270,6 +270,20 @@ bool G_Ai_IsAllowed(const GameAiRoster *entry) {
 }
 
 /**
+ * @see g_ai_info.h
+ */
+bool G_Ai_IsAnyAllowed(void) {
+
+  for (uint32_t i = 0; i < aiRosterCount; i++) {
+    if (G_Ai_IsAllowed(&aiRoster[i])) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * @return True if a connected AI player has the roster entry.
  */
 static bool G_Ai_RosterInGame(const GameAiRoster *entry) {
