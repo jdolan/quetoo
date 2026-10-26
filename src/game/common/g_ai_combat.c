@@ -807,9 +807,69 @@ static CollisionTrace G_Ai_LobTrace(const GameClient *cl) {
 #define AI_SELF_SPLASH_DISTANCE 160.f
 
 /**
- * @return True if the bot's line of fire is clear: no teammate is in it, and an explosive weapon
- * would not burst within `AI_SELF_SPLASH_DISTANCE` of the bot, on a wall or on the enemy. A lobbed
- * weapon's line of fire is its arc.
+ * @return The distance from a burst of the weapon within which its splash damages a player, or 0
+ * for a weapon without splash, or if teammates take no damage. `G_RadiusDamage` subtracts half a
+ * point of damage for each unit from the burst to the player's bounds, so the reach is twice the
+ * damage.
+ */
+static float G_Ai_SplashReach(const GameItem *weapon) {
+
+  if (!g_friendlyFire->value) {
+    return 0.f;
+  }
+
+  float damage = 0.f;
+
+  if (weapon == &gameItems[WEAPON_ROCKET_LAUNCHER]) {
+    damage = g_balanceRocketlauncherDamage->value;
+  } else if (weapon == &gameItems[WEAPON_GRENADE_LAUNCHER]) {
+    damage = g_balanceGrenadelauncherDamage->value;
+  } else if (weapon == &gameItems[WEAPON_BFG10K]) {
+    damage = g_balanceBfgDamage->value;
+  } else if (weapon == &gameItems[WEAPON_QUAKE_ROCKET_LAUNCHER]) {
+    damage = g_balanceQuakeRocketlauncherDamage->value;
+  } else if (weapon == &gameItems[WEAPON_QUAKE_GRENADE_LAUNCHER]) {
+    damage = g_balanceQuakeGrenadelauncherDamage->value;
+  }
+
+  return Maxf(0.f, damage * 2.f);
+}
+
+/**
+ * @return True if a living teammate of the bot is within `reach` of the segment from `start` to
+ * `end`, measured to its bounds as `G_RadiusDamage` measures it.
+ */
+static bool G_Ai_IsTeammateNear(const GameClient *cl, const Vec3 start, const Vec3 end,
+                                const float reach) {
+
+  const Vec3 dir = Vec3_Subtract(end, start);
+  const float length = Vec3_Dot(dir, dir);
+
+  G_ForEachClient(other, {
+    const GameEntity *ent = other->entity;
+
+    if (other == cl || ent->dead || ent->solid != SOLID_BOX || !G_OnSameTeam(cl, other)) {
+      continue;
+    }
+
+    const float along = Vec3_Dot(Vec3_Subtract(ent->s.origin, start), dir);
+    const float t = length > 0.f ? Clampf(along / length, 0.f, 1.f) : 0.f;
+    const Vec3 point = Vec3_Fmaf(start, t, dir);
+
+    if (Vec3_Distance(ent->s.origin, point) - Box3_Radius(ent->bounds) < reach) {
+      return true;
+    }
+  });
+
+  return false;
+}
+
+/**
+ * @return True if the bot's line of fire is clear: no teammate is in it, no teammate is within the
+ * splash of a burst at its end (`G_Ai_SplashReach`), or for the BFG, within the reach of its laser
+ * along it, and an explosive weapon would not burst within `AI_SELF_SPLASH_DISTANCE` of the bot, on
+ * a wall or on the enemy. A lobbed weapon's line of fire is its arc, to where the grenade first
+ * strikes. A grenade bounces from a wall, so the burst there is an estimate.
  */
 static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
 
@@ -828,6 +888,17 @@ static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
 
   if ((cl->weapon->def.flags & WF_EXPLOSIVE) &&
       Vec3_Distance(eye, trace.end) < AI_SELF_SPLASH_DISTANCE) {
+    return false;
+  }
+
+  const float reach = G_Ai_SplashReach(cl->weapon);
+
+  if (reach > 0.f && G_Ai_IsTeammateNear(cl, trace.end, trace.end, reach)) {
+    return false;
+  }
+
+  if (reach > 0.f && cl->weapon == &gameItems[WEAPON_BFG10K] &&
+      G_Ai_IsTeammateNear(cl, eye, trace.end, g_balanceBfgRadius->value)) {
     return false;
   }
 
