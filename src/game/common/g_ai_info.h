@@ -42,7 +42,7 @@ float G_Ai_MaxSkill(void);
 bool G_Ai_IsAllowed(const GameAiRoster *entry);
 
 /**
- * @return True if `g_aiMaxSkill` allows a roster entry (`G_Ai_IsAllowed`).
+ * @return True if a roster entry MAY join (`G_Ai_IsAllowed`).
  */
 bool G_Ai_IsAnyAllowed(void);
 uint32_t G_Ai_RosterCount(void);

@@ -4216,7 +4216,7 @@ static void G_Ai_Populate(void) {
   }
 
   if ((gameLevel.minClients > 0 || *gameLevel.ai) && !G_Ai_IsAnyAllowed()) {
-    G_Warn("No AI player has a skill of at most g_aiMaxSkill %.2f\n", G_Ai_MaxSkill());
+    G_Warn("No AI player matches the server's configuration\n");
   }
 
   int32_t humanClients, aiClients;
