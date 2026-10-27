@@ -331,7 +331,7 @@ static bool G_HandleClientCommand_Intermission(GameClient *cl, const char *cmd) 
  */
 static void G_FrameDidEnd_Intermission(void) {
 
-  if (gameLevel.intermissionTime) {
+  if (gameLevel.intermissionTime && !gameLevel.nextMap) {
 
     if (!module.active) {
       G_Intermission_Begin();

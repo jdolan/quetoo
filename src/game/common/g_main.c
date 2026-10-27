@@ -1008,8 +1008,13 @@ static void G_Frame(void) {
 
   // check for level change after running intermission
   if (gameLevel.intermissionTime) {
+    if (gameLevel.nextMap) {
+      G_EndClientFrames();
+      return;
+    }
+
     if (gameLevel.time > gameLevel.intermissionTime + INTERMISSION && G_AllowNextMap()) {
-      gameLevel.intermissionTime = 0;
+      gameLevel.nextMap = true;
 
       gi.Cbuf("nextMap\n");
 
