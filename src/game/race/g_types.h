@@ -1110,12 +1110,6 @@ typedef struct {
   uint32_t intermissionTime;
 
   /**
-   * @brief True once the intermission has queued `nextMap`. The level stays frozen in its
-   * intermission until the command runs, which can be several ticks later.
-   */
-  bool nextMap;
-
-  /**
    * @brief Camera origin during intermission.
    */
   Vec3 intermissionOrigin;
@@ -1124,6 +1118,12 @@ typedef struct {
    * @brief Camera angles during intermission.
    */
   Vec3 intermissionAngle;
+
+  /**
+   * @brief True once the intermission has queued `nextMap`. The level stays frozen in its
+   * intermission until the command runs, which can be several ticks later.
+   */
+  bool nextMap;
 
   /**
    * @brief Entity currently being processed by `G_RunFrame`.
