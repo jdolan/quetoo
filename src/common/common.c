@@ -188,7 +188,7 @@ void Com_EnumerateGames(ComGameEnumerator func, void *data) {
   for (size_t r = 0; r < games.numRoots; r++) {
 
     int32_t count;
-    char **names = SDL_GlobDirectory(games.roots[r], NULL, 0, &count);
+    char **names = SDL_GlobDirectory(games.roots[r], "*", 0, &count);
     if (!names) {
       continue;
     }
