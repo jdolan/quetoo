@@ -191,7 +191,8 @@ void NetChan_Transmit(NetChan *chan, byte *data, size_t len) {
   }
 
   // add the unreliable part if space is available
-  if (send.maxSize - send.size >= len) {
+  const size_t maxSize = chan->remoteAddress.type == NA_LOOP ? send.maxSize : MAX_MSG_SIZE_REMOTE;
+  if (maxSize - send.size >= len) {
     Mem_WriteBuffer(&send, data, len);
   } else {
     Com_Warn("NetChan_Transmit: dumped unreliable\n");

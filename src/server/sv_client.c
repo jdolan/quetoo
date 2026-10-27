@@ -144,7 +144,8 @@ static void Sv_Baselines_f(void) {
   memset(&nullState, 0, sizeof(nullState));
 
   // write a packet full of data
-  while (serverClient->netChan.message.size < (MAX_MSG_SIZE >> 1) && start < MAX_ENTITIES) {
+  const NetMessage *message = &serverClient->netChan.message;
+  while (message->size < (message->maxSize >> 1) && start < MAX_ENTITIES) {
     base = &sv.entities[start].baseline;
     if (base->model1 || base->sound || base->effects) {
       Net_WriteByte(&serverClient->netChan.message, SV_CMD_BASELINE);

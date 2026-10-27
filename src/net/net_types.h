@@ -54,6 +54,13 @@
 #define MAX_MSG_SIZE 32768
 
 /**
+ * @brief Max length of a single message to a remote (non-loopback) address. Older clients
+ * receive at most this many bytes, so it MUST NOT grow without a protocol bump.
+ * @remarks Only loopback may use the full `MAX_MSG_SIZE`, for large editor frames.
+ */
+#define MAX_MSG_SIZE_REMOTE 16384
+
+/**
  * @brief The max UDP message size, bounded by Windows MTU. Warn if we exceed this.
  */
 #define MAX_MSG_SIZE_UDP 1450
@@ -109,9 +116,9 @@ typedef struct {
   uint32_t reliableOutgoing; // outgoing sequence number of last reliable
 
   NetMessage message; // writing buffer to send to server
-  byte messageBuffer[MAX_MSG_SIZE - 10]; // leave space for header
+  byte messageBuffer[MAX_MSG_SIZE_REMOTE - 10]; // leave space for header
 
   // message is copied to this buffer when it is first transfered
   size_t reliableSize;
-  byte reliableBuffer[MAX_MSG_SIZE - 10]; // un-acked reliable message
+  byte reliableBuffer[MAX_MSG_SIZE_REMOTE - 10]; // un-acked reliable message
 } NetChan;
