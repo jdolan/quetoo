@@ -827,6 +827,33 @@ typedef struct {
 } GameSpawnPoints;
 
 /**
+ * @brief The intermission state of a level: when it began, the camera it holds clients at,
+ * and whether it has queued `nextMap`.
+ */
+typedef struct {
+  /**
+   * @brief Level time when intermission began.
+   */
+  uint32_t time;
+
+  /**
+   * @brief Camera origin during intermission.
+   */
+  Vec3 origin;
+
+  /**
+   * @brief Camera angles during intermission.
+   */
+  Vec3 angles;
+
+  /**
+   * @brief True once the intermission has queued `nextMap`. The level stays frozen in its
+   * intermission until the command runs, which can be several ticks later.
+   */
+  bool didExit;
+} GameIntermission;
+
+/**
  * @brief The main structure for all world management. This is cleared at each
  * level load.
  */
@@ -893,7 +920,7 @@ typedef struct {
    */
   bool teams;
 
-    /**
+  /**
    * @brief Number of active teams.
    */
   int32_t numTeams;
@@ -941,19 +968,9 @@ typedef struct {
   uint32_t scoresTime;
 
   /**
-   * @brief Level time when intermission began.
+   * @brief Level intermission.
    */
-  uint32_t intermissionTime;
-
-  /**
-   * @brief Camera origin during intermission.
-   */
-  Vec3 intermissionOrigin;
-
-  /**
-   * @brief Camera angles during intermission.
-   */
-  Vec3 intermissionAngle;
+  GameIntermission intermission;
 
   /**
    * @brief Entity currently being processed by `G_RunFrame`.

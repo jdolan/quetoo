@@ -212,7 +212,7 @@ static void G_Intermission_Publish(void) {
  */
 static void G_Intermission_PublishTime(void) {
 
-  const uint32_t end = gameLevel.intermissionTime + INTERMISSION;
+  const uint32_t end = gameLevel.intermission.time + INTERMISSION;
 
   gi.SetConfigString(CS_TIME, G_FormatTime(end > gameLevel.time ? end - gameLevel.time : 0));
 }
@@ -331,7 +331,9 @@ static bool G_HandleClientCommand_Intermission(GameClient *cl, const char *cmd) 
  */
 static void G_FrameDidEnd_Intermission(void) {
 
-  if (gameLevel.intermissionTime) {
+  const GameIntermission *intermission = &gameLevel.intermission;
+
+  if (intermission->time && !intermission->didExit) {
 
     if (!module.active) {
       G_Intermission_Begin();

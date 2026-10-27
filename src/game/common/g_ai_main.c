@@ -4262,7 +4262,7 @@ static void G_Ai_Populate(void) {
  */
 void G_Ai_Frame(void) {
 
-  if (gameLevel.intermissionTime) {
+  if (gameLevel.intermission.time) {
     return;
   }
 

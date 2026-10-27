@@ -550,11 +550,13 @@ static const GameEntity *G_IntermissionPoint(void) {
  */
 static void G_BeginIntermission(void) {
 
-  if (gameLevel.intermissionTime) {
+  GameIntermission *intermission = &gameLevel.intermission;
+
+  if (intermission->time) {
     return; // already activated
   }
 
-  gameLevel.intermissionTime = gameLevel.time;
+  intermission->time = gameLevel.time;
 
   G_PostStats();
 
@@ -567,14 +569,14 @@ static void G_BeginIntermission(void) {
 
   const GameEntity *ent = G_IntermissionPoint();
 
-  gameLevel.intermissionOrigin = ent->s.origin;
-  gameLevel.intermissionAngle = ent->s.angles;
+  intermission->origin = ent->s.origin;
+  intermission->angles = ent->s.angles;
 
   if (ent->target) {
     const GameEntity *target = G_PickTarget(ent->target);
     if (target) {
       const Vec3 dir = Vec3_Subtract(target->s.origin, ent->s.origin);
-      gameLevel.intermissionAngle = Vec3_Euler(dir);
+      intermission->angles = Vec3_Euler(dir);
     } else {
       G_Debug("%s has invalid target %s\n", etos(ent), ent->target);
     }
@@ -814,7 +816,7 @@ GamePlayId G_ResolveGamePlay(const char *name) {
 static void G_CheckRules(void) {
   bool restart = false;
 
-  if (gameLevel.intermissionTime) {
+  if (gameLevel.intermission.time) {
     return;
   }
 
@@ -1006,10 +1008,17 @@ static void G_Frame(void) {
 
   G_FrameWillBegin();
 
+  GameIntermission *intermission = &gameLevel.intermission;
+
   // check for level change after running intermission
-  if (gameLevel.intermissionTime) {
-    if (gameLevel.time > gameLevel.intermissionTime + INTERMISSION && G_AllowNextMap()) {
-      gameLevel.intermissionTime = 0;
+  if (intermission->time) {
+    if (intermission->didExit) {
+      G_EndClientFrames();
+      return;
+    }
+
+    if (gameLevel.time > intermission->time + INTERMISSION && G_AllowNextMap()) {
+      intermission->didExit = true;
 
       gi.Cbuf("nextMap\n");
 
