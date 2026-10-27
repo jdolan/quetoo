@@ -229,6 +229,17 @@ void Ui_SetHudViewController(ViewController *viewController) {
 }
 
 /**
+ * @brief Replaces the Theme with a new default one, so that the fonts, images, icons and
+ * stylesheets that a client game resolved from its search path do not outlive it.
+ */
+void Ui_ResetTheme(void) {
+
+  if (windowController) {
+    $(windowController, setTheme, NULL);
+  }
+}
+
+/**
  * @brief Returns the top-most view controller on the navigation stack.
  */
 ViewController *Ui_TopViewController(void) {

@@ -436,6 +436,8 @@ void Cl_ShutdownCgame(void) {
   cls.cgame->Shutdown();
   cls.cgame = NULL;
 
+  Ui_ResetTheme();
+
   $(restClient->session, invalidateAndCancel);
 
   pool = release(pool);

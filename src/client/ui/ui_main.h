@@ -32,6 +32,7 @@ void Ui_PopToViewController(ViewController *viewController);
 void Ui_PopViewController(void);
 void Ui_PopAllViewControllers(void);
 void Ui_SetHudViewController(ViewController *viewController);
+void Ui_ResetTheme(void);
 void Ui_Draw(void);
 void Ui_Init(void);
 
