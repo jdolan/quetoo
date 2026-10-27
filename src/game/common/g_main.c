@@ -1146,7 +1146,7 @@ void G_Init(void) {
 
   gi.Print("Game module initialization...\n");
 
-  const char *s = va("%s %s", BUILD, VERSION);
+  const char *s = va("%s %s", VERSION, BUILD);
   Cvar *gameVersion = gi.AddCvar("gameVersion", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
   gi.Print("  Version:    ^2%s^7\n", gameVersion->string);
