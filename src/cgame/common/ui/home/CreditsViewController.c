@@ -34,10 +34,10 @@ static void loadView(ViewController *self) {
 
   super(ViewController, self, loadView);
 
-  View *view = $$(View, viewWithResourceName, "ui/credits/CreditsViewController.json", NULL);
+  View *view = $$(View, viewWithResourceName, "ui/home/CreditsViewController.json", NULL);
   assert(view);
 
-  view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/credits/CreditsViewController.css");
+  view->stylesheet = $$(Stylesheet, stylesheetWithResourceName, "ui/home/CreditsViewController.css");
   assert(view->stylesheet);
 
   $(self, setView, view);

@@ -2183,6 +2183,8 @@
 			dstPath = default/ui/home;
 			dstSubfolderSpec = 16;
 			files = (
+				CEA1A0042F9F00000087B100 /* CreditsViewController.css in CopyFiles */,
+				CEA1A0032F9F00000087B100 /* CreditsViewController.json in CopyFiles */,
 				18E237623F9098C8D027CA1A /* DemosViewController.css in CopyFiles */,
 				E341E163CFFD547C44106673 /* DemosViewController.json in CopyFiles */,
 				CEEEEEA82F9EF1FA00665A30 /* HomeViewController.css in CopyFiles */,
@@ -2191,17 +2193,6 @@
 				CEA9B3A76C6E4B3A9F010001 /* LeaderboardViewController.json in CopyFiles */,
 				CEA9B3A66C6E4B3A9F010001 /* StatsViewController.css in CopyFiles */,
 				CEA9B3A86C6E4B3A9F010001 /* StatsViewController.json in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CEA1A0052F9F00000087B100 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = default/ui/credits;
-			dstSubfolderSpec = 16;
-			files = (
-				CEA1A0042F9F00000087B100 /* CreditsViewController.css in CopyFiles */,
-				CEA1A0032F9F00000087B100 /* CreditsViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -4946,7 +4937,6 @@
 			children = (
 				CEA4000F2F9800000087B100 /* backgrounds */,
 				CE1A28351F75FE70005F62A9 /* controls */,
-				CEA1A0062F9F00000087B100 /* credits */,
 				CFA000012F9100000000C001 /* editor */,
 				3F698657FE99AC45EBDFE4C7 /* fonts */,
 				CE7D2C10202F690A004BC58E /* home */,
@@ -5096,6 +5086,10 @@
 		CE7D2C10202F690A004BC58E /* home */ = {
 			isa = PBXGroup;
 			children = (
+				CEA1A0082F9F00000087B100 /* CreditsViewController.h */,
+				CEA1A0072F9F00000087B100 /* CreditsViewController.c */,
+				CEA1A00A2F9F00000087B100 /* CreditsViewController.css */,
+				CEA1A0092F9F00000087B100 /* CreditsViewController.json */,
 				0713BF4BF04837B81E77D924 /* DemoList.h */,
 				3F2DF6B726C775FE05708017 /* DemoList.c */,
 				84C2E3EC261C07D1773254F0 /* DemosCollectionItemView.h */,
@@ -5120,17 +5114,6 @@
 				CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */,
 			);
 			path = home;
-			sourceTree = "<group>";
-		};
-		CEA1A0062F9F00000087B100 /* credits */ = {
-			isa = PBXGroup;
-			children = (
-				CEA1A0082F9F00000087B100 /* CreditsViewController.h */,
-				CEA1A0072F9F00000087B100 /* CreditsViewController.c */,
-				CEA1A00A2F9F00000087B100 /* CreditsViewController.css */,
-				CEA1A0092F9F00000087B100 /* CreditsViewController.json */,
-			);
-			path = credits;
 			sourceTree = "<group>";
 		};
 		CEA4000F2F9800000087B100 /* backgrounds */ = {
@@ -6166,7 +6149,6 @@
 				CEA400102F9800000087B100 /* CopyFiles */,
 				CEA400112F9800000087B100 /* CopyFiles */,
 				CE4E07CA2026881F000B276C /* CopyFiles */,
-				CEA1A0052F9F00000087B100 /* CopyFiles */,
 				CFA000132F9100000000C013 /* CopyFiles */,
 				6816070175ED2CEC62FB6E56 /* CopyFiles */,
 				CE7D2C15202F6911004BC58E /* CopyFiles */,
@@ -8565,7 +8547,6 @@
 					"$(SRCROOT)/src/game/lithium",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",
@@ -8607,7 +8588,6 @@
 					"$(SRCROOT)/src/game/lithium",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",
@@ -8821,7 +8801,6 @@
 					"$(SRCROOT)/src/game/default",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",
@@ -8858,7 +8837,6 @@
 					"$(SRCROOT)/src/game/default",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",
@@ -9527,7 +9505,6 @@
 					"$(SRCROOT)/src/game/ctf",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",
@@ -9570,7 +9547,6 @@
 					"$(SRCROOT)/src/game/ctf",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",
@@ -9725,7 +9701,6 @@
 					"$(SRCROOT)/src/game/race",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",
@@ -9766,7 +9741,6 @@
 					"$(SRCROOT)/src/game/race",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",

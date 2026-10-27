@@ -107,8 +107,6 @@
     <ClInclude Include="..\src\cgame\common\ui\controls\CrosshairPreviewView.h" />
     <ClCompile Include="..\src\cgame\common\ui\controls\MovementCombatViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\controls\MovementCombatViewController.h" />
-    <ClCompile Include="..\src\cgame\common\ui\credits\CreditsViewController.c" />
-    <ClInclude Include="..\src\cgame\common\ui\credits\CreditsViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\editor\EditorViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\editor\EditorViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\editor\EntityView.c" />
@@ -121,6 +119,8 @@
     <ClInclude Include="..\src\cgame\common\ui\editor\StageView.h" />
     <ClCompile Include="..\src\cgame\common\ui\editor\StageViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\editor\StageViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\home\CreditsViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\home\CreditsViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionItemView.c" />
     <ClInclude Include="..\src\cgame\common\ui\home\DemosCollectionItemView.h" />
     <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionView.c" />
