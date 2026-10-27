@@ -1,0 +1,34 @@
+#Games {
+  autoresizing-mask: contain;
+}
+
+#gamesList {
+  item-size: 360 200;
+  item-spacing: 12 12;
+  selection: single;
+  width: 1140;
+  height: 440;
+}
+
+/* The title over the description, pinned to the card's top left corner. A Text has no padding,
+   so the offset comes from `left` / `top`, which requires alignment: none */
+
+GameCollectionItemView > Text {
+  alignment: none;
+  font-size: 22;
+  font-style: bold;
+  left: 12;
+  top: 10;
+}
+
+/* The description wraps to its own width, which its natural size does not know. Its size is
+   clamped here, because `setText` sizes a Text to its natural, unwrapped width */
+
+GameCollectionItemView > .gameItemDescription {
+  autoresizing-mask: none;
+  font-size: 14;
+  font-style: regular;
+  min-size: 336 136;
+  max-size: 336 136;
+  top: 48;
+}

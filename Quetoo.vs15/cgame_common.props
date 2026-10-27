@@ -197,6 +197,10 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\VoteView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\WeaponBarView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\WeaponBarView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\main\GameCollectionItemView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\main\GameCollectionItemView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\main\GamesViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\main\GamesViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\main\LoadingViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\main\LoadingViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\main\MainView.c" />

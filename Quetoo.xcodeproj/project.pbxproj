@@ -69,6 +69,16 @@
 		08962C395D0FB0E620F78625 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = 7966EA6596003F9303BC00FA /* bg_item.c */; };
 		091C43A66A7972053AD1C8E7 /* box.c in Sources */ = {isa = PBXBuildFile; fileRef = 8542813678DB3B7BECEEF939 /* box.c */; };
 		0A3AFEF82E92A6D7EDE49205 /* ImageQueue.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* ImageQueue.c */; };
+		CE1152000000000000000011 /* GameCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000001 /* GameCollectionItemView.c */; };
+		CE1152000000000000000012 /* GameCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000001 /* GameCollectionItemView.c */; };
+		CE1152000000000000000013 /* GameCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000001 /* GameCollectionItemView.c */; };
+		CE1152000000000000000014 /* GameCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000001 /* GameCollectionItemView.c */; };
+		CE1152000000000000000015 /* GamesViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000003 /* GamesViewController.c */; };
+		CE1152000000000000000016 /* GamesViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000003 /* GamesViewController.c */; };
+		CE1152000000000000000017 /* GamesViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000003 /* GamesViewController.c */; };
+		CE1152000000000000000018 /* GamesViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000003 /* GamesViewController.c */; };
+		CE1152000000000000000019 /* GamesViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000005 /* GamesViewController.css */; };
+		CE115200000000000000001A /* GamesViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000006 /* GamesViewController.json */; };
 		CE115200000000000000001B /* bg_game.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000007 /* bg_game.h */; };
 		CE115200000000000000001C /* bg_game.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000007 /* bg_game.h */; };
 		CE115200000000000000001D /* bg_game.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000007 /* bg_game.h */; };
@@ -2144,6 +2154,8 @@
 			dstPath = default/ui/main;
 			dstSubfolderSpec = 16;
 			files = (
+				CE1152000000000000000019 /* GamesViewController.css in CopyFiles */,
+				CE115200000000000000001A /* GamesViewController.json in CopyFiles */,
 				CE4E07D62026889D000B276C /* LoadingViewController.css in CopyFiles */,
 				CE7D2C2E2030FDAE004BC58E /* LoadingViewController.json in CopyFiles */,
 				CE4E07D8202688AF000B276C /* MainView.css in CopyFiles */,
@@ -2378,6 +2390,12 @@
 		4BF47DA7893C8563C1D59CDA /* BlendView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = BlendView.c; sourceTree = "<group>"; };
 		4CA3522A5AE19B0F18CF79C6 /* TargetNameView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TargetNameView.h; sourceTree = "<group>"; };
 		51B36F4226CEC7C84538DC2F /* PickupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PickupView.h; sourceTree = "<group>"; };
+		CE1152000000000000000001 /* GameCollectionItemView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = GameCollectionItemView.c; sourceTree = "<group>"; };
+		CE1152000000000000000002 /* GameCollectionItemView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameCollectionItemView.h; sourceTree = "<group>"; };
+		CE1152000000000000000003 /* GamesViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = GamesViewController.c; sourceTree = "<group>"; };
+		CE1152000000000000000004 /* GamesViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GamesViewController.h; sourceTree = "<group>"; };
+		CE1152000000000000000005 /* GamesViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = GamesViewController.css; sourceTree = "<group>"; };
+		CE1152000000000000000006 /* GamesViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = GamesViewController.json; sourceTree = "<group>"; };
 		CE1152000000000000000007 /* bg_game.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_game.h; sourceTree = "<group>"; };
 		CE1152000000000000000008 /* game.lst */ = {isa = PBXFileReference; lastKnownFileType = text; path = game.lst; sourceTree = "<group>"; };
 		CE1152000000000000000009 /* game.lst */ = {isa = PBXFileReference; lastKnownFileType = text; path = game.lst; sourceTree = "<group>"; };
@@ -5023,6 +5041,12 @@
 		CE5870931F5CE7D2004CAAB2 /* main */ = {
 			isa = PBXGroup;
 			children = (
+				CE1152000000000000000002 /* GameCollectionItemView.h */,
+				CE1152000000000000000001 /* GameCollectionItemView.c */,
+				CE1152000000000000000004 /* GamesViewController.h */,
+				CE1152000000000000000003 /* GamesViewController.c */,
+				CE1152000000000000000005 /* GamesViewController.css */,
+				CE1152000000000000000006 /* GamesViewController.json */,
 				CE5870971F5CE7D2004CAAB2 /* LoadingViewController.h */,
 				CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */,
 				CE4E07C320267ED9000B276C /* LoadingViewController.css */,
@@ -7148,6 +7172,8 @@
 				7AFADF59B58F54581DC1C419 /* SpectatorView.c in Sources */,
 				EAC91DBE5BFAA686873683E8 /* TargetNameView.c in Sources */,
 				D6201E3E9B69E158607607E6 /* VoteView.c in Sources */,
+				CE1152000000000000000013 /* GameCollectionItemView.c in Sources */,
+				CE1152000000000000000017 /* GamesViewController.c in Sources */,
 				CE05B3F030224900C0DE002C /* JoinServerViewController.c in Sources */,
 				CE05B3F030224900C0DE002D /* LeaderboardViewController.c in Sources */,
 				CE05B3F030224900C0DE002E /* LoadingViewController.c in Sources */,
@@ -7331,6 +7357,8 @@
 				68157F8A4AF07ADDE8951670 /* SpectatorView.c in Sources */,
 				5353FBA06CC14AA034C4C9CD /* TargetNameView.c in Sources */,
 				E140557ED1DC8869F66A94BD /* VoteView.c in Sources */,
+				CE1152000000000000000011 /* GameCollectionItemView.c in Sources */,
+				CE1152000000000000000015 /* GamesViewController.c in Sources */,
 				CE6EE3E21F720D9A00FBC830 /* JoinServerViewController.c in Sources */,
 				CEA9B3A16C6E4B3A9F010001 /* LeaderboardViewController.c in Sources */,
 				CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */,
@@ -7829,6 +7857,8 @@
 				50A618B627838A7F121E3DA9 /* SpectatorView.c in Sources */,
 				2F75825314B0423B86868ACC /* TargetNameView.c in Sources */,
 				FC50131A3C56E2363DB2272D /* VoteView.c in Sources */,
+				CE1152000000000000000012 /* GameCollectionItemView.c in Sources */,
+				CE1152000000000000000016 /* GamesViewController.c in Sources */,
 				CEC0FF00202601030000018C /* JoinServerViewController.c in Sources */,
 				CEC0FF00202601030000018D /* LeaderboardViewController.c in Sources */,
 				CEC0FF00202601030000018E /* LoadingViewController.c in Sources */,
@@ -8068,6 +8098,8 @@
 				A978478284E6A536361DE6FC /* SpectatorView.c in Sources */,
 				B3C3D379CB4955B1FED23ADB /* TargetNameView.c in Sources */,
 				46EE82019B925D394B363E01 /* VoteView.c in Sources */,
+				CE1152000000000000000014 /* GameCollectionItemView.c in Sources */,
+				CE1152000000000000000018 /* GamesViewController.c in Sources */,
 				D2A5C1000000000000000070 /* JoinServerViewController.c in Sources */,
 				D2A5C1000000000000000071 /* LeaderboardViewController.c in Sources */,
 				D2A5C1000000000000000072 /* LoadingViewController.c in Sources */,

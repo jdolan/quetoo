@@ -160,6 +160,8 @@ cguimaindir = \
 	@PKGLIBDIR@/default/ui/main
 
 cguimain_DATA = \
+	$(CGUI_DIR)/main/GamesViewController.css \
+	$(CGUI_DIR)/main/GamesViewController.json \
 	$(CGUI_DIR)/main/LoadingViewController.css \
 	$(CGUI_DIR)/main/LoadingViewController.json \
 	$(CGUI_DIR)/main/MainView.css \
@@ -310,6 +312,8 @@ cgame_la_SOURCES = \
 	ui/hud/VoiceView.c \
 	ui/hud/VoteView.c \
 	ui/hud/WeaponBarView.c \
+	ui/main/GameCollectionItemView.c \
+	ui/main/GamesViewController.c \
 	ui/main/LoadingViewController.c \
 	ui/main/MainView.c \
 	ui/main/MainViewController.c \

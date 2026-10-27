@@ -25,6 +25,7 @@
 
 #include "ControlsViewController.h"
 #include "CreditsViewController.h"
+#include "GamesViewController.h"
 #include "HomeViewController.h"
 #include "PlayViewController.h"
 #include "SettingsViewController.h"
@@ -161,6 +162,12 @@ static void loadView(ViewController *self) {
     .didClick = didClickNavigateViewController,
     .self = self,
     .data = _HomeViewController()
+  });
+
+  $(this, primaryButton, "Games", &(const ButtonDelegate) {
+    .didClick = didClickNavigateViewController,
+    .self = self,
+    .data = _GamesViewController()
   });
 
   $(this, primaryButton, "Play", &(const ButtonDelegate) {
