@@ -744,15 +744,17 @@ static void G_TossInventory_Ctf(GameClient *cl) {
  */
 void G_Ctf_Init(void) {
 
-  bool teams = *gameInfo.gameplay != '\0';
-  for (size_t i = 0; i < lengthof(gameplays) && teams; i++) {
+  bool teams = true;
+  size_t count = 0;
+  for (size_t i = 0; i < lengthof(gameplays); i++) {
     if (GameInfo_HasGamePlay(&gameInfo, gameplays[i].id)) {
-      teams = (gameplays[i].id & GAMEPLAY_TEAMS) == GAMEPLAY_TEAMS;
+      teams = teams && (gameplays[i].id & GAMEPLAY_TEAMS) == GAMEPLAY_TEAMS;
+      count++;
     }
   }
 
-  if (!teams) {
-    G_Error("%s/game.lst MUST list only team gameplay modes, because capture the flag needs teams\n", gi.Game());
+  if (count == 0 || !teams) {
+    G_Error("%s/game.lst MUST list one or more gameplay modes, and only team modes, because capture the flag needs teams\n", gi.Game());
   }
 
   // G_Init runs on every server initialization, and the module is not always
