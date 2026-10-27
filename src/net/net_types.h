@@ -51,7 +51,7 @@
  * this length. However, large server messages can be split into multiple packets
  * and sent in series. See `Sv_SendClientDatagram`.
  */
-#define MAX_MSG_SIZE 16384
+#define MAX_MSG_SIZE 32768
 
 /**
  * @brief The max UDP message size, bounded by Windows MTU. Warn if we exceed this.
