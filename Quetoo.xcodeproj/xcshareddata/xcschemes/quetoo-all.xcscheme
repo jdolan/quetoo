@@ -134,11 +134,11 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+game ctf"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map longyard-ctf"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "+map claustrophobopolis"

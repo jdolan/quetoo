@@ -355,7 +355,7 @@ static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
     Cg_Practice_FreeEntities(entities);
   }
 
-  if (!GameInfo_HasMap(&cgameGameInfo, info.games)) {
+  if (!GameInfo_HasMap(&cgameInfo, info.games)) {
     Cg_Debug("Skipping %s: made for %s\n", path, info.games);
     return;
   }

@@ -562,6 +562,6 @@ typedef struct {
 } CGameState;
 
 extern CGameState cgameState;
-extern GameInfo cgameGameInfo;
+extern GameInfo cgameInfo;
 
 #endif

@@ -183,7 +183,7 @@ static void enumerateMaps(const char *path, void *data) {
   MapListItemInfo *info = calloc(1, sizeof(*info));
   assert(info);
 
-  if (Cg_LoadMapListItemInfo(path, info) && GameInfo_HasMap(&cgameGameInfo, info->games)) {
+  if (Cg_LoadMapListItemInfo(path, info) && GameInfo_HasMap(&cgameInfo, info->games)) {
     $(maps, add, info);
   } else {
     free(info);

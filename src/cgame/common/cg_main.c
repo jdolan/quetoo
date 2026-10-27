@@ -22,7 +22,7 @@
 #include "cg_local.h"
 
 CGameState cgameState;
-GameInfo cgameGameInfo;
+GameInfo cgameInfo;
 
 Cvar *cg_addAtmospheric;
 Cvar *cg_addDecals;
@@ -139,7 +139,7 @@ static void Cg_InitGameInfo(void) {
   void *buffer = NULL;
   const bool loaded = cgi.LoadFile("game.lst", &buffer) > 0;
 
-  Cg_LoadGameInfo_buffer(&cgameGameInfo, cgi.Game(), loaded ? buffer : NULL);
+  Cg_LoadGameInfo_buffer(&cgameInfo, cgi.Game(), loaded ? buffer : NULL);
 
   if (buffer) {
     cgi.FreeFile(buffer);
@@ -570,7 +570,7 @@ const GamePlay *Cg_ListGamePlays(size_t *count) {
   *count = 0;
 
   for (size_t i = 0; i < lengthof(gameplays); i++) {
-    if (GameInfo_HasGamePlay(&cgameGameInfo, gameplays[i].id)) {
+    if (GameInfo_HasGamePlay(&cgameInfo, gameplays[i].id)) {
       gamePlays[(*count)++] = gameplays[i];
     }
   }
