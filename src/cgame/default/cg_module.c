@@ -19,51 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
 #include "cg_local.h"
-
-#include "MapListCollectionItemView.h"
-
-static struct {
-  CGameFilterCreateServerMapListHook FilterCreateServerMapList;
-} previous;
-
-/**
- * @brief The games this module plays as variants of deathmatch, which the maps name
- * rather than `default`.
- */
-static const char *defaultGames[] = { "dm", "tdm", "duel", "instagib" };
-
-/**
- * @brief Lists a map made for any of the deathmatch variants.
- */
-static bool Cg_FilterCreateServerMapList_Default(const MapListItemInfo *info) {
-
-  for (size_t i = 0; i < lengthof(defaultGames); i++) {
-    if (Str_HasToken(info->games, defaultGames[i])) {
-      return true;
-    }
-  }
-
-  return previous.FilterCreateServerMapList(info);
-}
 
 /**
  * @brief Plain deathmatch draws no element and adds no effect of its own, and
- * switches on none of the optional features. Its one hook names the deathmatch
- * variants in the create-server map browser, since no map is made for `default`.
+ * switches on none of the optional features. Its `game.lst` names the deathmatch variants that
+ * Create Server lists, since no map is made for `default`.
  */
 void Cg_Module_Init(void) {
-  static bool installed;
-
-  if (installed) {
-    return;
-  }
-
-  previous.FilterCreateServerMapList = Cg_FilterCreateServerMapList;
-  Cg_FilterCreateServerMapList = Cg_FilterCreateServerMapList_Default;
-
-  installed = true;
 }
 
 /**

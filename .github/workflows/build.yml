@@ -272,6 +272,11 @@ jobs:
         Copy-Item "Quetoo.vs15\bin\x64Release\race\game.dll" "$staging\lib\race\"
         Copy-Item "Quetoo.vs15\bin\x64Release\race\game.pdb" "$staging\lib\race\"
 
+        # Game descriptions, beside each game module
+        foreach ($module in @("default", "ctf", "lithium", "race")) {
+          Copy-Item "src\game\$module\game.lst" "$staging\lib\$module\"
+        }
+
         # Module HUD layouts, one directory per variant
         foreach ($module in @("ctf", "lithium", "race")) {
           $hudSource = "src\cgame\$module\ui\hud"

@@ -614,69 +614,23 @@ void Fs_CompleteFile(const char *pattern, List *matches) {
 }
 
 /**
- * @return True if `path` is itself one of the roots that hold game directories.
+ * @brief Calls `func` with each root that holds game directories, in the order that a game's
+ * files resolve: the user directory, the command-line paths (last given first), the data
+ * directory, the library directory, and on macOS the bundle's resources.
  */
-static bool Fs_IsRoot(const char *path) {
+void Fs_EnumerateRoots(FsEnumerator func, void *data) {
 
-  for (size_t p = 0; p < module.numCommandLinePaths; p++) {
-    if (!Str_Compare(path, module.commandLinePaths[p])) {
-      return true;
-    }
+  func(Sys_UserDir(), data);
+
+  for (size_t p = module.numCommandLinePaths; p > 0; p--) {
+    func(module.commandLinePaths[p - 1], data);
   }
 
-  if (!Str_Compare(path, module.libDir)) {
-    return true;
-  }
-  
-  if (!Str_Compare(path, module.dataDir)) {
-    return true;
-  }
-  
-  if (*module.resourcesDir && !Str_Compare(path, module.resourcesDir)) {
-    return true;
-  }
-  
-  return false;
-}
-
-/**
- * @brief Adds every game directory matching `pattern` beneath `root` to `matches`.
- */
-static void Fs_CompleteGame_root(const char *root, const char *pattern, List *matches) {
-
-  int32_t count;
-  char **games = SDL_GlobDirectory(root, pattern, SDL_GLOB_CASEINSENSITIVE, &count);
-  if (!games) {
-    return;
-  }
-
-  for (int32_t i = 0; i < count; i++) {
-    const char *path = va("%s/%s", root, games[i]);
-
-    SDL_PathInfo info;
-    if (SDL_GetPathInfo(path, &info) && info.type == SDL_PATHTYPE_DIRECTORY && !Fs_IsRoot(path)) {
-      Con_AutocompleteMatch(matches, games[i], NULL);
-    }
-  }
-
-  SDL_free(games);
-}
-
-/**
- * @brief Console completion for game names.
- */
-void Fs_CompleteGame(const char *pattern, List *matches) {
-
-  for (size_t p = 0; p < module.numCommandLinePaths; p++) {
-    Fs_CompleteGame_root(module.commandLinePaths[p], pattern, matches);
-  }
-
-  Fs_CompleteGame_root(module.libDir, pattern, matches);
-  Fs_CompleteGame_root(Sys_UserDir(), pattern, matches);
-  Fs_CompleteGame_root(module.dataDir, pattern, matches);
+  func(module.dataDir, data);
+  func(module.libDir, data);
 
   if (*module.resourcesDir) {
-    Fs_CompleteGame_root(module.resourcesDir, pattern, matches);
+    func(module.resourcesDir, data);
   }
 }
 
@@ -1018,9 +972,41 @@ bool Fs_SetGame(const char *game, const char *cgame) {
 }
 
 /**
- * @brief Resolves the real, on-disk path of the module `name` within game directory `game`.
+ * @brief `Fs_FindLibrary` context.
+ */
+typedef struct {
+  const char *game;
+  const char *name;
+  char *path;
+  size_t len;
+  bool found;
+} FsFindLibrary;
+
+/**
+ * @brief `FsEnumerator` for `Fs_FindLibrary`, which keeps the first root that holds the file.
+ */
+static void Fs_FindLibrary_root(const char *root, void *data) {
+  FsFindLibrary *search = data;
+
+  if (search->found) {
+    return;
+  }
+
+  char path[MAX_OS_PATH];
+  Str_Format(path, sizeof(path), "%s/%s/%s", root, search->game, search->name);
+
+  SDL_PathInfo info;
+  if (SDL_GetPathInfo(path, &info) && info.type == SDL_PATHTYPE_FILE) {
+    Str_Copy(search->path, path, search->len);
+    search->found = true;
+  }
+}
+
+/**
+ * @brief Resolves the real, on-disk path of the file `name` within game directory `game`, in the
+ * first root that holds it.
  * @param game The game directory name, e.g. @c "ctf".
- * @param name The library file name, e.g. @c "cgame.so".
+ * @param name The file name, e.g. @c "cgame.so" or @c "game.lst".
  * @param path A buffer to receive the resolved path, if found.
  * @param len The size of `path`.
  * @return True if `path` was resolved, false otherwise.
@@ -1031,33 +1017,18 @@ bool Fs_FindLibrary(const char *game, const char *name, char *path, size_t len) 
     return false;
   }
 
-  const char *roots[MAX_COMMAND_LINE_PATHS + 3];
-  size_t numRoots = 0;
-
-  roots[numRoots++] = Sys_UserDir();
-
-  for (size_t p = module.numCommandLinePaths; p > 0; p--) {
-    roots[numRoots++] = module.commandLinePaths[p - 1];
-  }
-
-  roots[numRoots++] = module.dataDir;
-  roots[numRoots++] = module.libDir;
-
-  if (*module.resourcesDir) {
-    roots[numRoots++] = module.resourcesDir;
-  }
-
-  for (size_t r = 0; r < numRoots; r++) {
-    Str_Format(path, len, "%s/%s/%s", roots[r], game, name);
-
-    SDL_PathInfo info;
-    if (SDL_GetPathInfo(path, &info) && info.type == SDL_PATHTYPE_FILE) {
-      return true;
-    }
-  }
+  FsFindLibrary search = {
+    .game = game,
+    .name = name,
+    .path = path,
+    .len = len
+  };
 
   *path = '\0';
-  return false;
+
+  Fs_EnumerateRoots(Fs_FindLibrary_root, &search);
+
+  return search.found;
 }
 
 /**

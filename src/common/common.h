@@ -101,6 +101,15 @@ const char *Com_Game(void);
 const char *Com_Cgame(void);
 void Com_Uuid(char *out, size_t len);
 bool Com_IsValidGame(const char *game);
+
+/**
+ * @brief A callback for `Com_EnumerateGames`.
+ * @param game The game's name, its directory.
+ * @param dir The absolute directory that holds the game's `game.lst`.
+ */
+typedef void (*ComGameEnumerator)(const char *game, const char *dir, void *data);
+
+void Com_EnumerateGames(ComGameEnumerator func, void *data);
 bool Com_IsValidDownload(const char *filename);
 bool Com_SetGame(const char *game, const char *cgame);
 

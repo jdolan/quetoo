@@ -241,6 +241,7 @@ def cmd_run(args):
     dedicated = tree / 'src/main/quetoo-dedicated'
     game = tree / f'src/game/{args.module}/.libs/game.so'
     cgame = tree / f'src/cgame/{args.module}/.libs/cgame.so'
+    info = tree / f'src/game/{args.module}/game.lst'
 
     for path in (dedicated, game):
         if not path.exists():
@@ -252,7 +253,8 @@ def cmd_run(args):
     stage.mkdir(parents=True, exist_ok=True)
     write.mkdir(parents=True, exist_ok=True)
 
-    for link, target in ((stage / 'game.so', game), (stage / 'cgame.so', cgame)):
+    # the game reads its game.lst through the search path, where the stage is above the install
+    for link, target in ((stage / 'game.so', game), (stage / 'cgame.so', cgame), (stage / 'game.lst', info)):
         if link.is_symlink() or link.exists():
             link.unlink()
         if target.exists():

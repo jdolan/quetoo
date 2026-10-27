@@ -104,48 +104,7 @@ void Cg_Module_Shutdown(void);
  * @{
  */
 
-/**
- * @brief Returns the gameplay modes this module's server actually supports, for
- * the create-server menu's gameplay Select.
- * @param count The number of modes returned.
- * @return The modes, `GAMEPLAY_TEAMS` included where a mode is team play.
- * @details A single owner, like `G_ClampGamePlay` on the game side: a module
- * that plays exactly one mode replaces this outright rather than adding to the
- * list common offers. The menu MUST NOT assume a fixed set - a mod that plays
- * only one mode should not have to hide options it will never honor.
- */
-typedef const GamePlay *(*CGameListGamePlaysHook)(size_t *count);
-
-extern CGameListGamePlaysHook Cg_ListGamePlays;
-
 typedef struct MapListItemInfo MapListItemInfo;
-
-/**
- * @brief Decides whether the create-server map browser lists a map.
- * @param info The map as the browser read it: its path, title, and its worldspawn
- * `games` value, the space-delimited games it is made for, already defaulted to
- * `dm` when the map sets none. See `MapListCollectionItemView.h`.
- * @return True to list the map.
- * @details Chainable. The tail lists a map whose `games` names `GAME_NAME` as a
- * whole token, which is all a mod that is its own game needs. A module whose
- * players pick a variant instead, as `default` does with `dm tdm duel instagib`,
- * installs a link accepting its variants before deferring. A link MAY ignore
- * `games` entirely and decide by path, title or prefix instead.
- * @remarks Practice asks it too, with only `games` set, for the games that a ladder is made for.
- */
-typedef bool (*CGameFilterCreateServerMapListHook)(const MapListItemInfo *info);
-
-extern CGameFilterCreateServerMapListHook Cg_FilterCreateServerMapList;
-
-/**
- * @brief Decides whether the Play menu offers Practice, a ladder of matches against AI players.
- * @return True to offer it.
- * @details The tail, in cg_practice.c, offers it. A module whose gameplay the ladders do not
- * suit, such as a team or a race module, replaces it with one that returns false.
- */
-typedef bool (*CGameAllowPracticeHook)(void);
-
-extern CGameAllowPracticeHook Cg_AllowPractice;
 
 /**
  * @}

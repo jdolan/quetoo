@@ -74,7 +74,7 @@ static void loadView(ViewController *self) {
   size_t numLadders;
   Cg_Practice_Ladders(&numLadders);
 
-  if (Cg_AllowPractice() && numLadders) {
+  if (cgameGameInfo.practice && numLadders) {
     viewController = $((ViewController *) alloc(PracticeViewController), init);
     $(tabViewController, addChildViewController, viewController);
     release(viewController);

@@ -69,6 +69,13 @@
 		08962C395D0FB0E620F78625 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = 7966EA6596003F9303BC00FA /* bg_item.c */; };
 		091C43A66A7972053AD1C8E7 /* box.c in Sources */ = {isa = PBXBuildFile; fileRef = 8542813678DB3B7BECEEF939 /* box.c */; };
 		0A3AFEF82E92A6D7EDE49205 /* ImageQueue.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* ImageQueue.c */; };
+		CE115200000000000000001B /* bg_game.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000007 /* bg_game.h */; };
+		CE115200000000000000001C /* bg_game.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000007 /* bg_game.h */; };
+		CE115200000000000000001D /* bg_game.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000007 /* bg_game.h */; };
+		CE1152000000000000000021 /* game.lst in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000008 /* game.lst */; };
+		CE1152000000000000000022 /* game.lst in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000009 /* game.lst */; };
+		CE1152000000000000000023 /* game.lst in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE115200000000000000000A /* game.lst */; };
+		CE1152000000000000000024 /* game.lst in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE115200000000000000000B /* game.lst */; };
 		D9816524D26FA7B3BF330098 /* MapshotThumbnailView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2ED568F0033A530D0DF9F821 /* MapshotThumbnailView.c */; };
 		0B59BE03B414411797329FD1 /* NotifyView.c in Sources */ = {isa = PBXBuildFile; fileRef = EB4A4D641AA8495FB08D9F0E /* NotifyView.c */; };
 		0BF82540ADD285E5DF358C72 /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
@@ -2025,6 +2032,46 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CE1152000000000000000031 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = default;
+			dstSubfolderSpec = 16;
+			files = (
+				CE1152000000000000000021 /* game.lst in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE1152000000000000000032 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ctf;
+			dstSubfolderSpec = 16;
+			files = (
+				CE1152000000000000000022 /* game.lst in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE1152000000000000000033 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = lithium;
+			dstSubfolderSpec = 16;
+			files = (
+				CE1152000000000000000023 /* game.lst in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE1152000000000000000034 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = race;
+			dstSubfolderSpec = 16;
+			files = (
+				CE1152000000000000000024 /* game.lst in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CE4A25571FA2030900A539E7 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2331,6 +2378,11 @@
 		4BF47DA7893C8563C1D59CDA /* BlendView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = BlendView.c; sourceTree = "<group>"; };
 		4CA3522A5AE19B0F18CF79C6 /* TargetNameView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TargetNameView.h; sourceTree = "<group>"; };
 		51B36F4226CEC7C84538DC2F /* PickupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PickupView.h; sourceTree = "<group>"; };
+		CE1152000000000000000007 /* bg_game.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_game.h; sourceTree = "<group>"; };
+		CE1152000000000000000008 /* game.lst */ = {isa = PBXFileReference; lastKnownFileType = text; path = game.lst; sourceTree = "<group>"; };
+		CE1152000000000000000009 /* game.lst */ = {isa = PBXFileReference; lastKnownFileType = text; path = game.lst; sourceTree = "<group>"; };
+		CE115200000000000000000A /* game.lst */ = {isa = PBXFileReference; lastKnownFileType = text; path = game.lst; sourceTree = "<group>"; };
+		CE115200000000000000000B /* game.lst */ = {isa = PBXFileReference; lastKnownFileType = text; path = game.lst; sourceTree = "<group>"; };
 		E18F7AF0A808DC8CC42C99AD /* RespawnTimerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RespawnTimerView.h; sourceTree = "<group>"; };
 		52CCC184568D9A04E0D91F1A /* asset.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = asset.c; sourceTree = "<group>"; };
 		5624F1C74F4646918DA71088 /* PingView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PingView.c; sourceTree = "<group>"; };
@@ -4018,6 +4070,7 @@
 				CE05B23E302248070012862B /* bg_item.c */,
 				CE05B271302248070012862B /* g_module.c */,
 				CE05B27C302248070012862B /* g_types.h */,
+				CE115200000000000000000A /* game.lst */,
 				CE05B283302248070012862B /* Makefile.am */,
 			);
 			path = lithium;
@@ -4397,6 +4450,7 @@
 				7966EA6596003F9303BC00FA /* bg_item.c */,
 				CEFEEE00000000000000B101 /* g_module.c */,
 				CE12D66C1C5C58C300CD0B13 /* g_types.h */,
+				CE1152000000000000000008 /* game.lst */,
 				CE12D6711C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = default;
@@ -5165,6 +5219,7 @@
 		CEC011002026010100000002 /* common */ = {
 			isa = PBXGroup;
 			children = (
+				CE1152000000000000000007 /* bg_game.h */,
 				CEC011002026010200000009 /* bg_hook.h */,
 				D1A5B0000000000000000304 /* bg_intermission.h */,
 				AA5E00000000000000000012 /* bg_nav.h */,
@@ -5266,6 +5321,7 @@
 				CEC0FF002026010300000004 /* bg_item.c */,
 				CEFEEE00000000000000B103 /* g_module.c */,
 				CEC0FF00202601030000002C /* g_types.h */,
+				CE1152000000000000000009 /* game.lst */,
 				CEC0FF002026010300000003 /* Makefile.am */,
 			);
 			path = ctf;
@@ -5342,6 +5398,7 @@
 				D8A5C10000000000000000A4 /* g_race_records.c */,
 				D8A5C10000000000000000A5 /* g_race_replay.c */,
 				D2A5C1000000000000000004 /* g_types.h */,
+				CE115200000000000000000B /* game.lst */,
 				D2A5C1000000000000000005 /* Makefile.am */,
 			);
 			path = race;
@@ -5393,6 +5450,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE115200000000000000001B /* bg_game.h in Headers */,
 				CE05B2C63022486E0012862B /* bg_hook.h in Headers */,
 				CE05B2F0302248070012F003 /* bg_item.h in Headers */,
 				CE05B2AE3022486E0012862B /* bg_pmove.h in Headers */,
@@ -5727,6 +5785,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE115200000000000000001C /* bg_game.h in Headers */,
 				CEC0FF002026010300000128 /* bg_hook.h in Headers */,
 				CEC0FF00202601030000010A /* bg_item.h in Headers */,
 				CEC0FF002026010300000122 /* bg_pmove.h in Headers */,
@@ -5875,6 +5934,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE115200000000000000001D /* bg_game.h in Headers */,
 				D2A5C1000000000000000032 /* bg_hook.h in Headers */,
 				D2A5C1000000000000000033 /* bg_item.h in Headers */,
 				D2A5C1000000000000000034 /* bg_pmove.h in Headers */,
@@ -6000,6 +6060,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE05B2D23022486E0012862B /* Build configuration list for PBXNativeTarget "game-lithium" */;
 			buildPhases = (
+				CE1152000000000000000033 /* CopyFiles */,
 				CE05B2873022486E0012862B /* Sources */,
 				CE05B2A93022486E0012862B /* Frameworks */,
 				CE05B2AC3022486E0012862B /* Headers */,
@@ -6056,6 +6117,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE12D7CE1C5C5D5C00CD0B13 /* Build configuration list for PBXNativeTarget "game-default" */;
 			buildPhases = (
+				CE1152000000000000000031 /* CopyFiles */,
 				CE12D7C91C5C5D5C00CD0B13 /* Sources */,
 				CE12D7CA1C5C5D5C00CD0B13 /* Frameworks */,
 				CE12D7CB1C5C5D5C00CD0B13 /* Headers */,
@@ -6564,6 +6626,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CEC0FF0020260103000000E7 /* Build configuration list for PBXNativeTarget "game-ctf" */;
 			buildPhases = (
+				CE1152000000000000000032 /* CopyFiles */,
 				CEC0FF0020260103000000E4 /* Sources */,
 				CEC0FF0020260103000000E6 /* Frameworks */,
 				CEC0FF0020260103000000E5 /* Headers */,
@@ -6655,6 +6718,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D2A5C1000000000000000007 /* Build configuration list for PBXNativeTarget "game-race" */;
 			buildPhases = (
+				CE1152000000000000000034 /* CopyFiles */,
 				D2A5C100000000000000000A /* Sources */,
 				D2A5C100000000000000000B /* Frameworks */,
 				D2A5C100000000000000000C /* Headers */,

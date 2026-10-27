@@ -26,15 +26,6 @@ Cvar *cg_practice;
 Cvar *cg_practiceLadder;
 
 /**
- * @brief The tail of the `Cg_AllowPractice` hook, which offers Practice.
- */
-static bool Cg_AllowPractice_Common(void) {
-  return true;
-}
-
-CGameAllowPracticeHook Cg_AllowPractice = Cg_AllowPractice_Common;
-
-/**
  * @brief An entry the player has cleared, under the gameplay they cleared it in.
  */
 typedef struct {
@@ -364,7 +355,7 @@ static void Cg_Practice_LoadLadders_enumerate(const char *path, void *data) {
     Cg_Practice_FreeEntities(entities);
   }
 
-  if (!Cg_FilterCreateServerMapList(&info)) {
+  if (!GameInfo_HasMap(&cgameGameInfo, info.games)) {
     Cg_Debug("Skipping %s: made for %s\n", path, info.games);
     return;
   }

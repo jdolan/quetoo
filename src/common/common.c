@@ -129,6 +129,97 @@ bool Com_IsValidGame(const char *game) {
 }
 
 /**
+ * @brief The most roots that `Com_EnumerateGames` reads.
+ */
+#define MAX_GAME_ROOTS 16
+
+/**
+ * @brief `Com_EnumerateGames` context.
+ */
+typedef struct {
+  const char *roots[MAX_GAME_ROOTS];
+  size_t numRoots;
+} ComEnumerateGames;
+
+/**
+ * @brief `FsEnumerator` for `Com_EnumerateGames`, which collects the roots.
+ */
+static void Com_EnumerateGames_root(const char *root, void *data) {
+  ComEnumerateGames *games = data;
+
+  if (games->numRoots < lengthof(games->roots)) {
+    games->roots[games->numRoots++] = root;
+  }
+}
+
+/**
+ * @return True if `root` holds the game `game`: a directory, not itself a root, with a `game.lst`.
+ */
+static bool Com_EnumerateGames_holds(const ComEnumerateGames *games, const char *root, const char *game) {
+
+  char path[MAX_OS_PATH];
+  Str_Format(path, sizeof(path), "%s/%s", root, game);
+
+  SDL_PathInfo info;
+  if (!SDL_GetPathInfo(path, &info) || info.type != SDL_PATHTYPE_DIRECTORY) {
+    return false;
+  }
+
+  for (size_t i = 0; i < games->numRoots; i++) {
+    if (!Str_Compare(path, games->roots[i])) {
+      return false;
+    }
+  }
+
+  Str_Append(path, "/game.lst", sizeof(path));
+  return SDL_GetPathInfo(path, &info) && info.type == SDL_PATHTYPE_FILE;
+}
+
+/**
+ * @brief Calls `func` once for each installed game, with its name and the first directory of the
+ * game that holds a `game.lst`. A directory with no `game.lst` is not listed.
+ */
+void Com_EnumerateGames(ComGameEnumerator func, void *data) {
+
+  ComEnumerateGames games = { .numRoots = 0 };
+
+  Fs_EnumerateRoots(Com_EnumerateGames_root, &games);
+
+  for (size_t r = 0; r < games.numRoots; r++) {
+
+    int32_t count;
+    char **names = SDL_GlobDirectory(games.roots[r], NULL, 0, &count);
+    if (!names) {
+      continue;
+    }
+
+    for (int32_t i = 0; i < count; i++) {
+      const char *game = names[i];
+
+      if (*game == '.' || !Com_IsValidGame(game) || !Com_EnumerateGames_holds(&games, games.roots[r], game)) {
+        continue;
+      }
+
+      bool seen = false;
+      for (size_t k = 0; k < r && !seen; k++) {
+        seen = Com_EnumerateGames_holds(&games, games.roots[k], game);
+      }
+
+      if (seen) {
+        continue;
+      }
+
+      char dir[MAX_OS_PATH];
+      Str_Format(dir, sizeof(dir), "%s/%s", games.roots[r], game);
+
+      func(game, dir, data);
+    }
+
+    SDL_free(names);
+  }
+}
+
+/**
  * @return True if `filename` may be transferred between a client and a server.
  */
 bool Com_IsValidDownload(const char *filename) {

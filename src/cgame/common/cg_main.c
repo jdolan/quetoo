@@ -22,6 +22,7 @@
 #include "cg_local.h"
 
 CGameState cgameState;
+GameInfo cgameGameInfo;
 
 Cvar *cg_addAtmospheric;
 Cvar *cg_addDecals;
@@ -93,6 +94,57 @@ Cvar *editor;
 
 CGameImport cgi;
 static CGameExport cge;
+
+/**
+ * @brief Fills `info` from the first entity of `buffer`, the contents of a `game.lst`, or from
+ * the defaults if `buffer` is `NULL`.
+ */
+static void Cg_LoadGameInfo_buffer(GameInfo *info, const char *game, const char *buffer) {
+
+  List *entities = buffer ? cgi.LoadEntities(buffer) : NULL;
+
+  const Entity *entity = entities && entities->head ? entities->head->element : NULL;
+
+  GameInfo_Load(info, game, entity, cgi.EntityValue);
+
+  if (entities) {
+    for (ListNode *node = entities->head; node; node = node->next) {
+      cgi.FreeEntity(node->element);
+    }
+    release(entities);
+  }
+}
+
+/**
+ * @brief Fills `info` from `<dir>/game.lst` on the disk, for a game that need not be current.
+ * @param info The info.
+ * @param game The game's directory name.
+ * @param dir The absolute directory that `cgi.EnumerateGames` gave for the game.
+ */
+void Cg_LoadGameInfo(GameInfo *info, const char *game, const char *dir) {
+
+  char *buffer = SDL_LoadFile(va("%s/game.lst", dir), NULL);
+
+  Cg_LoadGameInfo_buffer(info, game, buffer);
+
+  SDL_free(buffer);
+}
+
+/**
+ * @brief Loads `cgameGameInfo` from the current game's `game.lst`, which the search path resolves
+ * to `default`'s if the game has none, so that a game with no `game.lst` plays by `default`'s.
+ */
+static void Cg_InitGameInfo(void) {
+
+  void *buffer = NULL;
+  const bool loaded = cgi.LoadFile("game.lst", &buffer) > 0;
+
+  Cg_LoadGameInfo_buffer(&cgameGameInfo, cgi.Game(), loaded ? buffer : NULL);
+
+  if (buffer) {
+    cgi.FreeFile(buffer);
+  }
+}
 
 /**
  * @brief Called when the client first comes up or switches game directories. Client
@@ -210,6 +262,8 @@ static void Cg_Init(void) {
   cgi.AddCmd("camera", Cg_CameraModeCycle_f, CMD_CGAME,
              "Cycle the first-person, third-person and follow cameras "
              "(demo playback and spectating).");
+
+  Cg_InitGameInfo();
 
   Cg_InitUi();
 
@@ -507,19 +561,22 @@ float Cg_GetHookPullSpeed(void) {
 #endif
 
 /**
- * @brief The tail of the `Cg_ListGamePlays` hook, offering every mode in
- * `gameplays` - the same table `g_gameplay` is parsed against on the
- * game side, so the name and label a module offers can never drift from what
- * the server will actually coerce it to.
+ * @return The gameplay modes that the current game supports, in `gameplays` order, so the name
+ * and label a menu offers are the table's own, as the server coerces `g_gameplay` to them.
  */
-static const GamePlay *Cg_ListGamePlays_Common(size_t *count) {
+const GamePlay *Cg_ListGamePlays(size_t *count) {
+  static GamePlay gamePlays[lengthof(gameplays)];
 
-  *count = lengthof(gameplays);
+  *count = 0;
 
-  return gameplays;
+  for (size_t i = 0; i < lengthof(gameplays); i++) {
+    if (GameInfo_HasGamePlay(&cgameGameInfo, gameplays[i].id)) {
+      gamePlays[(*count)++] = gameplays[i];
+    }
+  }
+
+  return gamePlays;
 }
-
-CGameListGamePlaysHook Cg_ListGamePlays = Cg_ListGamePlays_Common;
 
 /**
  * @brief Clear any state that should not persist over multiple server connections.

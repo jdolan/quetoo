@@ -292,10 +292,35 @@ static void Main_Game_f(void) {
 }
 
 /**
+ * @brief `Main_Game_Autocomplete_f` context.
+ */
+typedef struct {
+  const char *prefix;
+  List *matches;
+} MainGameAutocomplete;
+
+/**
+ * @brief `ComGameEnumerator` for `Main_Game_Autocomplete_f`.
+ */
+static void Main_Game_Autocomplete_f_enumerate(const char *game, const char *dir, void *data) {
+  MainGameAutocomplete *autocomplete = data;
+
+  if (!SDL_strncasecmp(game, autocomplete->prefix, strlen(autocomplete->prefix))) {
+    Con_AutocompleteMatch(autocomplete->matches, game, NULL);
+  }
+}
+
+/**
  * @brief Game command autocompletion.
  */
 static void Main_Game_Autocomplete_f(const uint32_t argi, List *matches) {
-  Fs_CompleteGame(va("%s*", Cmd_Argv(argi)), matches);
+
+  MainGameAutocomplete autocomplete = {
+    .prefix = Cmd_Argv(argi),
+    .matches = matches
+  };
+
+  Com_EnumerateGames(Main_Game_Autocomplete_f_enumerate, &autocomplete);
 }
 
 /**

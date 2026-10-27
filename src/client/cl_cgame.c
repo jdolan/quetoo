@@ -254,6 +254,8 @@ void Cl_InitCgame(void) {
   import.LoadFile = Fs_Load;
   import.FreeFile = Fs_Free;
   import.EnumerateFiles = Fs_Enumerate;
+  import.Game = Com_Game;
+  import.EnumerateGames = Com_EnumerateGames;
 
   import.AddCvar = Cvar_Add;
   import.GetCvar = Cvar_Get;

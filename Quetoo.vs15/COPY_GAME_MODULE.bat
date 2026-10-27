@@ -11,6 +11,7 @@ set build_name=%~2
 set module_name=%~3
 
 call ROBO_FLAT "bin/%build_name%/%module_name%" "%quetoo_folder%/lib/%module_name%" game*
+call ROBO_FLAT "../src/game/%module_name%" "%quetoo_folder%/lib/%module_name%" game.lst
 GOTO DONE
 
 :INVALID
