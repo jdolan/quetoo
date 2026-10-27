@@ -228,11 +228,11 @@ void G_ClientToIntermission(GameClient *cl) {
     return;
   }
 
-  cl->entity->s.origin = gameLevel.intermissionOrigin;
-  cl->ps.pmState.origin = gameLevel.intermissionOrigin;
+  cl->entity->s.origin = gameLevel.intermission.origin;
+  cl->ps.pmState.origin = gameLevel.intermission.origin;
 
   cl->ps.pmState.viewAngles = Vec3_Zero();
-  cl->ps.pmState.deltaAngles = gameLevel.intermissionAngle;
+  cl->ps.pmState.deltaAngles = gameLevel.intermission.angles;
 
   cl->ps.pmState.viewOffset = Vec3_Zero();
   cl->ps.pmState.stepOffset = 0.f;
@@ -394,7 +394,7 @@ void G_ClientScores(GameClient *cl) {
   gi.WriteByte(1); // sequence is complete
   gi.Unicast(cl, true);
 
-  if (gameLevel.intermissionTime) {
+  if (gameLevel.intermission.time) {
     G_ClientMatchStats(cl);
   }
 }
@@ -461,7 +461,7 @@ void G_ClientStats(GameClient *cl) {
 
   // scores
   cl->ps.stats[STAT_SCORES] = 0;
-  if (gameLevel.intermissionTime || cl->showScores) {
+  if (gameLevel.intermission.time || cl->showScores) {
     cl->ps.stats[STAT_SCORES] |= 1;
   }
 
@@ -472,7 +472,7 @@ void G_ClientStats(GameClient *cl) {
   }
 
   // time
-  if (gameLevel.intermissionTime) {
+  if (gameLevel.intermission.time) {
     cl->ps.stats[STAT_TIME] = 0;
   } else {
     cl->ps.stats[STAT_TIME] = CS_TIME;
@@ -532,7 +532,7 @@ void G_ClientSpectatorStats(GameClient *cl) {
     cl->ps.stats[STAT_CHASE] = cl->chaseTarget->ps.entity;
 
     // scores are independent of chase camera target
-    if (gameLevel.intermissionTime || cl->showScores) {
+    if (gameLevel.intermission.time || cl->showScores) {
       cl->ps.stats[STAT_SCORES] = 1;
     } else {
       cl->ps.stats[STAT_SCORES] = 0;

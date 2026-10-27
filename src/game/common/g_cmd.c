@@ -848,7 +848,7 @@ void G_ClientCommand(GameClient *cl) {
   }
 
   // most commands can not be executed during intermission
-  if (gameLevel.intermissionTime) {
+  if (gameLevel.intermission.time) {
     return;
   }
 

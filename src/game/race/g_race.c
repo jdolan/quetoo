@@ -812,7 +812,7 @@ static bool G_AllowHook_Race(const GameClient *cl) {
  */
 static bool G_HandleClientCommand_Race(GameClient *cl, const char *cmd) {
 
-  if (gameLevel.intermissionTime) {
+  if (gameLevel.intermission.time) {
     return previous.HandleClientCommand(cl, cmd);
   }
 

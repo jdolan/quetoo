@@ -296,7 +296,7 @@ static void G_Vote_Check(void) {
     return;
   }
 
-  if (gameLevel.intermissionTime) { // the level is ending; a vote does not decide it
+  if (gameLevel.intermission.time) { // the level is ending; a vote does not decide it
     gi.BroadcastPrint(PRINT_HIGH, "Vote %s%s%s cancelled\n", module.type,
                       *module.arg ? " " : "", module.arg);
     module.active = false;
@@ -406,7 +406,7 @@ static bool G_HandleClientCommand_Vote(GameClient *cl, const char *cmd) {
     G_Vote_Cast(cl, BALLOT_YES);
   } else if (!Str_CaseCompare(what, "no")) {
     G_Vote_Cast(cl, BALLOT_NO);
-  } else if (gameLevel.intermissionTime) {
+  } else if (gameLevel.intermission.time) {
     gi.ClientPrint(cl, PRINT_HIGH, "The level is ending\n");
   } else {
     G_Vote_Call(cl, what, gi.Argc() > 2 ? gi.Argv(2) : "");

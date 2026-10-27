@@ -479,7 +479,7 @@ void G_ClientEndFrame(GameClient *cl) {
   cl->ps.pmState.velocity = cl->entity->velocity;
 
   // If in intermission, just set stats and scores and return
-  if (gameLevel.intermissionTime) {
+  if (gameLevel.intermission.time) {
     G_ClientStats(cl);
     G_ClientScores(cl);
     return;

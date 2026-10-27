@@ -1733,7 +1733,7 @@ void G_ClientBegin(GameClient *cl) {
 
   G_ClientRespawn(cl, true);
 
-  if (gameLevel.intermissionTime) {
+  if (gameLevel.intermission.time) {
     G_ClientToIntermission(cl);
   } else {
     Str_Format(welcome, sizeof(welcome), "^2Welcome to ^7%s", sv_hostname->string);
@@ -2424,7 +2424,7 @@ static void G_ClientInventoryThink(GameClient *cl) {
  */
 void G_ClientThink(GameClient *cl, PMoveCmd *cmd) {
 
-  if (gameLevel.intermissionTime) {
+  if (gameLevel.intermission.time) {
     return;
   }
 
@@ -2494,7 +2494,7 @@ void G_ClientThink(GameClient *cl, PMoveCmd *cmd) {
  */
 void G_ClientBeginFrame(GameClient *cl) {
 
-  if (gameLevel.intermissionTime) {
+  if (gameLevel.intermission.time) {
     return;
   }
 
