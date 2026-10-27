@@ -360,7 +360,6 @@ and make the block additive instead.
 
 | hook | tail lives in | installed by |
 | --- | --- | --- |
-| `ListGamePlays` | `cg_main.c` | ctf |
 | `BindKeys` | `cg_input.c` | — |
 | `ClipEntity` | `cg_predict.c` | race |
 | `UsePrediction` | `cg_predict.c` | — |

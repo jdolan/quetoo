@@ -23,21 +23,12 @@
 #include "cg_race.h"
 
 /**
- * @brief A race is run alone, so the practice ladders do not suit it.
- */
-static bool Cg_AllowPractice_Race(void) {
-  return false;
-}
-
-/**
  * @brief Race draws the grappling hook, a feature of the common sources that
- * `Cg_Init` installs from the define in this module's Makefile.am, and the run. It does not
- * offer Practice.
+ * `Cg_Init` installs from the define in this module's Makefile.am, and the run. A race is run
+ * alone, so its `game.lst` offers no Practice.
  */
 void Cg_Module_Init(void) {
   Cg_Race_Init();
-
-  Cg_AllowPractice = Cg_AllowPractice_Race;
 }
 
 /**

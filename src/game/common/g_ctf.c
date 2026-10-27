@@ -243,20 +243,6 @@ static void G_FormatGameName_Ctf(char *name, size_t size) {
 }
 
 /**
- * @brief Captures are team deathmatch or team instagib: arena does not apply,
- * and teams are not optional. Replaces rather than qualifies, and so does not
- * defer to previous.
- */
-static GamePlayId G_ClampGamePlay_Ctf(GamePlayId gameplay) {
-
-  if ((gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) {
-    return GAMEPLAY_TEAM_INSTAGIB;
-  }
-
-  return GAMEPLAY_TEAM_DEATHMATCH;
-}
-
-/**
  * @return True if `time` is set and is no more than `millis` ago.
  */
 static bool G_Ctf_Recent(uint32_t time, uint32_t millis) {
@@ -758,6 +744,19 @@ static void G_TossInventory_Ctf(GameClient *cl) {
  */
 void G_Ctf_Init(void) {
 
+  bool teams = true;
+  size_t count = 0;
+  for (size_t i = 0; i < lengthof(gameplays); i++) {
+    if (GameInfo_HasGamePlay(&gameInfo, gameplays[i].id)) {
+      teams = teams && (gameplays[i].id & GAMEPLAY_TEAMS) == GAMEPLAY_TEAMS;
+      count++;
+    }
+  }
+
+  if (count == 0 || !teams) {
+    G_Error("%s/game.lst MUST list one or more gameplay modes, and only team modes, because capture the flag needs teams\n", gi.Game());
+  }
+
   // G_Init runs on every server initialization, and the module is not always
   // unloaded in between, so installing twice would point previous at ourselves.
   if (!installed) {
@@ -773,8 +772,6 @@ void G_Ctf_Init(void) {
     G_CheckCvars = G_CheckCvars_Ctf;
 
     G_CheckWinner = G_CheckWinner_Ctf;
-
-    G_ClampGamePlay = G_ClampGamePlay_Ctf;
 
     G_FormatGameName = G_FormatGameName_Ctf;
     previous.TossInventory = G_TossInventory;

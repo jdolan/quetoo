@@ -19,11 +19,14 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
+#include <Objectively/List.h>
+
 #include "g_local.h"
 
 GameImport gi;
 GameExport ge;
 
+GameInfo gameInfo;
 GameLevel gameLevel;
 GameMedia gameMedia;
 
@@ -770,8 +773,8 @@ PMovement G_ResolveMovement(const char *name) {
 }
 
 /**
- * @brief Parses `g_gameplay` over what the level asked for, lets the module
- * clamp it to a mode it supports, and coerces the cvar itself to whichever
+ * @brief Parses `g_gameplay` over what the level asked for, clamps it to a
+ * mode that the game's `game.lst` lists, and coerces the cvar itself to whichever
  * canonical name results. "default" defers to the level, and is left alone.
  */
 static GamePlayId G_CoerceGamePlay(void) {
@@ -779,11 +782,11 @@ static GamePlayId G_CoerceGamePlay(void) {
   GamePlayId gameplay = gameLevel.requested.gameplay;
 
   if (Str_Compare(g_gameplay->string, "default")) { // "default" defers to the level
-    gameplay = G_ClampGamePlay(G_GamePlayByName(g_gameplay->string)->id);
+    gameplay = GameInfo_ClampGamePlay(&gameInfo, G_GamePlayByName(g_gameplay->string)->id);
 
     gi.SetCvarString(g_gameplay->name, G_GamePlayById(gameplay)->name); // reject garbage values
   } else {
-    gameplay = G_ClampGamePlay(gameplay);
+    gameplay = GameInfo_ClampGamePlay(&gameInfo, gameplay);
   }
 
   // g_gameplay holds what the admin asked for, which may be an alias, or "default";
@@ -1110,9 +1113,47 @@ void G_InitNumTeams(void) {
 }
 
 /**
+ * @brief Loads `gameInfo` from the current game's `game.lst`, which the search path resolves to
+ * `default`'s if the game has none.
+ */
+static void G_InitGameInfo(void) {
+
+  const Entity *entity = NULL;
+  List *entities = NULL;
+
+  void *buffer = NULL;
+  if (gi.LoadFile("game.lst", &buffer) > 0) {
+    entities = gi.LoadEntities(buffer);
+    if (entities->head) {
+      entity = entities->head->element;
+    }
+  }
+
+  if (buffer) {
+    gi.FreeFile(buffer);
+  }
+
+  GameInfo_Load(&gameInfo, gi.Game(), entity, gi.EntityValue);
+
+  char token[MAX_QPATH];
+  if (GameInfo_UnknownGamePlay(&gameInfo, token, sizeof(token))) {
+    G_Error("game.lst: \"%s\" is not a gameplay mode\n", token);
+  }
+
+  if (entities) {
+    for (ListNode *node = entities->head; node; node = node->next) {
+      gi.FreeEntity(node->element);
+    }
+    release(entities);
+  }
+}
+
+/**
  * @brief This will be called when the game module is first loaded.
  */
 void G_Init(void) {
+
+  G_InitGameInfo();
 
 #if defined(G_HOOK)
   G_Hook_Init();
@@ -1146,7 +1187,7 @@ void G_Init(void) {
 
   gi.Print("Game module initialization...\n");
 
-  const char *s = va("%s %s", BUILD, VERSION);
+  const char *s = va("%s %s", VERSION, BUILD);
   Cvar *gameVersion = gi.AddCvar("gameVersion", s, CVAR_SERVER_INFO | CVAR_NO_SET, NULL);
 
   gi.Print("  Version:    ^2%s^7\n", gameVersion->string);

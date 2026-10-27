@@ -57,7 +57,7 @@ unzip -q "$WORK/sym/"*.zip -d "$WORK/sym"
 |---|---|
 | `quetoo.pdb`, `quetoo-dedicated.pdb`, `quemap.pdb` | `bin/` |
 | `Objectively.pdb`, `ObjectivelyGPU.pdb`, `ObjectivelyMVC.pdb` | `bin/` |
-| `cgame.pdb`, `game.pdb` | `lib/default/`, `lib/ctf/`, `lib/lithium/` (one pair for each game module) |
+| `cgame.pdb`, `game.pdb` | `lib/default/`, `lib/ctf/`, `lib/lithium/`, `lib/race/` (one pair for each game module) |
 
 The tag `latest` is the snapshot from the most recent push to `main`. It is replaced on each push,
 so a dump from an older snapshot has no PDBs left anywhere.

@@ -563,9 +563,9 @@ const GamePlay *G_GamePlayByName(const char *c) {
 
 /**
  * @brief Returns the `gameplays` entry for the given mode id. Used
- * after `G_ClampGamePlay`, which operates on the scalar id, to recover the
+ * after `GameInfo_ClampGamePlay`, which operates on the scalar id, to recover the
  * `->name` and `->label` for the id it decided on.
- * @details A module's `ClampGamePlay` MUST only ever return an id that is
+ * @details `GameInfo_ClampGamePlay` only ever returns an id that is
  * actually one of the six rows in `gameplays`, so this should never
  * miss; it falls back to the first entry rather than asserting, matching
  * `G_GamePlayByName`'s own fallback.

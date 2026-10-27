@@ -441,6 +441,7 @@ jobs:
         New-Item -ItemType Directory -Force -Path "$staging\lib\default\ui" | Out-Null
         New-Item -ItemType Directory -Force -Path "$staging\lib\ctf" | Out-Null
         New-Item -ItemType Directory -Force -Path "$staging\lib\lithium" | Out-Null
+        New-Item -ItemType Directory -Force -Path "$staging\lib\race" | Out-Null
 
         # Executables and their PDBs
         Copy-Item "Quetoo.vs15\bin\x64Release\quetoo.exe" "$staging\bin\"
@@ -463,9 +464,18 @@ jobs:
         Copy-Item "Quetoo.vs15\bin\x64Release\lithium\cgame.pdb" "$staging\lib\lithium\"
         Copy-Item "Quetoo.vs15\bin\x64Release\lithium\game.dll" "$staging\lib\lithium\"
         Copy-Item "Quetoo.vs15\bin\x64Release\lithium\game.pdb" "$staging\lib\lithium\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\race\cgame.dll" "$staging\lib\race\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\race\cgame.pdb" "$staging\lib\race\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\race\game.dll" "$staging\lib\race\"
+        Copy-Item "Quetoo.vs15\bin\x64Release\race\game.pdb" "$staging\lib\race\"
+
+        # Game descriptions, beside each game module
+        foreach ($module in @("default", "ctf", "lithium", "race")) {
+          Copy-Item "src\game\$module\game.lst" "$staging\lib\$module\"
+        }
 
         # Module HUD layouts, one directory per variant
-        foreach ($module in @("ctf", "lithium")) {
+        foreach ($module in @("ctf", "lithium", "race")) {
           $hudSource = "src\cgame\$module\ui\hud"
           Get-ChildItem -Path $hudSource -Include "*.css","*.json" -Recurse -File | ForEach-Object {
             $relativePath = $_.FullName.Substring((Resolve-Path $hudSource).Path.Length).TrimStart('\')

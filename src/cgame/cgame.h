@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 72
+#define CGAME_API_VERSION 73
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -301,6 +301,20 @@ typedef struct {
    * @param data User data.
    */
   void (*EnumerateFiles)(const char *pattern, FsEnumerator enumerator, void *data);
+
+  /**
+   * @return The game that is current, which MAY differ from the module that provides the client
+   * game: a game with no client game of its own runs `default`'s.
+   */
+  const char *(*Game)(void);
+
+  /**
+   * @brief Calls `enumerator` once for each installed game, with its name and the absolute
+   * directory that holds its `game.lst`. A directory with no `game.lst` is not a game.
+   * @param enumerator The enumerator function.
+   * @param data User data.
+   */
+  void (*EnumerateGames)(ComGameEnumerator enumerator, void *data);
 
   /**
    * @}

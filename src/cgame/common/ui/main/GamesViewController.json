@@ -1,0 +1,29 @@
+{
+  "identifier": "Games",
+  "subviews": [
+    {
+      "class": "StackView",
+      "classNames": [
+        "container"
+      ],
+      "subviews": [
+        {
+          "class": "Box",
+          "label": {
+            "text": {
+              "text": "Games"
+            }
+          },
+          "contentView": {
+            "subviews": [
+              {
+                "class": "CollectionView",
+                "identifier": "gamesList"
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}

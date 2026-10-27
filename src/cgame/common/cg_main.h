@@ -30,6 +30,8 @@
  * module, as `r_restart` does, starts that state over, so the team colors went black.
  */
 void Cg_LoadConfigStrings(void);
+const GamePlay *Cg_ListGamePlays(size_t *count);
+void Cg_LoadGameInfo(GameInfo *info, const char *game, const char *dir);
 
 #if defined(G_HOOK)
 float Cg_GetHookPullSpeed(void);

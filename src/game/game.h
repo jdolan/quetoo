@@ -25,7 +25,7 @@
 #include "collision/cm_types.h"
 #include <Objectively/Vector.h>
 
-#define GAME_API_VERSION 48
+#define GAME_API_VERSION 49
 
 /**
  * @brief Server flags for `GameEntity`.
@@ -366,6 +366,12 @@ typedef struct {
    * @param data User data.
    */
   void (*EnumerateFiles)(const char *pattern, FsEnumerator enumerator, void *data);
+
+  /**
+   * @return The game that is current, which MAY differ from the module that provides the game: a
+   * game with no game module of its own runs `default`'s.
+   */
+  const char *(*Game)(void);
 
   /**
    * @}

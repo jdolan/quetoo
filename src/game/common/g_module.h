@@ -392,18 +392,6 @@ typedef bool (*GameApplyVoteHook)(const char *type, const char *arg);
 extern GameApplyVoteHook G_ApplyVote;
 
 /**
- * @brief Coerces a requested gameplay mode to one this module actually
- * supports, before it is written back to `g_gameplay` or applied to the level.
- * @param gameplay The mode `g_gameplay` parsed to, `GAMEPLAY_TEAMS` included.
- * @return The mode this module will actually play.
- * @details A single owner, like `CheckWinner`: a module that plays exactly one
- * mode replaces this outright rather than qualifying whatever it was handed.
- */
-typedef GamePlayId (*GameClampGamePlayHook)(GamePlayId gameplay);
-
-extern GameClampGamePlayHook G_ClampGamePlay;
-
-/**
  * @brief Names the gameplay the server is running, for its info strings.
  * @param name The buffer to format into, holding the gameplay name.
  * @param size The size of that buffer.

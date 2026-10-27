@@ -1,10 +1,13 @@
-#Credits {
-  max-width: 960;
+/* The credits fill the tab's width, which the widest tab sets */
+
+#Credits,
+#Credits > .container,
+#Credits > .container > Box {
+  autoresizing-mask: contain | width;
 }
 
-#Credits > .contentView {
+#Credits > .container {
   spacing: 20;
-  padding-top: 20;
 }
 
 #Credits .credit {
@@ -24,13 +27,12 @@
 }
 
 #Credits .columns {
-  width: 920;
+  autoresizing-mask: contain | width;
+  distribution: fill-equally;
 }
 
 #Credits #SpecialThanks .column {
   min-width: 300;
-  max-width: 300;
-  width: 300;
 }
 
 #Credits #SpecialThanks .column Text {

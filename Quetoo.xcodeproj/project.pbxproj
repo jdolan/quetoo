@@ -69,6 +69,23 @@
 		08962C395D0FB0E620F78625 /* bg_item.c in Sources */ = {isa = PBXBuildFile; fileRef = 7966EA6596003F9303BC00FA /* bg_item.c */; };
 		091C43A66A7972053AD1C8E7 /* box.c in Sources */ = {isa = PBXBuildFile; fileRef = 8542813678DB3B7BECEEF939 /* box.c */; };
 		0A3AFEF82E92A6D7EDE49205 /* ImageQueue.c in Sources */ = {isa = PBXBuildFile; fileRef = B0D6F39C720CF8C8006B8E67 /* ImageQueue.c */; };
+		CE1152000000000000000011 /* GameCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000001 /* GameCollectionItemView.c */; };
+		CE1152000000000000000012 /* GameCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000001 /* GameCollectionItemView.c */; };
+		CE1152000000000000000013 /* GameCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000001 /* GameCollectionItemView.c */; };
+		CE1152000000000000000014 /* GameCollectionItemView.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000001 /* GameCollectionItemView.c */; };
+		CE1152000000000000000015 /* GamesViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000003 /* GamesViewController.c */; };
+		CE1152000000000000000016 /* GamesViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000003 /* GamesViewController.c */; };
+		CE1152000000000000000017 /* GamesViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000003 /* GamesViewController.c */; };
+		CE1152000000000000000018 /* GamesViewController.c in Sources */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000003 /* GamesViewController.c */; };
+		CE1152000000000000000019 /* GamesViewController.css in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000005 /* GamesViewController.css */; };
+		CE115200000000000000001A /* GamesViewController.json in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000006 /* GamesViewController.json */; };
+		CE115200000000000000001B /* bg_game.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000007 /* bg_game.h */; };
+		CE115200000000000000001C /* bg_game.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000007 /* bg_game.h */; };
+		CE115200000000000000001D /* bg_game.h in Headers */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000007 /* bg_game.h */; };
+		CE1152000000000000000021 /* game.lst in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000008 /* game.lst */; };
+		CE1152000000000000000022 /* game.lst in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE1152000000000000000009 /* game.lst */; };
+		CE1152000000000000000023 /* game.lst in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE115200000000000000000A /* game.lst */; };
+		CE1152000000000000000024 /* game.lst in CopyFiles */ = {isa = PBXBuildFile; fileRef = CE115200000000000000000B /* game.lst */; };
 		D9816524D26FA7B3BF330098 /* MapshotThumbnailView.c in Sources */ = {isa = PBXBuildFile; fileRef = 2ED568F0033A530D0DF9F821 /* MapshotThumbnailView.c */; };
 		0B59BE03B414411797329FD1 /* NotifyView.c in Sources */ = {isa = PBXBuildFile; fileRef = EB4A4D641AA8495FB08D9F0E /* NotifyView.c */; };
 		0BF82540ADD285E5DF358C72 /* ScoreView.c in Sources */ = {isa = PBXBuildFile; fileRef = 5B027972461629119D87F7A6 /* ScoreView.c */; };
@@ -2025,6 +2042,46 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		CE1152000000000000000031 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = default;
+			dstSubfolderSpec = 16;
+			files = (
+				CE1152000000000000000021 /* game.lst in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE1152000000000000000032 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = ctf;
+			dstSubfolderSpec = 16;
+			files = (
+				CE1152000000000000000022 /* game.lst in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE1152000000000000000033 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = lithium;
+			dstSubfolderSpec = 16;
+			files = (
+				CE1152000000000000000023 /* game.lst in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CE1152000000000000000034 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = race;
+			dstSubfolderSpec = 16;
+			files = (
+				CE1152000000000000000024 /* game.lst in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		CE4A25571FA2030900A539E7 /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -2097,6 +2154,8 @@
 			dstPath = default/ui/main;
 			dstSubfolderSpec = 16;
 			files = (
+				CE1152000000000000000019 /* GamesViewController.css in CopyFiles */,
+				CE115200000000000000001A /* GamesViewController.json in CopyFiles */,
 				CE4E07D62026889D000B276C /* LoadingViewController.css in CopyFiles */,
 				CE7D2C2E2030FDAE004BC58E /* LoadingViewController.json in CopyFiles */,
 				CE4E07D8202688AF000B276C /* MainView.css in CopyFiles */,
@@ -2124,6 +2183,8 @@
 			dstPath = default/ui/home;
 			dstSubfolderSpec = 16;
 			files = (
+				CEA1A0042F9F00000087B100 /* CreditsViewController.css in CopyFiles */,
+				CEA1A0032F9F00000087B100 /* CreditsViewController.json in CopyFiles */,
 				18E237623F9098C8D027CA1A /* DemosViewController.css in CopyFiles */,
 				E341E163CFFD547C44106673 /* DemosViewController.json in CopyFiles */,
 				CEEEEEA82F9EF1FA00665A30 /* HomeViewController.css in CopyFiles */,
@@ -2132,17 +2193,6 @@
 				CEA9B3A76C6E4B3A9F010001 /* LeaderboardViewController.json in CopyFiles */,
 				CEA9B3A66C6E4B3A9F010001 /* StatsViewController.css in CopyFiles */,
 				CEA9B3A86C6E4B3A9F010001 /* StatsViewController.json in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		CEA1A0052F9F00000087B100 /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = default/ui/credits;
-			dstSubfolderSpec = 16;
-			files = (
-				CEA1A0042F9F00000087B100 /* CreditsViewController.css in CopyFiles */,
-				CEA1A0032F9F00000087B100 /* CreditsViewController.json in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -2331,6 +2381,17 @@
 		4BF47DA7893C8563C1D59CDA /* BlendView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = BlendView.c; sourceTree = "<group>"; };
 		4CA3522A5AE19B0F18CF79C6 /* TargetNameView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TargetNameView.h; sourceTree = "<group>"; };
 		51B36F4226CEC7C84538DC2F /* PickupView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PickupView.h; sourceTree = "<group>"; };
+		CE1152000000000000000001 /* GameCollectionItemView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = GameCollectionItemView.c; sourceTree = "<group>"; };
+		CE1152000000000000000002 /* GameCollectionItemView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GameCollectionItemView.h; sourceTree = "<group>"; };
+		CE1152000000000000000003 /* GamesViewController.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = GamesViewController.c; sourceTree = "<group>"; };
+		CE1152000000000000000004 /* GamesViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = GamesViewController.h; sourceTree = "<group>"; };
+		CE1152000000000000000005 /* GamesViewController.css */ = {isa = PBXFileReference; lastKnownFileType = text.css; path = GamesViewController.css; sourceTree = "<group>"; };
+		CE1152000000000000000006 /* GamesViewController.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = GamesViewController.json; sourceTree = "<group>"; };
+		CE1152000000000000000007 /* bg_game.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bg_game.h; sourceTree = "<group>"; };
+		CE1152000000000000000008 /* game.lst */ = {isa = PBXFileReference; lastKnownFileType = text; path = game.lst; sourceTree = "<group>"; };
+		CE1152000000000000000009 /* game.lst */ = {isa = PBXFileReference; lastKnownFileType = text; path = game.lst; sourceTree = "<group>"; };
+		CE115200000000000000000A /* game.lst */ = {isa = PBXFileReference; lastKnownFileType = text; path = game.lst; sourceTree = "<group>"; };
+		CE115200000000000000000B /* game.lst */ = {isa = PBXFileReference; lastKnownFileType = text; path = game.lst; sourceTree = "<group>"; };
 		E18F7AF0A808DC8CC42C99AD /* RespawnTimerView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RespawnTimerView.h; sourceTree = "<group>"; };
 		52CCC184568D9A04E0D91F1A /* asset.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = asset.c; sourceTree = "<group>"; };
 		5624F1C74F4646918DA71088 /* PingView.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = PingView.c; sourceTree = "<group>"; };
@@ -4018,6 +4079,7 @@
 				CE05B23E302248070012862B /* bg_item.c */,
 				CE05B271302248070012862B /* g_module.c */,
 				CE05B27C302248070012862B /* g_types.h */,
+				CE115200000000000000000A /* game.lst */,
 				CE05B283302248070012862B /* Makefile.am */,
 			);
 			path = lithium;
@@ -4397,6 +4459,7 @@
 				7966EA6596003F9303BC00FA /* bg_item.c */,
 				CEFEEE00000000000000B101 /* g_module.c */,
 				CE12D66C1C5C58C300CD0B13 /* g_types.h */,
+				CE1152000000000000000008 /* game.lst */,
 				CE12D6711C5C58C300CD0B13 /* Makefile.am */,
 			);
 			path = default;
@@ -4874,7 +4937,6 @@
 			children = (
 				CEA4000F2F9800000087B100 /* backgrounds */,
 				CE1A28351F75FE70005F62A9 /* controls */,
-				CEA1A0062F9F00000087B100 /* credits */,
 				CFA000012F9100000000C001 /* editor */,
 				3F698657FE99AC45EBDFE4C7 /* fonts */,
 				CE7D2C10202F690A004BC58E /* home */,
@@ -4969,6 +5031,12 @@
 		CE5870931F5CE7D2004CAAB2 /* main */ = {
 			isa = PBXGroup;
 			children = (
+				CE1152000000000000000002 /* GameCollectionItemView.h */,
+				CE1152000000000000000001 /* GameCollectionItemView.c */,
+				CE1152000000000000000004 /* GamesViewController.h */,
+				CE1152000000000000000003 /* GamesViewController.c */,
+				CE1152000000000000000005 /* GamesViewController.css */,
+				CE1152000000000000000006 /* GamesViewController.json */,
 				CE5870971F5CE7D2004CAAB2 /* LoadingViewController.h */,
 				CE5870961F5CE7D2004CAAB2 /* LoadingViewController.c */,
 				CE4E07C320267ED9000B276C /* LoadingViewController.css */,
@@ -5018,6 +5086,10 @@
 		CE7D2C10202F690A004BC58E /* home */ = {
 			isa = PBXGroup;
 			children = (
+				CEA1A0082F9F00000087B100 /* CreditsViewController.h */,
+				CEA1A0072F9F00000087B100 /* CreditsViewController.c */,
+				CEA1A00A2F9F00000087B100 /* CreditsViewController.css */,
+				CEA1A0092F9F00000087B100 /* CreditsViewController.json */,
 				0713BF4BF04837B81E77D924 /* DemoList.h */,
 				3F2DF6B726C775FE05708017 /* DemoList.c */,
 				84C2E3EC261C07D1773254F0 /* DemosCollectionItemView.h */,
@@ -5042,17 +5114,6 @@
 				CEA9B3B86C6E4B3A9F010001 /* StatsViewController.json */,
 			);
 			path = home;
-			sourceTree = "<group>";
-		};
-		CEA1A0062F9F00000087B100 /* credits */ = {
-			isa = PBXGroup;
-			children = (
-				CEA1A0082F9F00000087B100 /* CreditsViewController.h */,
-				CEA1A0072F9F00000087B100 /* CreditsViewController.c */,
-				CEA1A00A2F9F00000087B100 /* CreditsViewController.css */,
-				CEA1A0092F9F00000087B100 /* CreditsViewController.json */,
-			);
-			path = credits;
 			sourceTree = "<group>";
 		};
 		CEA4000F2F9800000087B100 /* backgrounds */ = {
@@ -5165,6 +5226,7 @@
 		CEC011002026010100000002 /* common */ = {
 			isa = PBXGroup;
 			children = (
+				CE1152000000000000000007 /* bg_game.h */,
 				CEC011002026010200000009 /* bg_hook.h */,
 				D1A5B0000000000000000304 /* bg_intermission.h */,
 				AA5E00000000000000000012 /* bg_nav.h */,
@@ -5266,6 +5328,7 @@
 				CEC0FF002026010300000004 /* bg_item.c */,
 				CEFEEE00000000000000B103 /* g_module.c */,
 				CEC0FF00202601030000002C /* g_types.h */,
+				CE1152000000000000000009 /* game.lst */,
 				CEC0FF002026010300000003 /* Makefile.am */,
 			);
 			path = ctf;
@@ -5342,6 +5405,7 @@
 				D8A5C10000000000000000A4 /* g_race_records.c */,
 				D8A5C10000000000000000A5 /* g_race_replay.c */,
 				D2A5C1000000000000000004 /* g_types.h */,
+				CE115200000000000000000B /* game.lst */,
 				D2A5C1000000000000000005 /* Makefile.am */,
 			);
 			path = race;
@@ -5393,6 +5457,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE115200000000000000001B /* bg_game.h in Headers */,
 				CE05B2C63022486E0012862B /* bg_hook.h in Headers */,
 				CE05B2F0302248070012F003 /* bg_item.h in Headers */,
 				CE05B2AE3022486E0012862B /* bg_pmove.h in Headers */,
@@ -5727,6 +5792,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE115200000000000000001C /* bg_game.h in Headers */,
 				CEC0FF002026010300000128 /* bg_hook.h in Headers */,
 				CEC0FF00202601030000010A /* bg_item.h in Headers */,
 				CEC0FF002026010300000122 /* bg_pmove.h in Headers */,
@@ -5875,6 +5941,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CE115200000000000000001D /* bg_game.h in Headers */,
 				D2A5C1000000000000000032 /* bg_hook.h in Headers */,
 				D2A5C1000000000000000033 /* bg_item.h in Headers */,
 				D2A5C1000000000000000034 /* bg_pmove.h in Headers */,
@@ -6000,6 +6067,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE05B2D23022486E0012862B /* Build configuration list for PBXNativeTarget "game-lithium" */;
 			buildPhases = (
+				CE1152000000000000000033 /* CopyFiles */,
 				CE05B2873022486E0012862B /* Sources */,
 				CE05B2A93022486E0012862B /* Frameworks */,
 				CE05B2AC3022486E0012862B /* Headers */,
@@ -6056,6 +6124,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CE12D7CE1C5C5D5C00CD0B13 /* Build configuration list for PBXNativeTarget "game-default" */;
 			buildPhases = (
+				CE1152000000000000000031 /* CopyFiles */,
 				CE12D7C91C5C5D5C00CD0B13 /* Sources */,
 				CE12D7CA1C5C5D5C00CD0B13 /* Frameworks */,
 				CE12D7CB1C5C5D5C00CD0B13 /* Headers */,
@@ -6080,7 +6149,6 @@
 				CEA400102F9800000087B100 /* CopyFiles */,
 				CEA400112F9800000087B100 /* CopyFiles */,
 				CE4E07CA2026881F000B276C /* CopyFiles */,
-				CEA1A0052F9F00000087B100 /* CopyFiles */,
 				CFA000132F9100000000C013 /* CopyFiles */,
 				6816070175ED2CEC62FB6E56 /* CopyFiles */,
 				CE7D2C15202F6911004BC58E /* CopyFiles */,
@@ -6564,6 +6632,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CEC0FF0020260103000000E7 /* Build configuration list for PBXNativeTarget "game-ctf" */;
 			buildPhases = (
+				CE1152000000000000000032 /* CopyFiles */,
 				CEC0FF0020260103000000E4 /* Sources */,
 				CEC0FF0020260103000000E6 /* Frameworks */,
 				CEC0FF0020260103000000E5 /* Headers */,
@@ -6655,6 +6724,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = D2A5C1000000000000000007 /* Build configuration list for PBXNativeTarget "game-race" */;
 			buildPhases = (
+				CE1152000000000000000034 /* CopyFiles */,
 				D2A5C100000000000000000A /* Sources */,
 				D2A5C100000000000000000B /* Frameworks */,
 				D2A5C100000000000000000C /* Headers */,
@@ -7084,6 +7154,8 @@
 				7AFADF59B58F54581DC1C419 /* SpectatorView.c in Sources */,
 				EAC91DBE5BFAA686873683E8 /* TargetNameView.c in Sources */,
 				D6201E3E9B69E158607607E6 /* VoteView.c in Sources */,
+				CE1152000000000000000013 /* GameCollectionItemView.c in Sources */,
+				CE1152000000000000000017 /* GamesViewController.c in Sources */,
 				CE05B3F030224900C0DE002C /* JoinServerViewController.c in Sources */,
 				CE05B3F030224900C0DE002D /* LeaderboardViewController.c in Sources */,
 				CE05B3F030224900C0DE002E /* LoadingViewController.c in Sources */,
@@ -7267,6 +7339,8 @@
 				68157F8A4AF07ADDE8951670 /* SpectatorView.c in Sources */,
 				5353FBA06CC14AA034C4C9CD /* TargetNameView.c in Sources */,
 				E140557ED1DC8869F66A94BD /* VoteView.c in Sources */,
+				CE1152000000000000000011 /* GameCollectionItemView.c in Sources */,
+				CE1152000000000000000015 /* GamesViewController.c in Sources */,
 				CE6EE3E21F720D9A00FBC830 /* JoinServerViewController.c in Sources */,
 				CEA9B3A16C6E4B3A9F010001 /* LeaderboardViewController.c in Sources */,
 				CE6EE3DC1F720D8700FBC830 /* LoadingViewController.c in Sources */,
@@ -7765,6 +7839,8 @@
 				50A618B627838A7F121E3DA9 /* SpectatorView.c in Sources */,
 				2F75825314B0423B86868ACC /* TargetNameView.c in Sources */,
 				FC50131A3C56E2363DB2272D /* VoteView.c in Sources */,
+				CE1152000000000000000012 /* GameCollectionItemView.c in Sources */,
+				CE1152000000000000000016 /* GamesViewController.c in Sources */,
 				CEC0FF00202601030000018C /* JoinServerViewController.c in Sources */,
 				CEC0FF00202601030000018D /* LeaderboardViewController.c in Sources */,
 				CEC0FF00202601030000018E /* LoadingViewController.c in Sources */,
@@ -8004,6 +8080,8 @@
 				A978478284E6A536361DE6FC /* SpectatorView.c in Sources */,
 				B3C3D379CB4955B1FED23ADB /* TargetNameView.c in Sources */,
 				46EE82019B925D394B363E01 /* VoteView.c in Sources */,
+				CE1152000000000000000014 /* GameCollectionItemView.c in Sources */,
+				CE1152000000000000000018 /* GamesViewController.c in Sources */,
 				D2A5C1000000000000000070 /* JoinServerViewController.c in Sources */,
 				D2A5C1000000000000000071 /* LeaderboardViewController.c in Sources */,
 				D2A5C1000000000000000072 /* LoadingViewController.c in Sources */,
@@ -8469,7 +8547,6 @@
 					"$(SRCROOT)/src/game/lithium",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",
@@ -8511,7 +8588,6 @@
 					"$(SRCROOT)/src/game/lithium",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",
@@ -8725,7 +8801,6 @@
 					"$(SRCROOT)/src/game/default",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",
@@ -8762,7 +8837,6 @@
 					"$(SRCROOT)/src/game/default",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",
@@ -9431,7 +9505,6 @@
 					"$(SRCROOT)/src/game/ctf",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",
@@ -9474,7 +9547,6 @@
 					"$(SRCROOT)/src/game/ctf",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",
@@ -9629,7 +9701,6 @@
 					"$(SRCROOT)/src/game/race",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",
@@ -9670,7 +9741,6 @@
 					"$(SRCROOT)/src/game/race",
 					"$(SRCROOT)/src/cgame/common/ui",
 					"$(SRCROOT)/src/cgame/common/ui/controls",
-					"$(SRCROOT)/src/cgame/common/ui/credits",
 					"$(SRCROOT)/src/cgame/common/ui/editor",
 					"$(SRCROOT)/src/cgame/common/ui/home",
 					"$(SRCROOT)/src/cgame/common/ui/main",

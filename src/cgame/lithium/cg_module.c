@@ -19,52 +19,15 @@
  * Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
  */
 
-
 #include "cg_local.h"
-
-#include "MapListCollectionItemView.h"
-
-static struct {
-  CGameFilterCreateServerMapListHook FilterCreateServerMapList;
-} previous;
-
-/**
- * @brief The games this module plays as variants of deathmatch, which the maps name
- * rather than `lithium`.
- */
-static const char *lithiumGames[] = { "dm", "tdm", "duel", "instagib" };
-
-/**
- * @brief Lists a map made for any of the deathmatch variants.
- */
-static bool Cg_FilterCreateServerMapList_Lithium(const MapListItemInfo *info) {
-
-  for (size_t i = 0; i < lengthof(lithiumGames); i++) {
-    if (Str_HasToken(info->games, lithiumGames[i])) {
-      return true;
-    }
-  }
-
-  return previous.FilterCreateServerMapList(info);
-}
 
 /**
  * @brief Lithium draws the grappling hook and the techs, both of which are
  * features of the common sources that `Cg_Init` installs from the defines in this
- * module's Makefile.am. Its one hook of its own names the deathmatch variants in
- * the create-server map browser, since no map is made for `lithium`.
+ * module's Makefile.am. Its `game.lst` names the deathmatch variants that Create Server lists,
+ * since no map is made for `lithium`.
  */
 void Cg_Module_Init(void) {
-  static bool installed;
-
-  if (installed) {
-    return;
-  }
-
-  previous.FilterCreateServerMapList = Cg_FilterCreateServerMapList;
-  Cg_FilterCreateServerMapList = Cg_FilterCreateServerMapList_Lithium;
-
-  installed = true;
 }
 
 /**

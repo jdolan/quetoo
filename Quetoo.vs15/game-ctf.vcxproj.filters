@@ -57,6 +57,9 @@
     <ClInclude Include="..\src\game\common\bg_pmove.h">
       <Filter>src\common</Filter>
     </ClInclude>
+    <ClInclude Include="..\src\game\common\bg_game.h">
+      <Filter>src\common</Filter>
+    </ClInclude>
     <ClInclude Include="..\src\game\common\bg_intermission.h">
       <Filter>src\common</Filter>
     </ClInclude>

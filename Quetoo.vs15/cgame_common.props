@@ -107,8 +107,6 @@
     <ClInclude Include="..\src\cgame\common\ui\controls\CrosshairPreviewView.h" />
     <ClCompile Include="..\src\cgame\common\ui\controls\MovementCombatViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\controls\MovementCombatViewController.h" />
-    <ClCompile Include="..\src\cgame\common\ui\credits\CreditsViewController.c" />
-    <ClInclude Include="..\src\cgame\common\ui\credits\CreditsViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\editor\EditorViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\editor\EditorViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\editor\EntityView.c" />
@@ -121,6 +119,8 @@
     <ClInclude Include="..\src\cgame\common\ui\editor\StageView.h" />
     <ClCompile Include="..\src\cgame\common\ui\editor\StageViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\editor\StageViewController.h" />
+    <ClCompile Include="..\src\cgame\common\ui\home\CreditsViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\home\CreditsViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionItemView.c" />
     <ClInclude Include="..\src\cgame\common\ui\home\DemosCollectionItemView.h" />
     <ClCompile Include="..\src\cgame\common\ui\home\DemosCollectionView.c" />
@@ -197,6 +197,10 @@
     <ClInclude Include="..\src\cgame\common\ui\hud\VoteView.h" />
     <ClCompile Include="..\src\cgame\common\ui\hud\WeaponBarView.c" />
     <ClInclude Include="..\src\cgame\common\ui\hud\WeaponBarView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\main\GameCollectionItemView.c" />
+    <ClInclude Include="..\src\cgame\common\ui\main\GameCollectionItemView.h" />
+    <ClCompile Include="..\src\cgame\common\ui\main\GamesViewController.c" />
+    <ClInclude Include="..\src\cgame\common\ui\main\GamesViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\main\LoadingViewController.c" />
     <ClInclude Include="..\src\cgame\common\ui\main\LoadingViewController.h" />
     <ClCompile Include="..\src\cgame\common\ui\main\MainView.c" />

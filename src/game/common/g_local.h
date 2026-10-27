@@ -32,6 +32,7 @@
 
 #include <Objectively/Vector.h>
 
+#include "bg_game.h"
 #include "g_ai_main.h"
 #include "g_ballistics.h"
 #include "g_client_chase.h"

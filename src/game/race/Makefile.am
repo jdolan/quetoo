@@ -21,6 +21,9 @@ gamelibdir = \
 gamelib_LTLIBRARIES = \
 	game.la
 
+gamelib_DATA = \
+	game.lst
+
 game_la_SOURCES = \
 	bg_item.c \
 	bg_nav.c \

@@ -252,27 +252,6 @@ Class *_FlagStatusView(void) {
 #undef _Class
 
 /**
- * @brief Captures are team deathmatch or team instagib: arena does not apply,
- * and teams are not optional. A single owner, like the game side's
- * `G_ClampGamePlay_Ctf`, so it does not add to what `previous` offers.
- * @details The rows are copies of the shared `gameplays` table's, so their
- * `name` and `label` are the table's own strings.
- */
-static const GamePlay *Cg_ListGamePlays_Ctf(size_t *count) {
-  static GamePlay ctfGamePlays[2];
-
-  *count = 0;
-
-  for (size_t i = 0; i < lengthof(gameplays); i++) {
-    if (gameplays[i].id == GAMEPLAY_TEAM_DEATHMATCH || gameplays[i].id == GAMEPLAY_TEAM_INSTAGIB) {
-      ctfGamePlays[(*count)++] = gameplays[i];
-    }
-  }
-
-  return ctfGamePlays;
-}
-
-/**
  * @brief Installs the capture the flag feature's client side, once per module
  * image.
  * @details The guard is load bearing rather than defensive: `Cg_Init` runs again
@@ -285,8 +264,6 @@ void Cg_Ctf_Init(void) {
   if (installed) {
     return;
   }
-
-  Cg_ListGamePlays = Cg_ListGamePlays_Ctf;
 
   installed = true;
 }

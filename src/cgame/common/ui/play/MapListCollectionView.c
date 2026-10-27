@@ -28,17 +28,6 @@
 
 #define DEFAULT_GAMES "dm"
 
-#pragma mark - Cg_FilterCreateServerMapList
-
-/**
- * @brief The tail of the `Cg_FilterCreateServerMapList` hook, listing a map made for this game.
- */
-static bool Cg_FilterCreateServerMapList_Common(const MapListItemInfo *info) {
-  return Str_HasToken(info->games, GAME_NAME);
-}
-
-CGameFilterCreateServerMapListHook Cg_FilterCreateServerMapList = Cg_FilterCreateServerMapList_Common;
-
 #pragma mark CollectionViewDataSource
 
 /**
@@ -194,7 +183,7 @@ static void enumerateMaps(const char *path, void *data) {
   MapListItemInfo *info = calloc(1, sizeof(*info));
   assert(info);
 
-  if (Cg_LoadMapListItemInfo(path, info) && Cg_FilterCreateServerMapList(info)) {
+  if (Cg_LoadMapListItemInfo(path, info) && GameInfo_HasMap(&cgameGameInfo, info->games)) {
     $(maps, add, info);
   } else {
     free(info);

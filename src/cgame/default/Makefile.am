@@ -11,7 +11,6 @@ AM_CPPFLAGS = \
 	-I$(CGAME_COMMON_DIR) \
 	-I$(CGAME_COMMON_DIR)/ui \
 	-I$(CGAME_COMMON_DIR)/ui/controls \
-	-I$(CGAME_COMMON_DIR)/ui/credits \
 	-I$(CGAME_COMMON_DIR)/ui/editor \
 	-I$(CGAME_COMMON_DIR)/ui/home \
 	-I$(CGAME_COMMON_DIR)/ui/hud \
@@ -84,13 +83,6 @@ cguicontrols_DATA = \
 	$(CGUI_DIR)/controls/MovementCombatViewController.css \
 	$(CGUI_DIR)/controls/MovementCombatViewController.json
 
-cguicreditsdir = \
-	@PKGLIBDIR@/default/ui/credits
-
-cguicredits_DATA = \
-	$(CGUI_DIR)/credits/CreditsViewController.css \
-	$(CGUI_DIR)/credits/CreditsViewController.json
-
 cguieditordir = \
 	@PKGLIBDIR@/default/ui/editor
 
@@ -147,6 +139,8 @@ cguihomedir = \
 	@PKGLIBDIR@/default/ui/home
 
 cguihome_DATA = \
+	$(CGUI_DIR)/home/CreditsViewController.css \
+	$(CGUI_DIR)/home/CreditsViewController.json \
 	$(CGUI_DIR)/home/DemosViewController.css \
 	$(CGUI_DIR)/home/DemosViewController.json \
 	$(CGUI_DIR)/home/HomeViewController.css \
@@ -160,6 +154,8 @@ cguimaindir = \
 	@PKGLIBDIR@/default/ui/main
 
 cguimain_DATA = \
+	$(CGUI_DIR)/main/GamesViewController.css \
+	$(CGUI_DIR)/main/GamesViewController.json \
 	$(CGUI_DIR)/main/LoadingViewController.css \
 	$(CGUI_DIR)/main/LoadingViewController.json \
 	$(CGUI_DIR)/main/MainView.css \
@@ -265,13 +261,13 @@ cgame_la_SOURCES = \
 	ui/controls/CrosshairHudViewController.c \
 	ui/controls/CrosshairPreviewView.c \
 	ui/controls/MovementCombatViewController.c \
-	ui/credits/CreditsViewController.c \
 	ui/editor/EditorViewController.c \
 	ui/editor/EntityView.c \
 	ui/editor/EntityViewController.c \
 	ui/editor/MaterialViewController.c \
 	ui/editor/StageView.c \
 	ui/editor/StageViewController.c \
+	ui/home/CreditsViewController.c \
 	ui/home/DemoList.c \
 	ui/home/DemosCollectionItemView.c \
 	ui/home/DemosCollectionView.c \
@@ -310,6 +306,8 @@ cgame_la_SOURCES = \
 	ui/hud/VoiceView.c \
 	ui/hud/VoteView.c \
 	ui/hud/WeaponBarView.c \
+	ui/main/GameCollectionItemView.c \
+	ui/main/GamesViewController.c \
 	ui/main/LoadingViewController.c \
 	ui/main/MainView.c \
 	ui/main/MainViewController.c \

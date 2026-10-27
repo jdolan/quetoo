@@ -22,6 +22,7 @@
 #pragma once
 
 #include "cgame/cgame.h"
+#include "bg_game.h"
 #include "bg_intermission.h"
 #include "g_types.h"
 
@@ -561,5 +562,6 @@ typedef struct {
 } CGameState;
 
 extern CGameState cgameState;
+extern GameInfo cgameGameInfo;
 
 #endif

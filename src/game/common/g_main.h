@@ -25,6 +25,7 @@
 
 #if defined(__G_LOCAL_H__)
 
+extern GameInfo gameInfo;
 extern GameLevel gameLevel;
 extern GameMedia gameMedia;
 

@@ -12,7 +12,6 @@ AM_CPPFLAGS = \
 	-I$(CGAME_COMMON_DIR) \
 	-I$(CGAME_COMMON_DIR)/ui \
 	-I$(CGAME_COMMON_DIR)/ui/controls \
-	-I$(CGAME_COMMON_DIR)/ui/credits \
 	-I$(CGAME_COMMON_DIR)/ui/editor \
 	-I$(CGAME_COMMON_DIR)/ui/home \
 	-I$(CGAME_COMMON_DIR)/ui/hud \
@@ -111,13 +110,13 @@ cgame_la_SOURCES = \
 	ui/controls/CrosshairHudViewController.c \
 	ui/controls/CrosshairPreviewView.c \
 	ui/controls/MovementCombatViewController.c \
-	ui/credits/CreditsViewController.c \
 	ui/editor/EditorViewController.c \
 	ui/editor/EntityView.c \
 	ui/editor/EntityViewController.c \
 	ui/editor/MaterialViewController.c \
 	ui/editor/StageView.c \
 	ui/editor/StageViewController.c \
+	ui/home/CreditsViewController.c \
 	ui/home/DemoList.c \
 	ui/home/DemosCollectionItemView.c \
 	ui/home/DemosCollectionView.c \
@@ -156,6 +155,8 @@ cgame_la_SOURCES = \
 	ui/hud/VoiceView.c \
 	ui/hud/VoteView.c \
 	ui/hud/WeaponBarView.c \
+	ui/main/GameCollectionItemView.c \
+	ui/main/GamesViewController.c \
 	ui/main/LoadingViewController.c \
 	ui/main/MainView.c \
 	ui/main/MainViewController.c \

@@ -1,0 +1,18 @@
+# The game's card in the menu, and what the game supports: one entity of keys, in the map
+# list format. Every key is optional. A value with spaces MUST be in quotes.
+#
+# name         The title on the card. Unset, the name of the game's directory.
+# description  The text on the card. It wraps to the card's width, and \n is a line break.
+#              Keep it to a few lines.
+# image        A PNG or JPG for the card, relative to the game's directory.
+# gameplay     The gameplay modes, as g_gameplay names separated by spaces. Unset, all of them.
+# maps         The tokens of a map's "games" key that Create Server lists, separated by spaces.
+#              Unset, the name of the game's directory.
+# practice     0 to offer no Practice. Unset, 1.
+
+{
+	name "Capture the Flag"
+	description "Two teams. Steal the enemy flag, and bring it home to your own.\nWith the grapple hook and techs."
+	gameplay "team_deathmatch team_instagib"
+	maps "ctf"
+}
