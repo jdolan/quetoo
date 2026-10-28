@@ -368,6 +368,20 @@ START_TEST(check_NetChan_TransmitDumpsUnreliable) {
 
 } END_TEST
 
+START_TEST(check_NetChan_TransmitMaximum) {
+
+  ck_assert_int_eq(MAX_MSG_SIZE, 65536);
+
+  Test_Connect();
+
+  NetChan_Transmit(&server, payload, sizeof(server.messageBuffer));
+
+  ck_assert(Test_Receive(NS_UDP_CLIENT, &client));
+  Test_AssertPayload(sizeof(server.messageBuffer));
+  ck_assert_int_le(largestDatagram, MAX_MSG_FRAGMENT_SIZE);
+
+} END_TEST
+
 START_TEST(check_NetChan_LoopbackUnfragmented) {
 
   NetAddr addr = { .type = NA_LOOP };
@@ -410,6 +424,7 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(udp, check_NetChan_TransmitClientToServer);
   tcase_add_test(udp, check_NetChan_TransmitReliable);
   tcase_add_test(udp, check_NetChan_TransmitDumpsUnreliable);
+  tcase_add_test(udp, check_NetChan_TransmitMaximum);
   tcase_add_test(udp, check_NetChan_LoopbackUnfragmented);
 
   Suite *suite = suite_create("check_net_chan");

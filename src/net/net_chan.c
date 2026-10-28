@@ -96,7 +96,7 @@ NetMessage netMessage;
  */
 void NetChan_OutOfBand(int32_t sock, const NetAddr *addr, const void *data, size_t len) {
   MemBuf send;
-  byte sendBuffer[MAX_MSG_SIZE];
+  byte sendBuffer[MAX_MSG_SIZE_OOB];
 
   // write the packet header
   Mem_InitBuffer(&send, sendBuffer, sizeof(sendBuffer));
@@ -113,7 +113,7 @@ void NetChan_OutOfBand(int32_t sock, const NetAddr *addr, const void *data, size
  */
 void NetChan_OutOfBandPrint(int32_t sock, const NetAddr *addr, const char *format, ...) {
   va_list args;
-  char string[MAX_MSG_SIZE - 4];
+  char string[MAX_MSG_SIZE_OOB - 4];
 
   memset(string, 0, sizeof(string));
 

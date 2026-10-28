@@ -90,7 +90,7 @@ void Sv_DropClient(ServerClient *client) {
  * @brief Returns a string fit for heartbeats and status replies.
  */
 const char *Sv_StatusString(void) {
-  static char status[MAX_MSG_SIZE - 16];
+  static char status[MAX_MSG_SIZE_OOB - 16];
 
   Str_Format(status, sizeof(status), "%s\n", Cvar_ServerInfo());
   size_t statusLen = Str_Length(status);

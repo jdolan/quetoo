@@ -47,11 +47,15 @@
 #include "common/common.h"
 
 /**
- * @brief Max length of a single server message. No individual message can exceed
- * this length. However, large server messages can be split into multiple packets
- * and sent in series. See `Sv_SendClientDatagram`.
+ * @brief Max length of a single netchan message, the ceiling of a UDP datagram. A message to a
+ * remote address is sent as fragments of `MAX_MSG_FRAGMENT_SIZE`. See `NetChan_Transmit`.
  */
-#define MAX_MSG_SIZE 16384
+#define MAX_MSG_SIZE 65536
+
+/**
+ * @brief Max length of an out-of-band (connectionless) datagram. These are never fragmented.
+ */
+#define MAX_MSG_SIZE_OOB 16384
 
 /**
  * @brief The max size of one fragment datagram, header included. Messages to a remote address

@@ -22,6 +22,13 @@
 #include "sv_local.h"
 
 /**
+ * @brief The size of each batch of config strings and baselines sent at sign-on. Each batch is a
+ * reliable message that waits for the client to ask for the next, so a lost fragment costs only
+ * the batch, which a smaller batch keeps to a few fragments.
+ */
+#define SV_SIGN_ON_BATCH_SIZE 4096
+
+/**
  * @brief Sends the first message from the server to a connected client.
  * This will be sent on the initial connection and upon each server load.
  */
@@ -96,7 +103,7 @@ static void Sv_ConfigStrings_f(void) {
   while (start < MAX_CONFIG_STRINGS) {
     const size_t len = Str_Length(sv.configStrings[start]);
     if (len) {
-      if (ch->message.size + len >= ch->message.maxSize - 48) {
+      if (ch->message.size + len >= SV_SIGN_ON_BATCH_SIZE - 48) {
         break;
       }
       Net_WriteByte(&serverClient->netChan.message, SV_CMD_CONFIG_STRING);
@@ -144,7 +151,7 @@ static void Sv_Baselines_f(void) {
   memset(&nullState, 0, sizeof(nullState));
 
   // write a packet full of data
-  while (serverClient->netChan.message.size < (MAX_MSG_SIZE >> 1) && start < MAX_ENTITIES) {
+  while (serverClient->netChan.message.size < SV_SIGN_ON_BATCH_SIZE && start < MAX_ENTITIES) {
     base = &sv.entities[start].baseline;
     if (base->model1 || base->sound || base->effects) {
       Net_WriteByte(&serverClient->netChan.message, SV_CMD_BASELINE);
