@@ -85,6 +85,7 @@ void Cl_RequestNextDownload(void) {
 
   Cl_LoadMedia();
 
+  // bump the received timestamp so that loading media doesn't trigger our own client-side timeout
   cls.netChan.lastReceived = quetoo.ticks;
 
   Net_WriteByte(&cls.netChan.message, CL_CMD_STRING);
