@@ -36,12 +36,6 @@
 
 #include "net_sock.h"
 
-/**
- * @brief The send and receive buffer size requested for UDP sockets, enough for several
- * `MAX_MSG_SIZE` messages in fragments. The OS may grant less.
- */
-#define NET_UDP_SOCKET_BUFFER (1 << 20)
-
 in_addr_t netLo;
 
 int32_t Net_GetError(void) {

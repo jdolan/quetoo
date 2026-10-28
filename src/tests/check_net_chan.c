@@ -415,19 +415,37 @@ START_TEST(check_NetChan_LoopbackUnfragmented) {
 
 } END_TEST
 
+/**
+ * @return The size of the given socket buffer option.
+ */
+static int32_t Test_GetSocketBuffer(int32_t sock, int32_t option) {
+
+  int32_t size = 0;
+  socklen_t len = sizeof(size);
+
+  ck_assert_int_eq(getsockopt(sock, SOL_SOCKET, option, (void *) &size, &len), 0);
+  return size;
+}
+
+/**
+ * @brief The OS may cap a socket buffer below `NET_UDP_SOCKET_BUFFER`, so `Net_Socket` must get
+ * what the host grants a plain socket for the same request, not a fixed size.
+ */
 START_TEST(check_Net_SocketBuffers) {
 
   const int32_t sock = Net_Socket(NA_DATAGRAM, NULL, 0);
+  const int32_t plain = (int32_t) socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP);
+  ck_assert_int_ne(plain, -1);
 
   const int32_t options[] = { SO_RCVBUF, SO_SNDBUF };
   for (size_t i = 0; i < lengthof(options); i++) {
-    int32_t size = 0;
-    socklen_t len = sizeof(size);
+    const int32_t size = NET_UDP_SOCKET_BUFFER;
+    setsockopt(plain, SOL_SOCKET, options[i], (const void *) &size, sizeof(size));
 
-    ck_assert_int_eq(getsockopt(sock, SOL_SOCKET, options[i], (void *) &size, &len), 0);
-    ck_assert_int_ge(size, 256 * 1024);
+    ck_assert_int_eq(Test_GetSocketBuffer(sock, options[i]), Test_GetSocketBuffer(plain, options[i]));
   }
 
+  Net_CloseSocket(plain);
   Net_CloseSocket(sock);
 
 } END_TEST
