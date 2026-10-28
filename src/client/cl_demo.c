@@ -66,7 +66,7 @@ static void Cl_AddDemoKeyframe(int32_t frameNum, int32_t offset) {
 static void Cl_WriteDemoHeader(void) {
   static EntityState nullState;
   MemBuf msg;
-  byte buffer[MAX_MSG_SIZE];
+  byte buffer[MAX_MSG_PAYLOAD];
 
   DemoHeader *header = &cls.demo.header;
   memset(header, 0, sizeof(*header));
@@ -179,11 +179,11 @@ void Cl_WriteDemoMessage(void) {
 
   static PlayerState nullPlayerState;
 
-  // bounded by MAX_MSG_SIZE to match what Sv_GetDemoMessage accepts as a valid chunk on
-  // playback, and what the server's own relay buffers and NetChan_Transmit can actually carry in
-  // one message - unlike a plain on-disk record size, this isn't a purely local concern.
+  // bounded by MAX_MSG_PAYLOAD to match what Sv_GetDemoMessage accepts as a valid chunk on
+  // playback, and what NetChan_Transmit can actually carry in one message - unlike a plain
+  // on-disk record size, this isn't a purely local concern.
   MemBuf msg;
-  byte buffer[MAX_MSG_SIZE];
+  byte buffer[MAX_MSG_PAYLOAD];
   Mem_InitBuffer(&msg, buffer, sizeof(buffer));
 
   Net_WriteByte(&msg, SV_CMD_FRAME);

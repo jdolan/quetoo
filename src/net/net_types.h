@@ -53,6 +53,12 @@
 #define MAX_MSG_SIZE 65536
 
 /**
+ * @brief Max length of the payload of one netchan message, reliable and unreliable parts together.
+ * The rest of `MAX_MSG_SIZE` holds the header of a message that is sent as one datagram.
+ */
+#define MAX_MSG_PAYLOAD (MAX_MSG_SIZE - 10)
+
+/**
  * @brief Max length of an out-of-band (connectionless) datagram. These are never fragmented.
  */
 #define MAX_MSG_SIZE_OOB 16384
@@ -131,11 +137,11 @@ typedef struct {
   uint32_t reliableOutgoing; // outgoing sequence number of last reliable
 
   NetMessage message; // writing buffer to send to server
-  byte messageBuffer[MAX_MSG_SIZE - 10]; // leave space for header
+  byte messageBuffer[MAX_MSG_PAYLOAD];
 
   // message is copied to this buffer when it is first transfered
   size_t reliableSize;
-  byte reliableBuffer[MAX_MSG_SIZE - 10]; // un-acked reliable message
+  byte reliableBuffer[MAX_MSG_PAYLOAD]; // un-acked reliable message
 
   // the partial message being reassembled from fragments
   uint32_t fragmentSequence;

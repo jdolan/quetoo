@@ -368,16 +368,34 @@ START_TEST(check_NetChan_TransmitDumpsUnreliable) {
 
 } END_TEST
 
+START_TEST(check_NetChan_TransmitAvailable) {
+
+  Test_Connect();
+
+  ck_assert_int_eq(NetChan_Available(&server), MAX_MSG_PAYLOAD);
+
+  Net_WriteData(&server.message, payload, 4000);
+  ck_assert_int_eq(NetChan_Available(&server), MAX_MSG_PAYLOAD - 4000);
+
+  NetChan_Transmit(&server, payload + 4000, NetChan_Available(&server));
+
+  ck_assert(Test_Receive(NS_UDP_CLIENT, &client));
+  Test_AssertPayload(MAX_MSG_PAYLOAD);
+
+  ck_assert_int_eq(NetChan_Available(&server), MAX_MSG_PAYLOAD);
+
+} END_TEST
+
 START_TEST(check_NetChan_TransmitMaximum) {
 
   ck_assert_int_eq(MAX_MSG_SIZE, 65536);
 
   Test_Connect();
 
-  NetChan_Transmit(&server, payload, sizeof(server.messageBuffer));
+  NetChan_Transmit(&server, payload, MAX_MSG_PAYLOAD);
 
   ck_assert(Test_Receive(NS_UDP_CLIENT, &client));
-  Test_AssertPayload(sizeof(server.messageBuffer));
+  Test_AssertPayload(MAX_MSG_PAYLOAD);
   ck_assert_int_le(largestDatagram, MAX_MSG_FRAGMENT_SIZE);
 
 } END_TEST
@@ -442,6 +460,7 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(udp, check_NetChan_TransmitClientToServer);
   tcase_add_test(udp, check_NetChan_TransmitReliable);
   tcase_add_test(udp, check_NetChan_TransmitDumpsUnreliable);
+  tcase_add_test(udp, check_NetChan_TransmitAvailable);
   tcase_add_test(udp, check_NetChan_TransmitMaximum);
   tcase_add_test(udp, check_NetChan_LoopbackUnfragmented);
 

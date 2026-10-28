@@ -146,7 +146,7 @@ void NetChan_Setup(NetSrc source, NetChan *chan, NetAddr *addr, uint8_t qport) {
  * @return True if reliable data must be transmitted this frame, false
  * otherwise.
  */
-static bool NetChan_CheckRetransmit(NetChan *chan) {
+static bool NetChan_CheckRetransmit(const NetChan *chan) {
 
   // if the remote side dropped the last reliable message, re-send it
   if (chan->incomingAcknowledged > chan->reliableOutgoing && chan->reliableAcknowledged
@@ -155,6 +155,23 @@ static bool NetChan_CheckRetransmit(NetChan *chan) {
   }
 
   return false;
+}
+
+/**
+ * @return The unreliable bytes that the next `NetChan_Transmit` can carry, after the reliable
+ * message that it will send, if any.
+ */
+size_t NetChan_Available(const NetChan *chan) {
+
+  if (NetChan_CheckRetransmit(chan)) {
+    return MAX_MSG_PAYLOAD - chan->reliableSize;
+  }
+
+  if (!chan->reliableSize) {
+    return MAX_MSG_PAYLOAD - chan->message.size;
+  }
+
+  return MAX_MSG_PAYLOAD;
 }
 
 /**
@@ -205,7 +222,7 @@ static bool NetChan_Transmit_datagram(NetChan *chan, uint32_t w1, uint32_t w2, c
  */
 void NetChan_Transmit(NetChan *chan, byte *data, size_t len) {
   MemBuf payload;
-  byte payloadBuffer[MAX_MSG_SIZE - 10];
+  byte payloadBuffer[MAX_MSG_PAYLOAD];
 
   // check for re-transmission of reliable message
   bool sendReliable = NetChan_CheckRetransmit(chan);

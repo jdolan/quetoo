@@ -161,7 +161,7 @@ void Sv_SendDemoSetup(ServerClient *cl) {
     }
 
     size = LittleLong(size);
-    if (size <= 0 || size > MAX_MSG_SIZE) {
+    if (size <= 0 || size > MAX_MSG_PAYLOAD) {
       Com_Warn("Corrupt demo file: invalid chunk size %d\n", size);
       break;
     }
@@ -320,7 +320,7 @@ static size_t Sv_GetDemoMessage(byte *buffer, int32_t *frameNum) {
   // Fs_Read divides its byte count by `size`, so 0 is a divide-by-zero; any other non-positive
   // value implicitly converts to an enormous size_t read count when passed to Fs_Read below.
   // Only -1 (already handled above) is a legitimate non-positive value here.
-  if (size <= 0 || size > MAX_MSG_SIZE) { // corrupt demo file
+  if (size <= 0 || size > MAX_MSG_PAYLOAD) { // corrupt demo file
     Com_Warn("Corrupt demo file: invalid chunk size %d\n", size);
     Sv_DemoCompleted();
     return 0;

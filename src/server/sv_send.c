@@ -144,8 +144,8 @@ void Sv_ClientDatagramMessage(ServerClient *cl, byte *data, size_t len) {
     Mem_InitBuffer(&cl->datagram.buffer, cl->datagram.data, sizeof(cl->datagram.data));
   }
 
-  if (len > MAX_MSG_SIZE) {
-    Com_Error(ERROR_DROP, "Single datagram message exceeded MAX_MSG_SIZE\n");
+  if (len > MAX_MSG_PAYLOAD) {
+    Com_Error(ERROR_DROP, "Single datagram message exceeded MAX_MSG_PAYLOAD\n");
   }
 
   if (len > cl->datagram.buffer.maxSize - cl->datagram.buffer.size) {
@@ -275,7 +275,7 @@ static void Sv_SendClientDatagram(ServerClient *cl) {
       const ServerClientMessage *msg = (const ServerClientMessage *) node->element;
 
       // if we would overflow the packet, flush it first
-      if (buf.size + msg->len > buf.maxSize) {
+      if (buf.size + msg->len > NetChan_Available(&cl->netChan)) {
         Com_Debug(DEBUG_SERVER, "Splitting datagram @ %u bytes\n", (uint32_t) buf.size);
 
         NetChan_Transmit(&cl->netChan, buf.data, buf.size);

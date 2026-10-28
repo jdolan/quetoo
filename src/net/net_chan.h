@@ -28,6 +28,7 @@ extern NetAddr netFrom;
 extern NetMessage netMessage;
 
 void NetChan_Setup(NetSrc source, NetChan *chan, NetAddr *addr, uint8_t qport);
+size_t NetChan_Available(const NetChan *chan);
 void NetChan_Transmit(NetChan *chan, byte *data, size_t len);
 void NetChan_OutOfBand(int32_t sock, const NetAddr *addr, const void *data, size_t len);
 void NetChan_OutOfBandPrint(int32_t sock, const NetAddr *addr, const char *format, ...) __attribute__((format(printf,
