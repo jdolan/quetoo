@@ -93,7 +93,7 @@ static bool Test_ProcessFragments(uint32_t sequence, bool reliable, size_t len) 
 
   size_t offset = 0;
   while (true) {
-    const size_t fragment = Mini(len - offset, MAX_MSG_FRAGMENT_PAYLOAD);
+    const size_t fragment = Minz(len - offset, MAX_MSG_FRAGMENT_PAYLOAD);
 
     Test_WriteFragment(sequence, reliable, offset, fragment);
     const bool complete = NetChan_Process(&chan, &netMessage);
@@ -212,6 +212,177 @@ START_TEST(check_NetChan_Oversize) {
 
 } END_TEST
 
+#define TEST_PORT "27993"
+
+static NetChan client, server;
+static size_t largestDatagram;
+
+/**
+ * @brief Setup fixture for tests over real UDP sockets on 127.0.0.1.
+ */
+static void setup_udp(void) {
+
+  setup();
+
+  Cvar_Add("net_port", TEST_PORT, CVAR_NO_SET, NULL);
+
+  Net_Config(NS_UDP_SERVER, true);
+  Net_Config(NS_UDP_CLIENT, true);
+
+  NetAddr addr;
+  ck_assert(Net_StringToNetaddr("127.0.0.1:" TEST_PORT, &addr));
+
+  NetChan_Setup(NS_UDP_CLIENT, &client, &addr, 42);
+
+  largestDatagram = 0;
+}
+
+/**
+ * @brief Teardown fixture for tests over real UDP sockets.
+ */
+static void teardown_udp(void) {
+  teardown();
+}
+
+/**
+ * @brief Reads datagrams for `source` until `NetChan_Process` completes a message on `chan`, or
+ * one second passes. Records the largest datagram in `largestDatagram`.
+ */
+static bool Test_Receive(NetSrc source, NetChan *chan) {
+
+  const uint64_t deadline = SDL_GetTicks() + 1000;
+
+  while (SDL_GetTicks() < deadline) {
+    NetAddr from;
+    if (Net_ReceiveDatagram(source, &from, &netMessage)) {
+      largestDatagram = Maxz(largestDatagram, netMessage.size);
+      if (NetChan_Process(chan, &netMessage)) {
+        return true;
+      }
+    } else {
+      SDL_Delay(1);
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @brief Connects the server channel to the client, as the server does on `connect`.
+ */
+static void Test_Connect(void) {
+
+  NetChan_Transmit(&client, payload, 10);
+
+  NetAddr from;
+  const uint64_t deadline = SDL_GetTicks() + 1000;
+  while (!Net_ReceiveDatagram(NS_UDP_SERVER, &from, &netMessage)) {
+    ck_assert(SDL_GetTicks() < deadline);
+    SDL_Delay(1);
+  }
+
+  NetChan_Setup(NS_UDP_SERVER, &server, &from, 42);
+  ck_assert(NetChan_Process(&server, &netMessage));
+}
+
+/**
+ * @brief Asserts that `netMessage` holds exactly the first `len` bytes of `payload`.
+ */
+static void Test_AssertPayload(size_t len) {
+
+  ck_assert_int_eq(netMessage.size - netMessage.read, len);
+  ck_assert(memcmp(netMessage.data + netMessage.read, payload, len) == 0);
+}
+
+START_TEST(check_NetChan_TransmitSmall) {
+
+  Test_Connect();
+
+  NetChan_Transmit(&server, payload, 500);
+
+  ck_assert(Test_Receive(NS_UDP_CLIENT, &client));
+  Test_AssertPayload(500);
+  ck_assert_int_eq(largestDatagram, 500 + 8);
+
+} END_TEST
+
+START_TEST(check_NetChan_TransmitLarge) {
+
+  Test_Connect();
+
+  NetChan_Transmit(&server, payload, 10000);
+
+  ck_assert(Test_Receive(NS_UDP_CLIENT, &client));
+  Test_AssertPayload(10000);
+  ck_assert_int_le(largestDatagram, MAX_MSG_FRAGMENT_SIZE);
+
+} END_TEST
+
+START_TEST(check_NetChan_TransmitExactMultiple) {
+
+  Test_Connect();
+
+  NetChan_Transmit(&server, payload, 3 * MAX_MSG_FRAGMENT_PAYLOAD);
+
+  ck_assert(Test_Receive(NS_UDP_CLIENT, &client));
+  Test_AssertPayload(3 * MAX_MSG_FRAGMENT_PAYLOAD);
+  ck_assert_int_le(largestDatagram, MAX_MSG_FRAGMENT_SIZE);
+
+} END_TEST
+
+START_TEST(check_NetChan_TransmitClientToServer) {
+
+  Test_Connect();
+
+  NetChan_Transmit(&client, payload, 5000);
+
+  ck_assert(Test_Receive(NS_UDP_SERVER, &server));
+  Test_AssertPayload(5000);
+  ck_assert_int_le(largestDatagram, MAX_MSG_FRAGMENT_SIZE);
+
+} END_TEST
+
+START_TEST(check_NetChan_TransmitReliable) {
+
+  Test_Connect();
+
+  Net_WriteData(&server.message, payload, 6000);
+  NetChan_Transmit(&server, NULL, 0);
+
+  ck_assert(Test_Receive(NS_UDP_CLIENT, &client));
+  Test_AssertPayload(6000);
+  ck_assert_int_eq(client.reliableIncoming, 1);
+  ck_assert_int_le(largestDatagram, MAX_MSG_FRAGMENT_SIZE);
+
+} END_TEST
+
+START_TEST(check_NetChan_TransmitDumpsUnreliable) {
+
+  Test_Connect();
+
+  Net_WriteData(&server.message, payload, 4000);
+  NetChan_Transmit(&server, payload, MAX_MSG_SIZE - 1000);
+
+  ck_assert(Test_Receive(NS_UDP_CLIENT, &client));
+  Test_AssertPayload(4000);
+
+} END_TEST
+
+START_TEST(check_NetChan_LoopbackUnfragmented) {
+
+  NetAddr addr = { .type = NA_LOOP };
+  NetChan_Setup(NS_UDP_SERVER, &server, &addr, 0);
+
+  NetChan_Transmit(&server, payload, 10000);
+
+  NetAddr from;
+  ck_assert(Net_ReceiveDatagram(NS_UDP_CLIENT, &from, &netMessage));
+  ck_assert_int_eq(from.type, NA_LOOP);
+  ck_assert_int_eq(netMessage.size, 10000 + 8);
+  ck_assert(!Net_ReceiveDatagram(NS_UDP_CLIENT, &from, &netMessage));
+
+} END_TEST
+
 /**
  * @brief Test entry point.
  */
@@ -230,8 +401,20 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(tcase, check_NetChan_ReliableOnce);
   tcase_add_test(tcase, check_NetChan_Oversize);
 
+  TCase *udp = tcase_create("check_net_chan_udp");
+  tcase_add_checked_fixture(udp, setup_udp, teardown_udp);
+
+  tcase_add_test(udp, check_NetChan_TransmitSmall);
+  tcase_add_test(udp, check_NetChan_TransmitLarge);
+  tcase_add_test(udp, check_NetChan_TransmitExactMultiple);
+  tcase_add_test(udp, check_NetChan_TransmitClientToServer);
+  tcase_add_test(udp, check_NetChan_TransmitReliable);
+  tcase_add_test(udp, check_NetChan_TransmitDumpsUnreliable);
+  tcase_add_test(udp, check_NetChan_LoopbackUnfragmented);
+
   Suite *suite = suite_create("check_net_chan");
   suite_add_tcase(suite, tcase);
+  suite_add_tcase(suite, udp);
 
   int32_t failed = Test_Run(suite);
 

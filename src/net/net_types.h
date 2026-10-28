@@ -54,11 +54,6 @@
 #define MAX_MSG_SIZE 16384
 
 /**
- * @brief The max UDP message size, bounded by Windows MTU. Warn if we exceed this.
- */
-#define MAX_MSG_SIZE_UDP 1450
-
-/**
  * @brief The max size of one fragment datagram, header included. Messages to a remote address
  * that do not fit are fragmented, so that no datagram depends on IP fragmentation.
  */

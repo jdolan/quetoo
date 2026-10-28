@@ -25,11 +25,23 @@
  *
  * packet header
  * -------------
- * 31  sequence
+ * 30  sequence
+ * 1  is this datagram a fragment
  * 1  does this message contain a reliable payload
  * 31  acknowledge sequence
  * 1  acknowledge receipt of even/odd message
- * 8  qport
+ * 8  qport, client to server only
+ * 16  fragment offset, fragments only
+ * 16  fragment length, fragments only
+ *
+ * A message to a remote address that does not fit in MAX_MSG_FRAGMENT_SIZE is
+ * sent as fragments of MAX_MSG_FRAGMENT_PAYLOAD bytes, all with the same
+ * sequence. A shorter fragment is the last one, so a message whose length is
+ * an exact multiple of the payload ends with an empty fragment. The receiver
+ * keeps one partial message, accepts its fragments in order only, and drops
+ * it if one is lost. A lost fragment loses the message, as a lost datagram
+ * does: the reliable part is retransmitted, the unreliable part is not.
+ * Loopback messages are never fragmented, since they never reach the network.
  *
  * The remote connection never knows if it missed a reliable message, the
  * local side detects that it has been dropped by seeing a sequence acknowledge
@@ -146,14 +158,54 @@ static bool NetChan_CheckRetransmit(NetChan *chan) {
 }
 
 /**
+ * @brief Writes the header and `length` bytes of `payload` at `offset` to one datagram, and sends it.
+ * @param fragment True to send the bytes as a fragment, with its offset and length in the header.
+ * @return True if the datagram was sent.
+ */
+static bool NetChan_Transmit_datagram(NetChan *chan, uint32_t w1, uint32_t w2, const MemBuf *payload,
+                                      size_t offset, size_t length, bool fragment) {
+  MemBuf send;
+  byte sendBuffer[MAX_MSG_SIZE];
+
+  Mem_InitBuffer(&send, sendBuffer, sizeof(sendBuffer));
+
+  Net_WriteLong(&send, fragment ? w1 | NETCHAN_FRAGMENT_BIT : w1);
+  Net_WriteLong(&send, w2);
+
+  if (chan->source == NS_UDP_CLIENT) {
+    Net_WriteByte(&send, chan->qport);
+  }
+
+  if (fragment) {
+    Net_WriteShort(&send, (int32_t) offset);
+    Net_WriteShort(&send, (int32_t) length);
+  }
+
+  Mem_WriteBuffer(&send, payload->data + offset, length);
+
+  if (net_showPackets->value) {
+    Com_Print("Send %u bytes: s=%i%s ack=%i rack=%i", (uint32_t) send.size,
+              w1 & ~NETCHAN_RELIABLE_BIT, (w1 & NETCHAN_RELIABLE_BIT) ? " reliable" : "",
+              w2 & ~NETCHAN_RELIABLE_BIT, w2 >> 31u);
+    if (fragment) {
+      Com_Print(" fragment=%u+%u", (uint32_t) offset, (uint32_t) length);
+    }
+    Com_Print("\n");
+  }
+
+  return Net_SendDatagram(chan->source, &chan->remoteAddress, send.data, send.size);
+}
+
+/**
  * @brief Tries to send an unreliable message to a connection, and handles the
  * transmission / retransmission of the reliable messages.
  *
  * A 0 size will still generate a packet and deal with the reliable messages.
+ * A message to a remote address that does not fit in `MAX_MSG_FRAGMENT_SIZE` is sent as fragments.
  */
 void NetChan_Transmit(NetChan *chan, byte *data, size_t len) {
-  MemBuf send;
-  byte sendBuffer[MAX_MSG_SIZE];
+  MemBuf payload;
+  byte payloadBuffer[MAX_MSG_SIZE - 10];
 
   // check for re-transmission of reliable message
   bool sendReliable = NetChan_CheckRetransmit(chan);
@@ -167,47 +219,45 @@ void NetChan_Transmit(NetChan *chan, byte *data, size_t len) {
     sendReliable = true;
   }
 
-  // write the packet header
-  Mem_InitBuffer(&send, sendBuffer, sizeof(sendBuffer));
-
-  const uint32_t w1 = (chan->outgoingSequence & ~(1u << 31)) | ((uint32_t) sendReliable << 31);
-  const uint32_t w2 = (chan->incomingSequence & ~(1u << 31)) | ((uint32_t) chan->reliableIncoming << 31);
+  const uint32_t w1 = (chan->outgoingSequence & ~(NETCHAN_RELIABLE_BIT | NETCHAN_FRAGMENT_BIT))
+                    | (sendReliable ? NETCHAN_RELIABLE_BIT : 0);
+  const uint32_t w2 = (chan->incomingSequence & ~NETCHAN_RELIABLE_BIT) | ((uint32_t) chan->reliableIncoming << 31);
 
   chan->outgoingSequence++;
   chan->lastSent = quetoo.ticks;
 
-  Net_WriteLong(&send, w1);
-  Net_WriteLong(&send, w2);
-
-  // send the qport if we are a client
-  if (chan->source == NS_UDP_CLIENT) {
-    Net_WriteByte(&send, chan->qport);
-  }
+  Mem_InitBuffer(&payload, payloadBuffer, sizeof(payloadBuffer));
 
   // copy the reliable message to the packet first
   if (sendReliable) {
-    Mem_WriteBuffer(&send, chan->reliableBuffer, chan->reliableSize);
+    Mem_WriteBuffer(&payload, chan->reliableBuffer, chan->reliableSize);
     chan->reliableOutgoing = chan->outgoingSequence;
   }
 
   // add the unreliable part if space is available
-  if (send.maxSize - send.size >= len) {
-    Mem_WriteBuffer(&send, data, len);
+  if (payload.maxSize - payload.size >= len) {
+    Mem_WriteBuffer(&payload, data, len);
   } else {
     Com_Warn("NetChan_Transmit: dumped unreliable\n");
   }
 
-  // send the datagram
-  Net_SendDatagram(chan->source, &chan->remoteAddress, send.data, send.size);
+  const size_t header = chan->source == NS_UDP_CLIENT ? 9 : 8;
 
-  if (net_showPackets->value) {
-    if (sendReliable)
-      Com_Print("Send %u bytes: s=%i reliable=%i ack=%i rack=%i\n", (uint32_t) send.size,
-                chan->outgoingSequence - 1, chan->reliableSequence, chan->incomingSequence,
-                chan->reliableIncoming);
-    else
-      Com_Print("Send %u bytes : s=%i ack=%i rack=%i\n", (uint32_t) send.size,
-                chan->outgoingSequence - 1, chan->incomingSequence, chan->reliableIncoming);
+  if (chan->remoteAddress.type == NA_LOOP || header + payload.size <= MAX_MSG_FRAGMENT_SIZE) {
+    NetChan_Transmit_datagram(chan, w1, w2, &payload, 0, payload.size, false);
+    return;
+  }
+
+  for (size_t offset = 0; ; offset += MAX_MSG_FRAGMENT_PAYLOAD) {
+    const size_t length = Minz(payload.size - offset, MAX_MSG_FRAGMENT_PAYLOAD);
+
+    if (!NetChan_Transmit_datagram(chan, w1, w2, &payload, offset, length, true)) {
+      break;
+    }
+
+    if (length < MAX_MSG_FRAGMENT_PAYLOAD) {
+      break;
+    }
   }
 }
 
