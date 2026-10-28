@@ -173,10 +173,21 @@ static StackView *addRowsColumn(ScoreboardView *self, View *total) {
 
 
 /**
- * @brief The rows that fit beneath `top`, less whatever a layout reserves, at least three.
+ * @brief The rows that fit on screen beneath the board's top, less whatever a layout reserves,
+ * at least three.
+ * @remarks The view fills its superview from its `top` down, so it can reach past the bottom
+ * of the screen.
  */
-static size_t rowsThatFit(const ScoreboardView *self, int32_t top, int32_t reserved) {
-  return (size_t) Maxi(3, (self->view.frame.h - 2 * top - reserved) / SCORES_ROW_HEIGHT);
+static size_t rowsThatFit(const ScoreboardView *self, int32_t reserved) {
+
+  const View *view = (const View *) self;
+  const int32_t h = view->superview ? view->superview->frame.h : view->frame.h;
+  const int32_t top = view->frame.y + ((const View *) self->board)->padding.top;
+
+  const int32_t rows = (h - top - SCORES_BOTTOM_MARGIN - reserved) /
+                       (SCORES_ROW_HEIGHT + SCORES_ROW_SPACING);
+
+  return (size_t) Maxi(3, rows);
 }
 
 /**
@@ -505,7 +516,6 @@ static void rebuild(ScoreboardView *self) {
     self->rowWidth = tableRowWidth(self);
   }
 
-  // The columns start 88 logical pixels down (scoreboard.css); the board used 64 for its title.
   // A team's column leads with its total, and a table's with its field captions, which take
   // room the rows then do not have
   const size_t spectators = addSpectators(self, scores, count);
@@ -520,7 +530,7 @@ static void rebuild(ScoreboardView *self) {
   if (spectators) {
     reserved += SCORES_SPECTATORS_MARGIN + (int32_t) spectators * (SCORES_ROW_HEIGHT + 2);
   }
-  const size_t rows = rowsThatFit(self, 64, reserved);
+  const size_t rows = rowsThatFit(self, reserved);
 
   if (cgameState.numTeams) {
 

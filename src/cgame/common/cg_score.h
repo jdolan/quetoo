@@ -29,6 +29,11 @@
 #define SCORES_ROW_HEIGHT 52
 #define SCORES_ICON_WIDTH 48
 
+// the space between rows, no less than any variant's `.rows` spacing (scoreboard.css), and the
+// room a board leaves beneath its last row
+#define SCORES_ROW_SPACING 3
+#define SCORES_BOTTOM_MARGIN 64
+
 // the flag a carrier wears in a table row, at the end of the name's column
 #define SCORES_BADGE_WIDTH 24
 
