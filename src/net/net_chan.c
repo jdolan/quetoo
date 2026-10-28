@@ -212,6 +212,55 @@ void NetChan_Transmit(NetChan *chan, byte *data, size_t len) {
 }
 
 /**
+ * @brief Appends the fragment in `msg` to the partial message of `chan`.
+ * @return True if the fragment completed the message, which then replaces the contents of `msg`.
+ */
+static bool NetChan_Process_reassemble(NetChan *chan, NetMessage *msg, uint32_t sequence) {
+
+  const size_t offset = (uint16_t) Net_ReadShort(msg);
+  const size_t length = (uint16_t) Net_ReadShort(msg);
+
+  if (msg->read + length > msg->size) {
+    if (net_showDrop->value) {
+      Com_Print("%s:Truncated fragment %i\n", Net_NetaddrToString(&chan->remoteAddress), sequence);
+    }
+    return false;
+  }
+
+  if (sequence < chan->fragmentSequence) {
+    return false;
+  }
+
+  if (sequence > chan->fragmentSequence) {
+    chan->fragmentSequence = sequence;
+    chan->fragmentSize = 0;
+  }
+
+  if (offset != chan->fragmentSize || chan->fragmentSize + length > sizeof(chan->fragmentBuffer)) {
+    if (net_showDrop->value) {
+      Com_Print("%s:Dropped fragment %i at %u\n", Net_NetaddrToString(&chan->remoteAddress),
+                sequence, (uint32_t) offset);
+    }
+    chan->fragmentSize = 0;
+    return false;
+  }
+
+  memcpy(chan->fragmentBuffer + chan->fragmentSize, msg->data + msg->read, length);
+  chan->fragmentSize += length;
+
+  if (length == MAX_MSG_FRAGMENT_PAYLOAD) {
+    return false;
+  }
+
+  memcpy(msg->data, chan->fragmentBuffer, chan->fragmentSize);
+  msg->size = chan->fragmentSize;
+  msg->read = 0;
+
+  chan->fragmentSize = 0;
+  return true;
+}
+
+/**
  * @brief Called when the current `netMessage` is from `remoteAddress`
  * modifies `netMessage` so that it points to the packet payload
  */
@@ -233,8 +282,10 @@ bool NetChan_Process(NetChan *chan, NetMessage *msg) {
   reliableMessage = sequence >> 31u;
   reliableAck = sequenceAck >> 31u;
 
-  sequence &= ~(1u << 31);
-  sequenceAck &= ~(1u << 31);
+  const bool fragment = sequence & NETCHAN_FRAGMENT_BIT;
+
+  sequence &= ~(NETCHAN_RELIABLE_BIT | NETCHAN_FRAGMENT_BIT);
+  sequenceAck &= ~NETCHAN_RELIABLE_BIT;
 
   if (net_showPackets->value) {
     if (reliableMessage)
@@ -250,6 +301,10 @@ bool NetChan_Process(NetChan *chan, NetMessage *msg) {
     if (net_showDrop->value)
       Com_Print("%s:Out of order packet %i at %i\n",
                 Net_NetaddrToString(&chan->remoteAddress), sequence, chan->incomingSequence);
+    return false;
+  }
+
+  if (fragment && !NetChan_Process_reassemble(chan, msg, sequence)) {
     return false;
   }
 
