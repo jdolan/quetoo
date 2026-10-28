@@ -119,9 +119,6 @@ bool Net_ReceiveDatagram(NetSrc source, NetAddr *from, NetMessage *buf) {
   const ssize_t received = recvfrom(sock, (void *) buf->data, (int32_t) buf->maxSize, 0,
                                     (struct sockaddr *) &addr, &addrLen);
 
-  from->addr = addr.sin_addr.s_addr;
-  from->port = addr.sin_port;
-
   if (received == -1) {
     const int32_t err = Net_GetError();
 

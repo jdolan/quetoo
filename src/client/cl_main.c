@@ -498,7 +498,7 @@ static void Cl_ReadPackets(void) {
 
     const uint32_t delta = quetoo.ticks - cls.netChan.lastReceived;
     if (delta > cl_timeout->value * 1000) {
-      Com_Warn("%s: Timed out.\n", Net_NetaddrToString(&netFrom));
+      Com_Warn("%s: Timed out.\n", Net_NetaddrToString(&cls.netChan.remoteAddress));
       Cl_Disconnect();
     }
   }
