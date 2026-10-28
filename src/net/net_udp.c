@@ -123,7 +123,7 @@ bool Net_ReceiveDatagram(NetSrc source, NetAddr *from, NetMessage *buf) {
     const int32_t err = Net_GetError();
 
     if (err == EWOULDBLOCK || err == ECONNREFUSED) {
-      return false;    // not terribly abnormal
+      return false;
     }
 
     Com_Warn("%s\n", Net_GetErrorString());
