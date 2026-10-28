@@ -36,6 +36,12 @@
 
 #include "net_sock.h"
 
+/**
+ * @brief The send and receive buffer size requested for UDP sockets, enough for several
+ * `MAX_MSG_SIZE` messages in fragments. The OS may grant less.
+ */
+#define NET_UDP_SOCKET_BUFFER (1 << 20)
+
 in_addr_t netLo;
 
 int32_t Net_GetError(void) {
@@ -197,6 +203,15 @@ int32_t Net_Socket(NetAddrType type, const char *iface, in_port_t port) {
 
       if (setsockopt(sock, SOL_SOCKET, SO_BROADCAST, (const void *) &i, sizeof(i)) == -1) {
         Com_Error(ERROR_DROP, "setsockopt: %s\n", Net_GetErrorString());
+      }
+
+      i = NET_UDP_SOCKET_BUFFER;
+      if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (const void *) &i, sizeof(i)) == -1) {
+        Com_Warn("setsockopt SO_RCVBUF: %s\n", Net_GetErrorString());
+      }
+
+      if (setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (const void *) &i, sizeof(i)) == -1) {
+        Com_Warn("setsockopt SO_SNDBUF: %s\n", Net_GetErrorString());
       }
 
       Net_SetNonBlocking(sock, true);

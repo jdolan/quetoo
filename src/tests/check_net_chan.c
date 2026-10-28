@@ -397,6 +397,23 @@ START_TEST(check_NetChan_LoopbackUnfragmented) {
 
 } END_TEST
 
+START_TEST(check_Net_SocketBuffers) {
+
+  const int32_t sock = Net_Socket(NA_DATAGRAM, NULL, 0);
+
+  const int32_t options[] = { SO_RCVBUF, SO_SNDBUF };
+  for (size_t i = 0; i < lengthof(options); i++) {
+    int32_t size = 0;
+    socklen_t len = sizeof(size);
+
+    ck_assert_int_eq(getsockopt(sock, SOL_SOCKET, options[i], (void *) &size, &len), 0);
+    ck_assert_int_ge(size, 256 * 1024);
+  }
+
+  Net_CloseSocket(sock);
+
+} END_TEST
+
 /**
  * @brief Test entry point.
  */
@@ -414,6 +431,7 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(tcase, check_NetChan_NewerSequenceDiscards);
   tcase_add_test(tcase, check_NetChan_ReliableOnce);
   tcase_add_test(tcase, check_NetChan_Oversize);
+  tcase_add_test(tcase, check_Net_SocketBuffers);
 
   TCase *udp = tcase_create("check_net_chan_udp");
   tcase_add_checked_fixture(udp, setup_udp, teardown_udp);
