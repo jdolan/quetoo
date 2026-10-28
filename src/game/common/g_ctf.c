@@ -129,7 +129,7 @@ const GameItem *G_GetFlag(const GameClient *cl) {
 
     GameEntity *f = G_FlagForTeam(&gameTeamList[i]);
 
-    if (f && cl->inventory[f->item->def.tag]) {
+    if (f && f->item && cl->inventory[f->item->def.tag]) {
       return f->item;
     }
   }
