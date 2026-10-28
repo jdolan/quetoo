@@ -85,6 +85,8 @@ void Cl_RequestNextDownload(void) {
 
   Cl_LoadMedia();
 
+  cls.netChan.lastReceived = quetoo.ticks;
+
   Net_WriteByte(&cls.netChan.message, CL_CMD_STRING);
   Net_WriteString(&cls.netChan.message, va("begin %i\n", cls.server.spawnCount));
 }
