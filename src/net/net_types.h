@@ -47,16 +47,44 @@
 #include "common/common.h"
 
 /**
- * @brief Max length of a single server message. No individual message can exceed
- * this length. However, large server messages can be split into multiple packets
- * and sent in series. See `Sv_SendClientDatagram`.
+ * @brief Max length of a single netchan message, the ceiling of a UDP datagram. A message to a
+ * remote address is sent as fragments of `MAX_MSG_FRAGMENT_SIZE`. See `NetChan_Transmit`.
  */
-#define MAX_MSG_SIZE 16384
+#define MAX_MSG_SIZE 65536
 
 /**
- * @brief The max UDP message size, bounded by Windows MTU. Warn if we exceed this.
+ * @brief Max length of the payload of one netchan message, reliable and unreliable parts together.
+ * The rest of `MAX_MSG_SIZE` holds the header of a message that is sent as one datagram.
  */
-#define MAX_MSG_SIZE_UDP 1450
+#define MAX_MSG_PAYLOAD (MAX_MSG_SIZE - 10)
+
+/**
+ * @brief Max length of an out-of-band (connectionless) datagram. These are never fragmented.
+ */
+#define MAX_MSG_SIZE_OOB 16384
+
+/**
+ * @brief The max size of one fragment datagram, header included. Messages to a remote address
+ * that do not fit are fragmented, so that no datagram depends on IP fragmentation.
+ */
+#define MAX_MSG_FRAGMENT_SIZE 1200
+
+/**
+ * @brief The fragment header: sequence, acknowledge, qport, offset and length.
+ */
+#define MAX_MSG_FRAGMENT_HEADER 13
+
+/**
+ * @brief The message bytes in each fragment. Both directions use this value, so that the receiver
+ * knows that a shorter fragment is the last one.
+ */
+#define MAX_MSG_FRAGMENT_PAYLOAD (MAX_MSG_FRAGMENT_SIZE - MAX_MSG_FRAGMENT_HEADER)
+
+/**
+ * @brief The sequence word flags of the netchan header.
+ */
+#define NETCHAN_RELIABLE_BIT (1u << 31)
+#define NETCHAN_FRAGMENT_BIT (1u << 30)
 
 // A typedef for net_sockaddr, to reduce "struct" everywhere and silence Windows warning.
 typedef struct sockaddr_in net_sockaddr;
@@ -109,9 +137,14 @@ typedef struct {
   uint32_t reliableOutgoing; // outgoing sequence number of last reliable
 
   NetMessage message; // writing buffer to send to server
-  byte messageBuffer[MAX_MSG_SIZE - 10]; // leave space for header
+  byte messageBuffer[MAX_MSG_PAYLOAD];
 
   // message is copied to this buffer when it is first transfered
   size_t reliableSize;
-  byte reliableBuffer[MAX_MSG_SIZE - 10]; // un-acked reliable message
+  byte reliableBuffer[MAX_MSG_PAYLOAD]; // un-acked reliable message
+
+  // the partial message being reassembled from fragments
+  uint32_t fragmentSequence;
+  size_t fragmentSize;
+  byte fragmentBuffer[MAX_MSG_SIZE];
 } NetChan;

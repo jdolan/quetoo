@@ -28,6 +28,12 @@ extern in_addr_t netLo;
 int32_t Net_GetError(void);
 const char *Net_GetErrorString(void);
 
+/**
+ * @brief The send and receive buffer size requested for UDP sockets, enough for several
+ * `MAX_MSG_SIZE` messages in fragments. The OS may grant less.
+ */
+#define NET_UDP_SOCKET_BUFFER (1 << 20)
+
 bool Net_CompareNetaddr(const NetAddr *a, const NetAddr *b);
 bool Net_CompareClientNetaddr(const NetAddr *a, const NetAddr *b);
 

@@ -199,6 +199,15 @@ int32_t Net_Socket(NetAddrType type, const char *iface, in_port_t port) {
         Com_Error(ERROR_DROP, "setsockopt: %s\n", Net_GetErrorString());
       }
 
+      i = NET_UDP_SOCKET_BUFFER;
+      if (setsockopt(sock, SOL_SOCKET, SO_RCVBUF, (const void *) &i, sizeof(i)) == -1) {
+        Com_Warn("setsockopt SO_RCVBUF: %s\n", Net_GetErrorString());
+      }
+
+      if (setsockopt(sock, SOL_SOCKET, SO_SNDBUF, (const void *) &i, sizeof(i)) == -1) {
+        Com_Warn("setsockopt SO_SNDBUF: %s\n", Net_GetErrorString());
+      }
+
       Net_SetNonBlocking(sock, true);
       break;
 
