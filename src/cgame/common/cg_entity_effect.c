@@ -165,12 +165,12 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
         Cg_AddLight(&l);
 
         e->shell = Vec4_Fmaf(e->shell, 1.f, Vec3_ToVec4(l.color, 0.f));
-        e->shell.w = fmaxf(e->shell.w, 0.666f);
+        e->shell.w = fmaxf(e->shell.w, 0.125f);
       }
     }
   }
-
 #endif
+
   const Vec3 shellRgb = MakeVec3(e->shell.x, e->shell.y, e->shell.z);
   if (Vec3_Length(shellRgb) > 0.f) {
     e->shell = Vec3_ToVec4(Vec3_Normalize(shellRgb), e->shell.w);

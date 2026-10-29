@@ -940,6 +940,9 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
       .effects = e->effects,
       .color = e->color,
       .shell = e->shell,
+      .tints[0] = e->tints[0],
+      .tints[1] = e->tints[1],
+      .tints[2] = e->tints[2],
     });
 
     assert(weaponEntity);
@@ -954,8 +957,19 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
     }
   }
 
+#if defined (G_CTF)
   RenderEntity *flagEntity = NULL;
   if (s->model3) {
+
+    CGameTeamInfo *team = NULL;
+    for (GameTeamId t = TEAM_RED; t < MAX_TEAMS; t++) {
+      if (e->effects & (EF_CTF_RED << t)) {
+        team = &cgameState.teams[t];
+        break;
+      }
+    }
+    assert(team);
+
     flagEntity = cgi.AddEntity(cgi.view, &(const RenderEntity) {
       .parent = torsoEntity,
       .tag = "tag_head",
@@ -964,10 +978,13 @@ void Cg_AddClientEntity(ClientEntity *ent, RenderEntity *e) {
       .effects = e->effects,
       .color = e->color,
       .shell = e->shell,
+      .tints[0] = team->color.vec4,
+      .tints[1] = team->color.vec4,
+      .tints[2] = team->color.vec4,
     });
-
     assert(flagEntity);
   }
+#endif
 
   if (s->model4) {
     Cg_Warn("Unsupported model_index4\n");
