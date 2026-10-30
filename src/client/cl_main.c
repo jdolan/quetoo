@@ -556,7 +556,7 @@ static void Cl_InitLocal(void) {
   cl_analyticsUrl = Cvar_Add("cl_analyticsUrl", "https://giblets.quetoo.org", CVAR_ARCHIVE, "URL to POST anonymous session analytics to. Set to 0 to disable.");
   cl_maxFps = Cvar_Add("cl_maxFps", "-1", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
   cl_noLerp = Cvar_Add("cl_noLerp", "0", CVAR_DEVELOPER, "Disable frame interpolation (developer tool).");
-  cl_timeout = Cvar_Add("cl_timeout", "15.0", CVAR_ARCHIVE, "Time, in seconds, that you'll remain connected to a potentially dead server.");
+  cl_timeout = Cvar_Add("cl_timeout", "30", CVAR_ARCHIVE, "The client must receive a packet from the server within this interval, or the connection is dropped.");
 
   // user info
 
