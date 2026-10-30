@@ -28,7 +28,7 @@
 #include "cl_local.h"
 #include "shared/md5.h"
 
-Cvar *cl_analyticsUrl;
+static Cvar *cl_analyticsUrl;
 
 /**
  * @brief Returns true if `cl_analyticsUrl` names an endpoint to report to.
@@ -212,6 +212,8 @@ void Cl_AnalyticsMap(void) {
  * @remarks This must run after `Cl_InitGuid` and after `R_Init`, because it reads both.
  */
 void Cl_InitAnalytics(void) {
+
+  cl_analyticsUrl = Cvar_Add("cl_analyticsUrl", "https://giblets.quetoo.org", CVAR_DEVELOPER, "URL to POST anonymous session analytics to. Set to 0 to disable.");
 
   memset(&module, 0, sizeof(module));
 

@@ -23,8 +23,6 @@
 
 #include "cl_types.h"
 
-extern Cvar *cl_analyticsUrl;
-
 #if defined(__CL_LOCAL_H__)
 
 void Cl_InitAnalytics(void);
