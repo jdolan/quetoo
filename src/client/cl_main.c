@@ -32,6 +32,8 @@
 #define QUETOO_GUID_URL "https://giblets.quetoo.org/api/guid"
 
 Cvar *cl_maxFps;
+
+Cvar *cl_drawNetMessages;
 Cvar *cl_noLerp;
 Cvar *cl_timeout;
 
@@ -40,10 +42,7 @@ Cvar *name;
 Cvar *active;
 Cvar *messageLevel;
 Cvar *password;
-
 Cvar *qport;
-
-Cvar *cl_drawNetMessages;
 
 ClientStatic cls;
 Client cl;
@@ -552,8 +551,10 @@ static void Cl_WriteConfiguration(void) {
 static void Cl_InitLocal(void) {
 
   cl_maxFps = Cvar_Add("cl_maxFps", "-1", CVAR_ARCHIVE, "The max FPS that your client will attempt to run at. 0 for refresh rate, -1 for uncapped.");
+
+  cl_drawNetMessages = Cvar_Add("cl_drawNetMessages", "0", CVAR_DEVELOPER, NULL);
   cl_noLerp = Cvar_Add("cl_noLerp", "0", CVAR_DEVELOPER, "Disable frame interpolation (developer tool).");
-  cl_timeout = Cvar_Add("cl_timeout", "30", CVAR_ARCHIVE, "The client must receive a packet from the server within this interval, or the connection is dropped.");
+  cl_timeout = Cvar_Add("cl_timeout", "30", CVAR_DEVELOPER, "The client must receive a packet from the server within this interval, or the connection is dropped.");
 
   // user info
 
@@ -562,10 +563,7 @@ static void Cl_InitLocal(void) {
   active = Cvar_Add("active", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
   messageLevel = Cvar_Add("messageLevel", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "The lowest message level you'll receive.");
   password = Cvar_Add("password", "", CVAR_USER_INFO, "The server password, for password protected servers.");
-
   qport = Cvar_Add("qport", va("%u", Randomu() & 0xff), 0, NULL);
-
-  cl_drawNetMessages = Cvar_Add("cl_drawNetMessages", "0", CVAR_DEVELOPER, NULL);
 
   // register our commands
   Cmd_Add("ping", Cl_Ping_f, CMD_CLIENT, NULL);

@@ -24,6 +24,8 @@
 #include "cl_types.h"
 
 extern Cvar *cl_maxFps;
+
+extern Cvar *cl_drawNetMessages;
 extern Cvar *cl_noLerp;
 extern Cvar *cl_timeout;
 
@@ -32,6 +34,7 @@ extern Cvar *name;
 extern Cvar *active;
 extern Cvar *messageLevel;
 extern Cvar *password;
+extern Cvar *qport;
 
 void Cl_Connect(const NetAddr *addr);
 void Cl_Disconnect(void);
@@ -45,10 +48,6 @@ extern RenderView clientView;
 extern SoundStage clientStage;
 
 #if defined(__CL_LOCAL_H__)
-
-extern Cvar *qport;
-
-extern Cvar *cl_drawNetMessages;
 
 extern Client cl;
 extern ClientStatic cls;
