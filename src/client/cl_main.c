@@ -40,7 +40,6 @@ Cvar *name;
 Cvar *active;
 Cvar *messageLevel;
 Cvar *password;
-Cvar *rate;
 
 Cvar *qport;
 
@@ -565,7 +564,6 @@ static void Cl_InitLocal(void) {
   active = Cvar_Add("active", "0", CVAR_USER_INFO | CVAR_NO_SET, NULL);
   messageLevel = Cvar_Add("messageLevel", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "The lowest message level you'll receive.");
   password = Cvar_Add("password", "", CVAR_USER_INFO, "The server password, for password protected servers.");
-  rate = Cvar_Add("rate", "0", CVAR_USER_INFO | CVAR_ARCHIVE, "Your bandwidth throttle, or 0 for none.");
 
   qport = Cvar_Add("qport", va("%u", Randomu() & 0xff), 0, NULL);
 

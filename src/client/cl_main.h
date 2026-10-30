@@ -32,7 +32,6 @@ extern Cvar *name;
 extern Cvar *active;
 extern Cvar *messageLevel;
 extern Cvar *password;
-extern Cvar *rate;
 
 void Cl_Connect(const NetAddr *addr);
 void Cl_Disconnect(void);
