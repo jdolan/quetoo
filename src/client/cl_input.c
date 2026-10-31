@@ -345,7 +345,7 @@ static bool Cl_HandleSystemEvent(const SDL_Event *event) {
           case CL_CONNECTING:
           case CL_CONNECTED:
           case CL_LOADING:
-            Com_Error(ERROR_DROP, "Connection aborted by user\n");
+            Com_Error(ERROR_DROP, CL_CONNECTION_ABORTED);
           case CL_ACTIVE:
             switch (cls.keyState.dest) {
               case KEY_CHAT:

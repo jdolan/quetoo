@@ -492,7 +492,12 @@ void Cl_ParseServerMessage(void) {
         break;
 
       case SV_CMD_DISCONNECT:
-        Cl_Disconnect();
+        if (cl.demoServer) { // a demo or a timedemo ends with a shutdown, which is no news to the player
+          Cl_Disconnect();
+        } else {
+          Cl_Disconnect();
+          Cl_Drop("Server shut down\n");
+        }
         break;
 
       case SV_CMD_DROP:

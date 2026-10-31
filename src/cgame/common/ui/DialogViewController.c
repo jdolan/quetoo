@@ -37,8 +37,6 @@ static void didClickButton(Button *button) {
   if (button == this->okButton) {
     if (this->dialog.okFunction) {
       this->dialog.okFunction(this->dialog.data);
-    } else {
-      Cg_Warn("okFunction was NULL\n");
     }
   } else if (button == this->cancelButton) {
     if (this->dialog.cancelFunction) {
@@ -75,14 +73,20 @@ static void loadView(ViewController *self) {
   assert(self->view->stylesheet);
 
   $(this->message->text, setText, this->dialog.message);
-  $(this->cancelButton->title, setText, this->dialog.cancel);
   $(this->okButton->title, setText, this->dialog.ok);
 
   this->okButton->delegate.self = self;
   this->okButton->delegate.didClick = didClickButton;
 
-  this->cancelButton->delegate.self = self;
-  this->cancelButton->delegate.didClick = didClickButton;
+  if (this->dialog.cancel) {
+    $(this->cancelButton->title, setText, this->dialog.cancel);
+
+    this->cancelButton->delegate.self = self;
+    this->cancelButton->delegate.didClick = didClickButton;
+  } else {
+    $((View *) this->cancelButton, removeFromSuperview);
+    this->cancelButton = NULL;
+  }
 }
 
 #pragma mark - DialogViewController
