@@ -116,8 +116,9 @@ static void Cl_SendPing(ClientServerInfo *server) {
 
   server->pingTime = quetoo.ticks;
   server->pingPending = true;
+  server->pingSequence = ++cls.pingSequence;
 
-  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
+  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status %u", server->pingSequence);
 }
 
 /**
@@ -174,8 +175,6 @@ void Cl_PollServers(bool poll) {
 /**
  * @brief Counts unanswered status requests as lost and, while polling, sends each server its
  * next request.
- * @remarks A status reply carries no request identifier, so one request at most is in flight per
- * server. That way each reply is matched to the request sent at `pingTime`.
  * @remarks Polling also requires the menus to have the keys. A level load announces the menus'
  * view controllers as appearing, and the switch to the game that follows does not announce them
  * as disappearing.
@@ -195,15 +194,27 @@ void Cl_SendServerPings(void) {
       s->pingPending = false;
 
       if (++s->pingsLost == SERVER_PING_LOST) {
+        const bool wasAnswered = Cl_PingAnswered(s);
+
         Cl_ClearPings(s);
         s->ping = 999;
-        Cl_NotifyServer(s, NOTIFICATION_SERVER_PARSED);
+
+        if (wasAnswered) {
+          Cl_NotifyServer(s, NOTIFICATION_SERVER_PARSED);
+        }
       }
     }
 
     if (poll && quetoo.ticks - s->pingTime >= SERVER_PING_INTERVAL) {
       Cl_SendPing(s);
     }
+  }
+
+  if (cls.serversPinged && quetoo.ticks - cls.serversPingedTime >= SERVER_PING_NOTIFY_INTERVAL) {
+    Cl_NotifyServer(NULL, NOTIFICATION_SERVER_PINGED);
+
+    cls.serversPinged = false;
+    cls.serversPingedTime = quetoo.ticks;
   }
 }
 
@@ -247,6 +258,37 @@ static bool Cl_MergeDuplicateServers(const ClientServerInfo *server) {
 }
 
 /**
+ * @brief Returns the round-trip time of a status reply in milliseconds, or -1 if the reply cannot
+ * be matched to a request.
+ * @param sequenced True if the reply echoes a sequence number.
+ * @param sequence The echoed sequence number.
+ * @remarks A reply that echoes the sequence number of an earlier request is late, and is not
+ * timed. A reply from an older server echoes none, and is matched to the request in flight.
+ */
+static int32_t Cl_ReplyTime(ClientServerInfo *server, const bool sequenced, const uint32_t sequence) {
+
+  if (sequenced) {
+    if (server->pingPending && sequence == server->pingSequence) {
+      server->pingPending = false;
+      return (int32_t) (quetoo.ticks - server->pingTime);
+    }
+
+    if (cls.broadcastSequence && sequence == cls.broadcastSequence) {
+      return (int32_t) (quetoo.ticks - cls.broadcastTime);
+    }
+
+    return -1;
+  }
+
+  if (server->pingPending) {
+    server->pingPending = false;
+    return (int32_t) (quetoo.ticks - server->pingTime);
+  }
+
+  return -1;
+}
+
+/**
  * @brief Parses a server status response and updates or creates the matching server entry.
  */
 void Cl_ParseServerInfo(void) {
@@ -282,6 +324,10 @@ void Cl_ParseServerInfo(void) {
   InfoString_Get(string, "sv_guid", guid, sizeof(guid));
   InfoString_Get(string, "gameName", game, sizeof(game));
 
+  char val[MAX_INFO_STRING_VALUE];
+  const bool sequenced = InfoString_Get(string, "sequence", val, sizeof(val)) > 0;
+  const uint32_t sequence = sequenced ? (uint32_t) strtoul(val, NULL, 10) : 0;
+
   if (!server) { // unknown server, assumed response to broadcast
 
     const ClientServerInfo *known = Cl_ServerForGuid(guid);
@@ -298,13 +344,13 @@ void Cl_ParseServerInfo(void) {
     if (quetoo.ticks - cls.broadcastTime < SERVER_PING_INTERVAL) {
       server->pingTime = cls.broadcastTime;
       server->pingPending = true;
+      server->pingSequence = cls.broadcastSequence;
     }
 
     code = NOTIFICATION_SERVER_PARSED;
   }
 
-  const bool answered = server->pingPending;
-  server->pingPending = false;
+  const int32_t replyTime = Cl_ReplyTime(server, sequenced, sequence);
 
   const bool wasAnswered = Cl_PingAnswered(server);
 
@@ -317,7 +363,6 @@ void Cl_ParseServerInfo(void) {
     InfoString_Get(string, "g_movement", movement, sizeof(movement));
   }
 
-  char val[MAX_INFO_STRING_VALUE];
   InfoString_Get(string, "sv_maxClients", val, sizeof(val));
   const int32_t maxClients = atoi(val);
 
@@ -354,8 +399,8 @@ void Cl_ParseServerInfo(void) {
       line = end + 1;
     }
 
-    if (answered) {
-      Cl_AddPingSample(server, Clampf(quetoo.ticks - server->pingTime, 1u, 999u));
+    if (replyTime >= 0) {
+      Cl_AddPingSample(server, Clampf(replyTime, 1, 999));
     }
 
     if (Cl_PingAnswered(server) != wasAnswered) {
@@ -392,7 +437,11 @@ void Cl_ParseServerInfo(void) {
               hostname[0] ? "present" : "MISSING", name[0] ? "present" : "MISSING");
   }
 
-  Cl_NotifyServer(server, code);
+  if (code == NOTIFICATION_SERVER_PINGED) {
+    cls.serversPinged = true;
+  } else {
+    Cl_NotifyServer(server, code);
+  }
 }
 
 /**
@@ -473,17 +522,10 @@ const ClientServerInfo *Cl_ServerInfo(void) {
 
 /**
  * @brief Sends a LAN broadcast to discover servers on the local network.
- * @remarks The broadcast is the next request of each known LAN server with none in flight.
+ * @remarks The broadcast has its own sequence number, so that a reply to it is timed against the
+ * broadcast, apart from any request in flight to the same server.
  */
 static void Cl_SendBroadcast(void) {
-  for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
-    ClientServerInfo *s = (ClientServerInfo *) $(cls.servers, get, i);
-
-    if (s->source == SERVER_SOURCE_BCAST && !s->pingPending) {
-      s->pingTime = quetoo.ticks;
-      s->pingPending = true;
-    }
-  }
 
   NetAddr addr;
   memset(&addr, 0, sizeof(addr));
@@ -493,9 +535,10 @@ static void Cl_SendBroadcast(void) {
 
   Com_Debug(DEBUG_CLIENT, "Broadcasting status to %s\n", Net_NetaddrToString(&addr));
 
-  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "status");
-
+  cls.broadcastSequence = ++cls.pingSequence;
   cls.broadcastTime = quetoo.ticks;
+
+  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "status %u", cls.broadcastSequence);
 }
 
 /**
