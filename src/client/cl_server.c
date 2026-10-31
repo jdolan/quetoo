@@ -78,6 +78,147 @@ static ClientServerInfo *Cl_ServerForNetaddr(const NetAddr *addr) {
 }
 
 /**
+ * @brief Returns the known server that reports the given identity, or `NULL`. An empty identity
+ * matches no server.
+ * @remarks An entry keeps the identity it last reported even after it stops answering, so a
+ * caller that wants a live server checks that it answered its current flurry.
+ */
+static ClientServerInfo *Cl_ServerForGuid(const char *guid) {
+
+  if (!guid[0]) {
+    return NULL;
+  }
+
+  for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
+    ClientServerInfo *s = (ClientServerInfo *) $(cls.servers, get, i);
+
+    if (!Str_Compare(guid, s->guid)) {
+      return s;
+    }
+  }
+
+  return NULL;
+}
+
+/**
+ * @brief Discards the server's smoothed ping, so that the next reply starts it again.
+ * @remarks The displayed `ping` is kept until a new sample replaces it.
+ */
+static void Cl_ClearPings(ClientServerInfo *server) {
+  server->pingSmoothed = 0;
+  server->pingsLost = 0;
+}
+
+/**
+ * @brief Sends a status request to the server.
+ */
+static void Cl_SendPing(ClientServerInfo *server) {
+
+  server->pingTime = quetoo.ticks;
+  server->pingPending = true;
+  server->pingSequence = ++cls.pingSequence;
+
+  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status %u", server->pingSequence);
+}
+
+/**
+ * @brief Smooths a round-trip sample into the server's ping.
+ */
+static void Cl_AddPingSample(ClientServerInfo *server, const int32_t sample) {
+
+  if (server->pingSmoothed == 0) {
+    server->pingSmoothed = sample;
+  } else {
+    server->pingSmoothed = (server->pingSmoothed * 3 + sample) / 4;
+  }
+
+  server->pingsLost = 0;
+
+  server->ping = server->pingSmoothed;
+}
+
+/**
+ * @brief True if the server has a ping that the server browser shows as answered.
+ */
+static bool Cl_PingAnswered(const ClientServerInfo *server) {
+  return server->ping > 0 && server->ping < 999;
+}
+
+/**
+ * @brief Notifies the user interface that a server changed.
+ * @param code `NOTIFICATION_SERVER_PARSED` if the list, or the order it sorts in, may have
+ * changed, or `NOTIFICATION_SERVER_PINGED` if only the server's values changed.
+ */
+static void Cl_NotifyServer(const ClientServerInfo *server, const ClientNotification code) {
+
+  SDL_PushEvent(&(SDL_Event) {
+    .user.type = MVC_NOTIFICATION_EVENT,
+    .user.code = code,
+    .user.data1 = (void *) server
+  });
+}
+
+/**
+ * @brief Starts or stops polling the known servers, while the server browser is open.
+ */
+void Cl_PollServers(bool poll) {
+
+  if (poll && !cls.pollServers) {
+    for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
+      Cl_ClearPings((ClientServerInfo *) $(cls.servers, get, i));
+    }
+  }
+
+  cls.pollServers = poll;
+}
+
+/**
+ * @brief Counts unanswered status requests as lost and, while polling, sends each server its
+ * next request.
+ * @remarks Polling also requires the menus to have the keys. A level load announces the menus'
+ * view controllers as appearing, and the switch to the game that follows does not announce them
+ * as disappearing.
+ */
+void Cl_SendServerPings(void) {
+
+  const bool poll = cls.pollServers && cls.keyState.dest == KEY_UI;
+
+  for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
+    ClientServerInfo *s = (ClientServerInfo *) $(cls.servers, get, i);
+
+    if (s->pingPending) {
+      if (quetoo.ticks - s->pingTime < SERVER_PING_INTERVAL) {
+        continue;
+      }
+
+      s->pingPending = false;
+
+      if (++s->pingsLost == SERVER_PING_LOST) {
+        const bool wasAnswered = Cl_PingAnswered(s);
+
+        Cl_ClearPings(s);
+        s->ping = 999;
+
+        if (wasAnswered) {
+          Cl_NotifyServer(s, NOTIFICATION_SERVER_PARSED);
+        }
+      }
+    }
+
+    if (poll && quetoo.ticks - s->pingTime >= SERVER_PING_INTERVAL) {
+      Cl_SendPing(s);
+    }
+  }
+
+  if (cls.serversPinged && quetoo.ticks - cls.serversPingedTime >= SERVER_PING_NOTIFY_INTERVAL) {
+    Cl_NotifyServer(NULL, NOTIFICATION_SERVER_PINGED);
+
+    cls.serversPinged = false;
+    cls.serversPingedTime = quetoo.ticks;
+  }
+}
+
+/**
  * @brief Frees the list of known servers and clears the pointer.
  */
 void Cl_FreeServers(void) {
@@ -94,8 +235,9 @@ void Cl_FreeServers(void) {
  * duplicate loses to it rather than the reverse.
  * @remarks Matching is on the identity the server reports, not on how it looks. A server
  * that reports none is left alone rather than guessed at.
+ * @return True if a duplicate was dropped.
  */
-static void Cl_MergeDuplicateServers(const ClientServerInfo *server) {
+static bool Cl_MergeDuplicateServers(const ClientServerInfo *server) {
 
   for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
     const ClientServerInfo *other = (ClientServerInfo *) $(cls.servers, get, i);
@@ -109,8 +251,41 @@ static void Cl_MergeDuplicateServers(const ClientServerInfo *server) {
     }
 
     $(cls.servers, removeAt, i);
-    break;
+    return true;
   }
+
+  return false;
+}
+
+/**
+ * @brief Returns the round-trip time of a status reply in milliseconds, or -1 if the reply cannot
+ * be matched to a request.
+ * @param sequenced True if the reply echoes a sequence number.
+ * @param sequence The echoed sequence number.
+ * @remarks A reply that echoes the sequence number of an earlier request is late, and is not
+ * timed. A reply from an older server echoes none, and is matched to the request in flight.
+ */
+static int32_t Cl_ReplyTime(ClientServerInfo *server, const bool sequenced, const uint32_t sequence) {
+
+  if (sequenced) {
+    if (server->pingPending && sequence == server->pingSequence) {
+      server->pingPending = false;
+      return (int32_t) (quetoo.ticks - server->pingTime);
+    }
+
+    if (cls.broadcastSequence && sequence == cls.broadcastSequence) {
+      return (int32_t) (quetoo.ticks - cls.broadcastTime);
+    }
+
+    return -1;
+  }
+
+  if (server->pingPending) {
+    server->pingPending = false;
+    return (int32_t) (quetoo.ticks - server->pingTime);
+  }
+
+  return -1;
 }
 
 /**
@@ -118,15 +293,6 @@ static void Cl_MergeDuplicateServers(const ClientServerInfo *server) {
  */
 void Cl_ParseServerInfo(void) {
   char string[MAX_MSG_SIZE];
-
-  ClientServerInfo *server = Cl_ServerForNetaddr(&netFrom);
-  if (!server) { // unknown server, assumed response to broadcast
-
-    server = Cl_AddServer(&netFrom);
-
-    server->source = SERVER_SOURCE_BCAST;
-    server->pingTime = cls.broadcastTime;
-  }
 
   const size_t length = netMessage.read < netMessage.size
                         ? Minz(netMessage.size - netMessage.read, sizeof(string) - 1)
@@ -143,6 +309,9 @@ void Cl_ParseServerInfo(void) {
     *playerStart++ = '\0';
   }
 
+  ClientServerInfo *server = Cl_ServerForNetaddr(&netFrom);
+  ClientNotification code = NOTIFICATION_SERVER_PINGED;
+
   char hostname[sizeof(server->hostname)];
   char name[sizeof(server->name)];
   char gameplay[sizeof(server->gameplay)];
@@ -155,6 +324,36 @@ void Cl_ParseServerInfo(void) {
   InfoString_Get(string, "sv_guid", guid, sizeof(guid));
   InfoString_Get(string, "gameName", game, sizeof(game));
 
+  char val[MAX_INFO_STRING_VALUE];
+  const bool sequenced = InfoString_Get(string, "sequence", val, sizeof(val)) > 0;
+  const uint32_t sequence = sequenced ? (uint32_t) strtoul(val, NULL, 10) : 0;
+
+  if (!server) { // unknown server, assumed response to broadcast
+
+    const ClientServerInfo *known = Cl_ServerForGuid(guid);
+    if (known && known->pingSmoothed > 0) {
+      Com_Debug(DEBUG_CLIENT, "Status from %s ignored: answering under another address\n",
+                Net_NetaddrToString(&netFrom));
+      return;
+    }
+
+    server = Cl_AddServer(&netFrom);
+
+    server->source = SERVER_SOURCE_BCAST;
+
+    if (quetoo.ticks - cls.broadcastTime < SERVER_PING_INTERVAL) {
+      server->pingTime = cls.broadcastTime;
+      server->pingPending = true;
+      server->pingSequence = cls.broadcastSequence;
+    }
+
+    code = NOTIFICATION_SERVER_PARSED;
+  }
+
+  const int32_t replyTime = Cl_ReplyTime(server, sequenced, sequence);
+
+  const bool wasAnswered = Cl_PingAnswered(server);
+
   // the mode keys are what the level resolved to, and fall back to what was asked for
   if (InfoString_Get(string, "g_gameplayMode", gameplay, sizeof(gameplay)) <= 0) {
     InfoString_Get(string, "g_gameplay", gameplay, sizeof(gameplay));
@@ -164,7 +363,6 @@ void Cl_ParseServerInfo(void) {
     InfoString_Get(string, "g_movement", movement, sizeof(movement));
   }
 
-  char val[MAX_INFO_STRING_VALUE];
   InfoString_Get(string, "sv_maxClients", val, sizeof(val));
   const int32_t maxClients = atoi(val);
 
@@ -201,26 +399,27 @@ void Cl_ParseServerInfo(void) {
       line = end + 1;
     }
 
-    const int32_t sample = Clampf(quetoo.ticks - server->pingTime, 1u, 999u);
-
-    // smooth across refreshes so the displayed ping converges instead of
-    // bouncing on each request's one-shot round-trip measurement
-    if (server->pingSmoothed == 0) {
-      server->pingSmoothed = sample;
-    } else {
-      server->pingSmoothed = (server->pingSmoothed * 3 + sample) / 4;
+    if (replyTime >= 0) {
+      Cl_AddPingSample(server, Clampf(replyTime, 1, 999));
     }
 
-    server->ping = server->pingSmoothed;
+    if (Cl_PingAnswered(server) != wasAnswered) {
+      code = NOTIFICATION_SERVER_PARSED;
+    }
+
     server->error[0] = '\0';
 
     Com_Debug(DEBUG_CLIENT, "Status from %s: \"%s\" map %s, gameplay %s, %d/%d clients (%d bots), %dms\n",
               Net_NetaddrToString(&netFrom), server->hostname, server->name, server->gameplay,
               server->clients, server->maxClients, server->bots, server->ping);
 
-    Cl_MergeDuplicateServers(server);
+    if (Cl_MergeDuplicateServers(server)) {
+      code = NOTIFICATION_SERVER_PARSED;
+    }
 
   } else {
+    code = NOTIFICATION_SERVER_PARSED;
+
     server->hostname[0] = '\0';
     server->name[0] = '\0';
     server->gameplay[0] = '\0';
@@ -238,11 +437,11 @@ void Cl_ParseServerInfo(void) {
               hostname[0] ? "present" : "MISSING", name[0] ? "present" : "MISSING");
   }
 
-  SDL_PushEvent(&(SDL_Event) {
-    .user.type = MVC_NOTIFICATION_EVENT,
-    .user.code = NOTIFICATION_SERVER_PARSED,
-    .user.data1 = server
-  });
+  if (code == NOTIFICATION_SERVER_PINGED) {
+    cls.serversPinged = true;
+  } else {
+    Cl_NotifyServer(server, code);
+  }
 }
 
 /**
@@ -275,12 +474,15 @@ void Cl_Ping_f(void) {
     server->source = SERVER_SOURCE_USER;
   }
 
-  server->pingTime = quetoo.ticks;
   server->ping = 999;
 
   Com_Print("Pinging %s\n", Net_NetaddrToString(&server->addr));
 
-  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
+  Cl_ClearPings(server);
+
+  if (!server->pingPending) {
+    Cl_SendPing(server);
+  }
 }
 
 /**
@@ -298,9 +500,9 @@ void Cl_QueryServer(const NetAddr *addr) {
     server->source = SERVER_SOURCE_USER;
   }
 
-  server->pingTime = quetoo.ticks;
-
-  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
+  if (!server->pingPending) {
+    Cl_SendPing(server);
+  }
 }
 
 /**
@@ -319,17 +521,11 @@ const ClientServerInfo *Cl_ServerInfo(void) {
 }
 
 /**
- * @brief Sends a LAN broadcast and resets ping times for all broadcast servers.
+ * @brief Sends a LAN broadcast to discover servers on the local network.
+ * @remarks The broadcast has its own sequence number, so that a reply to it is timed against the
+ * broadcast, apart from any request in flight to the same server.
  */
 static void Cl_SendBroadcast(void) {
-  for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) { // update old ping times
-    ClientServerInfo *s = (ClientServerInfo *) $(cls.servers, get, i);
-
-    if (s->source == SERVER_SOURCE_BCAST) {
-      s->pingTime = quetoo.ticks;
-      s->ping = 999;
-    }
-  }
 
   NetAddr addr;
   memset(&addr, 0, sizeof(addr));
@@ -339,9 +535,10 @@ static void Cl_SendBroadcast(void) {
 
   Com_Debug(DEBUG_CLIENT, "Broadcasting status to %s\n", Net_NetaddrToString(&addr));
 
-  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "status");
-
+  cls.broadcastSequence = ++cls.pingSequence;
   cls.broadcastTime = quetoo.ticks;
+
+  NetChan_OutOfBandPrint(NS_UDP_CLIENT, &addr, "status %u", cls.broadcastSequence);
 }
 
 /**
@@ -435,11 +632,8 @@ void Cl_ParseServers(void) {
   for (size_t i = 0; i < (cls.servers ? cls.servers->count : 0); i++) {
     server = (ClientServerInfo *) $(cls.servers, get, i);
 
-    if (server->source == SERVER_SOURCE_INTERNET) {
-      server->pingTime = quetoo.ticks;
-      server->ping = 0;
-
-      NetChan_OutOfBandPrint(NS_UDP_CLIENT, &server->addr, "status");
+    if (server->source == SERVER_SOURCE_INTERNET && !server->pingPending) {
+      Cl_SendPing(server);
       queried++;
     }
   }
@@ -448,10 +642,7 @@ void Cl_ParseServers(void) {
 
   // and inform the user interface
 
-  SDL_PushEvent(&(SDL_Event) {
-    .user.type = MVC_NOTIFICATION_EVENT,
-    .user.code = NOTIFICATION_SERVER_PARSED,
-  });
+  Cl_NotifyServer(NULL, NOTIFICATION_SERVER_PARSED);
 }
 
 /**

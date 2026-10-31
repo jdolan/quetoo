@@ -598,6 +598,23 @@ typedef enum {
 } ClientServerSource;
 
 /**
+ * @brief The interval at which each server is polled while the server browser is open, in
+ * milliseconds. A request that is not answered within it is counted as lost.
+ */
+#define SERVER_PING_INTERVAL 1000
+
+/**
+ * @brief The number of consecutive lost requests after which a server is shown as unanswered.
+ */
+#define SERVER_PING_LOST 3
+
+/**
+ * @brief The minimum interval between notifications of new ping values, in milliseconds, so that
+ * the server browser rebuilds its table once for a group of replies, not once for each reply.
+ */
+#define SERVER_PING_NOTIFY_INTERVAL 250
+
+/**
  * @brief The server information type, hydrated by querying server status via the browser.
  */
 typedef struct {
@@ -673,10 +690,28 @@ typedef struct {
   int32_t ping;
 
   /**
-   * @brief Exponentially smoothed ping, retained across refreshes to damp the
-   * per-request variance from one-shot status replies.
+   * @brief Exponentially smoothed ping, to damp the variance of the one-shot status replies.
+   * Zero until the server answers.
    */
   int32_t pingSmoothed;
+
+  /**
+   * @brief The number of consecutive status requests that were not answered.
+   */
+  int32_t pingsLost;
+
+  /**
+   * @brief True while a status request is in flight and its reply is not yet received.
+   * @remarks One request at most is in flight at a time. A server that does not echo the
+   * sequence number is timed by the first reply that arrives while a request is in flight.
+   */
+  bool pingPending;
+
+  /**
+   * @brief The sequence number of the request sent at `pingTime`. A server that echoes it is
+   * timed only by the reply to that request.
+   */
+  uint32_t pingSequence;
 } ClientServerInfo;
 
 /**
@@ -833,6 +868,7 @@ typedef enum {
   NOTIFICATION_LEADERBOARD_FETCHED,
   NOTIFICATION_STATS_FETCHED,
   NOTIFICATION_EDITOR_SELECTION_CYCLE,
+  NOTIFICATION_SERVER_PINGED,
 } ClientNotification;
 
 /**
@@ -865,6 +901,31 @@ typedef struct {
    * @brief System time when the last LAN broadcast ping was sent.
    */
   uint32_t broadcastTime;
+
+  /**
+   * @brief The sequence number of the last LAN broadcast.
+   */
+  uint32_t broadcastSequence;
+
+  /**
+   * @brief The sequence number of the last status request, to the LAN or to any one server.
+   */
+  uint32_t pingSequence;
+
+  /**
+   * @brief True while the server browser is open, so that the known servers are polled.
+   */
+  bool pollServers;
+
+  /**
+   * @brief True if a server's values changed since the last `NOTIFICATION_SERVER_PINGED`.
+   */
+  bool serversPinged;
+
+  /**
+   * @brief System time of the last `NOTIFICATION_SERVER_PINGED`.
+   */
+  uint32_t serversPingedTime;
 
   /**
    * @brief The current server.

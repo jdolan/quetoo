@@ -24,6 +24,7 @@
 #include "cl_types.h"
 
 void Cl_Servers_f(void);
+void Cl_PollServers(bool poll);
 
 #if defined(__CL_LOCAL_H__)
 void Cl_FreeServers(void);
@@ -33,4 +34,5 @@ const ClientServerInfo *Cl_ServerInfo(void);
 void Cl_ParseServerInfo(void);
 void Cl_ParseServers(void);
 void Cl_ServerList_f(void);
+void Cl_SendServerPings(void);
 #endif

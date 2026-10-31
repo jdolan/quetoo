@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 73
+#define CGAME_API_VERSION 74
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -561,6 +561,13 @@ typedef struct {
    * @brief Refreshes the list of known servers from the master and LAN.
    */
   void (*GetServers)(void);
+
+  /**
+   * @brief Starts or stops polling the known servers for their status and ping, about once per
+   * second. A server browser SHOULD poll only while it is visible.
+   * @param poll True to start polling, false to stop.
+   */
+  void (*PollServers)(bool poll);
 
   /**
    * @return The known status of the server being connected to or played on, or `NULL` if there
@@ -1357,6 +1364,13 @@ typedef struct CGameExport {
    * @brief Called each client frame when the in-game installer is active.
    */
   int32_t (*UpdateInstaller)(const InstallerStatus *in);
+
+  /**
+   * @brief Called when the client loses its connection or fails to connect, to tell the player.
+   * @param message Why, in a sentence with no color escapes.
+   * @param address The server to reconnect to, or `NULL` if reconnecting cannot help.
+   */
+  void (*Drop)(const char *message, const char *address);
 
   /**
    * @brief Called each frame to update Discord status.

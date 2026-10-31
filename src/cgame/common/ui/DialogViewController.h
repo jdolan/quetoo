@@ -56,12 +56,12 @@ struct Dialog {
   const char *ok;
 
   /**
-   * @brief the Cancel text.
+   * @brief The Cancel text, or `NULL` for a dialog with only the Ok button.
    */
   const char *cancel;
 
   /**
-   * @brief The Ok callback.
+   * @brief The Ok callback, or `NULL` if Ok only dismisses the dialog.
    */
   void (*okFunction)(ident data);
 

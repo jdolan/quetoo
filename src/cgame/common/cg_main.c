@@ -716,6 +716,7 @@ CGameExport *Cg_LoadCgame(CGameImport *import) {
   cge.PopulateEditorScene = Cg_PopulateEditorScene;
   cge.UpdateScreen = Cg_UpdateScreen;
   cge.UpdateInstaller = Cg_UpdateInstaller;
+  cge.Drop = Cg_Drop;
   cge.UpdateDiscord = Cg_UpdateDiscord;
 
   return &cge;

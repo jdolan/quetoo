@@ -39,6 +39,12 @@ extern Cvar *qport;
 void Cl_Connect(const NetAddr *addr);
 void Cl_Disconnect(void);
 void Cl_Drop(const char *text);
+
+/**
+ * @brief The `ERROR_DROP` message for a player who aborts a connection, which `Cl_Drop` does not
+ * report back to them.
+ */
+#define CL_CONNECTION_ABORTED "Connection aborted by user\n"
 int32_t Cl_InstallerFrame(const InstallerStatus *in);
 void Cl_Frame(const uint32_t msec);
 void Cl_Init(void);

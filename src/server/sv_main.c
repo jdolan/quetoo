@@ -90,7 +90,7 @@ void Sv_DropClient(ServerClient *client) {
  * @brief Returns a string fit for heartbeats and status replies.
  */
 const char *Sv_StatusString(void) {
-  static char status[MAX_MSG_SIZE_OOB - 16];
+  static char status[MAX_MSG_SIZE_OOB - 32];
 
   Str_Format(status, sizeof(status), "%s\n", Cvar_ServerInfo());
   size_t statusLen = Str_Length(status);
@@ -132,9 +132,23 @@ const char *Sv_StatusString(void) {
 
 /**
  * @brief Responds with all the info that qplug or qspy can see.
+ * @details A request MAY carry a sequence number, as `status <sequence>`, and the reply then
+ * echoes it as the infostring's first key, `sequence`, so that the client can match each reply to
+ * its request. A request without one gets the reply it always got.
+ * @remarks The first line stays `status`, and the sequence number is an infostring key rather than
+ * an argument, because legacy server browsers and quetoo-stats match the first line exactly, and
+ * ignore infostring keys they do not know.
+ * @remarks The sequence number is parsed and printed again, never echoed as received, so that a
+ * request cannot add text to the reply.
  */
 static void Sv_Status_f(void) {
-  NetChan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "status\n%s", Sv_StatusString());
+
+  if (Cmd_Argc() > 1) {
+    const uint32_t sequence = (uint32_t) strtoul(Cmd_Argv(1), NULL, 10);
+    NetChan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "status\nsequence\\%u\\%s", sequence, Sv_StatusString());
+  } else {
+    NetChan_OutOfBandPrint(NS_UDP_SERVER, &netFrom, "status\n%s", Sv_StatusString());
+  }
 }
 
 /**

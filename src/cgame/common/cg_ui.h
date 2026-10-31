@@ -54,6 +54,7 @@ void Cg_InitUi(void);
 void Cg_InitHudUi(void);
 void Cg_ShutdownUi(void);
 void Cg_ClearUi(void);
+void Cg_Drop(const char *message, const char *address);
 void Cg_UpdateLoading(const ClientLoading loading);
 int32_t Cg_UpdateInstaller(const InstallerStatus *status);
 

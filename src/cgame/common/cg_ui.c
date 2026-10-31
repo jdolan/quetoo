@@ -192,6 +192,52 @@ void Cg_ClearUi(void) {
 }
 
 /**
+ * @brief Dialog callback that reconnects to the dropped server.
+ */
+static void Cg_Reconnect(ident data) {
+  cgi.Cbuf(va("connect %s\n", (const char *) data));
+}
+
+/**
+ * @brief Tells the player why the connection was lost, so that they need not read the console.
+ */
+void Cg_Drop(const char *message, const char *address) {
+  static char dropMessage[MAX_STRING_CHARS], dropAddress[MAX_OS_PATH];
+
+  if (!mainViewController) {
+    return;
+  }
+
+  // the drop answers any question that a dialog asked, and that dialog may hold dropAddress
+  const Array *children = (Array *) ((ViewController *) mainViewController)->childViewControllers;
+  for (size_t i = children->count; i > 0; i--) {
+    ViewController *child = children->elements[i - 1];
+    if ($((Object *) child, isKindOfClass, _DialogViewController())) {
+      $(child, removeFromParentViewController);
+    }
+  }
+
+  Str_Copy(dropMessage, message, sizeof(dropMessage));
+
+  if (address) {
+    Str_Copy(dropAddress, address, sizeof(dropAddress));
+
+    $(mainViewController, presentDialog, &(const Dialog) {
+      .data = dropAddress,
+      .message = dropMessage,
+      .ok = "Reconnect",
+      .okFunction = Cg_Reconnect,
+      .cancel = "Ok"
+    });
+  } else {
+    $(mainViewController, presentDialog, &(const Dialog) {
+      .message = dropMessage,
+      .ok = "Ok"
+    });
+  }
+}
+
+/**
  * @brief Updates the loading screen
  */
 void Cg_UpdateLoading(const ClientLoading loading) {
