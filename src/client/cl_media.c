@@ -282,5 +282,5 @@ void Cl_LoadMedia(void) {
 
   S_EndLoading();
 
-  Ui_ViewWillAppear();
+  Ui_UpdateBindings();
 }

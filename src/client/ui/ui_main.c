@@ -161,6 +161,21 @@ void Ui_HandleEvent(const SDL_Event *event) {
 }
 
 /**
+ * @brief Binds every view again, so that views that hold media resolve it again after a load
+ * frees the media the level does not use.
+ * @remarks This sends no appearance callbacks. The menus are hidden during a load, and refresh
+ * what they show when they next appear.
+ */
+void Ui_UpdateBindings(void) {
+
+  if (windowController) {
+    $(windowController->viewController->view, updateBindings, NULL);
+  } else {
+    Com_Warn("windowController was NULL\n");
+  }
+}
+
+/**
  * @brief Notifies the UI that the active view controller is about to appear.
  * @details The next `Ui_Draw` notifies it that it did appear, once it is drawn.
  */

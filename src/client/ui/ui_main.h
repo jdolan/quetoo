@@ -24,6 +24,7 @@
 #include "ui_types.h"
 
 void Ui_HandleEvent(const SDL_Event *event);
+void Ui_UpdateBindings(void);
 void Ui_ViewWillAppear(void);
 void Ui_ViewWillDisappear(void);
 ViewController *Ui_TopViewController(void);
