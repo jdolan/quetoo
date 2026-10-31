@@ -58,14 +58,14 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
     }
   }
 
-  char path[MAX_QPATH * 3];
+  char path[MAX_OS_PATH];
   if (Sys_IsAbsolutePath(logName)) {
     Str_Copy(path, logName, sizeof(path));
   } else {
     Str_Format(path, sizeof(path), "%s/%s/%s", Sys_UserDir(), game, logName);
   }
 
-  char dir[MAX_QPATH * 2];
+  char dir[MAX_OS_PATH];
   Str_Copy(dir, path, sizeof(dir));
   char *sep = Str_FindLastChar(dir, '/');
   if (!sep) { sep = Str_FindLastChar(dir, '\\'); }
@@ -73,6 +73,9 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
   SDL_CreateDirectory(dir);
 
   quetoo.logFile = fopen(path, "w");
+  if (!quetoo.logFile) {
+    fprintf(stderr, "Failed to open log file %s\n", path);
+  }
 
   Com_LogString(va("Quetoo %s %s\n", VERSION, BUILD));
 
@@ -655,6 +658,7 @@ void Com_Shutdown(const char *fmt, ...) {
   // close log file
   if (quetoo.logFile) {
     fclose(quetoo.logFile);
+    quetoo.logFile = NULL;
   }
 
   exit(0);

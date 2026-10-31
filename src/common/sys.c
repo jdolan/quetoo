@@ -739,7 +739,15 @@ void Sys_Raise(const char *msg) {
   Sys_EnsureCrashLogPath();
   Sys_WriteCrashLog(crash);
 
-  Com_LogString(crash);
+  if (quetoo.logFile) {
+#if defined(_WIN32)
+    fputs(crash, quetoo.logFile);
+    fflush(quetoo.logFile);
+#else
+    // a fatal signal can arrive while this thread holds the stream's lock
+    (void) write(fileno(quetoo.logFile), crash, Str_Length(crash));
+#endif
+  }
 
   if (Com_WasInit(QUETOO_CLIENT)) {
 
