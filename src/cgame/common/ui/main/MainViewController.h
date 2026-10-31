@@ -24,6 +24,7 @@
 #include <ObjectivelyMVC/ViewController.h>
 #include <ObjectivelyMVC/NavigationViewController.h>
 
+#include "DialogViewController.h"
 #include "MainView.h"
 
 /**
@@ -92,6 +93,17 @@ struct MainViewControllerInterface {
    * @memberof MainViewController
    */
   void (*navigateToViewController)(MainViewController *self, Class *clazz);
+
+  /**
+   * @fn void MainViewController::presentDialog(MainViewController *self, const Dialog *dialog)
+   * @brief Presents `dialog`, unless one is already showing.
+   * @param self The MainViewController.
+   * @param dialog The Dialog. Its strings MUST outlive the dialog.
+   * @remarks A dialog asks a question, and a second copy of the question does not make it a
+   * better one.
+   * @memberof MainViewController
+   */
+  void (*presentDialog)(MainViewController *self, const Dialog *dialog);
 
   /**
    * @fn void MainViewController::primaryButton(const MainViewController *self, const char *title, const ButtonDelegate *delegate)

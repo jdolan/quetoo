@@ -45,6 +45,12 @@ Cvar *password;
 Cvar *qport;
 
 ClientStatic cls;
+
+/**
+ * @brief The server that `Cl_Disconnect` last left, which `Cl_Drop` offers to reconnect to.
+ */
+static char droppedAddress[MAX_OS_PATH];
+
 Client cl;
 
 RenderView clientView;
@@ -293,8 +299,11 @@ void Cl_SendDisconnect(void) {
 void Cl_Disconnect(void) {
 
   if (cls.state <= CL_DISCONNECTED) {
+    *droppedAddress = '\0';
     return;
   }
+
+  Str_Copy(droppedAddress, cls.server.address, sizeof(droppedAddress));
 
   Com_Print("Disconnecting from %s...\n", cls.server.address);
 
@@ -360,10 +369,51 @@ void Cl_Reconnect_f(void) {
 }
 
 /**
- * @brief Tells the cgame to show the last `ERROR_DROP` message.
+ * @return `text` without the `Prefix_Function: ` that `Com_Error` puts before it.
+ * @remarks An engine function name has an underscore, and the text of a refusal does not.
+ */
+static const char *Cl_Drop_strip(const char *text) {
+
+  const char *c = text;
+  while (isalnum((unsigned char) *c) || *c == '_') {
+    c++;
+  }
+
+  const bool prefixed = c > text && c[0] == ':' && c[1] == ' ' && memchr(text, '_', c - text);
+  return prefixed ? c + 2 : text;
+}
+
+/**
+ * @brief Tells the cgame why the connection was lost. `Cl_Disconnect` MUST precede this.
  */
 void Cl_Drop(const char *text) {
-  //cls.cgame->Dialog(text, "Ok", "Reconnect", Cl_Reconnect_f);
+
+  if (!cls.cgame) {
+    return;
+  }
+
+  char message[MAX_STRING_CHARS];
+  Str_Copy(message, Cl_Drop_strip(text), sizeof(message));
+
+  if (!Str_Compare(message, CL_CONNECTION_ABORTED)) {
+    return;
+  }
+
+  Str_StripColors(message, message);
+  Str_Trim(message, message);
+
+  const bool remote = *droppedAddress && Str_Compare(droppedAddress, "localhost");
+
+  cls.cgame->Drop(message, remote ? droppedAddress : NULL);
+}
+
+/**
+ * @return True if `text`, printed by the server, refuses a connect, as `Sv_Connect_f` words it.
+ * @remarks The server prints an rcon reply the same way, and it also says "Bad challenge" or "No
+ * challenge for address" to a connect that a map change interrupts, which the next one survives.
+ */
+static bool Cl_IsRefusal(const char *text) {
+  return Str_HasPrefix(text, "Server is ") || Str_HasSuffix(text, "Connection refused\n");
 }
 
 /**
@@ -409,6 +459,11 @@ static void Cl_ConnectionlessPacket(void) {
   // print command from somewhere
   if (!Str_Compare(c, "print")) {
     s = Net_ReadString(&netMessage);
+
+    if (cls.state == CL_CONNECTING && Net_CompareNetaddr(&netFrom, &cls.server.addr) && Cl_IsRefusal(s)) {
+      Com_Error(ERROR_DROP, "!%s", s);
+    }
+
     Com_Print("%s", s);
     return;
   }
@@ -498,6 +553,7 @@ static void Cl_ReadPackets(void) {
     if (delta > cl_timeout->value * 1000) {
       Com_Warn("%s: Timed out.\n", Net_NetaddrToString(&cls.netChan.remoteAddress));
       Cl_Disconnect();
+      Cl_Drop("Connection timed out\n");
     }
   }
 }
