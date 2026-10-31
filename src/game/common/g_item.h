@@ -25,42 +25,42 @@
 
 #if defined(__G_LOCAL_H__)
 
-  extern GameItem *gameItems;
+extern GameItem *gameItems;
 
-  /**
-   * @brief Item bounding box scaling.
-   */
-  #define ITEM_SCALE 1.f
+/**
+ * @brief Item bounding box scaling.
+ */
+#define ITEM_SCALE 1.f
 
-  /**
-   * @brief Quad Damage scaling factors
-   */
-  #define QUAD_DAMAGE_FACTOR 2.5f
-  #define QUAD_KNOCKBACK_FACTOR 2.f
+/**
+ * @brief Quad Damage scaling factors
+ */
+#define QUAD_DAMAGE_FACTOR 2.5f
+#define QUAD_KNOCKBACK_FACTOR 2.f
 
-  extern const Box3 ITEM_BOUNDS;
+extern const Box3 ITEM_BOUNDS;
 
-  bool G_AddAmmo(GameClient *cl, const GameItem *item, int16_t count);
-  void G_CheckItemHazard(GameEntity *ent);
-  GameEntity *G_DropItem(GameClient *cl, const GameItem *item);
-  void G_DropInventoryItem(GameClient *cl, const GameItem *item);
-  bool G_ItemAvailable(const GameItem *item);
-  const GameItem *G_FindItem(const char *name);
-  const GameItem *G_FindItemByClassName(const char *classname);
-  const GameItem *G_MappedWeapon(const GameItem *weapon);
-  const GameItem *G_ClientArmor(const GameClient *cl);
-  const GameArmorInfo *G_ArmorInfo(const GameItem *armor);
-  bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const GameItem **drop,
-                            const GameItem **give, int16_t *count);
-  void G_PrecacheItem(const GameItem *it);
-  void G_RunItemTimers(void);
-  void G_SetItemRespawn(GameEntity *ent, uint32_t delay);
-  void G_SpawnItem(GameEntity *ent, const GameItem *item);
-  bool G_SetAmmo(GameClient *cl, const GameItem *item, int16_t count);
-  GameEntity *G_TossQuadDamage(GameClient *cl);
-  GameEntity *G_TossInvisibility(GameClient *cl);
-  GameEntity *G_TossInvulnerability(GameClient *cl);
-  void G_TouchItem(GameEntity *ent, GameEntity *other, const CollisionTrace *trace);
-  void G_InitItems(void);
+bool G_AddAmmo(GameClient *cl, const GameItem *item, int16_t count);
+void G_CheckItemHazard(GameEntity *ent);
+GameEntity *G_DropItem(GameClient *cl, const GameItem *item);
+void G_DropInventoryItem(GameClient *cl, const GameItem *item);
+bool G_ItemAvailable(const GameItem *item);
+const GameItem *G_FindItem(const char *name);
+const GameItem *G_FindItemByClassName(const char *classname);
+const GameItem *G_MappedWeapon(const GameItem *weapon);
+const GameItem *G_ClientArmor(const GameClient *cl);
+const GameArmorInfo *G_ArmorInfo(const GameItem *armor);
+bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const GameItem **drop,
+                          const GameItem **give, int16_t *count);
+void G_PrecacheItem(const GameItem *it);
+void G_RunItemTimers(void);
+void G_SetItemRespawn(GameEntity *ent, uint32_t delay);
+void G_SpawnItem(GameEntity *ent, const GameItem *item);
+bool G_SetAmmo(GameClient *cl, const GameItem *item, int16_t count);
+GameEntity *G_TossQuadDamage(GameClient *cl);
+GameEntity *G_TossInvisibility(GameClient *cl);
+GameEntity *G_TossInvulnerability(GameClient *cl);
+void G_TouchItem(GameEntity *ent, GameEntity *other, const CollisionTrace *trace);
+void G_InitItems(void);
 
 #endif
