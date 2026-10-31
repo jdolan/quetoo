@@ -21,4 +21,14 @@ while IFS= read -r line || [[ -n "$line" ]]; do
   eval "OPTS+=(+${line})"
 done < "$CFG"
 
+# Each start truncates quetoo.log, and systemd restarts a crashed server within seconds, so keep the
+# logs of previous runs.
+LOG="${XDG_DATA_HOME:-$HOME/.local/share}/WickedOldGames/Quetoo/default/quetoo.log"
+if [[ -f "$LOG" ]]; then
+  for i in 9 8 7 6 5 4 3 2 1; do
+    [[ -f "$LOG.$i" ]] && mv -f "$LOG.$i" "$LOG.$((i + 1))"
+  done
+  mv -f "$LOG" "$LOG.1"
+fi
+
 exec "$BINARY" "${OPTS[@]}"
