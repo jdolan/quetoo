@@ -2038,8 +2038,6 @@ bool G_ClientConnect(GameClient *cl, char *userInfo) {
 
   gi.BroadcastPrint(PRINT_HIGH, "%s connected\n", cl->persistent.netName);
 
-
-
   return true;
 }
 
@@ -2078,7 +2076,6 @@ void G_ClientDisconnect(GameClient *cl) {
     gi.WriteByte(MZ_LOGOUT);
     gi.Multicast(cl->entity->s.origin, MULTICAST_PHS);
   }
-
 
   const uint8_t client = cl->ps.client;
   gi.SetConfigString(CS_CLIENTS + client, "");
