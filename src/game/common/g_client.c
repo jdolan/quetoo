@@ -2482,7 +2482,7 @@ void G_ClientThink(GameClient *cl, PMoveCmd *cmd) {
 
   // update anyone chasing us
   G_ForEachClient(chaser, {
-    if (chaser->chaseTarget == cl) {
+    if (chaser->entity && chaser->chaseTarget == cl) {
       G_ClientChaseThink(chaser);
     }
   });
