@@ -573,6 +573,12 @@ int32_t main(int32_t argc, char *argv[]) {
   quetoo.Init = Main_Init;
   quetoo.Shutdown = Main_Shutdown;
 
+  for (int32_t i = 1; i < argc - 1; i++) {
+    if (!Str_Compare(argv[i], "-l") || !Str_Compare(argv[i], "--logFile")) {
+      quetoo.logFileName = argv[i + 1];
+    }
+  }
+
   signal(SIGINT, Sys_Signal);
   signal(SIGTERM, Sys_Signal);
 #if !defined(_WIN32)

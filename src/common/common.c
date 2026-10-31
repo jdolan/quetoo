@@ -59,7 +59,11 @@ static void Com_InitLog(int32_t argc, char *argv[]) {
   }
 
   char path[MAX_QPATH * 3];
-  Str_Format(path, sizeof(path), "%s/%s/%s", Sys_UserDir(), game, logName);
+  if (Sys_IsAbsolutePath(logName)) {
+    Str_Copy(path, logName, sizeof(path));
+  } else {
+    Str_Format(path, sizeof(path), "%s/%s/%s", Sys_UserDir(), game, logName);
+  }
 
   char dir[MAX_QPATH * 2];
   Str_Copy(dir, path, sizeof(dir));

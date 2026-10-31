@@ -42,6 +42,11 @@ void Sys_Relaunch(void);
  */
 char *Sys_RealPath(const char *path);
 
+/**
+ * @return True if `path` is absolute: it starts with a slash, or on Windows with a drive letter.
+ */
+bool Sys_IsAbsolutePath(const char *path);
+
 const char *Sys_Username(void);
 const char *Sys_UserDir(void);
 

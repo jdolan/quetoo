@@ -608,6 +608,13 @@ char *Sys_Backtrace(uint32_t start, uint32_t maxCount) {
 }
 
 /**
+ * @see sys.h
+ */
+bool Sys_IsAbsolutePath(const char *path) {
+  return path[0] == '/' || path[0] == '\\' || (path[0] && path[1] == ':');
+}
+
+/**
  * @brief Pre-computed crash log path, populated lazily on first use.
  */
 static char crashLogPath[MAX_OS_PATH];
@@ -628,11 +635,35 @@ static void Sys_EnsureCrashLogPath(void) {
     return;
   }
 
-  char *dir = NULL;
-  SDL_asprintf(&dir, "%s/default", Sys_UserDir());
-  SDL_CreateDirectory(dir);
-  Str_Format(crashLogPath, sizeof(crashLogPath), "%s/crash.log", dir);
-  free(dir);
+  if (quetoo.logFileName) {
+    char stem[MAX_OS_PATH];
+    Str_Copy(stem, quetoo.logFileName, sizeof(stem));
+
+    const size_t len = Str_Length(stem);
+    if (len > 4 && !Str_Compare(stem + len - 4, ".log")) {
+      stem[len - 4] = '\0';
+    }
+
+    if (Sys_IsAbsolutePath(stem)) {
+      Str_Format(crashLogPath, sizeof(crashLogPath), "%s-crash.log", stem);
+    } else {
+      Str_Format(crashLogPath, sizeof(crashLogPath), "%s/default/%s-crash.log",
+                 Sys_UserDir(), stem);
+    }
+  } else {
+    Str_Format(crashLogPath, sizeof(crashLogPath), "%s/default/crash.log", Sys_UserDir());
+  }
+
+  char dir[MAX_OS_PATH];
+  Str_Copy(dir, crashLogPath, sizeof(dir));
+  char *sep = Str_FindLastChar(dir, '/');
+  if (!sep) {
+    sep = Str_FindLastChar(dir, '\\');
+  }
+  if (sep) {
+    *sep = '\0';
+    SDL_CreateDirectory(dir);
+  }
 
 #if !defined(_WIN32)
   if (crashLogFd == -1) {
