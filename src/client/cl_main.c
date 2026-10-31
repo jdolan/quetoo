@@ -349,7 +349,12 @@ void Cl_Reconnect_f(void) {
   if (cls.server.address[0] != '\0') { // already connected
 
     if (cls.state >= CL_CONNECTING) {
+      char address[MAX_OS_PATH];
+      Str_Copy(address, cls.server.address, sizeof(address));
+
       Cl_Disconnect();
+
+      Str_Copy(cls.server.address, address, sizeof(cls.server.address));
     }
 
     cls.server.connectTime = 0; // fire immediately
