@@ -746,6 +746,8 @@ void Cl_Frame(const uint32_t msec) {
 
   Cl_ReadPackets();
 
+  Cl_SendServerPings();
+
   Cl_HandleEvents();
 
   Cl_UpdateVoice();

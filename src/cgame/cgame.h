@@ -38,7 +38,7 @@
 #include <Objectively/RESTClient.h>
 #include <Objectively/Vector.h>
 
-#define CGAME_API_VERSION 73
+#define CGAME_API_VERSION 74
 
 /**
  * @brief The client game import struct imports engine functionailty to the client game.
@@ -561,6 +561,13 @@ typedef struct {
    * @brief Refreshes the list of known servers from the master and LAN.
    */
   void (*GetServers)(void);
+
+  /**
+   * @brief Starts or stops polling the known servers for their status and ping, about once per
+   * second. A server browser SHOULD poll only while it is visible.
+   * @param poll True to start polling, false to stop.
+   */
+  void (*PollServers)(bool poll);
 
   /**
    * @return The known status of the server being connected to or played on, or `NULL` if there

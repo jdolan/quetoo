@@ -296,6 +296,7 @@ void Cl_InitCgame(void) {
 
   import.Servers = Cl_Servers;
   import.GetServers = Cl_Servers_f;
+  import.PollServers = Cl_PollServers;
   import.ServerInfo = Cl_ServerInfo;
   import.Connect = Cl_Connect;
   import.Mapshots = Cl_Mapshots;
@@ -437,6 +438,8 @@ void Cl_ShutdownCgame(void) {
 
   cls.cgame->Shutdown();
   cls.cgame = NULL;
+
+  Cl_PollServers(false);
 
   Ui_ResetTheme();
 

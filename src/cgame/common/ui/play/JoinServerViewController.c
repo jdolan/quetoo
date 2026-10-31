@@ -239,6 +239,86 @@ static void restoreSelection(JoinServerViewController *self) {
   refreshDetails(self);
 }
 
+/**
+ * @brief Returns a new list of the known servers that the filters do not hide.
+ */
+static PointerArray *filteredServers(void) {
+
+  PointerArray *filtered = $(alloc(PointerArray), init);
+
+  const PointerArray *servers = cgi.Servers();
+  const size_t count = servers ? servers->count : 0;
+
+  Cg_Debug("%d servers known to the client\n", (int32_t) count);
+
+  uint32_t hidden = 0;
+
+  for (size_t i = 0; i < count; i++) {
+    ClientServerInfo *server = $(servers, get, i);
+
+    const int32_t clients = cg_joinServerHideBots->value ? server->clients - server->bots : server->clients;
+
+    if (clients == 0 && (cg_joinServerHideEmpty->value || cg_joinServerHideBots->value)) {
+      Cg_Debug("Hiding %s: %d clients, %d bots, hide_empty %d, hide_bots %d\n",
+               server->hostname, server->clients, server->bots,
+               cg_joinServerHideEmpty->integer, cg_joinServerHideBots->integer);
+
+      hidden++;
+      continue;
+    }
+
+    $(filtered, add, server);
+  }
+
+  Cg_Debug("Showing %d servers, %u hidden by filters\n", (int32_t) filtered->count, hidden);
+
+  return filtered;
+}
+
+/**
+ * @brief True if `servers` holds `server`.
+ */
+static bool containsServer(const PointerArray *servers, const ClientServerInfo *server) {
+
+  for (size_t i = 0; i < servers->count; i++) {
+    if ($(servers, get, i) == server) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
+ * @brief Shows the new values of the servers in the list, in the order they are in.
+ * @details A poll changes each server's ping about once per second, and a table that sorts
+ * again on each change moves the rows under the pointer. The rows are therefore sorted only when
+ * the list itself changes.
+ */
+static void updateServers(JoinServerViewController *self) {
+
+  if (!self->servers) {
+    $(self, reloadServers);
+    return;
+  }
+
+  PointerArray *servers = filteredServers();
+
+  bool changed = servers->count != self->servers->count;
+  for (size_t i = 0; i < servers->count && !changed; i++) {
+    changed = !containsServer(self->servers, $(servers, get, i));
+  }
+
+  release(servers);
+
+  if (changed) {
+    $(self, reloadServers);
+  } else {
+    $(self->serversTableView, reloadData);
+    restoreSelection(self);
+  }
+}
+
 #pragma mark - Delegates
 
 static void didToggleHideBots(Checkbox *checkbox) {
@@ -541,8 +621,12 @@ static void loadView(ViewController *self) {
  */
 static void respondToEvent(ViewController *self, const SDL_Event *event) {
 
-  if (event->type == MVC_NOTIFICATION_EVENT && event->user.code == NOTIFICATION_SERVER_PARSED) {
-    $((JoinServerViewController *) self, reloadServers);
+  if (event->type == MVC_NOTIFICATION_EVENT) {
+    if (event->user.code == NOTIFICATION_SERVER_PARSED) {
+      $((JoinServerViewController *) self, reloadServers);
+    } else if (event->user.code == NOTIFICATION_SERVER_PINGED) {
+      updateServers((JoinServerViewController *) self);
+    }
   }
 
   super(ViewController, self, respondToEvent, event);
@@ -560,6 +644,17 @@ static void viewWillAppear(ViewController *self) {
   $(this, reloadServers); // show what we already know at once, then ask the master again
 
   cgi.GetServers();
+  cgi.PollServers(true);
+}
+
+/**
+ * @see ViewController::viewWillDisappear(ViewController *)
+ */
+static void viewWillDisappear(ViewController *self) {
+
+  cgi.PollServers(false);
+
+  super(ViewController, self, viewWillDisappear);
 }
 
 #pragma mark - JoinServerViewController
@@ -625,33 +720,7 @@ static void reloadServers(JoinServerViewController *self) {
 
   release(self->servers);
 
-  self->servers = $(alloc(PointerArray), init);
-
-  const PointerArray *servers = cgi.Servers();
-  const size_t count = servers ? servers->count : 0;
-
-  Cg_Debug("%d servers known to the client\n", (int32_t) count);
-
-  uint32_t hidden = 0;
-
-  for (size_t i = 0; i < count; i++) {
-    ClientServerInfo *server = $(servers, get, i);
-
-    const int32_t clients = cg_joinServerHideBots->value ? server->clients - server->bots : server->clients;
-
-    if (clients == 0 && (cg_joinServerHideEmpty->value || cg_joinServerHideBots->value)) {
-      Cg_Debug("Hiding %s: %d clients, %d bots, hide_empty %d, hide_bots %d\n",
-               server->hostname, server->clients, server->bots,
-               cg_joinServerHideEmpty->integer, cg_joinServerHideBots->integer);
-
-      hidden++;
-      continue;
-    }
-
-    $(self->servers, add, server);
-  }
-
-  Cg_Debug("Showing %d servers, %u hidden by filters\n", (int32_t) self->servers->count, hidden);
+  self->servers = filteredServers();
 
   sortingJoinServerViewController = self;
   $(self->servers, sort, comparator);
@@ -679,6 +748,7 @@ static void initialize(Class *clazz) {
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
   ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
   ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
+  ((ViewControllerInterface *) clazz->interface)->viewWillDisappear = viewWillDisappear;
 
   ((JoinServerViewControllerInterface *) clazz->interface)->reloadServers = reloadServers;
 
