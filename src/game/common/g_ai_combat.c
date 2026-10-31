@@ -811,7 +811,7 @@ static bool G_Ai_IsTeammateNear(const GameClient *cl, const Vec3 start, const Ve
   G_ForEachClient(other, {
     const GameEntity *ent = other->entity;
 
-    if (other == cl || ent->dead || ent->solid != SOLID_BOX || !G_OnSameTeam(cl, other)) {
+    if (other == cl || !ent || ent->dead || ent->solid != SOLID_BOX || !G_OnSameTeam(cl, other)) {
       continue;
     }
 
