@@ -408,12 +408,12 @@ void Cl_Drop(const char *text) {
 }
 
 /**
- * @return True if `text`, printed by the server in reply to a connect, refuses the connection.
- * @remarks A connect that a map change interrupts can find its challenge used or gone, and the
- * next attempt succeeds.
+ * @return True if `text`, printed by the server, refuses a connect, as `Sv_Connect_f` words it.
+ * @remarks The server prints an rcon reply the same way, and it also says "Bad challenge" or "No
+ * challenge for address" to a connect that a map change interrupts, which the next one survives.
  */
 static bool Cl_IsRefusal(const char *text) {
-  return Str_Compare(text, "Bad challenge\n") && Str_Compare(text, "No challenge for address\n");
+  return Str_HasPrefix(text, "Server is ") || Str_HasSuffix(text, "Connection refused\n");
 }
 
 /**
