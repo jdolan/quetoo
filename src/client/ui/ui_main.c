@@ -43,6 +43,11 @@ static ViewController *hudViewController;
 static NavigationViewController *navigationViewController;
 
 /**
+ * @brief True from `Ui_ViewWillAppear` until the next `Ui_Draw` sends `viewDidAppear`.
+ */
+static bool appearing;
+
+/**
  * @brief Retain callback for Ui sounds.
  */
 static bool Ui_RetainSample(SoundMedia *media) {
@@ -157,19 +162,24 @@ void Ui_HandleEvent(const SDL_Event *event) {
 
 /**
  * @brief Notifies the UI that the active view controller is about to appear.
+ * @details The next `Ui_Draw` notifies it that it did appear, once it is drawn.
  */
 void Ui_ViewWillAppear(void) {
 
   if (windowController) {
     $(windowController->viewController->view, updateBindings, NULL);
     $(windowController->viewController, viewWillAppear);
+    appearing = true;
   } else {
     Com_Warn("windowController was NULL\n");
   }
 }
 
 /**
- * @brief Notifies the UI that the active view controller is about to disappear, resigning responders.
+ * @brief Notifies the UI that the active view controller is about to disappear, resigning
+ * responders, and then that it did disappear.
+ * @details Nothing is drawn in between, so both notifications are sent at once. An appearance
+ * that was not drawn yet is abandoned, and does not complete.
  */
 void Ui_ViewWillDisappear(void) {
 
@@ -183,6 +193,8 @@ void Ui_ViewWillDisappear(void) {
       $(touchResponder, resignTouchResponder);
     }
     $(windowController->viewController, viewWillDisappear);
+    $(windowController->viewController, viewDidDisappear);
+    appearing = false;
   } else {
     Com_Warn("windowControler was NULL\n");
   }
@@ -210,6 +222,11 @@ void Ui_Draw(void) {
   $(consoleViewController, update);
 
   $(windowController, render);
+
+  if (appearing) {
+    appearing = false;
+    $(windowController->viewController, viewDidAppear);
+  }
 }
 
 /**
