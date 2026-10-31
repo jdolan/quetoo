@@ -701,12 +701,14 @@ void Sys_Raise(const char *msg) {
 
   char *bt = Sys_Backtrace(0, UINT32_MAX);
   char *crash = NULL;
-  SDL_asprintf(&crash, "Quetoo %s %s — %s\n\nError: %s\n\nBacktrace:\n%s",
+  SDL_asprintf(&crash, "Quetoo %s %s — %s\n\nError: %s\n\nBacktrace:\n%s\n",
                VERSION, BUILD, timestamp, msg, bt ? bt : "");
   free(bt);
 
   Sys_EnsureCrashLogPath();
   Sys_WriteCrashLog(crash);
+
+  Com_LogString(crash);
 
   if (Com_WasInit(QUETOO_CLIENT)) {
 
