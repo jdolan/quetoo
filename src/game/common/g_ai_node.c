@@ -1475,8 +1475,7 @@ static void G_Ai_Node_LinkPlat(const GameEntity *plat) {
   }
 
   const Vec3 center = Box3_Center(plat->absBounds);
-  const float bottom = plat->absBounds.maxs.z - (plat->s.origin.z - plat->pos2.z) -
-                       PM_BOUNDS.mins.z;
+  const float bottom = plat->bounds.maxs.z + plat->pos2.z - PM_BOUNDS.mins.z;
 
   const GameAiNodeId lower = G_Ai_Node_Create(MakeVec3(center.x, center.y, bottom));
   const GameAiNodeId upper = G_Ai_Node_Create(MakeVec3(center.x, center.y, bottom + rise));
