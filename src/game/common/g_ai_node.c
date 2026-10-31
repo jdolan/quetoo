@@ -352,7 +352,8 @@ typedef struct {
   int32_t frameContents;
 
   /**
-   * @brief True if a raised platform stands over the node in `frame` (`G_Ai_Node_RaisedPlatform`).
+   * @brief True if a platform stands over the node, or covers it, in `frame`
+   * (`G_Ai_Node_RaisedPlatform`).
    */
   bool raised;
 
@@ -844,7 +845,10 @@ bool G_Ai_Node_IsEdge(const GameAiNodeId node) {
 }
 
 /**
- * @return The `func_plat` over the given position that is not at its bottom, or `NULL`.
+ * @return The `func_plat` whose body reaches above the feet of a player at the given position, or
+ * `NULL`: one raised over it, or one that covers it at rest, as a plat that stops a step above the
+ * floor of its shaft covers the nodes of that floor. A plat whose top is the floor of the position
+ * does not count.
  */
 const GameEntity *G_Ai_Node_RaisedPlatform(const Vec3 position) {
 
@@ -860,7 +864,7 @@ const GameEntity *G_Ai_Node_RaisedPlatform(const Vec3 position) {
       continue;
     }
 
-    if (plat->absBounds.maxs.z > position.z + 32.f) {
+    if (plat->absBounds.maxs.z > position.z + PM_BOUNDS.mins.z + PM_STEP_HEIGHT_MIN) {
       return plat;
     }
   }
@@ -873,7 +877,8 @@ const GameEntity *G_Ai_Node_RaisedPlatform(const Vec3 position) {
  * under it, or none at all, because a drop link MAY lead to a node with no floor right under it,
  * and the movement falls to the floor below. A box that starts in a model that moves, such as a
  * door, a button or a rotating model, is tested again with a thinner box, which only the model's
- * own body blocks. A raised platform over the node blocks it.
+ * own body blocks. A platform over the node, or one that covers it (`G_Ai_Node_RaisedPlatform`),
+ * blocks it.
  */
 static bool G_Ai_Node_CanPathTo(const Vec3 position) {
 
@@ -2645,9 +2650,9 @@ static bool G_Ai_Node_LinkPassesHazard(const Vec3 from, const Vec3 to) {
 }
 
 /**
- * @return The node, with its contents and whether a raised platform stands over it tested for the
- * current server frame, once a frame. A search tests them for each link that it tries, and the
- * tests trace the world and its entities. The cache is not a part of the node's value, so the node
+ * @return The node, with its contents and whether a platform stands over it or covers it tested
+ * for the current server frame, once a frame. A search tests them for each link that it tries, and
+ * the tests trace the world and its entities. The cache is not a part of the node's value, so the node
  * MAY be const.
  */
 static const GameAiNode *G_Ai_Node_Refresh(const GameAiNode *node) {

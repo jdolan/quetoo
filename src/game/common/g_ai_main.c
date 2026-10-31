@@ -733,8 +733,9 @@ static bool G_Ai_ReplanPath(GameClient *cl) {
 }
 
 /**
- * @brief Plans a new path to the current path's destination, if the next node is under a raised
- * `func_plat`. The search skips raised plats, so the new path goes around this one.
+ * @brief Plans a new path to the current path's destination, if a `func_plat` is raised over the
+ * next node, or covers it (`G_Ai_Node_RaisedPlatform`). The search skips those nodes, so the new
+ * path goes around this plat.
  * @return True if the AI has a new path.
  */
 static bool G_Ai_AvoidRaisedPlatform(GameClient *cl) {
