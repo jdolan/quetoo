@@ -563,6 +563,13 @@ typedef struct {
   void (*GetServers)(void);
 
   /**
+   * @brief Starts or stops polling the known servers for their status and ping, about once per
+   * second. A server browser SHOULD poll only while it is visible.
+   * @param poll True to start polling, false to stop.
+   */
+  void (*PollServers)(bool poll);
+
+  /**
    * @return The known status of the server being connected to or played on, or `NULL` if there
    * is none. The client queries it with each connection attempt, so an entry may not have been
    * answered yet: `name` is set once it has. The entry belongs to the server list and MUST NOT be
