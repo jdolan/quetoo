@@ -62,17 +62,21 @@ void Sv_ConfigureEditorEntity(int32_t number) {
       ent->bounds = Box3_FromCenterRadius(Vec3_Zero(), 4.f);
     }
 
+    bool hasBrushes = false;
+
     // use the BSP inline model to set bounds
     const char *model = Entity_Value(ent->def, "model")->string;
     if (*model == '*') {
       const CollisionModel *mod = Cm_Model(model);
       ent->bounds = mod->bounds;
+      hasBrushes = true;
     } else {
       // entity may have brushes without an inline model (e.g. misc_dust, brushes merged into worldspawn)
       // brush->entity always points to the original Cm_Bsp() entity; def may be a re-parsed copy after edits
       const Entity *bspDef = number < Cm_Bsp()->numEntities ? Cm_Bsp()->entities[number] : ent->def;
       Vector *brushes = Entity_Brushes(bspDef);
       if (brushes->count) {
+        hasBrushes = true;
         ent->bounds = Box3_Null();
         for (uint32_t j = 0; j < brushes->count; j++) {
           const CollisionBrush *brush = VectorValue(brushes, CollisionBrush *, j);
@@ -80,6 +84,12 @@ void Sv_ConfigureEditorEntity(int32_t number) {
         }
       }
       release(brushes);
+    }
+
+    // brushes without an origin are compiled in world space, so angles would turn them about the
+    // world origin; in game, the classes that read angles as a direction clear them (G_SetMoveDir)
+    if (hasBrushes && !(Entity_Value(ent->def, "origin")->parsed & ENTITY_VEC3)) {
+      ent->s.angles = Vec3_Zero();
     }
 
     Sv_LinkEntity(ent);
