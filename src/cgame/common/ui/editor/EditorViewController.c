@@ -105,6 +105,61 @@ static void loadView(ViewController *self) {
   this->save->delegate.didClick = didClickSave;
 }
 
+/**
+ * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
+ * @remarks The entity hotkeys and notifications apply on every tab, and while the editor is
+ * hidden, so the entity tab receives events even when another tab is selected.
+ */
+static void respondToEvent(ViewController *self, const SDL_Event *event) {
+
+  EditorViewController *this = (EditorViewController *) self;
+
+  ViewController *entityViewController = (ViewController *) this->entityViewController;
+
+  if (this->tabViewController->selectedViewController != entityViewController) {
+    $(entityViewController, respondToEvent, event);
+  }
+
+  super(ViewController, self, respondToEvent, event);
+}
+
+/**
+ * @see ViewController::viewWillAppear(ViewController *)
+ * @details Each tab edits what is in front of the view when the editor opens, and keeps its
+ * selection while the user changes tabs.
+ */
+static void viewWillAppear(ViewController *self) {
+
+  EditorViewController *this = (EditorViewController *) self;
+
+  $(this->entityViewController, selectFromView);
+
+  const Vec3 start = cgi.view->origin;
+  const Vec3 end = Vec3_Fmaf(start, MAX_WORLD_DIST, cgi.view->forward);
+
+  RenderMaterial *material = NULL;
+
+  const CGameEditorTrace tr = Cg_MaterialSelectionTrace(start, end);
+  if (tr.trace.fraction < 1.f && tr.trace.material) {
+    material = cgi.LoadMaterial(tr.trace.material->name, tr.trace.material->context);
+  }
+
+  $(this->materialViewController, setMaterial, material);
+  $(this->stageViewController, setMaterial, material);
+
+  super(ViewController, self, viewWillAppear);
+}
+
+/**
+ * @see ViewController::viewWillDisappear(ViewController *)
+ */
+static void viewWillDisappear(ViewController *self) {
+
+  cgameEditor.selected = -1;
+
+  super(ViewController, self, viewWillDisappear);
+}
+
 #pragma mark - Class lifecycle
 
 /**
@@ -115,6 +170,9 @@ static void initialize(Class *clazz) {
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
+  ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
+  ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
+  ((ViewControllerInterface *) clazz->interface)->viewWillDisappear = viewWillDisappear;
 }
 
 /**

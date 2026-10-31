@@ -227,28 +227,6 @@ static void loadView(ViewController *self) {
   }
 }
 
-/**
- * @see ViewController::viewWillAppear(ViewController *)
- */
-static void viewWillAppear(ViewController *self) {
-
-  MaterialViewController *this = (MaterialViewController *) self;
-
-  const Vec3 start = cgi.view->origin;
-  const Vec3 end = Vec3_Fmaf(start, MAX_WORLD_DIST, cgi.view->forward);
-
-  RenderMaterial *material = NULL;
-
-  const CGameEditorTrace tr = Cg_MaterialSelectionTrace(start, end);
-  if (tr.trace.fraction < 1.f && tr.trace.material) {
-    material = cgi.LoadMaterial(tr.trace.material->name, tr.trace.material->context);
-  }
-
-  $(this, setMaterial, material);
-
-  super(ViewController, self, viewWillAppear);
-}
-
 #pragma mark - MaterialViewController
 
 /**
@@ -304,7 +282,6 @@ static void setMaterial(MaterialViewController *self, RenderMaterial *material) 
 static void initialize(Class *clazz) {
 
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
-  ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
   ((MaterialViewControllerInterface *) clazz->interface)->init = init;
   ((MaterialViewControllerInterface *) clazz->interface)->setMaterial = setMaterial;

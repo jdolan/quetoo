@@ -145,28 +145,6 @@ static void loadView(ViewController *self) {
   this->addStage->delegate.didClick = didClickAddStage;
 }
 
-/**
- * @see ViewController::viewWillAppear(ViewController *)
- */
-static void viewWillAppear(ViewController *self) {
-
-  StageViewController *this = (StageViewController *) self;
-
-  const Vec3 start = cgi.view->origin;
-  const Vec3 end = Vec3_Fmaf(start, MAX_WORLD_DIST, cgi.view->forward);
-
-  RenderMaterial *material = NULL;
-
-  const CGameEditorTrace tr = Cg_MaterialSelectionTrace(start, end);
-  if (tr.trace.fraction < 1.f && tr.trace.material) {
-    material = cgi.LoadMaterial(tr.trace.material->name, tr.trace.material->context);
-  }
-
-  $(this, setMaterial, material);
-
-  super(ViewController, self, viewWillAppear);
-}
-
 #pragma mark - StageViewController
 
 /**
@@ -223,7 +201,6 @@ static void initialize(Class *clazz) {
   ((ObjectInterface *) clazz->interface)->dealloc = dealloc;
 
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
-  ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
 
   ((StageViewControllerInterface *) clazz->interface)->init = init;
   ((StageViewControllerInterface *) clazz->interface)->setMaterial = setMaterial;

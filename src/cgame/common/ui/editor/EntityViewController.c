@@ -478,31 +478,6 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
   super(ViewController, self, respondToEvent, event);
 }
 
-/**
- * @see ViewController::viewWillAppear(ViewController *)
- */
-static void viewWillAppear(ViewController *self) {
-
-  EntityViewController *this = (EntityViewController *) self;
-
-  const Vec3 start = cgi.view->origin;
-  const Vec3 end = Vec3_Fmaf(start, editorSelectDist->value, cgi.view->forward);
-
-  this->numCandidates = Cg_EntitySelectionCandidates(start, end, this->candidates);
-  this->candidate = 0;
-
-  $(this, setEntity, this->numCandidates ? &cgameEditor.entities[this->candidates[0]] : &cgameEditor.entities[0]);
-
-  super(ViewController, self, viewWillAppear);
-}
-
-/**
- * @see ViewController::viewWillDisappear(ViewController *)
- */
-static void viewWillDisappear(ViewController *self) {
-  cgameEditor.selected = -1;
-}
-
 #pragma mark - EntityViewController
 
 /**
@@ -543,6 +518,21 @@ static EntityViewController *init(EntityViewController *self) {
     self->showFuncGroups = true;
   }
   return self;
+}
+
+/**
+ * @fn void EntityViewController::selectFromView(EntityViewController *)
+ * @memberof EntityViewController
+ */
+static void selectFromView(EntityViewController *self) {
+
+  const Vec3 start = cgi.view->origin;
+  const Vec3 end = Vec3_Fmaf(start, editorSelectDist->value, cgi.view->forward);
+
+  self->numCandidates = Cg_EntitySelectionCandidates(start, end, self->candidates);
+  self->candidate = 0;
+
+  $(self, setEntity, self->numCandidates ? &cgameEditor.entities[self->candidates[0]] : &cgameEditor.entities[0]);
 }
 
 /**
@@ -650,12 +640,11 @@ static void initialize(Class *clazz) {
 
   ((ViewControllerInterface *) clazz->interface)->loadView = loadView;
   ((ViewControllerInterface *) clazz->interface)->respondToEvent = respondToEvent;
-  ((ViewControllerInterface *) clazz->interface)->viewWillAppear = viewWillAppear;
-  ((ViewControllerInterface *) clazz->interface)->viewWillDisappear = viewWillDisappear;
 
   ((EntityViewControllerInterface *) clazz->interface)->createEntity = createEntity;
   ((EntityViewControllerInterface *) clazz->interface)->deleteEntity = deleteEntity;
   ((EntityViewControllerInterface *) clazz->interface)->init = init;
+  ((EntityViewControllerInterface *) clazz->interface)->selectFromView = selectFromView;
   ((EntityViewControllerInterface *) clazz->interface)->setEntity = setEntity;
 
   editorGridSize = cgi.AddCvar("editorGridSize", "16", CVAR_ARCHIVE, "The editor grid size in world units. Use keys 1-8 to set, like in Radiant.");

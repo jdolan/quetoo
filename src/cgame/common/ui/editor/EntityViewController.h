@@ -186,6 +186,14 @@ struct EntityViewControllerInterface {
   EntityViewController *(*init)(EntityViewController *self);
 
   /**
+   * @fn void EntityViewController::selectFromView(EntityViewController *self)
+   * @brief Selects the entity in front of the view, and collects the candidates behind it.
+   * @param self The EntityViewController.
+   * @memberof EntityViewController
+   */
+  void (*selectFromView)(EntityViewController *self);
+
+  /**
    * @fn void EntityViewController::setEntity(EntityViewController *self, CGameEditorEntity *entity)
    * @brief Sets the entity to edit.
    * @param self The EntityViewController.
