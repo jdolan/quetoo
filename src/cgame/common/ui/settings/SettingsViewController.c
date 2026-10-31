@@ -319,12 +319,12 @@ static void didSetBloom(Slider *slider, double value) {
 }
 
 /**
- * @brief TabViewDelegate callback, so that each tab shows what the other changed.
+ * @brief TabViewControllerDelegate callback, so that each tab shows what the other changed.
  * @details Changing individual graphics controls can turn a preset into Custom.
  */
-static void didSelectTab(TabView *tabView, TabViewItem *tab) {
+static void didSelectTab(TabViewController *tabViewController, TabViewItem *tab) {
 
-  SettingsViewController *this = tabView->delegate.self;
+  SettingsViewController *this = tabViewController->delegate.self;
 
   refreshQualityControls(this);
 }
@@ -436,8 +436,8 @@ static void loadView(ViewController *self) {
   $(self, addChildViewController, (ViewController *) this->tabViewController);
   $((View *) ((Panel *) view)->contentView, addSubview, ((ViewController *) this->tabViewController)->view);
 
-  this->tabViewController->tabView->delegate.self = this;
-  this->tabViewController->tabView->delegate.didSelectTab = didSelectTab;
+  this->tabViewController->delegate.self = this;
+  this->tabViewController->delegate.didSelectTab = didSelectTab;
 
   Select *windowMode, *maxFps, *verticalSync, *anisotropy, *antialias, *voiceMode;
   CvarSelect *playbackDevice, *captureDevice;
