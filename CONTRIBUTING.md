@@ -15,50 +15,38 @@ Thank you for your interest in contributing to Quetoo! This guide covers how to 
 
 ## Building from Source
 
-### Dependencies
+### External Dependencies
 
 Install these libraries via your system package manager or Homebrew:
 
-- [ObjectivelyMVC](https://github.com/jdolan/ObjectivelyMVC/)
 - [PhysicsFS](https://icculus.org/physfs/)
 - [OpenAL](https://www.openal.org/)
+- [libopus](https://opus-codec.org/downloads/)
 - [libsndfile](http://mega-nerd.com/libsndfile/)
 - [ncurses](https://www.gnu.org/software/ncurses/)
-- [SDL2](https://www.libsdl.org/)
+- [SDL3](https://www.libsdl.org/)
 - [libcurl](https://curl.se/libcurl/)
 
-### Build Steps
+### Internal Dependencies, code and data
 
 ```bash
-# Clone and enter the repo
+# Clone all of the things
+git clone https://github.com/jdolan/Objectively.git
+git clone https://github.com/jdolan/ObjectivelyGPU.git
+git clone https://github.com/jdolan/ObjectivelyMVC.git
 git clone https://github.com/jdolan/quetoo.git
-cd quetoo
-
-# Generate build system (only needed once after clone or configure.ac changes)
-autoreconf -i
-
-# Configure (standard build)
-./configure
-
-# macOS with Homebrew in non-standard prefix
-./configure --with-homebrew=/opt/homebrew
-
-# Build with tests
-./configure --with-tests
-
-# Compile
-make -j$(nproc)
-
-# Install
-sudo make install
-```
-
-### Installing Game Data
-
-The engine requires game data from a separate repository:
-
-```bash
 git clone https://github.com/jdolan/quetoo-data.git
+
+# Compile each source project
+for repo in Objectively ObjectivelyGPU ObjectivelyMVC quetoo; do
+  pushd $repo
+  autoreconf -i
+  ./configure
+  make -j$(nproc) && sudo make install
+  popd
+done
+
+# Symlink the game data to where the game will expect it
 sudo ln -s $(pwd)/quetoo-data/target /usr/local/share/quetoo
 ```
 
