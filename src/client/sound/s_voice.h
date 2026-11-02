@@ -31,7 +31,7 @@ extern Cvar *s_voiceLoopback;
 extern Cvar *s_voiceVolume;
 
 void S_StartVoice(uint8_t channel);
-void S_UpdateVoice(bool active, bool monitor, uint8_t channel);
+void S_UpdateVoice(bool active, uint8_t channel);
 SoundCaptureLevel S_CaptureLevel(void);
 void S_StopVoice(void);
 void S_StopVoices(void);

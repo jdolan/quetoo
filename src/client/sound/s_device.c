@@ -193,8 +193,8 @@ void S_ShutdownPlayback(void) {
 
 /**
  * @brief Opens the capture device, paused, warning once if it is unavailable.
- * @details Capture is opened on first use rather than at initialization, so that players who never
- * speak are never prompted for microphone access and never light the recording indicator.
+ * @details Voice keeps capture running while enabled to avoid Bluetooth profile switches between
+ * menus and gameplay or between transmissions.
  * @remarks Resolves s_captureDevice, whose string the main thread is free to replace, so this must
  * only be called from the main thread.
  */

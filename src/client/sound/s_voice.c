@@ -855,26 +855,28 @@ static bool S_StartCapture(void) {
 }
 
 /**
- * @brief Discards capture and pending output, including any pre-roll from the previous context.
+ * @brief Discards transmission state, including any pre-roll from the previous context.
+ * @remarks Keep capture running across context changes to avoid Bluetooth profile switches.
  */
 static void S_ClearVoiceCapture(void) {
 
-  module.transmitting = module.manual = module.capturing = false;
+  module.transmitting = module.manual = false;
   module.quietMillis = 0;
   module.preRollHead = module.preRollCount = 0;
   module.outHead = module.outTail = 0;
   module.level = (SoundCaptureLevel) { 0 };
 
-  S_CloseCapture();
+  if (module.capturing && !S_ResumeCapture()) {
+    module.capturing = false;
+  }
 }
 
 /**
  * @brief Reconciles connection, mode and device changes on the main thread.
  * @param active True when outgoing voice is allowed on a live, non-demo connection.
- * @param monitor Keeps capture running for menu calibration, including while disconnected.
  * @param channel The game module's default automatic voice channel.
  */
-void S_UpdateVoice(bool active, bool monitor, uint8_t channel) {
+void S_UpdateVoice(bool active, uint8_t channel) {
 
   if (!module.enabled) {
     return;
@@ -896,13 +898,14 @@ void S_UpdateVoice(bool active, bool monitor, uint8_t channel) {
     module.outTail = module.outHead;
   }
 
-  if (!s_voice->integer || (!active && !monitor &&
-                            !(module.manual && s_voiceLoopback->integer))) {
+  if (!s_voice->integer) {
     const bool manual = module.manual && active;
     module.automatic = false;
     S_ClearVoiceCapture();
-    if (!s_voice->integer) {
-      module.manual = manual;
+    module.manual = manual;
+    if (module.capturing || S_Capturing()) {
+      S_CloseCapture();
+      module.capturing = false;
     }
 
     SDL_UnlockMutex(module.mutex);
@@ -923,6 +926,8 @@ void S_UpdateVoice(bool active, bool monitor, uint8_t channel) {
   if (s_captureDevice->modified) {
     const bool manual = module.manual;
     S_ClearVoiceCapture();
+    S_CloseCapture();
+    module.capturing = false;
     module.manual = manual;
   }
 
@@ -939,15 +944,8 @@ void S_UpdateVoice(bool active, bool monitor, uint8_t channel) {
   module.automatic = automatic;
   module.defaultChannel = channel;
 
-  if (automatic || module.manual || monitor) {
-    if (S_StartCapture() && module.manual && !module.transmitting) {
-      S_BeginVoiceTransmission(module.channel);
-    }
-  } else if (module.capturing) {
-    S_EndVoiceTransmission();
-    S_PauseCapture();
-    module.capturing = false;
-    module.level = (SoundCaptureLevel) { 0 };
+  if (S_StartCapture() && module.manual && !module.transmitting) {
+    S_BeginVoiceTransmission(module.channel);
   }
 
   SDL_UnlockMutex(module.mutex);
@@ -972,6 +970,8 @@ void S_StartVoice(uint8_t channel) {
 
   if (s_captureDevice->modified) {
     S_ClearVoiceCapture();
+    S_CloseCapture();
+    module.capturing = false;
   }
 
   if (!module.manual || module.channel != channel) {
@@ -993,7 +993,7 @@ void S_StartVoice(uint8_t channel) {
 }
 
 /**
- * @brief Ends manual voice, resuming automatic detection only on newly captured audio.
+ * @brief Ends manual voice without interrupting capture.
  */
 void S_StopVoice(void) {
 
@@ -1006,13 +1006,8 @@ void S_StopVoice(void) {
   if (module.manual) {
     S_EndVoiceTransmission();
     module.manual = false;
-    if (module.automatic && s_voice->integer) {
-      if (!S_ResumeCapture()) {
-        S_ClearVoiceCapture();
-      }
-    } else {
-      S_PauseCapture();
-      module.capturing = false;
+    if (module.capturing && !S_ResumeCapture()) {
+      S_ClearVoiceCapture();
     }
   }
 
@@ -1068,6 +1063,7 @@ void S_InitVoice(void) {
   }
 
   module.enabled = true;
+  S_UpdateVoice(false, 0);
 
   Com_Print("Voice initialized (%s)\n", opus_get_version_string());
 }
