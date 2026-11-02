@@ -306,7 +306,7 @@ static void cycleCandidate(EntityViewController *self, int32_t dir) {
 /**
  * @brief Handles keyboard events for the EntityViewController, supporting copy/paste of entity definitions.
  */
-static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event) {
+static bool respondToKeyEvent(EntityViewController *self, const SDL_Event *event) {
 
   Entity *e = self->entity ? self->entity->def : NULL;
 
@@ -323,6 +323,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
           SDL_SetClipboardText(info);
           cgi.Free(info);
           cgi.Print("Copied %s\n", cgi.EntityValue(e, "classname")->string);
+          return true;
         }
         break;
 
@@ -333,6 +334,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
           cgi.Free(info);
           $(self, deleteEntity);
           cgi.Print("Cut %s\n", cgi.EntityValue(e, "classname")->string);
+          return true;
         }
         break;
 
@@ -349,6 +351,7 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
             cgi.FreeEntity(entity);
           }
           SDL_free(info);
+          return true;
         }
         break;
     }
@@ -357,16 +360,19 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
     if (key >= SDLK_1 && key <= SDLK_8) {
       cgi.SetCvarValue(editorGridSize->name, (1 << (key - SDLK_1)));
       cgi.Print("Editor grid size set to %g\n", editorGridSize->value);
+      return true;
     }
 
     if (key == SDLK_G) {
       self->showFuncGroups = !self->showFuncGroups;
       cgameEditor.showFuncGroups = self->showFuncGroups;
       cgi.Print("func_group entities %s\n", self->showFuncGroups ? "^2shown" : "^1hidden");
+      return true;
     }
 
     if (key == SDLK_U && cgi.GetKeyDest() == KEY_UI && self->entity) {
       cgi.Cbuf(va("editorUse %d\n", self->entity->number));
+      return true;
     }
 
     if (cgi.GetKeyDest() == KEY_UI && e) {
@@ -431,21 +437,26 @@ static void respondToKeyEvent(EntityViewController *self, const SDL_Event *event
         cgi.SetEntityKeyValue(e, "origin", ENTITY_VEC3, &origin);
 
         cgi.WriteEntityInfoCommand(self->entity->number, e);
+        return true;
       }
     }
   }
+
+  return false;
 }
 
 /**
- * @see ViewContrxoller::respondToEvent(ViewController *, const SDL_Event *)
+ * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
  */
-static void respondToEvent(ViewController *self, const SDL_Event *event) {
+static bool respondToEvent(ViewController *self, const SDL_Event *event) {
 
   EntityViewController *this = (EntityViewController *) self;
 
   if (event->type == SDL_EVENT_KEY_DOWN
       && (cgi.GetKeyDest() == KEY_UI || cgi.GetKeyDest() == KEY_GAME)) {
-    respondToKeyEvent(this, event);
+    if (respondToKeyEvent(this, event)) {
+      return true;
+    }
   }
 
   if (event->type == MVC_NOTIFICATION_EVENT) {
@@ -475,7 +486,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
     }
   }
 
-  super(ViewController, self, respondToEvent, event);
+  return super(ViewController, self, respondToEvent, event);
 }
 
 #pragma mark - EntityViewController

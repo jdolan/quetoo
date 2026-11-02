@@ -256,7 +256,7 @@ static void loadView(ViewController *self) {
 /**
  * @see ViewController::respondToEvent(ViewController *, const SDL_Event *)
  */
-static void respondToEvent(ViewController *self, const SDL_Event *event) {
+static bool respondToEvent(ViewController *self, const SDL_Event *event) {
 
   LeaderboardViewController *this = (LeaderboardViewController *) self;
 
@@ -268,7 +268,7 @@ static void respondToEvent(ViewController *self, const SDL_Event *event) {
     }
   }
 
-  super(ViewController, self, respondToEvent, event);
+  return super(ViewController, self, respondToEvent, event);
 }
 
 /**

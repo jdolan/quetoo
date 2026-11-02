@@ -46,7 +46,7 @@ void Cl_SetKeyDest(ClientKeyDest dest) {
       if (cls.keyState.down[k]) {
         if (cls.keyState.binds[k] && cls.keyState.binds[k][0] == '+') {
           e.key.scancode = k;
-          Cl_KeyEvent(&e);
+          Cl_UpdateKeyState(&e);
         }
       }
     }
@@ -245,23 +245,6 @@ static void Cl_KeyGame(const SDL_Event *event) {
 
   if (!bind) {
     return;
-  }
-
-  // A demo no longer merely steers itself: the camera modes drive themselves from movement
-  // input, so button commands are let through. The transport keys are the exception, because
-  // they collide with movement binds outright - space is bound to +moveUp, left and right to
-  // +left and +right, so stepping a frame would also turn the view
-  if (cl.demoServer && bind[0] == '+') {
-    switch (key) {
-      case SDL_SCANCODE_LEFT:
-      case SDL_SCANCODE_RIGHT:
-      case SDL_SCANCODE_SPACE:
-      case SDL_SCANCODE_COMMA:
-      case SDL_SCANCODE_PERIOD:
-        return;
-      default:
-        break;
-    }
   }
 
   cmd[0] = '\0';
@@ -553,7 +536,7 @@ void Cl_ShutdownKeys(void) {
 }
 
 /**
- * @brief Routes an SDL key event to the game or console handler; the UI handles its own.
+ * @brief Routes an unconsumed key event to the current input destination.
  */
 void Cl_KeyEvent(const SDL_Event *event) {
 
@@ -572,6 +555,35 @@ void Cl_KeyEvent(const SDL_Event *event) {
       Com_Debug(DEBUG_CLIENT, "Bad cl_key_dest: %d\n", cls.keyState.dest);
       break;
   }
+}
 
-  cls.keyState.down[event->key.scancode] = event->type == SDL_EVENT_KEY_DOWN;
+/**
+ * @brief Tracks physical keys and releases latched bindings, even for consumed events.
+ * @remarks Run after dispatch so binding edge detection sees the previous key state.
+ */
+void Cl_UpdateKeyState(const SDL_Event *event) {
+
+  SDL_Event keyEvent;
+  switch (event->type) {
+    case SDL_EVENT_KEY_DOWN:
+    case SDL_EVENT_KEY_UP:
+      break;
+    case SDL_EVENT_MOUSE_BUTTON_DOWN:
+    case SDL_EVENT_MOUSE_BUTTON_UP:
+      keyEvent = (SDL_Event) { .key = {
+        .type = event->type == SDL_EVENT_MOUSE_BUTTON_DOWN ? SDL_EVENT_KEY_DOWN : SDL_EVENT_KEY_UP,
+        .scancode = SDL_SCANCODE_MOUSE1 + event->button.button - 1
+      }};
+      event = &keyEvent;
+      break;
+    default:
+      return;
+  }
+
+  const SDL_Scancode key = event->key.scancode;
+  if (event->type == SDL_EVENT_KEY_UP && cls.keyState.latched[key]) {
+    Cl_KeyGame(event);
+  }
+
+  cls.keyState.down[key] = event->type == SDL_EVENT_KEY_DOWN;
 }

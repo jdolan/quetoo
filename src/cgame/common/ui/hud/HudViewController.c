@@ -99,17 +99,19 @@ static ViewController *init(ViewController *self) {
  * view hierarchy, so this is the hook - a View would only see keys as the window's key responder,
  * and DemoControlsView is hidden during playback anyway, which is exactly when pause must work.
  */
-static void respondToEvent(ViewController *self, const SDL_Event *event) {
+static bool respondToEvent(ViewController *self, const SDL_Event *event) {
 
   HudViewController *this = (HudViewController *) self;
 
   if (event->type == SDL_EVENT_KEY_DOWN) {
     if (cgi.client->demoServer && cgi.GetKeyDest() == KEY_GAME) {
-      $((View *) this->demoControls, respondToEvent, event);
+      if ($((View *) this->demoControls, respondToEvent, event)) {
+        return true;
+      }
     }
   }
 
-  super(ViewController, self, respondToEvent, event);
+  return super(ViewController, self, respondToEvent, event);
 }
 
 /**

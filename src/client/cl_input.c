@@ -458,11 +458,17 @@ void Cl_HandleEvents(void) {
     memset(&event, 0, sizeof(event));
 
     if (SDL_PollEvent(&event)) {
-      if (Cl_HandleSystemEvent(&event) == false) {
+      const bool systemHandled = Cl_HandleSystemEvent(&event);
+      const bool uiHandled = !systemHandled && Ui_HandleEvent(&event);
+      const bool input = event.type >= SDL_EVENT_KEY_DOWN && event.type <= SDL_EVENT_MOUSE_WHEEL;
 
-        Ui_HandleEvent(&event);
+      if (!systemHandled && !uiHandled) {
         Cl_HandleEvent(&event);
+      }
 
+      Cl_UpdateKeyState(&event);
+
+      if (!systemHandled && (!input || !uiHandled)) {
         cls.cgame->HandleEvent(&event);
       }
     } else {

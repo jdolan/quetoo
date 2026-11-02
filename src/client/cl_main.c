@@ -738,8 +738,7 @@ int32_t Cl_InstallerFrame(const InstallerStatus *in) {
 static void Cl_UpdateVoice(void) {
 
   const bool active = cls.state == CL_ACTIVE && !cl.demoServer && cls.cgame;
-  S_UpdateVoice(active, Cl_GetKeyDest() != KEY_GAME,
-                cls.cgame ? cls.cgame->defaultVoiceChannel : 0);
+  S_UpdateVoice(active, cls.cgame ? cls.cgame->defaultVoiceChannel : 0);
 }
 
 /**

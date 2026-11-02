@@ -83,10 +83,10 @@ static void didSetScrubber(Slider *slider, double value) {
  * work. Nothing is forwarded to super for the same reason: bubbling would walk a chain this View
  * was never in, pushing an MVC_VIEW_EVENT for every ancestor on every keystroke.
  */
-static void respondToEvent(View *self, const SDL_Event *event) {
+static bool respondToEvent(View *self, const SDL_Event *event) {
 
   if (event->type != SDL_EVENT_KEY_DOWN) {
-    return;
+    return false;
   }
 
   switch (event->key.scancode) {
@@ -115,8 +115,10 @@ static void respondToEvent(View *self, const SDL_Event *event) {
       break;
 
     default:
-      break;
+      return false;
   }
+
+  return true;
 }
 
 #pragma mark - DemoControlsView

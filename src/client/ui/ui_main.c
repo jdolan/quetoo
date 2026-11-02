@@ -112,8 +112,9 @@ static void Ui_HandleViewEvent(const View *view, ViewEvent event) {
 
 /**
  * @brief Dispatch events to the user interface.
+ * @return True if the user interface consumed the event.
  */
-void Ui_HandleEvent(const SDL_Event *event) {
+bool Ui_HandleEvent(const SDL_Event *event) {
 
   if (windowController) {
 
@@ -137,7 +138,7 @@ void Ui_HandleEvent(const SDL_Event *event) {
             break;
           }
           if (event->key.key == SDLK_TAB || event->key.key == SDLK_KP_TAB) {
-            return;
+            return false;
           }
         case SDL_EVENT_KEY_UP:
         case SDL_EVENT_TEXT_INPUT:
@@ -145,19 +146,22 @@ void Ui_HandleEvent(const SDL_Event *event) {
             break;
           }
         default:
-          return;
+          return false;
       }
     }
 
-    $(windowController, respondToEvent, event);
+    const bool consumed = $(windowController, respondToEvent, event);
 
     if (event->type == MVC_VIEW_EVENT) {
       Ui_HandleViewEvent(event->user.data1, event->user.code);
     }
 
+    return consumed;
   } else {
     Com_Warn("windowController was NULL\n");
   }
+
+  return false;
 }
 
 /**

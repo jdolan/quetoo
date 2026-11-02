@@ -76,10 +76,12 @@ void Cl_MouseWheelEvent(const SDL_Event *event) {
         e.key.key = SDL_SCANCODE_TO_KEYCODE(e.key.scancode);
 
         Cl_KeyEvent(&e);
+        Cl_UpdateKeyState(&e);
 
         e.type = SDL_EVENT_KEY_UP;
 
         Cl_KeyEvent(&e);
+        Cl_UpdateKeyState(&e);
       }
       break;
 

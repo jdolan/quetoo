@@ -110,17 +110,19 @@ static void loadView(ViewController *self) {
  * @remarks The entity hotkeys and notifications apply on every tab, and while the editor is
  * hidden, so the entity tab receives events even when another tab is selected.
  */
-static void respondToEvent(ViewController *self, const SDL_Event *event) {
+static bool respondToEvent(ViewController *self, const SDL_Event *event) {
 
   EditorViewController *this = (EditorViewController *) self;
 
   ViewController *entityViewController = (ViewController *) this->entityViewController;
 
   if (this->tabViewController->selectedViewController != entityViewController) {
-    $(entityViewController, respondToEvent, event);
+    if ($(entityViewController, respondToEvent, event)) {
+      return true;
+    }
   }
 
-  super(ViewController, self, respondToEvent, event);
+  return super(ViewController, self, respondToEvent, event);
 }
 
 /**

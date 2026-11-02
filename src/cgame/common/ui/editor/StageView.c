@@ -712,16 +712,19 @@ static bool containsPoint(const View *self, const SDL_Point *point) {
  * @remarks A click on the label collapses or shows the details of the stage. Its label and asset
  * row always show.
  */
-static void respondToEvent(View *self, const SDL_Event *event) {
+static bool respondToEvent(View *self, const SDL_Event *event) {
 
+  bool consumed = false;
   if (event->type == SDL_EVENT_MOUSE_BUTTON_UP && event->button.clicks) {
     if ($((View *) ((Box *) self)->label, didReceiveEvent, event)) {
       const bool collapsed = $(self, hasClassName, "collapsed");
       $((StageView *) self, setCollapsed, !collapsed);
+      consumed = true;
     }
   }
 
-  super(View, self, respondToEvent, event);
+  const bool bubbled = super(View, self, respondToEvent, event);
+  return consumed || bubbled;
 }
 
 #pragma mark - StageView
