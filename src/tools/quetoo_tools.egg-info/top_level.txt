@@ -1,10 +1,14 @@
+ai_profile
 matfu
 md22obj
+md3
 md32obj
 md3fu
 mdl2obj
 objfu
+playerfu
 skyfu
 symbolicate_dmp
+tintfu
 unpak
 verify_projects

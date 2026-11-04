@@ -3,3 +3,10 @@ Name: quetoo-tools
 Version: 0.1.0
 Summary: Developer Python tools for Quetoo
 Requires-Python: >=3.9
+Requires-Dist: numpy
+Requires-Dist: opencv-python
+Requires-Dist: pillow
+Requires-Dist: pygame-ce
+Requires-Dist: PyOpenGL
+Requires-Dist: scikit-image
+Requires-Dist: scipy

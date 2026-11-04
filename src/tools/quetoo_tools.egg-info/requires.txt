@@ -1,0 +1,7 @@
+numpy
+opencv-python
+pillow
+pygame-ce
+PyOpenGL
+scikit-image
+scipy
