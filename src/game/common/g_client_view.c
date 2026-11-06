@@ -485,6 +485,9 @@ void G_ClientEndFrame(GameClient *cl) {
     return;
   }
 
+  // loop the active weapon's sound, if any, on the player
+  cl->entity->s.sound = cl->entity->dead || cl->persistent.spectator ? 0 : cl->weaponSound;
+
   // a change of movement parameters is a change of client info
   if (!Box3_Equal(G_ClientStandingBounds(cl), cl->persistent.standingBounds)) {
     G_ClientUserInfoChanged(cl, cl->persistent.userInfo);

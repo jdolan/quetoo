@@ -283,6 +283,32 @@ static void Cg_BlasterTrail(ClientEntity *ent, const Vec3 start, const Vec3 end)
 }
 
 /**
+ * @brief Renders the Quake II hyperblaster bolt, which has a glow and a light but no particle trail.
+ */
+static void Cg_Quake2HyperblasterTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
+
+  const Vec3 color = Cg_ClientEffectColor(ent->current.client, NULL, COLOR_HUE_ORANGE);
+
+  if (Cg_TrailContents(start, end) & CONTENTS_MASK_LIQUID) {
+    Cg_BubbleTrail(ent, start, end, 2.f);
+  }
+
+  cgi.AddSprite(cgi.view, &(RenderSprite) {
+    .media = (RenderMedia *) cgameMedia.sprites.particle,
+    .origin = end,
+    .size = 8.f,
+    .color = color,
+  });
+
+  Cg_AddLight(&(CGameLight) {
+    .origin = end,
+    .radius = 200.f,
+    .color = color,
+    .intensity = 2.5f,
+  });
+}
+
+/**
  * @brief Renders the grenade projectile trail with smoke and a pulsing dynamic light.
  */
 static void Cg_GrenadeTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
@@ -1280,6 +1306,9 @@ void Cg_EntityTrail(ClientEntity *ent) {
   switch (s->trail) {
     case TRAIL_BLASTER:
       Cg_BlasterTrail(ent, start, end);
+      break;
+    case TRAIL_QUAKE2_HYPERBLASTER:
+      Cg_Quake2HyperblasterTrail(ent, start, end);
       break;
     case TRAIL_GRENADE:
       Cg_GrenadeTrail(ent, start, end);

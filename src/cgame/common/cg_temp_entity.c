@@ -37,7 +37,7 @@ void Cg_AddDecal(const RenderDecal *decal) {
 /**
  * @brief Spawns blaster impact sprites, a burn decal, a brief dynamic light, and plays the hit sound.
  */
-static void Cg_BlasterEffect(const Vec3 org, const Vec3 dir, const Vec3 color) {
+static void Cg_BlasterEffect(const Vec3 org, const Vec3 dir, const Vec3 color, const SoundSample *sample) {
 
   for (int32_t i = 0; i < 2; i++) {
     const float saturation = RandomRangef(.8f, 1.f);
@@ -117,7 +117,7 @@ static void Cg_BlasterEffect(const Vec3 org, const Vec3 dir, const Vec3 color) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameMedia.sounds.blasterHit,
+    .sample = sample,
     .origin = org,
   });
 }
@@ -540,7 +540,7 @@ void Cg_SparksEffect(const Vec3 org, const Vec3 dir, int32_t count) {
 /**
  * @brief Spawns explosion sprites, ember particles, a burn decal, a bright decaying light, and plays the explosion sound.
  */
-static void Cg_ExplosionEffect(const Vec3 org, const Vec3 dir) {
+static void Cg_ExplosionEffect(const Vec3 org, const Vec3 dir, const SoundSample *sample) {
 
   if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
     for (int32_t i = 0; i < 16; i++) {
@@ -661,7 +661,7 @@ static void Cg_ExplosionEffect(const Vec3 org, const Vec3 dir) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameMedia.sounds.explosion,
+    .sample = sample,
     .origin = org,
   });
 }
@@ -1275,7 +1275,16 @@ void Cg_ParseTempEntity(void) {
       pos = cgi.ReadPosition();
       dir = cgi.ReadDir();
       i = cgi.ReadByte();
-      Cg_BlasterEffect(pos, dir, Cg_ClientEffectColor(i, NULL, COLOR_HUE_ORANGE));
+      Cg_BlasterEffect(pos, dir, Cg_ClientEffectColor(i, NULL, COLOR_HUE_ORANGE), cgameMedia.sounds.blasterHit);
+      break;
+
+    case TE_QUAKE2_BLASTER:
+    case TE_QUAKE2_HYPERBLASTER:
+      pos = cgi.ReadPosition();
+      dir = cgi.ReadDir();
+      i = cgi.ReadByte();
+      Cg_BlasterEffect(pos, dir, Cg_ClientEffectColor(i, NULL, COLOR_HUE_ORANGE),
+                       type == TE_QUAKE2_BLASTER ? cgameMedia.sounds.quake2BlasterHit : cgameMedia.sounds.quake2HyperblasterHit);
       break;
 
     case TE_TRACER:
@@ -1344,7 +1353,15 @@ void Cg_ParseTempEntity(void) {
     case TE_EXPLOSION: // rocket and grenade explosions
       pos = cgi.ReadPosition();
       dir = cgi.ReadDir();
-      Cg_ExplosionEffect(pos, dir);
+      Cg_ExplosionEffect(pos, dir, cgameMedia.sounds.explosion);
+      break;
+
+    case TE_QUAKE2_ROCKET_EXPLOSION:
+    case TE_QUAKE2_GRENADE_EXPLOSION:
+      pos = cgi.ReadPosition();
+      dir = cgi.ReadDir();
+      Cg_ExplosionEffect(pos, dir, type == TE_QUAKE2_ROCKET_EXPLOSION ?
+                         cgameMedia.sounds.quake2RocketExplosion : cgameMedia.sounds.quake2GrenadeExplosion);
       break;
 
     case TE_BFG_LASER:

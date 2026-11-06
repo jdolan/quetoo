@@ -178,6 +178,15 @@ typedef enum {
   MZ_QUAKE_GRENADE_LAUNCHER,
   MZ_QUAKE_ROCKET_LAUNCHER,
 
+  MZ_QUAKE2_BLASTER,
+  MZ_QUAKE2_SHOTGUN,
+  MZ_QUAKE2_SUPER_SHOTGUN,
+  MZ_QUAKE2_MACHINEGUN,
+  MZ_QUAKE2_GRENADE_LAUNCHER,
+  MZ_QUAKE2_ROCKET_LAUNCHER,
+  MZ_QUAKE2_HYPERBLASTER,
+  MZ_QUAKE2_RAILGUN,
+
   MZ_LASER,
 } GameMuzzleFlash;
 
@@ -204,7 +213,11 @@ typedef enum {
   TE_GIB,
   TE_RIPPLE,
   TE_HOOK_IMPACT,
-  TE_NAIL
+  TE_NAIL,
+  TE_QUAKE2_BLASTER,
+  TE_QUAKE2_HYPERBLASTER,
+  TE_QUAKE2_ROCKET_EXPLOSION,
+  TE_QUAKE2_GRENADE_EXPLOSION
 } GameTempEntity;
 
 /**
@@ -365,6 +378,7 @@ typedef enum {
   TRAIL_QUAKE_NAIL,
   TRAIL_QUAKE_GRENADE,
   TRAIL_LASER,
+  TRAIL_QUAKE2_HYPERBLASTER,
 } GameEntityTrail;
 
 /**
@@ -744,6 +758,18 @@ typedef struct {
     uint16_t grenadeTick;
     uint16_t quakeGrenadeHit;
     uint16_t quakeNailHit;
+    uint16_t quake2ChaingunSpinUp;
+    uint16_t quake2ChaingunHum;
+    uint16_t quake2ChaingunSpinDown;
+    uint16_t quake2HyperblasterHum;
+    uint16_t quake2HyperblasterSpinDown;
+    uint16_t quake2RailgunHum;
+    uint16_t quake2GrenadePin;
+    uint16_t quake2GrenadeThrow;
+    uint16_t quake2GrenadeTick;
+    uint16_t quake2GrenadeBounce;
+    uint16_t quake2HandGrenadeBounce[2];
+    uint16_t quake2RocketFly;
     uint16_t rocketFly;
     uint16_t lightningFly;
     uint16_t laserFly;
@@ -1470,6 +1496,11 @@ struct GameClient {
 
   uint32_t quake2AttackTime;
   uint32_t quake2AttackFrame;
+
+  /**
+   * @brief The looping sound of the active weapon, set by its think function each frame.
+   */
+  uint16_t weaponSound;
 
   /**
    * @brief Level time when the weapon was last changed.

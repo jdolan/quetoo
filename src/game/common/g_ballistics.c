@@ -184,7 +184,8 @@ static void G_BlasterProjectile_Touch(GameEntity *ent, GameEntity *other, const 
     if (G_IsStructural(trace)) {
 
       gi.WriteByte(SV_CMD_TEMP_ENTITY);
-      gi.WriteByte(TE_BLASTER);
+      gi.WriteByte(ent->mod == MOD_QUAKE2_BLASTER ? TE_QUAKE2_BLASTER :
+                   ent->mod == MOD_QUAKE2_HYPERBLASTER ? TE_QUAKE2_HYPERBLASTER : TE_BLASTER);
       gi.WritePosition(ent->s.origin);
       gi.WriteDir(trace->plane.normal);
       gi.WriteByte(ent->owner->s.client);
@@ -226,7 +227,7 @@ void G_BlasterProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
   projectile->Think = G_FreeEntity;
   projectile->Touch = G_BlasterProjectile_Touch;
   projectile->s.client = G_ProjectileClient(emitter);
-  projectile->s.trail = TRAIL_BLASTER;
+  projectile->s.trail = mod == MOD_QUAKE2_HYPERBLASTER ? TRAIL_QUAKE2_HYPERBLASTER : TRAIL_BLASTER;
 
   gi.LinkEntity(projectile);
 }
@@ -425,7 +426,7 @@ static void G_GrenadeProjectile_Explode(GameEntity *ent) {
   G_RadiusDamage(ent, ent->owner, ent->enemy, ent->damage, ent->knockback, ent->damageRadius, mod);
 
   gi.WriteByte(SV_CMD_TEMP_ENTITY);
-  gi.WriteByte(TE_EXPLOSION);
+  gi.WriteByte(mod == MOD_QUAKE2_GRENADE || mod == MOD_QUAKE2_HANDGRENADE ? TE_QUAKE2_GRENADE_EXPLOSION : TE_EXPLOSION);
   gi.WritePosition(ent->s.origin);
   gi.WriteDir(Vec3_Up());
   gi.Multicast(ent->s.origin, MULTICAST_PHS);
@@ -455,10 +456,19 @@ void G_GrenadeProjectile_Touch(GameEntity *ent, GameEntity *other, const Collisi
     if (G_IsStructural(trace)) {
       if (gameLevel.time - ent->touchTime > 200) {
         if (Vec3_Length(ent->velocity) > 40.0) {
+          uint16_t index = ent->hitSound;
+          int8_t pitch = (int8_t) (Randomf() * 5.0);
+          if (ent->mod == MOD_QUAKE2_GRENADE) {
+            index = gameMedia.sounds.quake2GrenadeBounce;
+            pitch = 0;
+          } else if (ent->mod == MOD_QUAKE2_HANDGRENADE) {
+            index = gameMedia.sounds.quake2HandGrenadeBounce[RandomRangeu(0, 2)];
+            pitch = 0;
+          }
           G_MulticastSound(&(const GamePlaySound) {
-            .index = ent->hitSound,
+            .index = index,
             .entity = ent,
-            .pitch = (int8_t) (Randomf() * 5.0)
+            .pitch = pitch
           }, MULTICAST_PHS);
           ent->touchTime = gameLevel.time;
         }
@@ -713,7 +723,7 @@ static void G_RocketProjectile_Touch(GameEntity *ent, GameEntity *other, const C
                      quake2 ? 120 : ent->knockback, ent->damageRadius, splashMod);
 
       gi.WriteByte(SV_CMD_TEMP_ENTITY);
-      gi.WriteByte(TE_EXPLOSION);
+      gi.WriteByte(quake2 ? TE_QUAKE2_ROCKET_EXPLOSION : TE_EXPLOSION);
       gi.WritePosition(ent->s.origin);
       gi.WriteDir(trace->plane.normal);
       gi.Multicast(ent->s.origin, MULTICAST_PHS);
@@ -753,7 +763,7 @@ void G_RocketProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 st
   projectile->Think = G_FreeEntity;
   projectile->Touch = G_RocketProjectile_Touch;
   projectile->s.model1 = gameMedia.models.rocket;
-  projectile->s.sound = gameMedia.sounds.rocketFly;
+  projectile->s.sound = mod == MOD_QUAKE2_ROCKET ? gameMedia.sounds.quake2RocketFly : gameMedia.sounds.rocketFly;
   projectile->s.client = G_ProjectileClient(emitter);
   projectile->s.trail = TRAIL_ROCKET;
 

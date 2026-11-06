@@ -354,6 +354,8 @@ static void G_WeaponFired(GameClient *cl, uint32_t interval, uint32_t ammoNeeded
  */
 void G_ClientWeaponThink(GameClient *cl) {
 
+  cl->weaponSound = 0;
+
   if (cl->entity->dead) {
     return;
   }
@@ -542,6 +544,11 @@ static void G_PullGrenadePin(GameClient *cl) {
   nade->owner = cl->entity;
   if (cl->weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE) {
     nade->mod = MOD_QUAKE2_HANDGRENADE;
+
+    G_MulticastSound(&(const GamePlaySound) {
+      .index = gameMedia.sounds.quake2GrenadePin,
+      .entity = cl->entity,
+    }, MULTICAST_PHS);
   }
   nade->s.origin = cl->entity->s.origin;
   nade->solid = SOLID_NOT;
@@ -636,8 +643,12 @@ static void G_FireHandGrenade_(GameClient *cl, bool quake2) {
   // continue holding if time allows
   if (holding && (int32_t)(nadeTime - holdTime) > 0) {
 
+    // Quake II loops a ticking fuse while the grenade is held
+    if (quake2) {
+      cl->weaponSound = gameMedia.sounds.quake2GrenadeTick;
+    }
     // play the timer sound if we're holding once every second
-    if ((gameLevel.frameNum - cl->grenadeHoldFrame) % QUETOO_TICK_RATE == 0) {
+    else if ((gameLevel.frameNum - cl->grenadeHoldFrame) % QUETOO_TICK_RATE == 0) {
       G_MulticastSound(&(const GamePlaySound) {
         .index = gameMedia.sounds.grenadeClang,
         .entity = cl->entity,
@@ -679,7 +690,7 @@ static void G_FireHandGrenade_(GameClient *cl, bool quake2) {
 
   // play the sound if we throw it
   G_MulticastSound(&(const GamePlaySound) {
-    .index = gameMedia.sounds.grenadeThrow,
+    .index = quake2 ? gameMedia.sounds.quake2GrenadeThrow : gameMedia.sounds.grenadeThrow,
     .entity = cl->entity,
   }, MULTICAST_PHS);
 
@@ -987,7 +998,7 @@ void G_FireQuake2Blaster(GameClient *cl) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
     G_BlasterProjectile(cl->entity, cl->entity, org, forward, 1000, 15, 1, MOD_QUAKE2_BLASTER);
-    G_ClientMuzzleFlash(cl->entity, MZ_BLASTER);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_BLASTER);
     G_WeaponFired(cl, 500, 0);
   }
 }
@@ -997,7 +1008,7 @@ void G_FireQuake2Shotgun(GameClient *cl) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
     G_ShotgunProjectiles(cl->entity, cl->entity, org, forward, 4, 8, QUAKE2_SPREAD(500), QUAKE2_SPREAD(500), 12, MOD_QUAKE2_SHOTGUN);
-    G_ClientMuzzleFlash(cl->entity, MZ_SHOTGUN);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_SHOTGUN);
     G_WeaponFired(cl, 1000, 1);
   }
 }
@@ -1012,7 +1023,7 @@ void G_FireQuake2SuperShotgun(GameClient *cl) {
       Vec3_Vectors(Vec3_Add(angles, MakeVec3(0, side * 5, 0)), &aim, NULL, NULL);
       G_ShotgunProjectiles(cl->entity, cl->entity, org, aim, 6, 12, QUAKE2_SPREAD(1000), QUAKE2_SPREAD(500), 10, MOD_QUAKE2_SUPER_SHOTGUN);
     }
-    G_ClientMuzzleFlash(cl->entity, MZ_SUPER_SHOTGUN);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_SUPER_SHOTGUN);
     G_WeaponFired(cl, 1100, 2);
   }
 }
@@ -1024,7 +1035,7 @@ void G_FireQuake2Machinegun(GameClient *cl) {
     G_BulletProjectile(cl->entity, cl->entity, org, forward, 8, 2, QUAKE2_SPREAD(300), QUAKE2_SPREAD(500), MOD_QUAKE2_MACHINEGUN);
     cl->kickAngles.x += RandomRangef(-0.7f, 0.7f);
     cl->kickAngles.z += RandomRangef(-0.7f, 0.7f);
-    G_ClientMuzzleFlash(cl->entity, MZ_MACHINEGUN);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_MACHINEGUN);
     G_WeaponFired(cl, 100, 1);
   }
 }
@@ -1037,6 +1048,14 @@ void G_FireQuake2Chaingun(GameClient *cl) {
     }
     cl->quake2AttackFrame = 5;
     cl->quake2AttackTime = gameLevel.time;
+
+    G_MulticastSound(&(const GamePlaySound) {
+      .index = gameMedia.sounds.quake2ChaingunSpinUp,
+      .entity = cl->entity,
+    }, MULTICAST_PHS);
+  }
+  if (cl->quake2AttackFrame < 22) {
+    cl->weaponSound = gameMedia.sounds.quake2ChaingunHum;
   }
   if (gameLevel.time < cl->quake2AttackTime || gameLevel.time < cl->weaponFireTime) {
     return;
@@ -1056,8 +1075,11 @@ void G_FireQuake2Chaingun(GameClient *cl) {
   }
   if (cl->quake2AttackFrame == 21 && attack && cl->inventory[cl->ammoIndex]) {
     cl->quake2AttackFrame = 15;
-  } else {
-    cl->quake2AttackFrame++;
+  } else if (++cl->quake2AttackFrame == 22) {
+    G_MulticastSound(&(const GamePlaySound) {
+      .index = gameMedia.sounds.quake2ChaingunSpinDown,
+      .entity = cl->entity,
+    }, MULTICAST_PHS);
   }
   const int32_t requested = cl->quake2AttackFrame <= 9 ? 1
     : cl->quake2AttackFrame <= 14 ? (attack ? 2 : 1) : 3;
@@ -1076,7 +1098,7 @@ void G_FireQuake2Chaingun(GameClient *cl) {
   }
   cl->kickAngles.x += RandomRangef(-0.7f, 0.7f);
   cl->kickAngles.z += RandomRangef(-0.7f, 0.7f);
-  G_ClientMuzzleFlash(cl->entity, MZ_MACHINEGUN);
+  G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_MACHINEGUN);
   G_WeaponFired(cl, 100, shots);
 }
 
@@ -1085,7 +1107,7 @@ void G_FireQuake2GrenadeLauncher(GameClient *cl) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
     G_GrenadeProjectile(cl->entity, cl->entity, org, forward, 600, 120, 120, 160, 2500, MOD_QUAKE2_GRENADE);
-    G_ClientMuzzleFlash(cl->entity, MZ_GRENADE_LAUNCHER);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_GRENADE_LAUNCHER);
     G_WeaponFired(cl, 800, 1);
   }
 }
@@ -1096,27 +1118,42 @@ void G_FireQuake2RocketLauncher(GameClient *cl) {
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
     const int32_t damage = 100 + Randomf() * 20;
     G_RocketProjectile(cl->entity, cl->entity, org, forward, 650, damage, damage, 120, MOD_QUAKE2_ROCKET);
-    G_ClientMuzzleFlash(cl->entity, MZ_ROCKET_LAUNCHER);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_ROCKET_LAUNCHER);
     G_WeaponFired(cl, 800, 1);
   }
 }
 
 void G_FireQuake2Hyperblaster(GameClient *cl) {
+  const bool attack = (cl->buttons | cl->latchedButtons) & BUTTON_ATTACK;
+  if (attack && cl->inventory[cl->ammoIndex]) {
+    cl->quake2AttackFrame = 1;
+    cl->weaponSound = gameMedia.sounds.quake2HyperblasterHum;
+  } else if (cl->quake2AttackFrame) {
+    cl->quake2AttackFrame = 0;
+    G_MulticastSound(&(const GamePlaySound) {
+      .index = gameMedia.sounds.quake2HyperblasterSpinDown,
+      .entity = cl->entity,
+    }, MULTICAST_PHS);
+  }
   if (G_FireWeapon(cl)) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
     G_BlasterProjectile(cl->entity, cl->entity, org, forward, 1000, 15, 1, MOD_QUAKE2_HYPERBLASTER);
-    G_ClientMuzzleFlash(cl->entity, MZ_HYPERBLASTER);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_HYPERBLASTER);
     G_WeaponFired(cl, 100, 1);
   }
 }
 
+/**
+ * @brief Fires the Quake II railgun, which hums while it is held, as G_SetClientSound does in Quake II.
+ */
 void G_FireQuake2Railgun(GameClient *cl) {
+  cl->weaponSound = gameMedia.sounds.quake2RailgunHum;
   if (G_FireWeapon(cl)) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
     G_RailgunProjectile(cl->entity, cl->entity, org, forward, 100, 200, MOD_QUAKE2_RAILGUN);
-    G_ClientMuzzleFlash(cl->entity, MZ_RAILGUN);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_RAILGUN);
     G_WeaponFired(cl, 1500, 1);
   }
 }

@@ -1042,6 +1042,45 @@ void Cg_ParseMuzzleFlash(void) {
       Cg_QuakeRocketFlash(muzzle, origin, angles, client);
       pitch = 3;
       break;
+    case MZ_QUAKE2_BLASTER:
+      sample = cgameMedia.sounds.quake2BlasterFire;
+      Cg_BlasterFlash(muzzle, origin, angles, client);
+      pitch = 3;
+      break;
+    case MZ_QUAKE2_SHOTGUN:
+      sample = cgameMedia.sounds.quake2ShotgunFire;
+      Cg_ShotgunFlash(muzzle, origin, angles, client);
+      pitch = 3;
+      break;
+    case MZ_QUAKE2_SUPER_SHOTGUN:
+      sample = cgameMedia.sounds.quake2SupershotgunFire;
+      Cg_SuperShotgunFlash(muzzle, origin, angles, client);
+      pitch = 3;
+      break;
+    case MZ_QUAKE2_MACHINEGUN:
+      sample = cgameMedia.sounds.quake2MachinegunFire[RandomRangeu(0, lengthof(cgameMedia.sounds.quake2MachinegunFire))];
+      Cg_MachinegunFlash(muzzle, origin, angles, client);
+      pitch = 3;
+      break;
+    case MZ_QUAKE2_GRENADE_LAUNCHER:
+      sample = cgameMedia.sounds.quake2GrenadelauncherFire;
+      Cg_GrenadeFlash(muzzle, origin, angles, client);
+      pitch = 3;
+      break;
+    case MZ_QUAKE2_ROCKET_LAUNCHER:
+      sample = cgameMedia.sounds.quake2RocketlauncherFire;
+      Cg_RocketFlash(muzzle, origin, angles, client);
+      pitch = 3;
+      break;
+    case MZ_QUAKE2_HYPERBLASTER:
+      sample = cgameMedia.sounds.quake2HyperblasterFire;
+      Cg_BlasterFlash(muzzle, origin, angles, client);
+      pitch = 3;
+      break;
+    case MZ_QUAKE2_RAILGUN:
+      sample = cgameMedia.sounds.quake2RailgunFire;
+      pitch = 2;
+      break;
     case MZ_LASER:
       sample = cgameMedia.sounds.laserFire;
       pitch = 2;
