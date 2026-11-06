@@ -458,7 +458,7 @@ const GameItemDef gameItemDefs[] = {
     .effectColor = { { 0.050f, 0.821f, 0.033f, 1.f } },
     .flags = WF_PROJECTILE | WF_EXPLOSIVE | WF_MED_RANGE,
     .priority = 0.48,
-    .precaches = "models/projectiles/grenade/tris.md3 weapons/grenadelauncher/fire.wav"
+    .precaches = "models/projectiles/quake2_grenade/tris.obj weapons/grenadelauncher/fire.wav"
   },
 
   {

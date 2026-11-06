@@ -441,6 +441,7 @@ static void G_InitMedia_Common(void) {
 
   gameMedia.models.grenade = gi.ModelIndex("models/projectiles/grenade/tris");
   gameMedia.models.quakeGrenade = gi.ModelIndex("models/projectiles/quake_grenade/tris");
+  gameMedia.models.quake2Grenade = gi.ModelIndex("models/projectiles/quake2_grenade/tris");
   gameMedia.models.quakeNail = gi.ModelIndex("models/projectiles/quake_nail/tris");
   gameMedia.models.rocket = gi.ModelIndex("models/projectiles/rocket/tris");
   gameMedia.models.quakeRocket = gi.ModelIndex("models/projectiles/quake_rocket/tris");

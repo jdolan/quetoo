@@ -714,6 +714,7 @@ typedef struct {
 
     uint16_t grenade;
     uint16_t quakeGrenade;
+    uint16_t quake2Grenade;
     uint16_t quakeNail;
     uint16_t rocket;
     uint16_t quakeRocket;
