@@ -76,6 +76,7 @@ which is matched against model directories under each data root's `models/`:
 ```sh
 objfu '*quake2*' --config world
 objfu 'ammo/quake2_*' armor/quake2_body --config world
+objfu 'weapons/quake2_*' --config view
 ```
 
 - `world`: floor at Z=0, a 16-unit grid and a standing Enforcer for scale.
@@ -98,12 +99,17 @@ objfu 'ammo/quake2_*' armor/quake2_body --config world
   away according to its configuration. `--hand right|left|center` selects the
   engine's handed offset (default right); `--fov` matches `cg_fov`'s horizontal
   FOV at 16:9 (default 110). There is no weapon bob or recoil.
+  Several models may be given to `link` and `view` as well. They are shown one
+  at a time: Tab / PgDn selects the next, Shift+Tab / PgUp the previous, and the
+  editor's selector also chooses. In `view`, the mouse wheel also cycles: down
+  for the next, up for the previous. Unsaved edits are kept per file, and
+  **Save all** writes every edited file.
   The view configuration's Y translation is retained for right hand, negated
   for left hand, and zeroed for center hand, matching the engine.
   A translucent cyan silhouette averages the screen coverage of the existing
   Quetoo weapons; brighter regions are shared by more weapons. It is rebuilt
   from their current meshes and `view.cfg` files on each launch, excludes Quake
-  and Quake2 models and the model being edited, and follows the selected FOV
+  and Quake2 models and the selected model, and follows the selected FOV
   and hand. Press **G** in the preview to hide/show it. No reference assets or
   configurations are modified.
 

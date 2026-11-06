@@ -701,7 +701,8 @@ def draw_floor(size):
   glEnd()
 
 
-def view_references(search_paths, current_model, hand="right"):
+def view_reference_models(search_paths):
+  """Find the Quetoo weapon meshes that the view guide averages, first root winning."""
   references = {}
   for root in search_paths:
     directory = root / "models" / "weapons"
@@ -714,59 +715,74 @@ def view_references(search_paths, current_model, hand="right"):
                     if (weapon / f"tris.{extension}").is_file()), None)
       if model is not None:
         references[weapon.name] = model.resolve()
-  meshes = []
-  for name, model in references.items():
-    if model == current_model.resolve():
-      continue
-    config_path = model.parent / "view.cfg"
-    try:
-      config = parse_mesh_config(config_path.read_text() if config_path.is_file() else "")
-    except ValueError as error:
-      raise ValueError(f"{config_path}: {error}") from error
-    if model.suffix == ".obj":
-      verts, _, faces = load_obj(model)
-      triangles = [[vi for vi, _ in triangle] for group in faces.values() for triangle in group]
-    else:
-      verts, triangles = [], []
-      for surface in read_md3(model).surfaces:
-        offset = len(verts)
-        verts.extend(surface.frames[0])
-        triangles.extend([[offset + i for i in triangle] for triangle in surface.triangles])
-    if not verts or not triangles:
-      raise ValueError(f"Silhouette reference has no triangles: {model}")
-    meshes.append((transform_vertices(view_transform(config.transform, hand), verts), triangles))
-    print(f"View silhouette reference: {name} ({config_path})")
+  return list(references.values())
+
+
+def view_reference(model, hand="right"):
+  """Load a reference weapon mesh in first-person space, through its current view.cfg."""
+  config_path = model.parent / "view.cfg"
+  try:
+    config = parse_mesh_config(config_path.read_text() if config_path.is_file() else "")
+  except ValueError as error:
+    raise ValueError(f"{config_path}: {error}") from error
+  if model.suffix == ".obj":
+    verts, _, faces = load_obj(model)
+    triangles = [[vi for vi, _ in triangle] for group in faces.values() for triangle in group]
+  else:
+    verts, triangles = [], []
+    for surface in read_md3(model).surfaces:
+      offset = len(verts)
+      verts.extend(surface.frames[0])
+      triangles.extend([[offset + i for i in triangle] for triangle in surface.triangles])
+  if not verts or not triangles:
+    raise ValueError(f"Silhouette reference has no triangles: {model}")
+  print(f"View silhouette reference: {model.parent.name} ({config_path})")
+  return transform_vertices(view_transform(config.transform, hand), verts), triangles
+
+
+def view_references(search_paths, current_model, hand="right"):
+  meshes = [view_reference(model, hand) for model in view_reference_models(search_paths)
+            if model != current_model.resolve()]
   if not meshes:
     raise ValueError("No Quetoo weapon meshes found for the view silhouette in the data search paths")
   return meshes
 
 
-def view_silhouette(meshes, width, height, fov, hand):
-  """Average binary coverage per weapon, not triangle count or mesh density."""
-  coverage = np.zeros((height, width), dtype=np.float32)
+def view_coverage(mesh, width, height, fov, hand):
+  """Binary screen coverage of one reference weapon, from 0 to 1."""
   focal = height / (2 * math.tan(math.radians(view_vertical_fov(fov, width / height) / 2)))
   offset = {"right": -5, "left": 5, "center": 0}[hand]
-  for verts, triangles in meshes:
-    mask = Image.new("L", (width, height))
-    draw = ImageDraw.Draw(mask)
-    for triangle in triangles:
-      polygon = [verts[i] for i in triangle]
-      clipped = []
-      for previous, point in zip(polygon[-1:] + polygon[:-1], polygon):
-        if (previous[0] >= 0.1) != (point[0] >= 0.1):
-          fraction = (0.1 - previous[0]) / (point[0] - previous[0])
-          clipped.append([a + fraction * (b - a) for a, b in zip(previous, point)])
-        if point[0] >= 0.1:
-          clipped.append(point)
-      if len(clipped) >= 3:
-        projected = [(width / 2 - focal * (y + offset) / x, height / 2 - focal * z / x)
-                     for x, y, z in clipped]
-        draw.polygon(projected, fill=255)
-    coverage += np.asarray(mask, dtype=np.float32) / 255
+  verts, triangles = mesh
+  mask = Image.new("L", (width, height))
+  draw = ImageDraw.Draw(mask)
+  for triangle in triangles:
+    polygon = [verts[i] for i in triangle]
+    clipped = []
+    for previous, point in zip(polygon[-1:] + polygon[:-1], polygon):
+      if (previous[0] >= 0.1) != (point[0] >= 0.1):
+        fraction = (0.1 - previous[0]) / (point[0] - previous[0])
+        clipped.append([a + fraction * (b - a) for a, b in zip(previous, point)])
+      if point[0] >= 0.1:
+        clipped.append(point)
+    if len(clipped) >= 3:
+      projected = [(width / 2 - focal * (y + offset) / x, height / 2 - focal * z / x)
+                   for x, y, z in clipped]
+      draw.polygon(projected, fill=255)
+  return np.asarray(mask, dtype=np.float32) / 255
+
+
+def view_guide(coverages):
+  """Average binary coverage per weapon, not triangle count or mesh density."""
+  height, width = coverages[0].shape
+  coverage = np.sum(coverages, axis=0)
   pixels = np.empty((height, width, 4), dtype=np.uint8)
   pixels[:, :, :3] = (90, 190, 220)
-  pixels[:, :, 3] = np.rint(coverage / len(meshes) * 150).astype(np.uint8)
+  pixels[:, :, 3] = np.rint(coverage / len(coverages) * 150).astype(np.uint8)
   return pixels
+
+
+def view_silhouette(meshes, width, height, fov, hand):
+  return view_guide([view_coverage(mesh, width, height, fov, hand) for mesh in meshes])
 
 
 def draw_view_guide(texture, width, height):
@@ -876,6 +892,7 @@ def pan_delta(yaw, pitch, distance, fov, height, dx, dy):
 
 
 BOX_MODES = ("collision", "model", "off")
+CYCLE_KEYS = (pygame.K_TAB, pygame.K_PAGEUP, pygame.K_PAGEDOWN)
 
 
 def model_bounds(transform, verts):
@@ -903,13 +920,15 @@ def edit_config(args, obj_paths, search_paths):
   player_parts = []
   player_offset = (0, 0, 0)
   anchor = np.eye(4)
-  origins = [(0, 0, 0)]
+  origins = [(0, 0, 0)] * len(meshes)
+  # Several world models are laid out side by side; link and view show the selected one alone.
+  grid = world and len(meshes) > 1
   if args.config != "view":
     player_dir = resolve_obj_path(f"{args.player}/lower.md3", search_paths).parent
     player_parts, weapon = load_player(player_dir)
     if args.config == "link":
       anchor = weapon
-    elif len(meshes) == 1:
+    elif not grid:
       origins = [(0, -48, -ITEM_MINS[2])]
     else:
       origins, spacing, columns, rows = item_layout(models)
@@ -921,8 +940,7 @@ def edit_config(args, obj_paths, search_paths):
   pygame.init()
   w, h = 1280, 800
   pygame.display.set_mode((w, h), DOUBLEBUF | OPENGL | RESIZABLE)
-  title = model_name(obj_paths[0]) if len(obj_paths) == 1 else f"{len(obj_paths)} models"
-  pygame.display.set_caption(f"objfu - {title} - {args.config}.cfg")
+  caption = None
   font = pygame.font.SysFont("menlo", 16)
   small = pygame.font.SysFont("menlo", 12)
   textures = {}
@@ -932,23 +950,39 @@ def edit_config(args, obj_paths, search_paths):
   guide_visible = True
   try:
     if args.config == "view":
-      references = view_references(search_paths, obj_paths[0], args.hand)
+      references = [(model, view_reference(model, args.hand)) for model in view_reference_models(search_paths)]
+      coverages = {}
       guide_texture = glGenTextures(1)
       glBindTexture(GL_TEXTURE_2D, guide_texture)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR)
       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR)
-    guide_size = None
+    guide_key = None
+    guide_count = 0
 
     def update_guide():
       # The silhouette depends on aspect via the FOV, so it is rasterized at the window size.
-      nonlocal guide_size
-      if guide_texture is None or guide_size == (w, h):
-        return
-      pixels = view_silhouette(references, w, h, args.fov, args.hand)
-      glBindTexture(GL_TEXTURE_2D, guide_texture)
-      glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-                   np.flipud(pixels).copy().tobytes())
-      guide_size = (w, h)
+      # Each reference is rasterized once per size; the selected model is left out of the average.
+      nonlocal guide_key, guide_count
+      key = (w, h, editor.index)
+      if guide_texture is None or guide_key == key:
+        return guide_count > 0
+      guide_key = key
+      if coverages.get("size") != (w, h):
+        coverages.clear()
+        coverages["size"] = (w, h)
+      current = obj_paths[editor.index].resolve()
+      selected = []
+      for model, mesh in references:
+        if model != current:
+          if model not in coverages:
+            coverages[model] = view_coverage(mesh, w, h, args.fov, args.hand)
+          selected.append(coverages[model])
+      guide_count = len(selected)
+      if selected:
+        glBindTexture(GL_TEXTURE_2D, guide_texture)
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, w, h, 0, GL_RGBA, GL_UNSIGNED_BYTE,
+                     np.flipud(view_guide(selected)).copy().tobytes())
+      return guide_count > 0
 
     def mesh_textures(materials, model_dir):
       # Materials resolve relative to their own model, so cache by resolved file, not name.
@@ -973,7 +1007,7 @@ def edit_config(args, obj_paths, search_paths):
     glEnable(GL_DEPTH_TEST)
     glClearColor(0.10, 0.11, 0.13, 1.0)
     yaw, pitch = 135.0, 15.0
-    distance = 160.0 if len(meshes) == 1 else max(160.0, columns * spacing * 1.5)
+    distance = max(160.0, columns * spacing * 1.5) if grid else 160.0
     target = np.array((0.0, 0.0, 32.0))
     orbiting = panning = False
     overlays = True
@@ -1016,6 +1050,10 @@ def edit_config(args, obj_paths, search_paths):
 
     while editor.running:
       editor.update()
+      title = model_name(obj_paths[editor.index]) if not grid else f"{len(obj_paths)} models"
+      if caption != title:
+        caption = title
+        pygame.display.set_caption(f"objfu - {title} - {args.config}.cfg")
       for event in pygame.event.get():
         if event.type == QUIT or (event.type == KEYDOWN and event.key == pygame.K_ESCAPE):
           editor.close()
@@ -1028,16 +1066,20 @@ def edit_config(args, obj_paths, search_paths):
           overlays = not overlays
         elif world and event.type == KEYDOWN and event.key == pygame.K_b:
           box_mode = (box_mode + 1) % len(BOX_MODES)
-        elif len(meshes) > 1 and event.type == KEYDOWN and event.key == pygame.K_TAB:
-          step = -1 if pygame.key.get_mods() & pygame.KMOD_SHIFT else 1
-          editor.select((editor.index + step) % len(meshes))
+        elif len(meshes) > 1 and event.type == KEYDOWN and event.key in CYCLE_KEYS:
+          backward = event.key == pygame.K_PAGEUP or (
+            event.key == pygame.K_TAB and pygame.key.get_mods() & pygame.KMOD_SHIFT)
+          editor.select((editor.index + (-1 if backward else 1)) % len(meshes))
+        elif args.config == "view" and len(meshes) > 1 and event.type == MOUSEWHEEL and event.y:
+          # Scrolling down moves down the list, as Tab does.
+          editor.select((editor.index + (1 if event.y < 0 else -1)) % len(meshes))
         elif args.config != "view":
           if event.type == MOUSEBUTTONDOWN and event.button == 1:
             panning = bool(pygame.key.get_mods() & pygame.KMOD_META)
             orbiting, pressed, last = not panning, event.pos, event.pos
           elif event.type == MOUSEBUTTONUP and event.button == 1:
             was_panning, orbiting, panning = panning, False, False
-            if not was_panning and len(meshes) > 1 and math.dist(pressed, event.pos) < 5:
+            if not was_panning and grid and math.dist(pressed, event.pos) < 5:
               selected = pick(event.pos)
               if selected is not None:
                 editor.select(selected)
@@ -1065,8 +1107,7 @@ def edit_config(args, obj_paths, search_paths):
       glLoadIdentity()
       if args.config == "view":
         gluLookAt(0, 0, 0, 1, 0, 0, 0, 0, 1)
-        if guide_visible:
-          update_guide()
+        if guide_visible and update_guide():
           draw_view_guide(guide_texture, w, h)
       else:
         gluLookAt(*(target + orbit_offset(yaw, pitch, distance)), *target, 0, 0, 1)
@@ -1078,6 +1119,8 @@ def edit_config(args, obj_paths, search_paths):
         glPopMatrix()
       current = transforms()
       for i, transform in enumerate(current):
+        if not grid and i != editor.index:
+          continue
         matrix = item_matrix(i, transform)
         glPushMatrix()
         glMultMatrixd(np.ascontiguousarray(matrix.T))
@@ -1086,19 +1129,19 @@ def edit_config(args, obj_paths, search_paths):
         if world:
           glPushMatrix()
           glTranslatef(*origins[i])
-          selected = i == editor.index and len(meshes) > 1
-          highlight = selected or len(meshes) == 1
+          selected = i == editor.index and grid
+          highlight = selected or not grid
           if BOX_MODES[box_mode] == "collision":
             draw_box(ITEM_MINS, ITEM_MAXS, (1.0, 0.85, 0.2) if highlight else (0.45, 0.45, 0.5))
           elif BOX_MODES[box_mode] == "model":
             draw_box(*cached_bounds(i, transform), (0.2, 0.9, 1.0) if highlight else (0.3, 0.45, 0.5))
-          draw_axes(64 if selected or len(meshes) == 1 else 40)
+          draw_axes(64 if highlight else 40)
           glPopMatrix()
         elif editor.config is not None:
           draw_crosshair(transform_vertices(matrix, [editor.config.muzzle])[0], 1)
       if args.config == "link":
         draw_axes(64)
-      if overlays and world and len(meshes) > 1:
+      if overlays and grid:
         modelview = glGetDoublev(GL_MODELVIEW_MATRIX)
         projection = glGetDoublev(GL_PROJECTION_MATRIX)
         viewport = glGetIntegerv(GL_VIEWPORT)
@@ -1107,18 +1150,26 @@ def edit_config(args, obj_paths, search_paths):
           if 0 < z < 1:
             color = (255, 215, 50) if i == editor.index else (170, 170, 170)
             draw_text(small, obj_paths[i].parent.name, int(x) - 40, int(h - y) + 4, w, h, color)
+      cycle = ""
+      if len(meshes) > 1 and not grid:
+        cycle = f"  {'Wheel/' if args.config == 'view' else ''}Tab/PgDn: next  Shift+Tab/PgUp: previous"
       if args.config == "view":
-        label = "Fixed first-person camera  T: text"
-      elif len(meshes) > 1:
+        label = f"Fixed first-person camera  T: text{cycle}"
+      elif grid:
         label = "Drag: orbit  Cmd+Drag: pan  Scroll: zoom  Click/Tab: select  T: text  Floor grid: 16 units"
       else:
-        label = "Drag: orbit  Cmd+Drag: pan  Scroll: zoom  T: text  Floor grid: 16 units"
+        label = f"Drag: orbit  Cmd+Drag: pan  Scroll: zoom  T: text{cycle}  Floor grid: 16 units"
       # Configuration errors stay visible with the overlays hidden.
       if overlays or editor.error:
         draw_text(font, editor.error or label, 12, 12, w, h)
+      line = 36
+      if overlays and len(meshes) > 1 and not grid:
+        draw_text(font, f"{model_name(obj_paths[editor.index])}  ({editor.index + 1}/{len(meshes)})",
+                  12, line, w, h)
+        line += 24
       if overlays and args.config == "view":
-        draw_text(font, f"G: guide {'on' if guide_visible else 'off'}  "
-                  f"Average of {len(references)} Quetoo weapons", 12, 36, w, h)
+        guide = f"Average of {guide_count} Quetoo weapons" if guide_count else "No Quetoo weapons to average"
+        draw_text(font, f"G: guide {'on' if guide_visible else 'off'}  {guide}", 12, line, w, h)
       elif overlays and world:
         bottom = min(v[2] for v in transform_vertices(current[editor.index], models[editor.index]))
         box = {"collision": "game ITEM_BOUNDS", "model": "model bounds", "off": "off"}[BOX_MODES[box_mode]]
@@ -1148,7 +1199,8 @@ def main():
   parser.add_argument("--fov", type=float, default=110, help="First-person FOV at 16:9 (default: 110)")
   parser.add_argument("obj", nargs="+",
                       help="OBJ path, model directory or quoted glob of model directories, e.g. '*quake2*' "
-                           "(several models only with --config world)")
+                           "(several models require --config; world shows them together, "
+                           "link and view cycle through them)")
   args = parser.parse_args()
   if not math.isfinite(args.fov) or not 1 < args.fov < 179:
     parser.error("--fov must be between 1 and 179 degrees")
@@ -1158,8 +1210,8 @@ def main():
     search_paths.append((Path(__file__).resolve().parents[3] / "quetoo-data" / "target" / "default").resolve())
 
   obj_paths = resolve_obj_args(args.obj, search_paths)
-  if len(obj_paths) > 1 and args.config != "world":
-    parser.error(f"{len(obj_paths)} models matched; several models require --config world")
+  if len(obj_paths) > 1 and not args.config:
+    parser.error(f"{len(obj_paths)} models matched; several models require --config")
   obj_path = obj_paths[0]
 
   if args.config:

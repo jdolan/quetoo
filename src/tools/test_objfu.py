@@ -8,7 +8,7 @@ import numpy as np
 from md3 import Md3Model, Md3Surface
 from md3fu import Animation
 from objfu import (ITEM_MAXS, ITEM_MINS, default_config, find_models, ground_config, item_layout,
-                   load_player, main, model_bounds, orbit_offset, pan_delta, parse_mesh_config, pick_box, resolve_obj_args, transform_vertices, view_references, view_silhouette, view_transform, view_vertical_fov)
+                   load_player, main, model_bounds, orbit_offset, pan_delta, parse_mesh_config, pick_box, resolve_obj_args, transform_vertices, view_coverage, view_guide, view_reference, view_reference_models, view_references, view_silhouette, view_transform, view_vertical_fov)
 
 
 class ObjfuConfigTest(unittest.TestCase):
@@ -144,6 +144,11 @@ class ObjfuConfigTest(unittest.TestCase):
         resolve_obj_args(["*missing*"], [first])
       with patch("sys.argv", ["objfu", "-p", str(second), "*quake2*"]), self.assertRaises(SystemExit):
         main()
+      for mode in ("view", "link"):
+        with patch("sys.argv", ["objfu", "-p", str(second), "*quake2*", "--config", mode]), \
+             patch("objfu.edit_config") as editor:
+          main()
+        self.assertEqual([path.parent.name for path in editor.call_args.args[1]], ["quake2_shells", "quake2_body"])
 
   def test_item_layout_rests_origins_and_clears_models(self):
     origins, spacing, columns, rows = item_layout([[(-40, 0, 0), (40, 0, 0)]] * 5)
@@ -196,6 +201,24 @@ class ObjfuConfigTest(unittest.TestCase):
                                       view_silhouette(second, 100, 100, 90, "center")))
       with self.assertRaisesRegex(ValueError, "No Quetoo"):
         view_references([root], root / "models/weapons/shotgun/tris.obj")
+
+  def test_view_guide_excludes_only_the_selected_reference(self):
+    with tempfile.TemporaryDirectory() as temp:
+      root = Path(temp)
+      for name, y in (("shotgun", -5), ("machinegun", 5)):
+        weapon = root / "models" / "weapons" / name
+        weapon.mkdir(parents=True)
+        (weapon / "tris.obj").write_text(f"v 10 {y - 2} -2\nv 10 {y + 2} -2\nv 10 {y} 2\nf 1 2 3\n")
+      models = view_reference_models([root])
+      coverages = {model.parent.name: view_coverage(view_reference(model), 100, 100, 90, "center")
+                   for model in models}
+      both = view_guide(list(coverages.values()))
+      without = view_guide([coverages["machinegun"]])
+      self.assertTrue(np.array_equal(both, view_silhouette(view_references([root], root / "x.obj"), 100, 100, 90,
+                                                           "center")))
+      self.assertTrue(np.array_equal(without, view_silhouette(
+        view_references([root], root / "models/weapons/shotgun/tris.obj"), 100, 100, 90, "center")))
+      self.assertGreater(without[:, :, 3].max(), both[:, :, 3].max())
 
   def test_silhouette_averages_weapons_not_triangle_density(self):
     verts = [(10, -2, -2), (10, 2, -2), (10, 0, 2)]
