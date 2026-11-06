@@ -302,3 +302,14 @@ matfu batch \
 `--save` controls which outputs to write (any combination of
 `normal`, `height`, `spec`). `--filter SUBSTR` restricts processing to
 bases whose name contains `SUBSTR`.
+
+By default batch mode reprocesses each existing `*_norm.png`. With
+`--from-diffuse` it instead generates the normalmap from the diffuse with
+the preset's normal strength and frequency settings, exactly as the GUI's
+Generate from diffuse followed by Save, so a preset can regenerate a set
+of normalmaps without compounding:
+
+```bash
+matfu batch --preset preset.json --from-diffuse --save normal \
+    --files models/weapons/quake2_*/*_norm.png
+```
