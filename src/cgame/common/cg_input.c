@@ -264,6 +264,7 @@ static void Cg_WeaponKick(const PMoveCmd *cmd) {
         degrees = 5.0;
         break;
       case WEAPON_BFG10K:
+      case WEAPON_QUAKE2_BFG:
         degrees = 20.0;
         break;
       default:

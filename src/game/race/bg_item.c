@@ -514,6 +514,23 @@ const GameItemDef gameItemDefs[] = {
   },
 
   {
+    .classname = "weapon_quake2_bfg",
+    .pickupSound = "weapons/common/pickup.wav",
+    .model = "models/weapons/quake2_bfg/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/bfg",
+    .name = "BFG10K",
+    .quantity = 50,
+    .ammo = AMMO_QUAKE2_CELLS,
+    .type = ITEM_TYPE_WEAPON,
+    .tag = WEAPON_QUAKE2_BFG,
+    .effectColor = { { 0.468f, 0.772f, 0.005f, 1.f } },
+    .flags = WF_PROJECTILE | WF_MED_RANGE | WF_LONG_RANGE,
+    .priority = 0.66,
+    .precaches = "weapons/quake2_bfg/fire.wav projectiles/quake2_bfg/explode.wav"
+  },
+
+  {
     .classname = "ammo_shells",
     .pickupSound = "ammo/common/pickup.wav",
     .model = "models/ammo/shells/tris.md3",

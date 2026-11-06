@@ -99,6 +99,7 @@ static const GameItemTag quake2WeaponMap[WEAPON_LAST] = {
   [WEAPON_HYPERBLASTER] = WEAPON_QUAKE2_HYPERBLASTER,
   [WEAPON_LIGHTNING] = WEAPON_QUAKE2_CHAINGUN,
   [WEAPON_RAILGUN] = WEAPON_QUAKE2_RAILGUN,
+  [WEAPON_BFG10K] = WEAPON_QUAKE2_BFG,
 };
 
 /**
@@ -1481,6 +1482,7 @@ static void G_InitItem_Common(GameItem *it) {
           case WEAPON_QUAKE2_ROCKET_LAUNCHER: it->Think = G_FireQuake2RocketLauncher; break;
           case WEAPON_QUAKE2_HYPERBLASTER: it->Think = G_FireQuake2Hyperblaster; break;
           case WEAPON_QUAKE2_RAILGUN: it->Think = G_FireQuake2Railgun; break;
+          case WEAPON_QUAKE2_BFG: it->Think = G_FireQuake2BFG; break;
           default: G_Error("Invalid Quake II weapon %s\n", it->def.classname);
         }
         break;

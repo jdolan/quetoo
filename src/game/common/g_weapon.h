@@ -57,6 +57,7 @@ void G_FireQuake2GrenadeLauncher(GameClient *cl);
 void G_FireQuake2RocketLauncher(GameClient *cl);
 void G_FireQuake2Hyperblaster(GameClient *cl);
 void G_FireQuake2Railgun(GameClient *cl);
+void G_FireQuake2BFG(GameClient *cl);
 void G_WorldMuzzleFlash(const Vec3 org, const Vec3 dir, GameMuzzleFlash flash, uint8_t client);
 void G_ClientWeaponThink(GameClient *cl);
 #endif

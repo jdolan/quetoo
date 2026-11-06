@@ -1186,6 +1186,46 @@ static void G_FireBfg_(GameEntity *ent) {
 }
 
 /**
+ * @brief Launches the Quake II BFG ball at the end of its windup. As in Quake II, firing is
+ * abandoned if the weapon was put away, its owner died, or its cells dropped during the windup.
+ */
+static void G_FireQuake2BFG_(GameEntity *ent) {
+
+  GameClient *cl = ent->owner->client;
+
+  if (ent->owner->inUse && cl && !ent->owner->dead && cl->weapon == &gameItems[WEAPON_QUAKE2_BFG] &&
+      cl->inventory[AMMO_QUAKE2_CELLS] >= cl->weapon->def.quantity) {
+
+    Vec3 forward, org;
+    G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
+    G_Quake2BfgProjectile(cl->entity, cl->entity, org, forward);
+
+    G_WeaponFired(cl, 1600, cl->weapon->def.quantity);
+  }
+
+  G_FreeEntity(ent);
+}
+
+/**
+ * @brief Fires the Quake II BFG9000. The muzzle flash and its sound begin a 0.8 second windup, after
+ * which the ball launches. A shot takes 2.4 seconds in all.
+ */
+void G_FireQuake2BFG(GameClient *cl) {
+  cl->weaponSound = gameMedia.sounds.quake2BfgHum;
+  if (G_FireWeapon(cl)) {
+    cl->weaponFireTime = gameLevel.time + 2400;
+
+    GameEntity *timer = G_AllocEntity(__func__);
+    timer->owner = cl->entity;
+    timer->serverFlags = SVF_NO_CLIENT;
+    timer->Think = G_FireQuake2BFG_;
+    timer->nextThink = gameLevel.time + 800;
+
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_BFG);
+  }
+}
+
+/**
  * @brief Fires a BFG energy ball that damages everything along its flight path.
  */
 void G_FireBfg(GameClient *cl) {

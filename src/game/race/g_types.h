@@ -383,6 +383,7 @@ typedef enum {
   MZ_QUAKE2_ROCKET_LAUNCHER,
   MZ_QUAKE2_HYPERBLASTER,
   MZ_QUAKE2_RAILGUN,
+  MZ_QUAKE2_BFG,
 
   MZ_LASER,
 } GameMuzzleFlash;
@@ -414,7 +415,10 @@ typedef enum {
   TE_QUAKE2_BLASTER,
   TE_QUAKE2_HYPERBLASTER,
   TE_QUAKE2_ROCKET_EXPLOSION,
-  TE_QUAKE2_GRENADE_EXPLOSION
+  TE_QUAKE2_GRENADE_EXPLOSION,
+  TE_QUAKE2_BFG_LASER,
+  TE_QUAKE2_BFG_EXPLOSION,
+  TE_QUAKE2_BFG_BIGEXPLOSION
 } GameTempEntity;
 
 /**
@@ -976,6 +980,8 @@ typedef struct {
     uint16_t quake2GrenadeBounce;
     uint16_t quake2HandGrenadeBounce[2];
     uint16_t quake2RocketFly;
+    uint16_t quake2BfgHum;
+    uint16_t quake2BfgFly;
     uint16_t rocketFly;
     uint16_t lightningFly;
     uint16_t laserFly;
@@ -1296,6 +1302,9 @@ typedef struct {
   MOD_QUAKE2_ROCKET,
   MOD_QUAKE2_HYPERBLASTER,
   MOD_QUAKE2_RAILGUN,
+  MOD_QUAKE2_BFG_LASER,
+  MOD_QUAKE2_BFG_BLAST,
+  MOD_QUAKE2_BFG_EFFECT,
   MOD_FRIENDLY_FIRE = 0x8000000
 } GameMeansOfDeath;
 

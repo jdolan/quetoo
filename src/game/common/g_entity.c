@@ -475,6 +475,8 @@ static void G_InitMedia_Common(void) {
   gameMedia.sounds.quake2HandGrenadeBounce[0] = gi.SoundIndex("projectiles/quake2_handgrenade/hit_1");
   gameMedia.sounds.quake2HandGrenadeBounce[1] = gi.SoundIndex("projectiles/quake2_handgrenade/hit_2");
   gameMedia.sounds.quake2RocketFly = gi.SoundIndex("projectiles/quake2_rocket/fly");
+  gameMedia.sounds.quake2BfgHum = gi.SoundIndex("weapons/quake2_bfg/hum");
+  gameMedia.sounds.quake2BfgFly = gi.SoundIndex("projectiles/quake2_bfg/fly");
   gameMedia.sounds.rocketFly = gi.SoundIndex("projectiles/rocket/fly");
   gameMedia.sounds.lightningFly = gi.SoundIndex("weapons/lightning/fly");
   gameMedia.sounds.laserFly = gi.SoundIndex("trigger/laser/fly");

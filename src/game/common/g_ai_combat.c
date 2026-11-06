@@ -477,6 +477,8 @@ static float G_Ai_ProjectileSpeed(const GameItem *weapon) {
       return 600.f;
     case WEAPON_QUAKE2_ROCKET_LAUNCHER:
       return 650.f;
+    case WEAPON_QUAKE2_BFG:
+      return 400.f;
     default:
       break;
   }
@@ -774,6 +776,9 @@ static float G_Ai_SplashRadius(const GameItem *weapon) {
   if (weapon->def.tag == WEAPON_QUAKE2_ROCKET_LAUNCHER) {
     return 120.f;
   }
+  if (weapon->def.tag == WEAPON_QUAKE2_BFG) {
+    return QUAKE2_BFG_BLAST_RADIUS;
+  }
   if (weapon->def.tag == WEAPON_QUAKE2_GRENADE_LAUNCHER ||
       weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE) {
     return 160.f;
@@ -894,6 +899,11 @@ static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
 
   if (reach > 0.f && cl->weapon == &gameItems[WEAPON_BFG10K] &&
       G_Ai_IsTeammateNear(cl, eye, trace.end, g_balanceBfgRadius->value)) {
+    return false;
+  }
+
+  if (reach > 0.f && cl->weapon == &gameItems[WEAPON_QUAKE2_BFG] &&
+      G_Ai_IsTeammateNear(cl, eye, trace.end, QUAKE2_BFG_LASER_RADIUS)) {
     return false;
   }
 

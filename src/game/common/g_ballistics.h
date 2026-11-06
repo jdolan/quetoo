@@ -23,6 +23,16 @@
 
 #include "g_types.h"
 
+/**
+ * @brief Quake II BFG9000 deathmatch constants, from Quake II's `p_weapon.c` and `g_weapon.c`.
+ */
+#define QUAKE2_BFG_SPEED 400
+#define QUAKE2_BFG_DAMAGE 200
+#define QUAKE2_BFG_RADIUS 1000.f
+#define QUAKE2_BFG_BLAST_RADIUS 100.f
+#define QUAKE2_BFG_LASER_DAMAGE 5
+#define QUAKE2_BFG_LASER_RADIUS 256.f
+
 #if defined(__G_LOCAL_H__)
 void G_BlasterProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start, const Vec3 dir, int32_t speed, int32_t damage, int32_t knockback, uint32_t mod);
 void G_BulletProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start, const Vec3 dir, int32_t damage, int32_t knockback, int32_t hspread, int32_t vspread, int32_t mod);
@@ -39,6 +49,7 @@ GameEntity *G_FindBeamProjectile(const GameEntity *emitter);
 void G_FreeBeamProjectile(GameEntity *emitter);
 void G_RailgunProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start, const Vec3 dir, int32_t damage, int32_t knockback, uint32_t mod);
 void G_BfgProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start, const Vec3 dir, int32_t speed, int32_t damage, int32_t knockback, float damageRadius);
+void G_Quake2BfgProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start, const Vec3 dir);
 void G_HandGrenadeProjectile(GameEntity *ent, GameEntity *projectile, const Vec3 start, const Vec3 dir, int32_t speed, int32_t damage, int32_t knockback, float damageRadius, uint32_t timer);
 void G_GrenadeProjectile_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace);
 #endif

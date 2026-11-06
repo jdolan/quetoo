@@ -1008,9 +1008,77 @@ static void Cg_BfgLaserEffect(const int16_t orgEntity, const int16_t destEntity)
 }
 
 /**
+ * @brief Think callback that keeps a Quake II BFG laser anchored to its ball as it flies.
+ */
+static void Cg_Quake2BfgLaserThink(CGameSprite *sprite, float life, float delta) {
+
+  const CGameBfgLaserData data = { .data = sprite->data };
+
+  sprite->origin = cgi.client->entities[data.org].origin;
+}
+
+/**
+ * @brief Spawns a Quake II BFG laser from the ball to where it ended. The game sends a new laser
+ * each Quake II frame, so each lasts that long.
+ */
+static void Cg_Quake2BfgLaserEffect(const int16_t orgEntity, const Vec3 end) {
+
+  const Vec3 org = cgi.client->entities[orgEntity].origin;
+
+  Cg_AddSprite(&(CGameSprite) {
+    .type = SPRITE_BEAM,
+    .image = cgameMedia.beams.rail,
+    .origin = org,
+    .termination = end,
+    .size = 4.f,
+    .lifetime = 100,
+    .flags = SPRITE_SERVER_TIME | SPRITE_DATA_NOFREE,
+    .color = ColorHSV(COLOR_HUE_GREEN, 1.f, 1.f).vec3,
+    .data = ((CGameBfgLaserData) { .org = orgEntity }).data,
+    .Think = Cg_Quake2BfgLaserThink,
+    .lighting = .5f,
+  });
+
+  Cg_AddLight(&(CGameLight) {
+    .origin = end,
+    .radius = 80.f,
+    .color = MakeVec3(.4f, 1.f, .4f),
+    .intensity = 2.f,
+    .decay = 100,
+  });
+
+  if (cgi.BoxContents(Box3_FromPoints((const Vec3[]) { org, end }, 2)) & CONTENTS_MASK_LIQUID) {
+    Cg_BubbleTrail(NULL, org, end, 4.f);
+  }
+}
+
+/**
+ * @brief Spawns the green burst the Quake II BFG's delayed blast leaves on each entity it damages.
+ */
+static void Cg_Quake2BfgExplosionEffect(const Vec3 org) {
+
+  Cg_AddSprite(&(CGameSprite) {
+    .animation = cgameMedia.sprites.bfgExplosion2,
+    .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.bfgExplosion2, 30),
+    .size = RandomRangef(60.f, 80.f),
+    .rotation = RandomRadian(),
+    .origin = org,
+    .color = MakeVec3(1.f, 1.f, 1.f),
+  });
+
+  Cg_AddLight(&(const CGameLight) {
+    .origin = org,
+    .radius = 150.f,
+    .color = MakeVec3(.4f, 1.f, .4f),
+    .intensity = 2.f,
+    .decay = 500
+  });
+}
+
+/**
  * @brief Spawns BFG explosion sprites, flash billboards, a large burn decal, and a decaying light.
  */
-static void Cg_BfgEffect(const Vec3 org) {
+static void Cg_BfgEffect(const Vec3 org, const SoundSample *sample) {
   // explosion 1
   for (int32_t i = 0; i < 4; i++) {
 
@@ -1097,7 +1165,7 @@ static void Cg_BfgEffect(const Vec3 org) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameMedia.sounds.bfgHit,
+    .sample = sample,
     .origin = org,
   });
 }
@@ -1386,7 +1454,27 @@ void Cg_ParseTempEntity(void) {
 
     case TE_BFG: // bfg explosion
       pos = cgi.ReadPosition();
-      Cg_BfgEffect(pos);
+      Cg_BfgEffect(pos, cgameMedia.sounds.bfgHit);
+      break;
+
+    case TE_QUAKE2_BFG_LASER:
+      i = cgi.ReadShort();
+      pos = cgi.ReadPosition();
+      if (i < 0 || i >= MAX_ENTITIES) {
+        Cg_Warn("TE_QUAKE2_BFG_LASER: invalid entity index %d\n", i);
+        break;
+      }
+      Cg_Quake2BfgLaserEffect(i, pos);
+      break;
+
+    case TE_QUAKE2_BFG_EXPLOSION:
+      pos = cgi.ReadPosition();
+      Cg_Quake2BfgExplosionEffect(pos);
+      break;
+
+    case TE_QUAKE2_BFG_BIGEXPLOSION:
+      pos = cgi.ReadPosition();
+      Cg_BfgEffect(pos, cgameMedia.sounds.quake2BfgExplosion);
       break;
 
     case TE_BUBBLES: // bubbles chasing projectiles in water

@@ -1081,6 +1081,11 @@ void Cg_ParseMuzzleFlash(void) {
       sample = cgameMedia.sounds.quake2RailgunFire;
       pitch = 2;
       break;
+    case MZ_QUAKE2_BFG:
+      sample = cgameMedia.sounds.quake2BfgFire;
+      Cg_BfgFlash(muzzle, origin, angles, client);
+      pitch = 0;
+      break;
     case MZ_LASER:
       sample = cgameMedia.sounds.laserFire;
       pitch = 2;

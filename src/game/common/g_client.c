@@ -154,9 +154,14 @@ static void G_ClientObituary(GameClient *cl, GameEntity *attacker, uint32_t mod)
       case MOD_RAILGUN:
         msg = "%s was railed by %s :railgun:";
         break;
+      case MOD_QUAKE2_BFG_LASER:
       case MOD_BFG_LASER:
         msg = "%s saw the pretty lights from %s's BFG :bfg:";
         break;
+      case MOD_QUAKE2_BFG_EFFECT:
+        msg = "%s couldn't hide from %s's BFG :bfg:";
+        break;
+      case MOD_QUAKE2_BFG_BLAST:
       case MOD_BFG_BLAST:
         msg = "%s was disintegrated by %s's BFG blast :bfg:";
         break;
@@ -403,6 +408,7 @@ static void G_ClientObituary(GameClient *cl, GameEntity *attacker, uint32_t mod)
         case MOD_LIGHTNING_DISCHARGE:
           msg = "%s took a toaster bath :death:";
           break;
+        case MOD_QUAKE2_BFG_BLAST:
         case MOD_BFG_BLAST:
           msg = "%s should have used a smaller gun :death:";
           break;

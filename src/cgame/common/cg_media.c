@@ -135,6 +135,8 @@ void Cg_LoadMedia(void) {
   cgameMedia.sounds.quake2HyperblasterFire = cgi.LoadSample("weapons/quake2_hyperblaster/fire", ASSET_CONTEXT_SOUNDS);
   cgameMedia.sounds.quake2HyperblasterHit = cgi.LoadSample("weapons/quake2_hyperblaster/hit", ASSET_CONTEXT_SOUNDS);
   cgameMedia.sounds.quake2RailgunFire = cgi.LoadSample("weapons/quake2_railgun/fire", ASSET_CONTEXT_SOUNDS);
+  cgameMedia.sounds.quake2BfgFire = cgi.LoadSample("weapons/quake2_bfg/fire", ASSET_CONTEXT_SOUNDS);
+  cgameMedia.sounds.quake2BfgExplosion = cgi.LoadSample("projectiles/quake2_bfg/explode", ASSET_CONTEXT_SOUNDS);
 
   cgameMedia.sounds.explosion = cgi.LoadSample("weapons/common/explosion", ASSET_CONTEXT_SOUNDS);
   cgameMedia.sounds.teleport = cgi.LoadSample("misc/teleport", ASSET_CONTEXT_SOUNDS);

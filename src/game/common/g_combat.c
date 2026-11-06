@@ -69,6 +69,10 @@ static const char *G_WeaponNameForMod(GameMeansOfDeath mod) {
       return "Quake II Hyperblaster";
     case MOD_QUAKE2_RAILGUN:
       return "Quake II Railgun";
+    case MOD_QUAKE2_BFG_LASER:
+    case MOD_QUAKE2_BFG_BLAST:
+    case MOD_QUAKE2_BFG_EFFECT:
+      return "Quake II BFG10K";
     case MOD_BLASTER:
       return "Blaster";
     case MOD_SHOTGUN:
