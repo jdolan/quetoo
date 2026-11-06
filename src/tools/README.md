@@ -48,6 +48,18 @@ Run any of the installed commands:
 - `symbolicate_dmp.py`: Symbolicate a Windows crash dump
 - `verify_projects.py`: Check that the three build systems agree
 
+## md32obj
+
+Converts a single-frame MD3 to OBJ. Multi-frame inputs require an explicit,
+zero-based pose selection; animation is not retained in an OBJ:
+
+```sh
+md32obj pickup.md3 --frame 0 -o tris.obj
+```
+
+Some Q2PRO packs name their MD3 replacements `tris.md2`. Check the file magic,
+not the extension, before choosing `md32obj` versus `md22obj`.
+
 ## md3fu
 
 Plays back a player model's `legs -> torso -> head` tag hierarchy for a single

@@ -8,6 +8,7 @@ EXTRA_DIST = \
 	mdl2obj.py \
 	md22obj.py \
 	md32obj.py \
+	test_md32obj.py \
 	md3.py \
 	md3fu.py \
 	objfu.py \

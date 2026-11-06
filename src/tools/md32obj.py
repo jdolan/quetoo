@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert static (single-frame) MD3 models to Wavefront OBJ."""
+"""Convert static MD3 models or explicitly selected frames to Wavefront OBJ."""
 
 import argparse
 import math
@@ -41,8 +41,8 @@ def decode_normal(norm: int) -> tuple:
   return (x, y, z)
 
 
-def read_md3(path: Path) -> list[Surface]:
-  """Parse an MD3 file and return its surfaces (frame 0 only)."""
+def read_md3(path: Path, frame_index: int | None = None) -> list[Surface]:
+  """Parse a static MD3, or extract an explicitly selected frame."""
   data = path.read_bytes()
 
   # Header: id, version, filename[64], flags, num_frames, num_tags,
@@ -57,8 +57,14 @@ def read_md3(path: Path) -> list[Surface]:
     raise ValueError(f"{path}: not an MD3 file (bad magic)")
   if version != MD3_VERSION:
     raise ValueError(f"{path}: unsupported MD3 version {version}")
-  if num_frames != 1:
-    raise ValueError(f"{path}: animated model ({num_frames} frames), skipping")
+  if num_frames < 1:
+    raise ValueError(f"{path}: model has no frames")
+  if frame_index is None:
+    if num_frames != 1:
+      raise ValueError(f"{path}: model has {num_frames} frames; select a pose with --frame")
+    frame_index = 0
+  if frame_index < 0 or frame_index >= num_frames:
+    raise ValueError(f"{path}: frame index {frame_index} out of range (0..{num_frames - 1})")
 
   surfaces = []
   surf_ofs = ofs_surfaces
@@ -71,6 +77,8 @@ def read_md3(path: Path) -> list[Surface]:
      ofs_verts, ofs_end) = struct.unpack_from(surf_fmt, data, surf_ofs)
 
     surf_name = surf_name.split(b"\x00", 1)[0].decode("ascii", errors="replace")
+    if frame_index >= surf_num_frames:
+      raise ValueError(f"{path}: surface {surf_name} has no frame {frame_index}")
 
     # Shader (first one)
     shader = ""
@@ -93,11 +101,11 @@ def read_md3(path: Path) -> list[Surface]:
       s, t = struct.unpack_from("<ff", data, tc_ofs)
       texcoords.append((s, t))
 
-    # Vertices (frame 0 only)
+    # Vertices for the selected pose
     vertices = []
     normals = []
     for v in range(num_verts):
-      v_ofs = surf_ofs + ofs_verts + v * 8
+      v_ofs = surf_ofs + ofs_verts + (frame_index * num_verts + v) * 8
       px, py, pz, norm = struct.unpack_from("<hhhh", data, v_ofs)
       vertices.append((px * MD3_XYZ_SCALE, py * MD3_XYZ_SCALE, pz * MD3_XYZ_SCALE))
       normals.append(decode_normal(norm))
@@ -155,12 +163,15 @@ def main():
   parser.add_argument("-o", "--output", help="Output OBJ path (single file mode only)")
   parser.add_argument("--in-place", action="store_true",
                       help="Write .obj next to each .md3 input")
+  parser.add_argument("--frame", type=int,
+                      help="Explicitly extract this zero-based frame from a multi-frame model")
   args = parser.parse_args()
 
   if args.output and len(args.input) > 1:
     print("Error: -o/--output only works with a single input file", file=sys.stderr)
     sys.exit(1)
 
+  failed = False
   for md3_path_str in args.input:
     md3_path = Path(md3_path_str)
     if not md3_path.exists():
@@ -168,9 +179,10 @@ def main():
       sys.exit(1)
 
     try:
-      surfaces = read_md3(md3_path)
+      surfaces = read_md3(md3_path, args.frame)
     except ValueError as e:
-      print(f"Warning: {e}", file=sys.stderr)
+      print(f"Error: {e}", file=sys.stderr)
+      failed = True
       continue
 
     if args.output:
@@ -183,6 +195,8 @@ def main():
     write_obj(surfaces, out_path, md3_path.name)
     print(f"{md3_path} -> {out_path} ({sum(len(s.triangles) for s in surfaces)} tris)")
 
+  return 1 if failed else 0
+
 
 if __name__ == "__main__":
-  main()
+  sys.exit(main())
