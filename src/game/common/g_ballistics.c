@@ -1345,11 +1345,17 @@ void G_RailgunProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
 
   // send rail trail
   gi.WriteByte(SV_CMD_TEMP_ENTITY);
-  gi.WriteByte(TE_RAIL);
-  gi.WritePosition(start);
-  gi.WritePosition(tr.end);
-  gi.WriteDir(tr.plane.normal);
-  gi.WriteLong(tr.surface);
+  if (mod == MOD_QUAKE2_RAILGUN) {
+    gi.WriteByte(TE_QUAKE2_RAIL);
+    gi.WritePosition(start);
+    gi.WritePosition(tr.end);
+  } else {
+    gi.WriteByte(TE_RAIL);
+    gi.WritePosition(start);
+    gi.WritePosition(tr.end);
+    gi.WriteDir(tr.plane.normal);
+    gi.WriteLong(tr.surface);
+  }
   gi.WriteByte(emitter->s.client);
 
   gi.Multicast(start, MULTICAST_PHS);

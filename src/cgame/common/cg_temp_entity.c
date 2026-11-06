@@ -761,6 +761,91 @@ static void Cg_LightningDischargeEffect(const Vec3 org) {
 }
 
 /**
+ * @brief Sizes a Quake II particle as Quake II's GL renderer does: a fixed size up close, growing
+ * with depth so that it does not vanish in the distance.
+ */
+static void Cg_Quake2ParticleThink(CGameSprite *sprite, float life, float delta) {
+
+  const float depth = Vec3_Dot(Vec3_Subtract(sprite->origin, cgi.view->origin), cgi.view->forward);
+  const float scale = depth < 20.f ? 1.f : 1.f + depth * .004f;
+
+  sprite->size = 1.5f * scale;
+}
+
+/**
+ * @brief Adds a particle of Quake II's palette, which fades out over `lifetime` as its alpha
+ * would in Quake II.
+ */
+static void Cg_Quake2Particle(const Vec3 org, const Vec3 vel, const Color32 color, uint32_t lifetime) {
+
+  Cg_AddSprite(&(CGameSprite) {
+    .atlasImage = cgameMedia.sprites.particle,
+    .origin = org,
+    .velocity = vel,
+    .lifetime = lifetime,
+    .size = 1.5f,
+    .color = Color32_Color(color).vec3,
+    .endColor = Vec3_Zero(),
+    .Think = Cg_Quake2ParticleThink,
+  });
+}
+
+/**
+ * @brief Quake II's `crand`, a random float in [-1, 1].
+ */
+static inline float Cg_Quake2Crand(void) {
+  return RandomRangef(-1.f, 1.f);
+}
+
+/**
+ * @brief Renders the Quake II railgun trail, as Quake II's `CL_RailTrail` does: a blue spiral of
+ * radius 3 that drifts outward, around a core of grey particles, with no light, impact effect or
+ * impact sound.
+ * The colors are those of Quake II's palette, indices 0x74 to 0x7b and 0x00 to 0x0f.
+ */
+static void Cg_Quake2RailEffect(const Vec3 start, const Vec3 end) {
+
+  static const Color32 spiral[] = {
+    { .r = 23, .g = 83, .b = 111, .a = 255 }, { .r = 19, .g = 75, .b = 103, .a = 255 },
+    { .r = 15, .g = 67, .b = 91, .a = 255 }, { .r = 11, .g = 63, .b = 83, .a = 255 },
+    { .r = 7, .g = 55, .b = 75, .a = 255 }, { .r = 7, .g = 47, .b = 63, .a = 255 },
+    { .r = 7, .g = 39, .b = 51, .a = 255 }, { .r = 0, .g = 31, .b = 43, .a = 255 },
+  };
+
+  static const uint8_t core[] = {
+    0, 15, 31, 47, 63, 75, 91, 107, 123, 139, 155, 171, 187, 203, 219, 235,
+  };
+
+  Vec3 forward;
+  float len = Vec3_DistanceDir(end, start, &forward);
+
+  // MakeNormalVectors
+  Vec3 right = MakeVec3(forward.z, -forward.x, forward.y);
+  right = Vec3_Normalize(Vec3_Fmaf(right, -Vec3_Dot(right, forward), forward));
+  const Vec3 up = Vec3_Cross(right, forward);
+
+  for (int32_t i = 0; i < len; i++) {
+    const float d = i * .1f;
+    const Vec3 dir = Vec3_Fmaf(Vec3_Scale(right, cosf(d)), sinf(d), up);
+    const Vec3 move = Vec3_Fmaf(start, i, forward);
+
+    Cg_Quake2Particle(Vec3_Fmaf(move, 3.f, dir), Vec3_Scale(dir, 6.f),
+                      spiral[RandomRangeu(0, lengthof(spiral))],
+                      SECONDS_TO_MILLIS(1.f + Randomf() * .2f));
+  }
+
+  for (float f = 0.f; f < len; f += .75f) {
+    const Vec3 move = Vec3_Fmaf(start, f, forward);
+    const uint8_t gray = core[RandomRangeu(0, lengthof(core))];
+
+    Cg_Quake2Particle(Vec3_Add(move, MakeVec3(Cg_Quake2Crand() * 3.f, Cg_Quake2Crand() * 3.f, Cg_Quake2Crand() * 3.f)),
+                      MakeVec3(Cg_Quake2Crand() * 3.f, Cg_Quake2Crand() * 3.f, Cg_Quake2Crand() * 3.f),
+                      MakeColor32(gray, gray, gray, 255),
+                      SECONDS_TO_MILLIS(.6f + Randomf() * .2f));
+  }
+}
+
+/**
  * @brief Renders a railgun trail with a core beam, helix particles, lights, and impact effects.
  */
 static void Cg_RailEffect(const Vec3 start, const Vec3 end, const Vec3 dir, int32_t flags, float hue) {
@@ -1415,6 +1500,17 @@ void Cg_ParseTempEntity(void) {
         pos = cgameState.clients[client].weaponMuzzle;
       }
       Cg_RailEffect(pos, pos2, dir, flags, hue);
+      break;
+    }
+
+    case TE_QUAKE2_RAIL: {
+      pos = cgi.ReadPosition();
+      pos2 = cgi.ReadPosition();
+      const int32_t client = cgi.ReadByte();
+      if (client == cgi.client->frame.ps.client && Cg_ViewIsSelf()) {
+        pos = cgameState.clients[client].weaponMuzzle;
+      }
+      Cg_Quake2RailEffect(pos, pos2);
       break;
     }
 
