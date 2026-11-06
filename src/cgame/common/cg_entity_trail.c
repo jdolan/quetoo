@@ -283,14 +283,40 @@ static void Cg_BlasterTrail(ClientEntity *ent, const Vec3 start, const Vec3 end)
 }
 
 /**
- * @brief Renders the Quake II hyperblaster bolt, which has a glow and a light but no particle trail.
+ * @brief Renders the Quake II hyperblaster bolt: a glow and a light, shedding bright embers that fall
+ * away from the bolt, bounce on the floor and fade quickly.
  */
 static void Cg_Quake2HyperblasterTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
 
   const Vec3 color = Cg_ClientEffectColor(ent->current.client, NULL, COLOR_HUE_ORANGE);
 
-  if (Cg_TrailContents(start, end) & CONTENTS_MASK_LIQUID) {
+  const int32_t liquid = Cg_TrailContents(start, end) & CONTENTS_MASK_LIQUID;
+  if (liquid) {
     Cg_BubbleTrail(ent, start, end, 2.f);
+  }
+
+  Vec3 org, forward;
+  const int32_t count = Cg_TrailCount(end, 12.f, ent, TRAIL_PRIMARY, &org, &forward);
+
+  for (int32_t i = 0; i < count && !liquid; i++) {
+
+    const uint32_t lifetime = RandomRangeu(400, 900);
+
+    if (!Cg_AddSprite(&(CGameSprite) {
+      .atlasImage = cgameMedia.sprites.particle,
+      .lifetime = lifetime,
+      .origin = Vec3_Fmaf(org, i * 12.f, forward),
+      .velocity = Vec3_Add(Vec3_Scale(forward, RandomRangef(20.f, 60.f)), Vec3_RandomRange(-24.f, 24.f)),
+      .acceleration.z = -SPRITE_GRAVITY * 3.f,
+      .bounce = .4f,
+      .size = RandomRangef(1.5f, 2.5f),
+      .sizeVelocity = -1.f / MILLIS_TO_SECONDS(lifetime),
+      .color = Vec3_Scale(color, 3.f),
+      .endColor = Vec3_Scale(color, .2f),
+      .lighting = .1f,
+    })) {
+      break;
+    }
   }
 
   cgi.AddSprite(cgi.view, &(RenderSprite) {
