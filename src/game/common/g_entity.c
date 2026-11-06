@@ -782,7 +782,7 @@ The map list's entry for the level takes precedence over the gameplay, movement,
  gravity : Gravity for the level; unset, the movement's applies, 800 for most.
  gameplay : The gameplay mode, one of deathmatch, team_deathmatch, instagib, team_instagib, arena, team_arena (default deathmatch).
  movement : The player movement, one of quetoo, race, quake, quake2, quake3 (default quetoo, or race in the race module).
- items : The item set for this map: "default" (Quetoo weapons) or "quake" (Quake weapons).
+ items : The item set for this map: "default" (Quetoo), "quake" (Quake), or "quake2" (Quake II). Independent of movement.
  min_clients : The number of clients, humans and AI, the game fills to; unset, 0.
  ai : The AI players, by name and separated by spaces, that join the level first. They always join, even beyond min_clients; any others that min_clients asks for are picked at random.
  num_teams : The number of teams, 2 to 4, in team gameplays; unset, the teams that the map has spawn points or flags for. In CTF, at most the teams that the map has flags for.
@@ -837,6 +837,8 @@ static void G_worldspawn(GameEntity *ent) {
   const Entity *items = gi.EntityValue(ent->def, "items");
   if (Str_CaseCompare(items->string, "quake") == 0) {
     gameLevel.items = ITEMS_QUAKE;
+  } else if (Str_CaseCompare(items->string, "quake2") == 0) {
+    gameLevel.items = ITEMS_QUAKE2;
   } else {
     gameLevel.items = ITEMS_DEFAULT;
   }

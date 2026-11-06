@@ -43,7 +43,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1068
+#define PROTOCOL_MINOR 1069
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -445,7 +445,8 @@ static const GamePlay gameplays[] = {
  */
 typedef enum {
   ITEMS_DEFAULT,
-  ITEMS_QUAKE
+  ITEMS_QUAKE,
+  ITEMS_QUAKE2
 } GameItems;
 
 // GameItemType and GameItemTag are defined in bg_item.h
@@ -1024,6 +1025,16 @@ typedef struct {
   MOD_TURRET_QUAKE_THUNDERBOLT,
   MOD_TURRET_LASER,
   MOD_TURRET_GIBLETS,
+  MOD_QUAKE2_BLASTER,
+  MOD_QUAKE2_SHOTGUN,
+  MOD_QUAKE2_SUPER_SHOTGUN,
+  MOD_QUAKE2_MACHINEGUN,
+  MOD_QUAKE2_CHAINGUN,
+  MOD_QUAKE2_HANDGRENADE,
+  MOD_QUAKE2_GRENADE,
+  MOD_QUAKE2_ROCKET,
+  MOD_QUAKE2_HYPERBLASTER,
+  MOD_QUAKE2_RAILGUN,
   MOD_FRIENDLY_FIRE = 0x8000000
 } GameMeansOfDeath;
 
@@ -1433,6 +1444,9 @@ struct GameClient {
    * @brief Level time when the weapon was last fired.
    */
   uint32_t weaponFiredTime;
+
+  uint32_t quake2AttackTime;
+  uint32_t quake2AttackFrame;
 
   /**
    * @brief Level time when the weapon was last changed.

@@ -77,7 +77,8 @@ static void updateBindings(View *self, ident data) {
 
   switch (this->item) {
     case ItemTimerViewMega:
-      item = cgameState.items == ITEMS_QUAKE ? HEALTH_QUAKE_MEGA : HEALTH_MEGA;
+      item = cgameState.items == ITEMS_QUAKE2 ? HEALTH_QUAKE2_MEGA
+        : cgameState.items == ITEMS_QUAKE ? HEALTH_QUAKE_MEGA : HEALTH_MEGA;
       index = CS_ITEM_TIMER_MEGA;
       break;
     case ItemTimerViewQuad:

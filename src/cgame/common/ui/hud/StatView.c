@@ -55,7 +55,10 @@ static const char *healthIconName(int16_t health) {
  */
 static const char *armorIconName(const PlayerState *ps) {
 
-  for (GameItemTag t = ARMOR_QUAKE_BODY; t > ARMOR_SHARD; t--) {
+  for (GameItemTag t = ARMOR_LAST - 1; t > ARMOR_SHARD; t--) {
+    if (t == ARMOR_QUAKE2_SHARD) {
+      continue;
+    }
     if (ps->inventory[t]) {
       return gameItemDefs[t].icon;
     }

@@ -468,6 +468,18 @@ uint32_t G_Ai_Target(GameClient *cl, PMoveCmd *cmd) {
  * @return The projectile speed of the given weapon.
  */
 static float G_Ai_ProjectileSpeed(const GameItem *weapon) {
+  switch (weapon->def.tag) {
+    case WEAPON_QUAKE2_BLASTER:
+    case WEAPON_QUAKE2_HYPERBLASTER:
+      return 1000.f;
+    case WEAPON_QUAKE2_GRENADE_LAUNCHER:
+    case WEAPON_QUAKE2_HAND_GRENADE:
+      return 600.f;
+    case WEAPON_QUAKE2_ROCKET_LAUNCHER:
+      return 650.f;
+    default:
+      break;
+  }
 
   const char *classname = weapon->def.classname;
   const char *name = classname + (Str_HasPrefix(classname, "weapon_") ? strlen("weapon_") : 0);
@@ -517,6 +529,8 @@ static const GameItem *G_Ai_SpamWeapon(const GameClient *cl) {
     WEAPON_GRENADE_LAUNCHER,
     WEAPON_QUAKE_GRENADE_LAUNCHER,
     WEAPON_HAND_GRENADE,
+    WEAPON_QUAKE2_GRENADE_LAUNCHER,
+    WEAPON_QUAKE2_HAND_GRENADE,
   };
 
   for (size_t i = 0; i < lengthof(tags); i++) {
@@ -550,10 +564,15 @@ static bool G_Ai_SpamAngles(const GameClient *cl, const GameItem *weapon, const 
   float speed, loft;
   if (weapon->def.flags & WF_TIMED) {
     loft = AI_HAND_GRENADE_LOFT;
-    speed = Clampf(sqrtf(gravity * distance) * 1.2f, 500.f, 1200.f);
-    *holdMillis = (uint32_t) (speed / 500.f * 1000.f);
+    if (weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE) {
+      speed = Clampf(sqrtf(gravity * distance) * 1.2f, 400.f, 800.f);
+      *holdMillis = (uint32_t) ((speed - 400.f) / 400.f * 3000.f);
+    } else {
+      speed = Clampf(sqrtf(gravity * distance) * 1.2f, 500.f, 1200.f);
+      *holdMillis = (uint32_t) (speed / 500.f * 1000.f);
+    }
   } else {
-    loft = AI_GRENADE_LOFT;
+    loft = weapon->def.tag == WEAPON_QUAKE2_GRENADE_LAUNCHER ? 200.f : AI_GRENADE_LOFT;
     speed = G_Ai_ProjectileSpeed(weapon);
     *holdMillis = 0;
   }
@@ -683,7 +702,9 @@ static bool G_Ai_CanSpam(const GameClient *cl) {
 static bool G_Ai_IsLobbed(const GameItem *weapon) {
   return weapon == &gameItems[WEAPON_GRENADE_LAUNCHER] ||
          weapon == &gameItems[WEAPON_QUAKE_GRENADE_LAUNCHER] ||
-         weapon == &gameItems[WEAPON_HAND_GRENADE];
+         weapon == &gameItems[WEAPON_HAND_GRENADE] ||
+         weapon == &gameItems[WEAPON_QUAKE2_GRENADE_LAUNCHER] ||
+         weapon == &gameItems[WEAPON_QUAKE2_HAND_GRENADE];
 }
 
 /**
@@ -704,9 +725,12 @@ static bool G_Ai_IsLobbed(const GameItem *weapon) {
 static CollisionTrace G_Ai_LobTrace(const GameClient *cl) {
 
   const bool timed = (cl->weapon->def.flags & WF_TIMED) != 0;
-  const float speed = timed ? Clampf(cl->ai->aimHoldMillis * .5f, 500.f, 1200.f) :
-                              G_Ai_ProjectileSpeed(cl->weapon);
-  const float loft = timed ? AI_HAND_GRENADE_LOFT : AI_GRENADE_LOFT;
+  const float speed = cl->weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE
+    ? Clampf(400.f + cl->ai->aimHoldMillis * (400.f / 3000.f), 400.f, 800.f)
+    : timed ? Clampf(cl->ai->aimHoldMillis * .5f, 500.f, 1200.f)
+    : G_Ai_ProjectileSpeed(cl->weapon);
+  const float loft = timed || cl->weapon->def.tag == WEAPON_QUAKE2_GRENADE_LAUNCHER
+    ? AI_HAND_GRENADE_LOFT : AI_GRENADE_LOFT;
   const float gravity = G_LevelGravity();
 
   Vec3 origin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
@@ -746,6 +770,13 @@ static float G_Ai_SplashRadius(const GameItem *weapon) {
 
   if (!g_friendlyFire->value) {
     return 0.f;
+  }
+  if (weapon->def.tag == WEAPON_QUAKE2_ROCKET_LAUNCHER) {
+    return 120.f;
+  }
+  if (weapon->def.tag == WEAPON_QUAKE2_GRENADE_LAUNCHER ||
+      weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE) {
+    return 160.f;
   }
 
   const Cvar *damage = NULL, *radius = NULL;

@@ -531,10 +531,13 @@ void G_GrenadeProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
   Vec3_Vectors(projectile->s.angles, &forward, &right, &up);
   projectile->velocity = Vec3_Scale(dir, speed);
 
-  projectile->velocity = Vec3_Fmaf(projectile->velocity, RandomRangef(90.f, 110.f), up);
+  projectile->velocity = Vec3_Fmaf(projectile->velocity,
+    mod == MOD_QUAKE2_GRENADE ? RandomRangef(190.f, 210.f) : RandomRangef(90.f, 110.f), up);
   projectile->velocity = Vec3_Fmaf(projectile->velocity, RandomRangef(-10.f, 10.f), right);
 
-  G_PlayerProjectile(projectile, 0.33);
+  if (mod != MOD_QUAKE2_GRENADE) {
+    G_PlayerProjectile(projectile, 0.33);
+  }
 
   projectile->solid = SOLID_PROJECTILE;
   projectile->mass = 75.f;
@@ -631,7 +634,9 @@ void G_HandGrenadeProjectile(GameEntity *ent, GameEntity *projectile, Vec3 const
   projectile->velocity = Vec3_Fmaf(projectile->velocity, RandomRangef(-10.f, 10.f), right);
 
   // add some of the player's velocity to the projectile
-  G_PlayerProjectile(projectile, 0.33);
+  if (projectile->mod != MOD_QUAKE2_HANDGRENADE) {
+    G_PlayerProjectile(projectile, 0.33);
+  }
 
   projectile->spawnFlags = HAND_GRENADE;
 
@@ -703,7 +708,9 @@ static void G_RocketProjectile_Touch(GameEntity *ent, GameEntity *other, const C
         .mod = directMod
       });
 
-      G_RadiusDamage(ent, ent->owner, other, ent->damage, ent->knockback, ent->damageRadius, splashMod);
+      const bool quake2 = ent->mod == MOD_QUAKE2_ROCKET;
+      G_RadiusDamage(ent, ent->owner, other, quake2 ? 120 : ent->damage,
+                     quake2 ? 120 : ent->knockback, ent->damageRadius, splashMod);
 
       gi.WriteByte(SV_CMD_TEMP_ENTITY);
       gi.WriteByte(TE_EXPLOSION);
@@ -1480,4 +1487,3 @@ void G_BfgProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start
 
   gi.LinkEntity(projectile);
 }
-

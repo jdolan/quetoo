@@ -154,7 +154,8 @@ void Cg_AddWeapon(ClientEntity *ent, RenderEntity *self) {
 
   w.model = cgameWeapons[active].model;
 
-  if (cgameWeapons[active].tag < WEAPON_QUAKE_SHOTGUN) {
+  if (cgameWeapons[active].tag < WEAPON_QUAKE_SHOTGUN ||
+      cgameWeapons[active].tag >= WEAPON_QUAKE2_BLASTER) {
     switch (cg_hand->integer) {
       case HAND_LEFT:
         offset.y -= 5.f;

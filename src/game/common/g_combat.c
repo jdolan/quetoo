@@ -49,6 +49,26 @@ bool G_OnSameTeam(const GameClient *a, const GameClient *b) {
 static const char *G_WeaponNameForMod(GameMeansOfDeath mod) {
 
   switch (mod & ~MOD_FRIENDLY_FIRE) {
+    case MOD_QUAKE2_BLASTER:
+      return "Quake II Blaster";
+    case MOD_QUAKE2_SHOTGUN:
+      return "Quake II Shotgun";
+    case MOD_QUAKE2_SUPER_SHOTGUN:
+      return "Quake II Super Shotgun";
+    case MOD_QUAKE2_MACHINEGUN:
+      return "Quake II Machinegun";
+    case MOD_QUAKE2_CHAINGUN:
+      return "Quake II Chaingun";
+    case MOD_QUAKE2_HANDGRENADE:
+      return "Quake II Hand Grenade";
+    case MOD_QUAKE2_GRENADE:
+      return "Quake II Grenade Launcher";
+    case MOD_QUAKE2_ROCKET:
+      return "Quake II Rocket Launcher";
+    case MOD_QUAKE2_HYPERBLASTER:
+      return "Quake II Hyperblaster";
+    case MOD_QUAKE2_RAILGUN:
+      return "Quake II Railgun";
     case MOD_BLASTER:
       return "Blaster";
     case MOD_SHOTGUN:

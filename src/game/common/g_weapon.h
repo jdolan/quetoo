@@ -47,6 +47,16 @@ void G_FireQuakeSuperNailgun(GameClient *cl);
 void G_FireQuakeGrenadeLauncher(GameClient *cl);
 void G_FireQuakeRocketLauncher(GameClient *cl);
 void G_FireQuakeThunderbolt(GameClient *cl);
+void G_FireQuake2Blaster(GameClient *cl);
+void G_FireQuake2Shotgun(GameClient *cl);
+void G_FireQuake2SuperShotgun(GameClient *cl);
+void G_FireQuake2Machinegun(GameClient *cl);
+void G_FireQuake2Chaingun(GameClient *cl);
+void G_FireQuake2HandGrenade(GameClient *cl);
+void G_FireQuake2GrenadeLauncher(GameClient *cl);
+void G_FireQuake2RocketLauncher(GameClient *cl);
+void G_FireQuake2Hyperblaster(GameClient *cl);
+void G_FireQuake2Railgun(GameClient *cl);
 void G_WorldMuzzleFlash(const Vec3 org, const Vec3 dir, GameMuzzleFlash flash, uint8_t client);
 void G_ClientWeaponThink(GameClient *cl);
 #endif
