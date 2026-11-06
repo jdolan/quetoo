@@ -399,19 +399,21 @@ void Net_WriteDeltaPlayerState(NetMessage *msg, const PlayerState *from, const P
     }
   }
 
-  uint64_t invBits = 0;
+  uint64_t invBits[MAX_INVENTORY / 64] = { 0 };
 
   for (int32_t i = 0; i < MAX_INVENTORY; i++) {
     if (to->inventory[i] != from->inventory[i]) {
-      invBits |= (uint64_t) 1 << i;
+      invBits[i / 64] |= UINT64_C(1) << (i % 64);
     }
   }
 
-  Net_WriteLong(msg, (int32_t) (invBits & 0xFFFFFFFF));
-  Net_WriteLong(msg, (int32_t) (invBits >> 32));
+  for (size_t i = 0; i < lengthof(invBits); i++) {
+    Net_WriteLong(msg, (int32_t) (invBits[i] & 0xFFFFFFFF));
+    Net_WriteLong(msg, (int32_t) (invBits[i] >> 32));
+  }
 
   for (int32_t i = 0; i < MAX_INVENTORY; i++) {
-    if (invBits & ((uint64_t) 1 << i)) {
+    if (invBits[i / 64] & (UINT64_C(1) << (i % 64))) {
       Net_WriteShort(msg, to->inventory[i]);
     }
   }
@@ -537,10 +539,10 @@ void Net_WriteDeltaEntity(NetMessage *msg, const EntityState *from, const Entity
   }
 
   if (bits & U_MODELS) {
-    Net_WriteByte(msg, to->model1);
-    Net_WriteByte(msg, to->model2);
-    Net_WriteByte(msg, to->model3);
-    Net_WriteByte(msg, to->model4);
+    Net_WriteShort(msg, to->model1);
+    Net_WriteShort(msg, to->model2);
+    Net_WriteShort(msg, to->model3);
+    Net_WriteShort(msg, to->model4);
   }
 
   if (bits & U_COLOR) {
@@ -555,7 +557,7 @@ void Net_WriteDeltaEntity(NetMessage *msg, const EntityState *from, const Entity
   }
 
   if (bits & U_SOUND) {
-    Net_WriteByte(msg, to->sound);
+    Net_WriteShort(msg, to->sound);
   }
 
   if (bits & U_SOLID) {
@@ -897,11 +899,15 @@ void Net_ReadDeltaPlayerState(NetMessage *msg, const PlayerState *from, PlayerSt
     }
   }
 
-  const uint64_t invBits = (uint64_t) (uint32_t) Net_ReadLong(msg) |
-                            ((uint64_t) (uint32_t) Net_ReadLong(msg) << 32);
+  uint64_t invBits[MAX_INVENTORY / 64];
+  for (size_t i = 0; i < lengthof(invBits); i++) {
+    const uint32_t low = Net_ReadLong(msg);
+    const uint32_t high = Net_ReadLong(msg);
+    invBits[i] = (uint64_t) low | ((uint64_t) high << 32);
+  }
 
   for (int32_t i = 0; i < MAX_INVENTORY; i++) {
-    if (invBits & ((uint64_t) 1 << i)) {
+    if (invBits[i / 64] & (UINT64_C(1) << (i % 64))) {
       to->inventory[i] = Net_ReadShort(msg);
     }
   }
@@ -959,10 +965,14 @@ void Net_ReadDeltaEntity(NetMessage *msg, const EntityState *from, EntityState *
   }
 
   if (bits & U_MODELS) {
-    to->model1 = Net_ReadByte(msg);
-    to->model2 = Net_ReadByte(msg);
-    to->model3 = Net_ReadByte(msg);
-    to->model4 = Net_ReadByte(msg);
+    to->model1 = Net_ReadShort(msg);
+    to->model2 = Net_ReadShort(msg);
+    to->model3 = Net_ReadShort(msg);
+    to->model4 = Net_ReadShort(msg);
+    if (to->model1 >= MAX_MODELS || to->model2 >= MAX_MODELS ||
+        to->model3 >= MAX_MODELS || to->model4 >= MAX_MODELS) {
+      Com_Error(ERROR_DROP, "Invalid entity model index\n");
+    }
   }
 
   if (bits & U_COLOR) {
@@ -977,7 +987,10 @@ void Net_ReadDeltaEntity(NetMessage *msg, const EntityState *from, EntityState *
   }
 
   if (bits & U_SOUND) {
-    to->sound = Net_ReadByte(msg);
+    to->sound = Net_ReadShort(msg);
+    if (to->sound >= MAX_SOUNDS) {
+      Com_Error(ERROR_DROP, "Invalid entity sound index\n");
+    }
   }
 
   if (bits & U_SOLID) {

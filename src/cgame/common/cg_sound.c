@@ -46,12 +46,13 @@ void Cg_ParseSound(void) {
 
   const byte flags = cgi.ReadByte();
 
-  const uint8_t sampleIndex = cgi.ReadByte();
+  const int32_t sampleIndex = cgi.ReadShort();
+  const bool validIndex = sampleIndex >= 0 && sampleIndex < MAX_SOUNDS;
   SoundPlaySample play = {
-    .sample = cgi.client->sounds[sampleIndex]
+    .sample = validIndex ? cgi.client->sounds[sampleIndex] : NULL
   };
 
-  if (!play.sample) {
+  if (validIndex && !play.sample) {
     Cg_Warn("NULL sample for sound index %u\n", sampleIndex);
   }
 
@@ -92,6 +93,10 @@ void Cg_ParseSound(void) {
 
   if (flags & SOUND_RELATIVE) {
     play.flags |= S_PLAY_RELATIVE;
+  }
+
+  if (!validIndex) {
+    Cg_Error("Invalid sound index %d\n", sampleIndex);
   }
 
   if (play.sample) {

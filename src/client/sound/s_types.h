@@ -249,6 +249,7 @@ typedef struct {
 } SoundChannel;
 
 #define MAX_CHANNELS 128
+#define MAX_SOUND_SUBMISSIONS 128
 
 /**
  * @brief A music track.
@@ -458,7 +459,7 @@ typedef struct SoundStage {
   /**
    * @brief The samples to render for the current frame.
    */
-  SoundPlaySample samples[MAX_SOUNDS];
+  SoundPlaySample samples[MAX_SOUND_SUBMISSIONS];
 
   /**
    * @brief The count of samples.

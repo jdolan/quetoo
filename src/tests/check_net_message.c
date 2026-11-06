@@ -163,6 +163,65 @@ START_TEST(check_PlayerState_Movement_DeltaCompressed) {
 } END_TEST
 
 /**
+ * @brief Inventory deltas span all four mask blocks, including clearing high slots.
+ */
+START_TEST(check_PlayerState_Inventory_RoundTrip) {
+  byte buffer[MAX_MSG_SIZE];
+  MemBuf buf;
+  Mem_InitBuffer(&buf, buffer, sizeof(buffer));
+  PlayerState from = { 0 }, to = { 0 }, result;
+  const int32_t slots[] = { 0, 63, 64, 127, 128, 191, 192, 255 };
+  from.inventory[200] = 47;
+  to = from;
+  for (size_t i = 0; i < lengthof(slots); i++) {
+    from.inventory[slots[i]] = 20;
+    to.inventory[slots[i]] = i % 2 ? 0 : 300 + i;
+  }
+  Net_WriteDeltaPlayerState(&buf, &from, &to);
+  Net_WriteByte(&buf, 99);
+  Net_ReadDeltaPlayerState(&buf, &from, &result);
+  ck_assert_mem_eq(result.inventory, to.inventory, sizeof(to.inventory));
+  ck_assert_int_eq(Net_ReadByte(&buf), 99);
+  ck_assert_uint_eq(buf.read, buf.size);
+} END_TEST
+
+START_TEST(check_PlayerState_Inventory_DeltaCompressed) {
+  byte bufferA[MAX_MSG_SIZE], bufferB[MAX_MSG_SIZE];
+  MemBuf unchanged, changed;
+  Mem_InitBuffer(&unchanged, bufferA, sizeof(bufferA));
+  Mem_InitBuffer(&changed, bufferB, sizeof(bufferB));
+  PlayerState from = { 0 }, to = { 0 };
+  from.inventory[255] = to.inventory[255] = 80;
+  Net_WriteDeltaPlayerState(&unchanged, &from, &to);
+  to.inventory[255] = 0;
+  Net_WriteDeltaPlayerState(&changed, &from, &to);
+  ck_assert_uint_eq(changed.size, unchanged.size + sizeof(int16_t));
+} END_TEST
+
+START_TEST(check_EntityState_Media_RoundTrip) {
+  const uint16_t indices[] = { 255, 256, 1023, 0 };
+  EntityState from = { .number = 1 };
+  for (size_t i = 0; i < lengthof(indices); i++) {
+    byte buffer[MAX_MSG_SIZE];
+    MemBuf buf;
+    Mem_InitBuffer(&buf, buffer, sizeof(buffer));
+    EntityState to = from, result;
+    to.model1 = to.model2 = to.model3 = to.model4 = to.sound = indices[i];
+    Net_WriteDeltaEntity(&buf, &from, &to, true);
+    const uint16_t number = Net_ReadShort(&buf);
+    const uint16_t bits = Net_ReadShort(&buf);
+    Net_ReadDeltaEntity(&buf, &from, &result, number, bits);
+    ck_assert_uint_eq(result.model1, indices[i]);
+    ck_assert_uint_eq(result.model2, indices[i]);
+    ck_assert_uint_eq(result.model3, indices[i]);
+    ck_assert_uint_eq(result.model4, indices[i]);
+    ck_assert_uint_eq(result.sound, indices[i]);
+    ck_assert_uint_eq(buf.read, buf.size);
+    from = to;
+  }
+} END_TEST
+
+/**
  * @brief Test entry point.
  */
 int32_t main(int32_t argc, char **argv) {
@@ -175,6 +234,9 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(tcase, check_PlayerState_Params_RoundTrip);
   tcase_add_test(tcase, check_PlayerState_Params_DeltaCompressed);
   tcase_add_test(tcase, check_PlayerState_Movement_DeltaCompressed);
+  tcase_add_test(tcase, check_PlayerState_Inventory_RoundTrip);
+  tcase_add_test(tcase, check_PlayerState_Inventory_DeltaCompressed);
+  tcase_add_test(tcase, check_EntityState_Media_RoundTrip);
 
   Suite *suite = suite_create("check_net_message");
   suite_add_tcase(suite, tcase);

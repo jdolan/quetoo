@@ -79,10 +79,10 @@
  */
 #define MAX_CLIENTS  64 // this can be increased with minimal effort
 #define MAX_ENTITIES 1024 // this can be increased with minimal effort
-#define MAX_MODELS   256 // these are sent over the net as uint8_t
-#define MAX_SOUNDS   256 // so they cannot be blindly increased
+#define MAX_MODELS   1024 // model and sound indices are uint16_t on the wire
+#define MAX_SOUNDS   1024
 #define MAX_MUSICS   8 // per level
-#define MAX_IMAGES   256 // that the server knows about
+#define MAX_IMAGES   1024 // that the server knows about
 
 /**
  * @brief The max length of any given output message (stdio).
