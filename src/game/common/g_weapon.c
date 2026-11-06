@@ -1098,7 +1098,7 @@ void G_FireQuake2Chaingun(GameClient *cl) {
   }
   cl->kickAngles.x += RandomRangef(-0.7f, 0.7f);
   cl->kickAngles.z += RandomRangef(-0.7f, 0.7f);
-  G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_MACHINEGUN);
+  G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_CHAINGUN1 + shots - 1);
   G_WeaponFired(cl, 100, shots);
 }
 

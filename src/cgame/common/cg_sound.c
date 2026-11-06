@@ -154,3 +154,63 @@ void Cg_AddSample(SoundStage *stage, const SoundPlaySample *play) {
 
   cgi.AddSample(stage, &s);
 }
+
+#define MAX_DELAYED_SAMPLES 64
+
+/**
+ * @brief A sample that is played after a delay.
+ */
+typedef struct {
+  SoundPlaySample play;
+  uint32_t time;
+} CGameDelayedSample;
+
+static struct {
+  CGameDelayedSample samples[MAX_DELAYED_SAMPLES];
+  int32_t numSamples;
+} module;
+
+/**
+ * @brief Plays the sample after `delay` milliseconds of client time.
+ * @remarks Quake II staggers the shots that one server frame fires, so that its sounds keep
+ * their cadence. Without this, a weapon that fires several shots per frame sounds as slow as
+ * its frame rate.
+ */
+void Cg_AddDelayedSample(const SoundPlaySample *play, uint32_t delay) {
+
+  if (delay == 0) {
+    Cg_AddSample(cgi.stage, play);
+    return;
+  }
+
+  if (module.numSamples == MAX_DELAYED_SAMPLES) {
+    Cg_Debug("MAX_DELAYED_SAMPLES\n");
+    return;
+  }
+
+  module.samples[module.numSamples++] = (CGameDelayedSample) {
+    .play = *play,
+    .time = cgi.client->unclampedTime + delay,
+  };
+}
+
+/**
+ * @brief Plays the delayed samples that are due.
+ */
+void Cg_AddDelayedSamples(void) {
+
+  for (int32_t i = 0; i < module.numSamples; i++) {
+    const CGameDelayedSample *s = &module.samples[i];
+    if (s->time <= cgi.client->unclampedTime) {
+      Cg_AddSample(cgi.stage, &s->play);
+      module.samples[i--] = module.samples[--module.numSamples];
+    }
+  }
+}
+
+/**
+ * @brief Discards the delayed samples.
+ */
+void Cg_ClearDelayedSamples(void) {
+  module.numSamples = 0;
+}

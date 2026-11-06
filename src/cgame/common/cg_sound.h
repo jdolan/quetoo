@@ -25,4 +25,7 @@
 void Cg_PrepareStage(const ClientFrame *frame);
 void Cg_ParseSound(void);
 void Cg_AddSample(SoundStage *stage, const SoundPlaySample *play);
+void Cg_AddDelayedSample(const SoundPlaySample *play, uint32_t delay);
+void Cg_AddDelayedSamples(void);
+void Cg_ClearDelayedSamples(void);
 #endif

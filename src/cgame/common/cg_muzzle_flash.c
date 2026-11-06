@@ -1062,6 +1062,23 @@ void Cg_ParseMuzzleFlash(void) {
       Cg_MachinegunFlash(muzzle, origin, angles, client);
       pitch = 3;
       break;
+    case MZ_QUAKE2_CHAINGUN1:
+    case MZ_QUAKE2_CHAINGUN2:
+    case MZ_QUAKE2_CHAINGUN3: {
+      const int32_t shots = flash - MZ_QUAKE2_CHAINGUN1 + 1;
+      for (int32_t i = 1; i < shots; i++) {
+        Cg_AddDelayedSample(&(const SoundPlaySample) {
+          .origin = ent ? ent->current.origin : origin,
+          .sample = cgameMedia.sounds.quake2MachinegunFire[RandomRangeu(0, lengthof(cgameMedia.sounds.quake2MachinegunFire))],
+          .entity = ent,
+          .pitch = RandomRangei(-3, 4)
+        }, i * 100 / shots);
+      }
+      sample = cgameMedia.sounds.quake2MachinegunFire[RandomRangeu(0, lengthof(cgameMedia.sounds.quake2MachinegunFire))];
+      Cg_MachinegunFlash(muzzle, origin, angles, client);
+      pitch = 3;
+    }
+      break;
     case MZ_QUAKE2_GRENADE_LAUNCHER:
       sample = cgameMedia.sounds.quake2GrenadelauncherFire;
       Cg_GrenadeFlash(muzzle, origin, angles, client);
