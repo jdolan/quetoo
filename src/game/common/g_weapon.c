@@ -671,9 +671,9 @@ static void G_FireHandGrenade_(GameClient *cl, bool quake2) {
       org,                    // starting point
       forward,                // direction
       (uint32_t) throwSpeed, // how fast does it fly
-      120,                    // damage dealt
-      120,                    // knockback
-      quake2 ? 160.f : 240.f,  // blast radius
+      quake2 ? 125 : 120,     // damage dealt
+      quake2 ? 125 : 120,     // knockback
+      quake2 ? 165.f : 240.f, // blast radius
       fuse                    // time before explode (next think)
   );
 
@@ -974,6 +974,12 @@ void G_FireQuakeThunderbolt(GameClient *cl) {
 }
 
 /**
+ * @brief Quake II applies bullet spread at 8192 units, but G_BulletProjectile applies it at
+ * MAX_WORLD_DIST, so Quake II spreads are scaled to keep their angles.
+ */
+#define QUAKE2_SPREAD(s) ((int32_t) ((s) * MAX_WORLD_DIST / 8192.0))
+
+/**
  * @brief Fires the base Quake II blaster.
  */
 void G_FireQuake2Blaster(GameClient *cl) {
@@ -990,7 +996,7 @@ void G_FireQuake2Shotgun(GameClient *cl) {
   if (G_FireWeapon(cl)) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
-    G_ShotgunProjectiles(cl->entity, cl->entity, org, forward, 4, 8, 500, 500, 12, MOD_QUAKE2_SHOTGUN);
+    G_ShotgunProjectiles(cl->entity, cl->entity, org, forward, 4, 8, QUAKE2_SPREAD(500), QUAKE2_SPREAD(500), 12, MOD_QUAKE2_SHOTGUN);
     G_ClientMuzzleFlash(cl->entity, MZ_SHOTGUN);
     G_WeaponFired(cl, 1000, 1);
   }
@@ -1004,7 +1010,7 @@ void G_FireQuake2SuperShotgun(GameClient *cl) {
     for (int32_t side = -1; side <= 1; side += 2) {
       Vec3 aim;
       Vec3_Vectors(Vec3_Add(angles, MakeVec3(0, side * 5, 0)), &aim, NULL, NULL);
-      G_ShotgunProjectiles(cl->entity, cl->entity, org, aim, 6, 12, 1000, 500, 10, MOD_QUAKE2_SUPER_SHOTGUN);
+      G_ShotgunProjectiles(cl->entity, cl->entity, org, aim, 6, 12, QUAKE2_SPREAD(1000), QUAKE2_SPREAD(500), 10, MOD_QUAKE2_SUPER_SHOTGUN);
     }
     G_ClientMuzzleFlash(cl->entity, MZ_SUPER_SHOTGUN);
     G_WeaponFired(cl, 1100, 2);
@@ -1015,7 +1021,7 @@ void G_FireQuake2Machinegun(GameClient *cl) {
   if (G_FireWeapon(cl)) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
-    G_BulletProjectile(cl->entity, cl->entity, org, forward, 8, 2, 300, 500, MOD_QUAKE2_MACHINEGUN);
+    G_BulletProjectile(cl->entity, cl->entity, org, forward, 8, 2, QUAKE2_SPREAD(300), QUAKE2_SPREAD(500), MOD_QUAKE2_MACHINEGUN);
     cl->kickAngles.x += RandomRangef(-0.7f, 0.7f);
     cl->kickAngles.z += RandomRangef(-0.7f, 0.7f);
     G_ClientMuzzleFlash(cl->entity, MZ_MACHINEGUN);
@@ -1066,7 +1072,7 @@ void G_FireQuake2Chaingun(GameClient *cl) {
   for (int32_t i = 0; i < shots; i++) {
     const Vec3 muzzle = Vec3_Fmaf(Vec3_Fmaf(org, RandomRangef(-4, 4), right),
                                  RandomRangef(-4, 4), up);
-    G_BulletProjectile(cl->entity, cl->entity, muzzle, forward, 6, 2, 300, 500, MOD_QUAKE2_CHAINGUN);
+    G_BulletProjectile(cl->entity, cl->entity, muzzle, forward, 6, 2, QUAKE2_SPREAD(300), QUAKE2_SPREAD(500), MOD_QUAKE2_CHAINGUN);
   }
   cl->kickAngles.x += RandomRangef(-0.7f, 0.7f);
   cl->kickAngles.z += RandomRangef(-0.7f, 0.7f);
