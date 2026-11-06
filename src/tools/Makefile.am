@@ -12,6 +12,7 @@ EXTRA_DIST = \
 	md3.py \
 	md3fu.py \
 	objfu.py \
+	test_objfu.py \
 	playerfu.py \
  	pyproject.toml \
 	skyfu.py \
