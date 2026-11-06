@@ -977,15 +977,7 @@ typedef struct {
     uint16_t quake2ChaingunSpinDown;
     uint16_t quake2HyperblasterHum;
     uint16_t quake2HyperblasterSpinDown;
-    uint16_t quake2RailgunHum;
-    uint16_t quake2GrenadePin;
-    uint16_t quake2GrenadeThrow;
-    uint16_t quake2GrenadeTick;
-    uint16_t quake2GrenadeBounce;
-    uint16_t quake2HandGrenadeBounce[2];
-    uint16_t quake2RocketFly;
-    uint16_t quake2BfgHum;
-    uint16_t quake2BfgFly;
+    uint16_t railgunHum;
     uint16_t rocketFly;
     uint16_t lightningFly;
     uint16_t laserFly;

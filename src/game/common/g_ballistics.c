@@ -456,19 +456,10 @@ void G_GrenadeProjectile_Touch(GameEntity *ent, GameEntity *other, const Collisi
     if (G_IsStructural(trace)) {
       if (gameLevel.time - ent->touchTime > 200) {
         if (Vec3_Length(ent->velocity) > 40.0) {
-          uint16_t index = ent->hitSound;
-          int8_t pitch = (int8_t) (Randomf() * 5.0);
-          if (ent->mod == MOD_QUAKE2_GRENADE) {
-            index = gameMedia.sounds.quake2GrenadeBounce;
-            pitch = 0;
-          } else if (ent->mod == MOD_QUAKE2_HANDGRENADE) {
-            index = gameMedia.sounds.quake2HandGrenadeBounce[RandomRangeu(0, 2)];
-            pitch = 0;
-          }
           G_MulticastSound(&(const GamePlaySound) {
-            .index = index,
+            .index = ent->hitSound,
             .entity = ent,
-            .pitch = pitch
+            .pitch = (int8_t) (Randomf() * 5.0)
           }, MULTICAST_PHS);
           ent->touchTime = gameLevel.time;
         }
@@ -763,7 +754,7 @@ void G_RocketProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 st
   projectile->Think = G_FreeEntity;
   projectile->Touch = G_RocketProjectile_Touch;
   projectile->s.model1 = gameMedia.models.rocket;
-  projectile->s.sound = mod == MOD_QUAKE2_ROCKET ? gameMedia.sounds.quake2RocketFly : gameMedia.sounds.rocketFly;
+  projectile->s.sound = gameMedia.sounds.rocketFly;
   projectile->s.client = G_ProjectileClient(emitter);
   projectile->s.trail = TRAIL_ROCKET;
 
@@ -1711,7 +1702,6 @@ void G_Quake2BfgProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3
   projectile->timestamp = gameLevel.time + 8000 * 1000 / QUAKE2_BFG_SPEED;
   projectile->Think = G_Quake2BfgProjectile_Think;
   projectile->Touch = G_Quake2BfgProjectile_Touch;
-  projectile->s.sound = gameMedia.sounds.quake2BfgFly;
   projectile->s.client = G_ProjectileClient(emitter);
   projectile->s.trail = TRAIL_BFG;
 

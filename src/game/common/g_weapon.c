@@ -544,11 +544,6 @@ static void G_PullGrenadePin(GameClient *cl) {
   nade->owner = cl->entity;
   if (cl->weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE) {
     nade->mod = MOD_QUAKE2_HANDGRENADE;
-
-    G_MulticastSound(&(const GamePlaySound) {
-      .index = gameMedia.sounds.quake2GrenadePin,
-      .entity = cl->entity,
-    }, MULTICAST_PHS);
   }
   nade->s.origin = cl->entity->s.origin;
   nade->solid = SOLID_NOT;
@@ -643,12 +638,8 @@ static void G_FireHandGrenade_(GameClient *cl, bool quake2) {
   // continue holding if time allows
   if (holding && (int32_t)(nadeTime - holdTime) > 0) {
 
-    // Quake II loops a ticking fuse while the grenade is held
-    if (quake2) {
-      cl->weaponSound = gameMedia.sounds.quake2GrenadeTick;
-    }
     // play the timer sound if we're holding once every second
-    else if ((gameLevel.frameNum - cl->grenadeHoldFrame) % QUETOO_TICK_RATE == 0) {
+    if ((gameLevel.frameNum - cl->grenadeHoldFrame) % QUETOO_TICK_RATE == 0) {
       G_MulticastSound(&(const GamePlaySound) {
         .index = gameMedia.sounds.grenadeClang,
         .entity = cl->entity,
@@ -690,7 +681,7 @@ static void G_FireHandGrenade_(GameClient *cl, bool quake2) {
 
   // play the sound if we throw it
   G_MulticastSound(&(const GamePlaySound) {
-    .index = quake2 ? gameMedia.sounds.quake2GrenadeThrow : gameMedia.sounds.grenadeThrow,
+    .index = gameMedia.sounds.grenadeThrow,
     .entity = cl->entity,
   }, MULTICAST_PHS);
 
@@ -802,7 +793,7 @@ void G_FireLightning(GameClient *cl) {
  * @brief Fires a railgun slug that instantly hits the first target along its path.
  */
 void G_FireRailgun(GameClient *cl) {
-
+  cl->weaponSound = gameMedia.sounds.railgunHum;
   if (G_FireWeapon(cl)) {
     Vec3 forward, right, up, org;
 
@@ -1148,7 +1139,7 @@ void G_FireQuake2Hyperblaster(GameClient *cl) {
  * @brief Fires the Quake II railgun, which hums while it is held, as G_SetClientSound does in Quake II.
  */
 void G_FireQuake2Railgun(GameClient *cl) {
-  cl->weaponSound = gameMedia.sounds.quake2RailgunHum;
+  cl->weaponSound = gameMedia.sounds.railgunHum;
   if (G_FireWeapon(cl)) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
@@ -1200,6 +1191,8 @@ static void G_FireQuake2BFG_(GameEntity *ent) {
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
     G_Quake2BfgProjectile(cl->entity, cl->entity, org, forward);
 
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_BFG);
+
     G_WeaponFired(cl, 1600, cl->weapon->def.quantity);
   }
 
@@ -1207,11 +1200,10 @@ static void G_FireQuake2BFG_(GameEntity *ent) {
 }
 
 /**
- * @brief Fires the Quake II BFG9000. The muzzle flash and its sound begin a 0.8 second windup, after
- * which the ball launches. A shot takes 2.4 seconds in all.
+ * @brief Fires the Quake II BFG9000. The BFG10K's prime sound begins a 0.8 second windup, after which
+ * the ball launches with the muzzle flash. A shot takes 2.4 seconds in all.
  */
 void G_FireQuake2BFG(GameClient *cl) {
-  cl->weaponSound = gameMedia.sounds.quake2BfgHum;
   if (G_FireWeapon(cl)) {
     cl->weaponFireTime = gameLevel.time + 2400;
 
@@ -1221,7 +1213,10 @@ void G_FireQuake2BFG(GameClient *cl) {
     timer->Think = G_FireQuake2BFG_;
     timer->nextThink = gameLevel.time + 800;
 
-    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_BFG);
+    G_MulticastSound(&(const GamePlaySound) {
+      .index = gameMedia.sounds.bfgPrime,
+      .entity = cl->entity,
+    }, MULTICAST_PHS);
   }
 }
 

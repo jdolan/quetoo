@@ -527,7 +527,7 @@ const GameItemDef gameItemDefs[] = {
     .effectColor = { { 0.468f, 0.772f, 0.005f, 1.f } },
     .flags = WF_PROJECTILE | WF_MED_RANGE | WF_LONG_RANGE,
     .priority = 0.66,
-    .precaches = "weapons/quake2_bfg/fire.wav projectiles/quake2_bfg/explode.wav"
+    .precaches = "weapons/bfg/prime.wav weapons/bfg/hit.wav"
   },
 
   {

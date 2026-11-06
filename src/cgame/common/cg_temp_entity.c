@@ -1437,7 +1437,7 @@ void Cg_ParseTempEntity(void) {
       dir = cgi.ReadDir();
       i = cgi.ReadByte();
       Cg_BlasterEffect(pos, dir, Cg_ClientEffectColor(i, NULL, COLOR_HUE_ORANGE),
-                       type == TE_QUAKE2_BLASTER ? cgameMedia.sounds.quake2BlasterHit : cgameMedia.sounds.quake2HyperblasterHit);
+                       type == TE_QUAKE2_BLASTER ? cgameMedia.sounds.blasterHit : cgameMedia.sounds.hyperblasterHit);
       break;
 
     case TE_TRACER:
@@ -1524,8 +1524,7 @@ void Cg_ParseTempEntity(void) {
     case TE_QUAKE2_GRENADE_EXPLOSION:
       pos = cgi.ReadPosition();
       dir = cgi.ReadDir();
-      Cg_ExplosionEffect(pos, dir, type == TE_QUAKE2_ROCKET_EXPLOSION ?
-                         cgameMedia.sounds.quake2RocketExplosion : cgameMedia.sounds.quake2GrenadeExplosion);
+      Cg_ExplosionEffect(pos, dir, cgameMedia.sounds.explosion);
       break;
 
     case TE_BFG_LASER:
@@ -1570,7 +1569,7 @@ void Cg_ParseTempEntity(void) {
 
     case TE_QUAKE2_BFG_BIGEXPLOSION:
       pos = cgi.ReadPosition();
-      Cg_BfgEffect(pos, cgameMedia.sounds.quake2BfgExplosion);
+      Cg_BfgEffect(pos, cgameMedia.sounds.bfgHit);
       break;
 
     case TE_BUBBLES: // bubbles chasing projectiles in water
