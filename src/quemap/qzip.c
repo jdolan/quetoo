@@ -127,6 +127,8 @@ int32_t Qzip_Main(void) {
 
   char *dataDir = OfficialRoot(Fs_DataDir());
   char *resourcesDir = OfficialRoot(Fs_ResourcesDir());
+  char *gameDir = OfficialRoot(va("%s/%s", Fs_DataDir(), Com_Game()));
+  char *defaultDir = OfficialRoot(va("%s/%s", Fs_DataDir(), DEFAULT_GAME));
 
   struct tm epoch = { .tm_year = 80, .tm_mon = 5, .tm_mday = 24, .tm_hour = 12, .tm_isdst = -1 };
   MZ_TIME_T modified = mktime(&epoch);
@@ -161,7 +163,9 @@ int32_t Qzip_Main(void) {
           // pulling in flares, envmaps, etc.
 
           (!HasSuffix(dir, ".pk3") && (ResolvesWithin(dir, filename, dataDir) ||
-                                       ResolvesWithin(dir, filename, resourcesDir)))) {
+                                       ResolvesWithin(dir, filename, resourcesDir) ||
+                                       ResolvesWithin(dir, filename, gameDir) ||
+                                       ResolvesWithin(dir, filename, defaultDir)))) {
 
             Com_Print("[S] %s (%s)\n", filename, dir);
             continue;
@@ -202,6 +206,8 @@ int32_t Qzip_Main(void) {
   release(assets);
   free(dataDir);
   free(resourcesDir);
+  free(gameDir);
+  free(defaultDir);
 
   const uint32_t end = (uint32_t) SDL_GetTicks();
   Com_Print("\nWrote %s in %d ms\n", path, end - start);
