@@ -62,13 +62,42 @@ not the extension, before choosing `md32obj` versus `md22obj`.
 
 ## objfu
 
-Preview a static OBJ and edit one mesh configuration in a companion text window:
+Preview a static OBJ and edit its `model.cfg` in a companion text window:
 
 ```sh
 objfu models/weapons/quake2_chaingun/tris.obj --config world
 objfu models/weapons/quake2_chaingun/tris.obj --config link
 objfu models/weapons/quake2_chaingun/tris.obj --config view
+objfu 'weapons/quake2_*' --config muzzle
 ```
+
+`model.cfg` uses flat entity-style blocks. The `type` pair comes first; transforms
+are applied in their written order. Omitted placement blocks mean identity.
+
+```text
+{
+  "type" "world"
+  "scale" "0.8"
+}
+{
+  "type" "link"
+  "translate" "4 0 -12"
+  "scale" "0.65"
+}
+{
+  "type" "view"
+  "translate" "9 -6 -32"
+  "scale" "0.9"
+}
+{
+  "type" "muzzle"
+  "origin" "24 0 20"
+}
+```
+
+The muzzle is one point in untransformed model space, shared by all placements.
+Legacy `world.cfg`, `link.cfg` and `view.cfg` files are no longer loaded.
+The text editor shows the complete file; the selected mode controls the preview.
 
 Models may be named by OBJ path, by model directory, or by a quoted glob,
 which is matched against model directories under each data root's `models/`:
@@ -93,6 +122,10 @@ objfu 'weapons/quake2_*' --config view
   bounds, and off. The preview window is resizable in every mode.
   Generated translations and muzzle positions default to integers; hand-edited
   integer and floating-point values are both supported.
+- `muzzle`: shows the untransformed model with an orbit camera and its muzzle
+  marker. Edit the muzzle block's `origin`, orbiting to inspect its placement on
+  the barrel from different directions. Tab / PgDn and Shift+Tab / PgUp cycle
+  through a batch. Placement transforms do not affect this preview.
 - `link`: attaches the mesh to the standing Enforcer's `tag_weapon`, through
   its legs/torso tag hierarchy.
 - `view`: fixed first-person camera looking down +X, with the model facing
@@ -108,13 +141,13 @@ objfu 'weapons/quake2_*' --config view
   for left hand, and zeroed for center hand, matching the engine.
   A translucent cyan silhouette averages the screen coverage of the existing
   Quetoo weapons; brighter regions are shared by more weapons. It is rebuilt
-  from their current meshes and `view.cfg` files on each launch, excludes Quake
+  from their current meshes and `model.cfg` view blocks on each launch, excludes Quake
   and Quake2 models and the selected model, and follows the selected FOV
   and hand. Press **G** in the preview to hide/show it. No reference assets or
   configurations are modified.
 
-Text edits update the preview immediately; **Save** writes only the selected
-configuration beside the OBJ. **Reload** reads external edits. Invalid text is
+Text edits update the preview immediately; **Save** writes the selected model's
+complete `model.cfg`. **Reload** reads external edits. Invalid text is
 reported, retains the last valid preview, and cannot be saved. Closing either
 window prompts before discarding unsaved edits; externally changed files require
 confirmation before overwriting.
@@ -129,7 +162,7 @@ PBR renderer.
 
 Without `--config`, the original orbit viewer and muzzle hotkeys are unchanged:
 arrows adjust X/Y, Q/E adjust Z, Shift increases the step, R resets, and S writes
-the muzzle to both `link.cfg` and `view.cfg`.
+the shared muzzle block to `model.cfg`, preserving placement blocks.
 
 ## md3fu
 

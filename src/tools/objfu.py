@@ -197,41 +197,20 @@ def bounds(verts: list[tuple[float, float, float]]):
   return (min(xs), max(xs)), (min(ys), max(ys)), (min(zs), max(zs))
 
 
-def read_cfg_without_muzzle(path: Path) -> list[str]:
-  if not path.is_file():
-    return []
-  return [line for line in path.read_text().splitlines(keepends=True) if not line.strip().startswith("muzzle")]
-
-
 def save_muzzle(model_dir: Path, muzzle: tuple[float, float, float]) -> list[Path]:
-  line = f'muzzle "{muzzle[0]:.0f} {muzzle[1]:.0f} {muzzle[2]:.0f}"\n'
-  written: list[Path] = []
-  for cfg_name in ("link.cfg", "view.cfg"):
-    cfg_path = model_dir / cfg_name
-    lines = read_cfg_without_muzzle(cfg_path)
-    lines.append(line)
-    cfg_path.write_text("".join(lines))
-    written.append(cfg_path)
-  return written
+  path = model_dir / "model.cfg"
+  text = path.read_text() if path.exists() else ""
+  text = replace_model_section(text, "muzzle", f'"origin" "{" ".join(f"{v:g}" for v in muzzle)}"\n')
+  path.write_text(text)
+  return [path]
 
 
 def load_muzzle(model_dir: Path) -> tuple[float, float, float] | None:
-  link_cfg = model_dir / "link.cfg"
-  if not link_cfg.is_file():
+  path = model_dir / "model.cfg"
+  if not path.is_file():
     return None
-  pat = re.compile(r'\s*muzzle\s+"([^"]+)"')
-  for line in link_cfg.read_text().splitlines():
-    m = pat.match(line)
-    if not m:
-      continue
-    vals = m.group(1).split()
-    if len(vals) != 3:
-      continue
-    try:
-      return (float(vals[0]), float(vals[1]), float(vals[2]))
-    except ValueError:
-      continue
-  return None
+  configs = parse_model_config(path.read_text())
+  return configs["muzzle"].muzzle if "muzzle" in configs else None
 
 
 def draw_axes(extent: float):
@@ -326,7 +305,7 @@ def parse_mesh_config(text: str) -> MeshConfig:
     try:
       tokens = shlex.split(line, posix=False)
       while tokens:
-        command = tokens.pop(0)
+        command = tokens.pop(0).strip('"')
         count = {"translate": 3, "rotate": 3, "scale": 1, "muzzle": 3}.get(command)
         if count is None:
           raise ValueError(f"Unknown directive: {command}")
@@ -358,6 +337,66 @@ def parse_mesh_config(text: str) -> MeshConfig:
     except ValueError as error:
       raise ValueError(f"Line {line_number}: {error}") from error
   return config
+
+
+def model_sections(text):
+  """Flat entity-style blocks, retaining source ranges for isolated edits."""
+  tokens = list(re.finditer(r'//[^\n]*|/\*.*?\*/|\#[^\n]*|"[^"]*"|[{}]|[^\s{}"]+', text, re.S))
+  tokens = [t for t in tokens if not t[0].startswith(("//", "/*", "#"))]
+  sections = {}
+  i = 0
+  while i < len(tokens):
+    start = tokens[i].start()
+    if tokens[i][0] != "{" or i + 3 >= len(tokens) or tokens[i + 1][0].strip('"') != "type":
+      raise ValueError("Expected a block beginning with \"type\"")
+    name = tokens[i + 2][0].strip('"')
+    if name not in ("world", "link", "view", "muzzle") or name in sections:
+      raise ValueError(f"Unknown or duplicate model config type: {name}")
+    body_start = tokens[i + 2].end()
+    i += 3
+    while i < len(tokens) and tokens[i][0] != "}":
+      if tokens[i][0] == "{":
+        raise ValueError("Nested model config blocks are not supported")
+      i += 1
+    if i == len(tokens):
+      raise ValueError(f"Unclosed {name} block")
+    sections[name] = (start, tokens[i].end(), text[body_start:tokens[i].start()])
+    i += 1
+  return sections
+
+
+def parse_model_config(text):
+  configs = {}
+  for name, (_, _, body) in model_sections(text).items():
+    if name == "muzzle":
+      tokens = shlex.split(re.sub(r'//[^\n]*|/\*.*?\*/|\#[^\n]*', "", body, flags=re.S))
+      if len(tokens) != 2 or tokens[0] != "origin":
+        raise ValueError("Muzzle block requires one quoted origin vector")
+      config = parse_mesh_config(f'muzzle "{tokens[1]}"')
+    else:
+      config = parse_mesh_config(re.sub(r'//[^\n]*|/\*.*?\*/|\#[^\n]*', "", body, flags=re.S))
+      if re.search(r'\bmuzzle\b', re.sub(r'//[^\n]*', "", body)):
+        raise ValueError("Muzzle belongs in its own block")
+    configs[name] = config
+  muzzle = configs.get("muzzle", MeshConfig(np.eye(4))).muzzle
+  for config in configs.values():
+    config.muzzle = muzzle
+  return configs
+
+
+def replace_model_section(text, name, body):
+  parse_model_config(text)
+  sections = model_sections(text)
+  block = f'{{\n"type" "{name}"\n{body.strip()}\n}}\n'
+  if name in sections:
+    start, end, _ = sections[name]
+    return text[:start] + block.rstrip("\n") + text[end:]
+  return text.rstrip() + ("\n\n" if text.strip() else "") + block
+
+
+def model_config(text, mode):
+  configs = parse_model_config(text)
+  return configs.get(mode, MeshConfig(np.eye(4), configs.get("muzzle", MeshConfig(np.eye(4))).muzzle))
 
 
 def transform_vertices(matrix, verts):
@@ -414,9 +453,9 @@ def load_player(player_dir):
     matrix = np.eye(4)
     if parent:
       matrix = transforms[parent] @ tag_matrix(models[parent].tags[frames[parent]][tag])
-    cfg_path = player_dir / ("link.cfg" if parent else "world.cfg")
+    cfg_path = player_dir / "model.cfg"
     if cfg_path.is_file():
-      matrix = matrix @ parse_mesh_config(cfg_path.read_text()).transform
+      matrix = matrix @ model_config(cfg_path.read_text(), "link" if parent else "world").transform
     transforms[name] = matrix
     for surface in model.surfaces:
       if surface.name not in skin:
@@ -445,12 +484,14 @@ class ConfigEditor:
     self.paths = [path for path, _ in entries]
     self.models = [verts for _, verts in entries]
     self.baselines = [path.read_text() if path.exists() else None for path in self.paths]
-    self.buffers = [baseline if baseline is not None else default_config(verts, mode)
+    self.mode = mode
+    self.buffers = [baseline if baseline is not None else replace_model_section(
+                      "", mode, '"origin" "0 0 0"' if mode == "muzzle" else 'translate "0 0 0"\nscale "1"')
                     for baseline, verts in zip(self.baselines, self.models)]
     self.configs = []
     for text in self.buffers:
       try:
-        self.configs.append(parse_mesh_config(text))
+        self.configs.append(model_config(text, mode))
       except ValueError:
         self.configs.append(None)
     self.index = 0
@@ -506,13 +547,13 @@ class ConfigEditor:
   def changed(self, event=None):
     self.text.edit_modified(False)
     self.buffers[self.index] = self.contents()
-    self.root.title(f"objfu - {self.path}")
+    self.root.title(f"objfu - {self.path} ({self.mode})")
     if self.selector is not None:
       self.selector["values"] = [f"{'* ' if self.dirty(i) else ''}{model_name(path)}"
                                  for i, path in enumerate(self.paths)]
       self.selector.current(self.index)
     try:
-      self.configs[self.index] = parse_mesh_config(self.contents())
+      self.configs[self.index] = model_config(self.contents(), self.mode)
       self.error = ""
       state = "unsaved" if self.dirty(self.index) else "saved"
       if self.baseline is None:
@@ -539,7 +580,7 @@ class ConfigEditor:
 
   def write(self, index):
     try:
-      parse_mesh_config(self.buffers[index])
+      parse_model_config(self.buffers[index])
     except ValueError as error:
       self.messagebox.showerror("Invalid configuration", f"{self.paths[index]}: {error}", parent=self.root)
       return False
@@ -582,7 +623,9 @@ class ConfigEditor:
 
   def ground(self):
     try:
-      self.replace(ground_config(self.contents(), self.verts))
+      text = self.contents()
+      section = model_sections(text).get("world", (0, 0, ""))[2]
+      self.replace(replace_model_section(text, "world", ground_config(section, self.verts)))
     except ValueError as error:
       self.messagebox.showerror("Invalid configuration", str(error), parent=self.root)
 
@@ -719,10 +762,10 @@ def view_reference_models(search_paths):
 
 
 def view_reference(model, hand="right"):
-  """Load a reference weapon mesh in first-person space, through its current view.cfg."""
-  config_path = model.parent / "view.cfg"
+  """Load a reference weapon mesh in first-person space, through its model.cfg view block."""
+  config_path = model.parent / "model.cfg"
   try:
-    config = parse_mesh_config(config_path.read_text() if config_path.is_file() else "")
+    config = model_config(config_path.read_text() if config_path.is_file() else "", "view")
   except ValueError as error:
     raise ValueError(f"{config_path}: {error}") from error
   if model.suffix == ".obj":
@@ -923,7 +966,7 @@ def edit_config(args, obj_paths, search_paths):
   origins = [(0, 0, 0)] * len(meshes)
   # Several world models are laid out side by side; link and view show the selected one alone.
   grid = world and len(meshes) > 1
-  if args.config != "view":
+  if args.config in ("world", "link"):
     player_dir = resolve_obj_path(f"{args.player}/lower.md3", search_paths).parent
     player_parts, weapon = load_player(player_dir)
     if args.config == "link":
@@ -933,7 +976,7 @@ def edit_config(args, obj_paths, search_paths):
     else:
       origins, spacing, columns, rows = item_layout(models)
       player_offset = (-(columns + 1) / 2 * spacing, 0, 0)
-  else:
+  elif args.config == "view":
     anchor[1, 3] = {"right": -5, "left": 5, "center": 0}[args.hand]
   extent = max(256, max(max(abs(o[0]), abs(o[1])) for o in origins) + 64, abs(player_offset[0]) + 64)
 
@@ -1002,7 +1045,7 @@ def edit_config(args, obj_paths, search_paths):
       display_lists.append(compile_mesh(verts, uv, faces, mesh_textures(faces, obj_paths[0].parent)))
     player_lists = display_lists[len(meshes):]
 
-    entries = [(path.parent / f"{args.config}.cfg", verts) for path, verts in zip(obj_paths, models)]
+    entries = [(path.parent / "model.cfg", verts) for path, verts in zip(obj_paths, models)]
     editor = ConfigPreview(entries, args.config)
     glEnable(GL_DEPTH_TEST)
     glClearColor(0.10, 0.11, 0.13, 1.0)
@@ -1050,10 +1093,12 @@ def edit_config(args, obj_paths, search_paths):
 
     while editor.running:
       editor.update()
+      if not editor.running:
+        break
       title = model_name(obj_paths[editor.index]) if not grid else f"{len(obj_paths)} models"
       if caption != title:
         caption = title
-        pygame.display.set_caption(f"objfu - {title} - {args.config}.cfg")
+        pygame.display.set_caption(f"objfu - {title} - model.cfg ({args.config})")
       for event in pygame.event.get():
         if event.type == QUIT or (event.type == KEYDOWN and event.key == pygame.K_ESCAPE):
           editor.close()
@@ -1111,7 +1156,8 @@ def edit_config(args, obj_paths, search_paths):
           draw_view_guide(guide_texture, w, h)
       else:
         gluLookAt(*(target + orbit_offset(yaw, pitch, distance)), *target, 0, 0, 1)
-        draw_floor(math.ceil(extent / 16) * 16)
+        if args.config != "muzzle":
+          draw_floor(math.ceil(extent / 16) * 16)
         glPushMatrix()
         glTranslatef(*player_offset)
         for display_list in player_lists:
@@ -1139,7 +1185,7 @@ def edit_config(args, obj_paths, search_paths):
           glPopMatrix()
         elif editor.config is not None:
           draw_crosshair(transform_vertices(matrix, [editor.config.muzzle])[0], 1)
-      if args.config == "link":
+      if args.config in ("link", "muzzle"):
         draw_axes(64)
       if overlays and grid:
         modelview = glGetDoublev(GL_MODELVIEW_MATRIX)
@@ -1159,6 +1205,8 @@ def edit_config(args, obj_paths, search_paths):
         label = "Drag: orbit  Cmd+Drag: pan  Scroll: zoom  Click/Tab: select  T: text  Floor grid: 16 units"
       else:
         label = f"Drag: orbit  Cmd+Drag: pan  Scroll: zoom  T: text{cycle}  Floor grid: 16 units"
+      if args.config == "muzzle":
+        label = f"Model-space muzzle  Drag: orbit  Cmd+Drag: pan  Scroll: zoom{cycle}"
       # Configuration errors stay visible with the overlays hidden.
       if overlays or editor.error:
         draw_text(font, editor.error or label, 12, 12, w, h)
@@ -1191,7 +1239,7 @@ def edit_config(args, obj_paths, search_paths):
 def main():
   parser = argparse.ArgumentParser(description=__doc__)
   parser.add_argument("-p", "--path", action="append", default=[], help="Quetoo data root search path")
-  parser.add_argument("-c", "--config", choices=("world", "link", "view"),
+  parser.add_argument("-c", "--config", choices=("world", "link", "view", "muzzle"),
                       help="Live text editing of the selected mesh configuration")
   parser.add_argument("--player", default="players/enforcer", help="Reference player directory (world/link)")
   parser.add_argument("--hand", choices=("right", "left", "center"), default="right",
@@ -1230,7 +1278,7 @@ def main():
   if muzzle is None:
     muzzle = (round(cx), round(cy), round(cz))
   else:
-    print(f"Loaded muzzle from link.cfg: {muzzle}")
+    print(f"Loaded muzzle from model.cfg: {muzzle}")
 
   pygame.init()
   pygame.key.set_repeat(400, 30)

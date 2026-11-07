@@ -8,10 +8,36 @@ import numpy as np
 from md3 import Md3Model, Md3Surface
 from md3fu import Animation
 from objfu import (ITEM_MAXS, ITEM_MINS, default_config, find_models, ground_config, item_layout,
+                   load_muzzle, model_config, parse_model_config, replace_model_section, save_muzzle,
                    load_player, main, model_bounds, orbit_offset, pan_delta, parse_mesh_config, pick_box, resolve_obj_args, transform_vertices, view_coverage, view_guide, view_reference, view_reference_models, view_references, view_silhouette, view_transform, view_vertical_fov)
 
 
 class ObjfuConfigTest(unittest.TestCase):
+  def test_model_config_shared_muzzle_and_isolated_update(self):
+    text = ('// author notes\n{\n"type" "view"\n"scale" "2"\n"translate" "3 4 5"\n}\n'
+            '{\n"type" "link"\n"translate" "6 7 8"\n}\n'
+            '{\n"type" "muzzle"\n"origin" "20 0 20.5"\n}\n')
+    configs = parse_model_config(text)
+    self.assertEqual(configs["view"].muzzle, (20, 0, 20.5))
+    self.assertEqual(configs["link"].muzzle, configs["view"].muzzle)
+    np.testing.assert_allclose(transform_vertices(configs["view"].transform, [(0, 0, 0)]), [(6, 8, 10)])
+    changed = replace_model_section(text, "world", '"scale" "0.8"')
+    self.assertTrue(changed.startswith(text.rstrip()))
+    with tempfile.TemporaryDirectory() as temp:
+      root = Path(temp)
+      (root / "model.cfg").write_text(text)
+      save_muzzle(root, (21, 1, 20.5))
+      self.assertEqual(load_muzzle(root), (21, 1, 20.5))
+      result = (root / "model.cfg").read_text()
+      self.assertEqual(result[:result.index('"type" "muzzle"')], text[:text.index('"type" "muzzle"')])
+      self.assertEqual(list(root.iterdir()), [root / "model.cfg"])
+    for invalid in ('{\n"type" "view"\n', '{ "type" "bad" }',
+                    '{ "type" "view" }\n{ "type" "view" }',
+                    '{ "type" "link" "muzzle" "1 2 3" }',
+                    '{ "type" "muzzle" "origin" "1 2" }'):
+      with self.subTest(invalid=invalid), self.assertRaises(ValueError):
+        parse_model_config(invalid)
+
   def test_ordered_transforms_and_muzzle(self):
     config = parse_mesh_config('translate "10 20 30"\nrotate 0 0 90\nscale "2"\nmuzzle 1 0 0')
     np.testing.assert_allclose(transform_vertices(config.transform, [(1, 0, 0)]),
@@ -91,7 +117,7 @@ class ObjfuConfigTest(unittest.TestCase):
     animations = [Animation("LEGS_IDLE", 0, 1, 1, 1), Animation("TORSO_STAND1", 0, 1, 1, 1)]
     with tempfile.TemporaryDirectory() as temp:
       player = Path(temp)
-      (player / "world.cfg").write_text("scale 2\n")
+      (player / "model.cfg").write_text(replace_model_section("", "world", "scale 2\n"))
       with patch("objfu.parse_animation_cfg", return_value=animations), \
            patch("objfu.parse_skin", return_value={"skin": "players/test/skin"}), \
            patch("objfu.read_md3", side_effect=[lower, upper, head]):
@@ -189,12 +215,12 @@ class ObjfuConfigTest(unittest.TestCase):
         weapon = root / "models" / "weapons" / name
         weapon.mkdir(parents=True)
         (weapon / "tris.obj").write_text("v 10 -2 -2\nv 10 2 -2\nv 10 0 2\nf 1 2 3\n")
-        (weapon / "view.cfg").write_text("translate 5 0 0\n")
+        (weapon / "model.cfg").write_text(replace_model_section("", "view", "translate 5 0 0\n"))
       current = root / "models/weapons/quake2_shotgun/tris.obj"
       first = view_references([root, root], current)
       self.assertEqual(len(first), 1)
       self.assertEqual(first[0][0][0], [15, -2, -2])
-      (root / "models/weapons/shotgun/view.cfg").write_text("translate 20 0 0\n")
+      (root / "models/weapons/shotgun/model.cfg").write_text(replace_model_section("", "view", "translate 20 0 0\n"))
       second = view_references([root], current)
       self.assertEqual(second[0][0][0], [30, -2, -2])
       self.assertFalse(np.array_equal(view_silhouette(first, 100, 100, 90, "center"),

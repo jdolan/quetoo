@@ -140,6 +140,57 @@ START_TEST(check_R_FreeMedia) {
 
 } END_TEST
 
+START_TEST(check_R_ModelConfig) {
+  Fs_Init(FS_NONE);
+  ck_assert(Fs_SetGame(TEST_GAME, NULL));
+  const char *path = "models/check_model_config/model.cfg";
+  const char *other =
+    "\n// keep this placement and fractional muzzle\n"
+    "{\n\"type\" \"link\"\n\"translate\" \"4 5 6\"\n}\n"
+    "{\n\"type\" \"view\"\n\"scale\" \"2\"\n\"translate\" \"1 2 3\"\n}\n"
+    "{\n\"type\" \"muzzle\"\n\"origin\" \"20 0 20.5\"\n}\n";
+  File *file = Fs_OpenWrite(path);
+  ck_assert_ptr_nonnull(file);
+  Fs_Print(file, "{\n\"type\" \"world\"\n\"scale\" \"0.8\"\n}\n%s", other);
+  Fs_Close(file);
+
+  RenderModel *model = (RenderModel *) R_AllocMedia("models/check_model_config/tris.obj",
+                                                   sizeof(RenderModel), R_MEDIA_MODEL);
+  RenderMeshModel mesh = { 0 };
+  model->type = MODEL_MESH;
+  model->mesh = &mesh;
+  R_LoadMeshConfigs(model);
+  ck_assert_float_eq(mesh.config.world.scale, .8f);
+  ck_assert_float_eq(mesh.config.link.translate.x, 4.f);
+  ck_assert_float_eq(mesh.config.view.transform.array[0], 2.f);
+  ck_assert_float_eq(mesh.config.view.muzzle.z, 20.5f);
+  ck_assert(Vec3_Equal(mesh.config.link.muzzle, mesh.config.view.muzzle));
+
+  R_RegisterMedia((RenderMedia *) model);
+  mesh.config.world.translate = MakeVec3(10.f, 11.f, 12.f);
+  mesh.config.world.scale = 1.f;
+  mesh.config.world.dirty = true;
+  R_SaveMeshConfigs_f();
+  ck_assert(!mesh.config.world.dirty);
+  void *buf;
+  ck_assert_int_ge(Fs_Load(path, &buf), 0);
+  ck_assert_ptr_nonnull(strstr(buf, other));
+  List *blocks = Entity_LoadAll(buf);
+  ck_assert_int_eq(blocks->count, 4);
+  for (const ListNode *node = blocks->head; node; node = node->next) {
+    Entity_Free(node->element);
+  }
+  release(blocks);
+  Fs_Free(buf);
+  R_LoadMeshConfigs(model);
+  ck_assert_float_eq(mesh.config.world.translate.x, 10.f);
+  ck_assert_float_eq(mesh.config.world.scale, 1.f);
+  ck_assert_float_eq(mesh.config.link.translate.x, 4.f);
+  ck_assert_float_eq(mesh.config.view.muzzle.z, 20.5f);
+  ck_assert(Fs_Delete(path));
+  Fs_Shutdown();
+} END_TEST
+
 START_TEST(check_R_QualityBudgets) {
   const int32_t levels[] = { -1, 0, 1, 2, 3, 4 };
   const float scales[] = { .25f, .25f, .25f, .5f, 1.f, 1.f };
@@ -263,6 +314,7 @@ int32_t main(int32_t argc, char **argv) {
 
   tcase_add_test(tcase, check_R_RegisterMedia);
   tcase_add_test(tcase, check_R_FreeMedia);
+  tcase_add_test(tcase, check_R_ModelConfig);
   tcase_add_test(tcase, check_R_QualityBudgets);
   tcase_add_test(tcase, check_R_QualityUniforms);
   tcase_add_test(tcase, check_R_SubviewResolutions);

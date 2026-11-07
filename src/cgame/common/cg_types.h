@@ -233,7 +233,7 @@ typedef struct {
 
   /**
    * @brief The cached weapon muzzle position in world space, transformed from
-   * the model-space muzzle defined in `link.cfg` / `view.cfg`.
+   * the shared model-space muzzle defined in `model.cfg`.
    */
   Vec3 weaponMuzzle;
 } CGameClientInfo;
