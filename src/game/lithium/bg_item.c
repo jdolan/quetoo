@@ -409,24 +409,6 @@ const GameItemDef gameItemDefs[] = {
   },
 
   {
-    .classname = "weapon_quake2_chaingun",
-    .pickupSound = "weapons/common/pickup.wav",
-    .model = "models/weapons/quake2_chaingun/tris.obj",
-    .effects = EF_ROTATE,
-    .icon = "pics/machinegun",
-    .name = "Chaingun",
-    .quantity = 1,
-    .ammo = AMMO_QUAKE2_BULLETS,
-    .type = ITEM_TYPE_WEAPON,
-    .tag = WEAPON_QUAKE2_CHAINGUN,
-    .effectColor = { { 0.739f, 0.556f, 0.032f, 1.f } },
-    .flags = WF_HITSCAN | WF_MED_RANGE | WF_LONG_RANGE,
-    .priority = 0.5,
-    .precaches = "weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
-    "weapons/machinegun/fire_3.wav"
-  },
-
-  {
     .classname = "weapon_quake2_handgrenades",
     .pickupSound = "weapons/common/pickup.wav",
     .model = "models/ammo/quake2_grenades/tris.obj",
@@ -484,7 +466,7 @@ const GameItemDef gameItemDefs[] = {
     .pickupSound = "weapons/common/pickup.wav",
     .model = "models/weapons/quake2_hyperblaster/tris.obj",
     .effects = EF_ROTATE,
-    .icon = "pics/hyperblaster",
+    .icon = "pics/quake2_hyperblaster",
     .name = "Hyperblaster",
     .quantity = 1,
     .ammo = AMMO_QUAKE2_CELLS,
@@ -494,6 +476,24 @@ const GameItemDef gameItemDefs[] = {
     .flags = WF_PROJECTILE | WF_MED_RANGE | WF_LONG_RANGE,
     .priority = 0.50,
     .precaches = "weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav"
+  },
+
+  {
+    .classname = "weapon_quake2_chaingun",
+    .pickupSound = "weapons/common/pickup.wav",
+    .model = "models/weapons/quake2_chaingun/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/quake2_chaingun",
+    .name = "Chaingun",
+    .quantity = 1,
+    .ammo = AMMO_QUAKE2_BULLETS,
+    .type = ITEM_TYPE_WEAPON,
+    .tag = WEAPON_QUAKE2_CHAINGUN,
+    .effectColor = { { 0.739f, 0.556f, 0.032f, 1.f } },
+    .flags = WF_HITSCAN | WF_MED_RANGE | WF_LONG_RANGE,
+    .priority = 0.5,
+    .precaches = "weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
+    "weapons/machinegun/fire_3.wav"
   },
 
   {
