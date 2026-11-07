@@ -680,6 +680,7 @@ class ConfigPreview:
     self.index = 0
     self.configs = [None] * len(entries)
     self.error = ""
+    self.selected = True
 
   @property
   def config(self):
@@ -697,7 +698,11 @@ class ConfigPreview:
       raise RuntimeError(f"Configuration editor exited with status {self.process.exitcode}")
 
   def select(self, index):
+    self.selected = True
     self.connection.send(("select", index))
+
+  def deselect(self):
+    self.selected = False
 
   def close(self):
     self.connection.send("close")
@@ -937,6 +942,53 @@ def pan_delta(yaw, pitch, distance, fov, height, dx, dy):
 BOX_MODES = ("collision", "model", "off")
 CYCLE_KEYS = (pygame.K_TAB, pygame.K_PAGEUP, pygame.K_PAGEDOWN)
 
+class FlyCamera:
+  def __init__(self, target, yaw, pitch, distance):
+    self.position = np.asarray(target, dtype=float) + orbit_offset(yaw, pitch, distance)
+    self.yaw, self.pitch = yaw, pitch
+    self.speed = 240.0
+    self.looking = False
+
+  def release(self):
+    self.looking = False
+    pygame.event.set_grab(False)
+    pygame.mouse.set_visible(True)
+
+  def event(self, event):
+    if event.type == pygame.WINDOWFOCUSLOST:
+      self.release()
+    elif event.type == MOUSEBUTTONDOWN and event.button == 3:
+      self.looking = True
+      pygame.event.set_grab(True)
+      pygame.mouse.set_visible(False)
+      pygame.mouse.get_rel()
+    elif event.type == MOUSEBUTTONUP and event.button == 3:
+      self.release()
+    elif event.type == MOUSEMOTION and self.looking:
+      self.yaw += event.rel[0] * 0.35
+      self.pitch = max(-85, min(85, self.pitch + event.rel[1] * 0.35))
+    elif event.type == MOUSEWHEEL:
+      self.speed = max(1.0, min(4096.0, self.speed * 1.2 ** event.y))
+
+  def move(self, forward, right, seconds, fast=False):
+    direction = -orbit_offset(self.yaw, self.pitch, 1)
+    lateral = np.cross(direction, (0, 0, 1))
+    lateral /= np.linalg.norm(lateral)
+    delta = direction * forward + lateral * right
+    magnitude = np.linalg.norm(delta)
+    if magnitude:
+      self.position += delta / magnitude * self.speed * seconds * (4 if fast else 1)
+
+  def update(self, seconds):
+    if pygame.key.get_focused() and not pygame.key.get_mods() & (pygame.KMOD_CTRL | pygame.KMOD_META):
+      keys = pygame.key.get_pressed()
+      self.move(int(keys[pygame.K_w]) - int(keys[pygame.K_s]),
+                int(keys[pygame.K_d]) - int(keys[pygame.K_a]), seconds,
+                bool(pygame.key.get_mods() & pygame.KMOD_SHIFT))
+
+  def apply(self):
+    gluLookAt(*self.position, *(self.position - orbit_offset(self.yaw, self.pitch, 1)), 0, 0, 1)
+
 
 def model_bounds(transform, verts):
   points = np.asarray(transform_vertices(transform, verts))
@@ -989,6 +1041,7 @@ def edit_config(args, obj_paths, search_paths):
   textures = {}
   display_lists = []
   editor = None
+  camera = None
   guide_texture = None
   guide_visible = True
   try:
@@ -1052,7 +1105,7 @@ def edit_config(args, obj_paths, search_paths):
     yaw, pitch = 135.0, 15.0
     distance = max(160.0, columns * spacing * 1.5) if grid else 160.0
     target = np.array((0.0, 0.0, 32.0))
-    orbiting = panning = False
+    camera = FlyCamera(target, yaw, pitch, distance)
     overlays = True
     box_mode = 0
     bounds_cache = {}
@@ -1062,7 +1115,7 @@ def edit_config(args, obj_paths, search_paths):
       if key not in bounds_cache:
         bounds_cache[key] = model_bounds(transform, models[index])
       return bounds_cache[key]
-    pressed = last = (0, 0)
+    pressed = (0, 0)
     clock = pygame.time.Clock()
 
     def transforms():
@@ -1092,6 +1145,7 @@ def edit_config(args, obj_paths, search_paths):
       return pick_box(item_bounds, near, far - near)
 
     while editor.running:
+      seconds = min(clock.tick(60) / 1000.0, 0.1)
       editor.update()
       if not editor.running:
         break
@@ -1100,13 +1154,18 @@ def edit_config(args, obj_paths, search_paths):
         caption = title
         pygame.display.set_caption(f"objfu - {title} - model.cfg ({args.config})")
       for event in pygame.event.get():
-        if event.type == QUIT or (event.type == KEYDOWN and event.key == pygame.K_ESCAPE):
+        if event.type == QUIT:
           editor.close()
+        elif event.type == KEYDOWN and event.key == pygame.K_ESCAPE:
+          editor.deselect()
+          camera.release()
         elif event.type == WINDOWSIZECHANGED:
           w, h = max(1, event.x), max(1, event.y)
           glViewport(0, 0, w, h)
         elif args.config == "view" and event.type == KEYDOWN and event.key == pygame.K_g:
           guide_visible = not guide_visible
+        elif args.config == "view" and event.type == MOUSEBUTTONDOWN and event.button == 1:
+          editor.select(editor.index)
         elif event.type == KEYDOWN and event.key == pygame.K_t:
           overlays = not overlays
         elif world and event.type == KEYDOWN and event.key == pygame.K_b:
@@ -1119,26 +1178,14 @@ def edit_config(args, obj_paths, search_paths):
           # Scrolling down moves down the list, as Tab does.
           editor.select((editor.index + (1 if event.y < 0 else -1)) % len(meshes))
         elif args.config != "view":
+          camera.event(event)
           if event.type == MOUSEBUTTONDOWN and event.button == 1:
-            panning = bool(pygame.key.get_mods() & pygame.KMOD_META)
-            orbiting, pressed, last = not panning, event.pos, event.pos
+            pressed = event.pos
           elif event.type == MOUSEBUTTONUP and event.button == 1:
-            was_panning, orbiting, panning = panning, False, False
-            if not was_panning and grid and math.dist(pressed, event.pos) < 5:
-              selected = pick(event.pos)
+            if not camera.looking and math.dist(pressed, event.pos) < 5:
+              selected = pick(event.pos) if grid else editor.index
               if selected is not None:
                 editor.select(selected)
-          elif event.type == MOUSEMOTION and orbiting:
-            dx, dy = event.pos[0] - last[0], event.pos[1] - last[1]
-            yaw += dx * 0.35
-            pitch = max(-85, min(85, pitch + dy * 0.35))
-            last = event.pos
-          elif event.type == MOUSEMOTION and panning:
-            dx, dy = event.pos[0] - last[0], event.pos[1] - last[1]
-            target += pan_delta(yaw, pitch, distance, 50, h, dx, dy)
-            last = event.pos
-          elif event.type == MOUSEWHEEL:
-            distance = max(10, distance - event.y * distance * 0.05)
       if not editor.running:
         break
       glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
@@ -1155,7 +1202,8 @@ def edit_config(args, obj_paths, search_paths):
         if guide_visible and update_guide():
           draw_view_guide(guide_texture, w, h)
       else:
-        gluLookAt(*(target + orbit_offset(yaw, pitch, distance)), *target, 0, 0, 1)
+        camera.update(seconds)
+        camera.apply()
         if args.config != "muzzle":
           draw_floor(math.ceil(extent / 16) * 16)
         glPushMatrix()
@@ -1175,15 +1223,15 @@ def edit_config(args, obj_paths, search_paths):
         if world:
           glPushMatrix()
           glTranslatef(*origins[i])
-          selected = i == editor.index and grid
-          highlight = selected or not grid
+          selected = editor.selected and i == editor.index
+          highlight = selected
           if BOX_MODES[box_mode] == "collision":
             draw_box(ITEM_MINS, ITEM_MAXS, (1.0, 0.85, 0.2) if highlight else (0.45, 0.45, 0.5))
           elif BOX_MODES[box_mode] == "model":
             draw_box(*cached_bounds(i, transform), (0.2, 0.9, 1.0) if highlight else (0.3, 0.45, 0.5))
           draw_axes(64 if highlight else 40)
           glPopMatrix()
-        elif editor.config is not None:
+        elif editor.selected and editor.config is not None:
           draw_crosshair(transform_vertices(matrix, [editor.config.muzzle])[0], 1)
       if args.config in ("link", "muzzle"):
         draw_axes(64)
@@ -1194,7 +1242,7 @@ def edit_config(args, obj_paths, search_paths):
         for i, origin in enumerate(origins):
           x, y, z = gluProject(origin[0], origin[1] + ITEM_MINS[1], 0, modelview, projection, viewport)
           if 0 < z < 1:
-            color = (255, 215, 50) if i == editor.index else (170, 170, 170)
+            color = (255, 215, 50) if editor.selected and i == editor.index else (170, 170, 170)
             draw_text(small, obj_paths[i].parent.name, int(x) - 40, int(h - y) + 4, w, h, color)
       cycle = ""
       if len(meshes) > 1 and not grid:
@@ -1202,11 +1250,11 @@ def edit_config(args, obj_paths, search_paths):
       if args.config == "view":
         label = f"Fixed first-person camera  T: text{cycle}"
       elif grid:
-        label = "Drag: orbit  Cmd+Drag: pan  Scroll: zoom  Click/Tab: select  T: text  Floor grid: 16 units"
+        label = "WASD: fly  Right mouse: look  Shift: fast  Scroll: speed  Click/Tab: select  T: text"
       else:
-        label = f"Drag: orbit  Cmd+Drag: pan  Scroll: zoom  T: text{cycle}  Floor grid: 16 units"
+        label = f"WASD: fly  Right mouse: look  Shift: fast  Scroll: speed  T: text{cycle}"
       if args.config == "muzzle":
-        label = f"Model-space muzzle  Drag: orbit  Cmd+Drag: pan  Scroll: zoom{cycle}"
+        label = f"Model-space muzzle  WASD: fly  Right mouse: look  Shift: fast  Scroll: speed{cycle}"
       # Configuration errors stay visible with the overlays hidden.
       if overlays or editor.error:
         draw_text(font, editor.error or label, 12, 12, w, h)
@@ -1218,14 +1266,15 @@ def edit_config(args, obj_paths, search_paths):
       if overlays and args.config == "view":
         guide = f"Average of {guide_count} Quetoo weapons" if guide_count else "No Quetoo weapons to average"
         draw_text(font, f"G: guide {'on' if guide_visible else 'off'}  {guide}", 12, line, w, h)
-      elif overlays and world:
+      elif overlays and world and editor.selected:
         bottom = min(v[2] for v in transform_vertices(current[editor.index], models[editor.index]))
         box = {"collision": "game ITEM_BOUNDS", "model": "model bounds", "off": "off"}[BOX_MODES[box_mode]]
         draw_text(font, f"{model_name(obj_paths[editor.index])}  Model bottom: {bottom - ITEM_MINS[2]:.3f}  "
                   f"Floor: 0  Item origin: {-ITEM_MINS[2]}  B: box {box}", 12, 36, w, h)
       pygame.display.flip()
-      clock.tick(60)
   finally:
+    if camera is not None:
+      camera.release()
     if editor is not None:
       editor.finish()
     for display_list in display_lists:
@@ -1313,14 +1362,16 @@ def main():
   yaw = 35.0
   pitch = 20.0
   dist = extent * 2.3
-  orbiting = False
-  last = (0, 0)
+  camera = FlyCamera((cx, cy, cz), yaw, pitch, dist)
+  selected = True
   status_msg = ""
   clock = pygame.time.Clock()
 
   running = True
   while running:
+    seconds = min(clock.tick(60) / 1000.0, 0.1)
     for event in pygame.event.get():
+      camera.event(event)
       if event.type == QUIT:
         running = False
       elif event.type == WINDOWSIZECHANGED:
@@ -1330,7 +1381,10 @@ def main():
         step = 5.0 if (pygame.key.get_mods() & pygame.KMOD_SHIFT) else 1.0
         mx, my, mz = muzzle
         if event.key == pygame.K_ESCAPE:
-          running = False
+          selected = False
+          camera.release()
+        elif not selected:
+          continue
         elif event.key == pygame.K_LEFT:
           muzzle = (mx + step, my, mz)
         elif event.key == pygame.K_RIGHT:
@@ -1346,35 +1400,19 @@ def main():
         elif event.key == pygame.K_r:
           muzzle = (round(cx), round(cy), round(cz))
           status_msg = "Muzzle reset to centroid"
-        elif event.key == pygame.K_s:
+        elif event.key == pygame.K_s and pygame.key.get_mods() & (pygame.KMOD_CTRL | pygame.KMOD_META):
           written = save_muzzle(obj_path.parent, muzzle)
           status_msg = f'Saved muzzle "{muzzle[0]:.0f} {muzzle[1]:.0f} {muzzle[2]:.0f}"'
           print(status_msg)
           print("  -> " + ", ".join(str(p) for p in written))
       elif event.type == MOUSEBUTTONDOWN and event.button == 1:
-        orbiting = True
-        last = event.pos
-      elif event.type == MOUSEBUTTONUP and event.button == 1:
-        orbiting = False
-      elif event.type == MOUSEMOTION and orbiting:
-        dx = event.pos[0] - last[0]
-        dy = event.pos[1] - last[1]
-        yaw += dx * 0.35
-        pitch += dy * 0.35
-        last = event.pos
-      elif event.type == MOUSEWHEEL:
-        dist = max(extent * 0.15, dist - event.y * extent * 0.08)
+        selected = True
 
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
     glLoadIdentity()
 
-    rt = math.radians(yaw)
-    rp = math.radians(pitch)
-    ex = cx + dist * math.cos(rp) * math.sin(rt)
-    ey = cy + dist * math.cos(rp) * math.cos(rt)
-    ez = cz + dist * math.sin(rp)
-    upz = -1.0 if 90.0 < (pitch % 360.0) < 270.0 else 1.0
-    gluLookAt(ex, ey, ez, cx, cy, cz, 0.0, 0.0, upz)
+    camera.update(seconds)
+    camera.apply()
 
     for mtl, tris in faces_by_mtl.items():
       tex = tex_by_mtl.get(mtl)
@@ -1396,12 +1434,13 @@ def main():
       glEnd()
 
     draw_axes(extent)
-    draw_crosshair(muzzle, size=extent * 0.035)
+    if selected:
+      draw_crosshair(muzzle, size=extent * 0.035)
 
     draw_text(font_big, f'muzzle  x:{muzzle[0]:+.0f}  y:{muzzle[1]:+.0f}  z:{muzzle[2]:+.0f}  (Quake/Quetoo space)', 12, 10, w, h)
     help_lines = [
       "← → : X      ↑ ↓ : Y      Q/E : Z      Shift : x5",
-      "Drag : orbit      Scroll : dolly      S : save      R : reset",
+      "WASD: fly  Right mouse: look  Shift: fast  Scroll: speed  Ctrl+S: save  R: reset",
     ]
     for i, txt in enumerate(help_lines):
       draw_text(font_small, txt, 12, h - 14 - (i + 1) * 22, w, h, color=(170, 170, 170))
@@ -1409,7 +1448,7 @@ def main():
       draw_text(font_small, status_msg, 12, 42, w, h, color=(100, 255, 130))
 
     pygame.display.flip()
-    clock.tick(60)
+  camera.release()
 
   pygame.quit()
 

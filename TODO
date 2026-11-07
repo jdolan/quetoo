@@ -1,7 +1,6 @@
-Ctf scoring for assits, defense, etc.
-
-Shell effect via world.cfg
-
 Sound for telefrag
 
 Add configurable attack to dynamic lights for misc_emit etc..
+
+ObjectivelyMVC: defer inactive TabView page theme/layout work while preserving all-page
+measurement and stable container sizes; refresh deferred pages before selection.
