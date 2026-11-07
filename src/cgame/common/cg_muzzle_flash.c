@@ -1053,7 +1053,7 @@ void Cg_ParseMuzzleFlash(void) {
       pitch = 3;
       break;
     case MZ_QUAKE2_SUPER_SHOTGUN:
-      sample = cgameMedia.sounds.quake2SupershotgunFire;
+      sample = cgameMedia.sounds.supershotgunFire;
       Cg_SuperShotgunFlash(muzzle, origin, angles, client);
       pitch = 3;
       break;
