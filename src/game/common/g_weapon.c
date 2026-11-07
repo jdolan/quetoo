@@ -968,7 +968,9 @@ void G_FireQuakeThunderbolt(GameClient *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
-    G_LightningProjectile(cl->entity, org, forward, g_balanceQuakeThunderboltDamage->integer,
+    const int32_t damage = (gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB
+      ? 999 : g_balanceQuakeThunderboltDamage->integer;
+    G_LightningProjectile(cl->entity, org, forward, damage,
       g_balanceQuakeThunderboltKnockback->integer, MOD_QUAKE_THUNDERBOLT, MOD_QUAKE_THUNDERBOLT_DISCHARGE);
 
     G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuakeThunderboltRefire->value), cl->weapon->def.quantity);

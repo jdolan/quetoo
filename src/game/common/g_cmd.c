@@ -293,11 +293,13 @@ static void G_Use_f(GameClient *cl) {
 
   const char *s = gi.Args();
   const GameItem *it;
+  bool explicitClassname = true;
   
   if (s && *s) {
-    it = G_FindItem(s);
+    it = G_FindItemByClassName(s);
+    explicitClassname = it != NULL;
     if (!it) {
-      it = G_FindItemByClassName(s);
+      it = G_ResolveInventoryItem(cl, s);
     }
   } else {
     it = cl->lastPickup;
@@ -312,7 +314,7 @@ static void G_Use_f(GameClient *cl) {
   }
 
   // Redirect generic weapon bindings to the active roster.
-  if (gameLevel.items != ITEMS_DEFAULT && it->def.type == ITEM_TYPE_WEAPON) {
+  if (!explicitClassname && gameLevel.items != ITEMS_DEFAULT && it->def.type == ITEM_TYPE_WEAPON) {
     const GameItem *mapped = G_MappedWeapon(it);
     if (mapped) {
       it = mapped;

@@ -48,6 +48,7 @@ bool G_ItemAvailable(const GameItem *item);
 const GameItem *G_FindItem(const char *name);
 const GameItem *G_FindItemByClassName(const char *classname);
 const GameItem *G_MappedWeapon(const GameItem *weapon);
+const Entity *G_PreprocessItems(const Entity *def);
 const GameItem *G_ClientArmor(const GameClient *cl);
 const GameArmorInfo *G_ArmorInfo(const GameItem *armor);
 bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const GameItem **drop,

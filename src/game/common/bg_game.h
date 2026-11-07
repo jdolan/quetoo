@@ -26,6 +26,79 @@
 #include "g_types.h"
 
 /**
+ * @brief Canonical names of the item conversion modes.
+ */
+static inline const char *GameItems_Name(GameItems items) {
+  static const char *names[] = { "default", "quake", "quake2", "quetoo" };
+  return names[items];
+}
+
+static inline bool GameItems_ByName(const char *name, GameItems *items) {
+  for (GameItems i = ITEMS_DEFAULT; i <= ITEMS_QUETOO; i++) {
+    if (!Str_CaseCompare(name, GameItems_Name(i))) {
+      *items = i;
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
+ * @brief Converts an item tag by role. Missing equivalents are suppressed; shared items survive.
+ */
+static inline GameItemTag GameItems_MapTag(GameItems items, GameItemTag tag) {
+  if (items == ITEMS_DEFAULT || tag == ITEM_NONE) {
+    return tag;
+  }
+
+  // Columns are Quetoo, Quake and Quake II. Earlier rows resolve merged Quake roles.
+  static const GameItemTag table[][3] = {
+    { WEAPON_SHOTGUN, WEAPON_QUAKE_SHOTGUN, WEAPON_QUAKE2_SHOTGUN },
+    { WEAPON_BLASTER, WEAPON_QUAKE_SHOTGUN, WEAPON_QUAKE2_BLASTER },
+    { WEAPON_SUPER_SHOTGUN, WEAPON_QUAKE_SUPER_SHOTGUN, WEAPON_QUAKE2_SUPER_SHOTGUN },
+    { WEAPON_MACHINEGUN, WEAPON_QUAKE_NAILGUN, WEAPON_QUAKE2_MACHINEGUN },
+    { WEAPON_HAND_GRENADE, ITEM_NONE, WEAPON_QUAKE2_HAND_GRENADE },
+    { WEAPON_GRENADE_LAUNCHER, WEAPON_QUAKE_GRENADE_LAUNCHER, WEAPON_QUAKE2_GRENADE_LAUNCHER },
+    { WEAPON_ROCKET_LAUNCHER, WEAPON_QUAKE_ROCKET_LAUNCHER, WEAPON_QUAKE2_ROCKET_LAUNCHER },
+    { WEAPON_HYPERBLASTER, WEAPON_QUAKE_SUPER_NAILGUN, WEAPON_QUAKE2_HYPERBLASTER },
+    { WEAPON_LIGHTNING, WEAPON_QUAKE_THUNDERBOLT, WEAPON_QUAKE2_CHAINGUN },
+    { WEAPON_RAILGUN, WEAPON_QUAKE_THUNDERBOLT, WEAPON_QUAKE2_RAILGUN },
+    { WEAPON_BFG10K, ITEM_NONE, WEAPON_QUAKE2_BFG },
+    { AMMO_SHELLS, AMMO_QUAKE_SHELLS, AMMO_QUAKE2_SHELLS },
+    { AMMO_BULLETS, AMMO_QUAKE_NAILS, AMMO_QUAKE2_BULLETS },
+    { AMMO_GRENADES, ITEM_NONE, AMMO_QUAKE2_GRENADES },
+    { AMMO_ROCKETS, AMMO_QUAKE_ROCKETS, AMMO_QUAKE2_ROCKETS },
+    { AMMO_BOLTS, AMMO_QUAKE_BOLTS, AMMO_QUAKE2_BULLETS },
+    { AMMO_CELLS, AMMO_QUAKE_BOLTS, AMMO_QUAKE2_CELLS },
+    { AMMO_SLUGS, AMMO_QUAKE_BOLTS, AMMO_QUAKE2_SLUGS },
+    { AMMO_NUKES, ITEM_NONE, AMMO_QUAKE2_CELLS },
+    { ARMOR_SHARD, ITEM_NONE, ARMOR_QUAKE2_SHARD },
+    { ARMOR_JACKET, ARMOR_QUAKE_JACKET, ARMOR_QUAKE2_JACKET },
+    { ARMOR_COMBAT, ARMOR_QUAKE_COMBAT, ARMOR_QUAKE2_COMBAT },
+    { ARMOR_BODY, ARMOR_QUAKE_BODY, ARMOR_QUAKE2_BODY },
+    { HEALTH_SMALL, ITEM_NONE, HEALTH_QUAKE2_SMALL },
+    { HEALTH_MEDIUM, HEALTH_QUAKE_MEDIUM, HEALTH_QUAKE2_MEDIUM },
+    { HEALTH_LARGE, HEALTH_QUAKE_LARGE, HEALTH_QUAKE2_LARGE },
+    { HEALTH_MEGA, HEALTH_QUAKE_MEGA, HEALTH_QUAKE2_MEGA },
+  };
+  const size_t column = items == ITEMS_QUETOO ? 0 : items == ITEMS_QUAKE ? 1 : 2;
+  // A same-roster item must not be converted through another row sharing its tag.
+  for (size_t i = 0; i < lengthof(table); i++) {
+    if (table[i][column] == tag) {
+      return tag;
+    }
+  }
+  for (size_t i = 0; i < lengthof(table); i++) {
+    for (size_t j = 0; j < 3; j++) {
+      if (table[i][j] == tag) {
+        return table[i][column];
+      }
+    }
+  }
+  return tag;
+}
+
+/**
  * @brief A game's `game.lst`: one entity of keys, in the map list format, that describes the game
  * for the menu and declares what it supports. Every key is optional.
  */

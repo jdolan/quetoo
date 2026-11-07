@@ -37,6 +37,19 @@ On first launch, _Quetoo_ will automatically download and install the game data.
 
 Windows SmartScreen may block _Quetoo_ on first launch. Click **More info**, then **Run anyway** to proceed.
 
+## Item rosters
+
+`g_items` selects item conversion independently of `g_movement`. A named
+`quetoo`, `quake`, or `quake2` converts map pickups to that roster, suppressing
+foreign items without equivalents and retaining shared powerups, flags and tech.
+`g_items default` defers to the map-list `items` key, then worldspawn `items`.
+If neither selects a roster, effective `default` leaves every pickup as authored,
+including mixed rosters.
+
+Changes are latched until a full map reload (`map <name>`); `restart` does not
+rebuild pickups. Read-only `g_itemsMode` reports the effective roster. The in-game
+editor always shows the authored entities.
+
 ## Community
 
 Looking for a game? Join the official [Quetoo Discord](https://discord.gg/unb9U4b) server.

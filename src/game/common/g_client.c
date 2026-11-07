@@ -1141,11 +1141,13 @@ static void G_Give(GameClient *cl, char *it, int16_t quantity) {
 static void G_InitInventory_Common(GameClient *cl) {
   const GameItem *item;
 
-  // instagib gets railgun and slugs, both in normal mode and warmup
+  // instagib gets the railgun role, both in normal mode and warmup
   if ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) {
     G_Give(cl, "Railgun", 1);
-    G_Give(cl, "Grenades", 1);
-    item = &gameItems[gameLevel.items == ITEMS_QUAKE2 ? WEAPON_QUAKE2_RAILGUN : WEAPON_RAILGUN];
+    if (G_FindItem("Grenades")) {
+      G_Give(cl, "Grenades", 1);
+    }
+    item = G_FindItem("Railgun");
   }
   // arena yields all weapons, health, etc..
   else if ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_ARENA) {
@@ -1153,7 +1155,9 @@ static void G_InitInventory_Common(GameClient *cl) {
     G_Give(cl, gameLevel.items == ITEMS_QUAKE2 ? "Chaingun" : "Lightning Gun", 200);
     G_Give(cl, "Hyperblaster", 200);
     G_Give(cl, "Rocket Launcher", 50);
-    G_Give(cl, "Hand Grenades", 1);
+    if (G_FindItem("Hand Grenades")) {
+      G_Give(cl, "Hand Grenades", 1);
+    }
     G_Give(cl, "Grenade Launcher", 50);
     G_Give(cl, "Machinegun", 200);
     G_Give(cl, "Super Shotgun", 80);
@@ -1162,8 +1166,7 @@ static void G_InitInventory_Common(GameClient *cl) {
 
     G_Give(cl, "Body Armor", -1);
 
-    item = &gameItems[gameLevel.items == ITEMS_QUAKE2
-                      ? WEAPON_QUAKE2_ROCKET_LAUNCHER : WEAPON_ROCKET_LAUNCHER];
+    item = G_FindItem("Rocket Launcher");
   }
   // dm gets the blaster, or the quake shotgun + shells in quake item sets
   else if (gameLevel.items == ITEMS_QUAKE) {

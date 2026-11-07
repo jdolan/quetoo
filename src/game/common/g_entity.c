@@ -225,8 +225,12 @@ GameLevelWillSpawnHook G_LevelWillSpawn = G_LevelWillSpawn_Common;
 /**
  * @brief Populates common entity fields and then dispatches the class initializer.
  */
-static void G_SpawnEntity(Entity *def) {
+static void G_SpawnEntity(const Entity *def) {
 
+  def = G_PreprocessItems(def);
+  if (!def) {
+    return;
+  }
   const char *classname = gi.EntityValue(def, "classname")->string;
   GameEntity *ent = G_AllocEntity(classname);
 
@@ -780,7 +784,7 @@ static void G_worldspawn_Music(void) {
 /*QUAKED worldspawn (0 0 0) ?
  The worldspawn entity defines global conditions and behavior for the entire level. All brushes not belonging to an explicit entity implicitly belong to worldspawn.
 
-The map list's entry for the level takes precedence over the gameplay, movement, gravity, min_clients, ai, num_teams, frag_limit, capture_limit, time_limit and music given here. A server setting other than "default" takes precedence over both, except for ai and music, which have no server setting.
+The map list's entry for the level takes precedence over the gameplay, movement, items, gravity, min_clients, ai, num_teams, frag_limit, capture_limit, time_limit and music given here. A server setting other than "default" takes precedence over both, except for ai and music, which have no server setting.
  -------- KEYS --------
  message : The map title.
  games : Space-delimited games this map is made for, one or more of dm, tdm, duel, ctf, instagib, race (default dm). Shown and filtered in the Create Server map browser.
@@ -789,7 +793,7 @@ The map list's entry for the level takes precedence over the gameplay, movement,
  gravity : Gravity for the level; unset, the movement's applies, 800 for most.
  gameplay : The gameplay mode, one of deathmatch, team_deathmatch, instagib, team_instagib, arena, team_arena (default deathmatch).
  movement : The player movement, one of quetoo, race, quake, quake2, quake3 (default quetoo, or race in the race module).
- items : The item set for this map: "default" (Quetoo), "quake" (Quake), or "quake2" (Quake II). Independent of movement.
+ items : Item conversion: "default" preserves authored items; "quetoo", "quake", or "quake2" converts to that roster and suppresses items without equivalents. Independent of movement. Map-list items takes precedence; a named g_items overrides both on full map reload.
  min_clients : The number of clients, humans and AI, the game fills to; unset, 0.
  ai : The AI players, by name and separated by spaces, that join the level first. They always join, even beyond min_clients; any others that min_clients asks for are picked at random.
  num_teams : The number of teams, 2 to 4, in team gameplays; unset, the teams that the map has spawn points or flags for. In CTF, at most the teams that the map has flags for.
@@ -841,14 +845,12 @@ static void G_worldspawn(GameEntity *ent) {
 
   gi.SetConfigString(CS_GAMEPLAY, va("%d", gameLevel.gameplay));
 
-  const Entity *items = gi.EntityValue(ent->def, "items");
-  if (Str_CaseCompare(items->string, "quake") == 0) {
-    gameLevel.items = ITEMS_QUAKE;
-  } else if (Str_CaseCompare(items->string, "quake2") == 0) {
-    gameLevel.items = ITEMS_QUAKE2;
-  } else {
-    gameLevel.items = ITEMS_DEFAULT;
+  const Entity *itemsMap = G_MapListEntryValue("items");
+  const char *items = gi.EntityValue(ent->def, "items")->string;
+  if (itemsMap && *itemsMap->string) {
+    items = itemsMap->string;
   }
+  gameLevel.items = G_ResolveItems(items);
 
   gi.SetConfigString(CS_ITEM_SET, va("%d", gameLevel.items));
 

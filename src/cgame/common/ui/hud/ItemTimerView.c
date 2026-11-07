@@ -95,7 +95,13 @@ static void updateBindings(View *self, ident data) {
       break;
   }
 
-  $((PowerupView *) self, update, item, (int16_t) atoi(cgi.ConfigString(index)));
+  int32_t seconds = 0, tag = ITEM_NONE;
+  sscanf(cgi.ConfigString(index), "%d %d", &seconds, &tag);
+  if (this->item == ItemTimerViewMega &&
+      (tag == HEALTH_MEGA || tag == HEALTH_QUAKE_MEGA || tag == HEALTH_QUAKE2_MEGA)) {
+    item = (GameItemTag) tag;
+  }
+  $((PowerupView *) self, update, item, (int16_t) seconds);
 }
 
 #pragma mark - Class lifecycle

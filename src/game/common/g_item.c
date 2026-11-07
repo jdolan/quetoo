@@ -65,61 +65,73 @@ const GameItem *G_FindItem(const char *name) {
     }
   }
 
-  return fallback;
+  if (fallback) {
+    const GameItemTag mapped = GameItems_MapTag(gameLevel.items, fallback->def.tag);
+    return mapped ? &gameItems[mapped] : NULL;
+  }
+  return NULL;
 }
 
 /**
- * @brief Maps Quetoo weapon tags to their Quake equivalent, by gameplay role.
- *  Used to redirect generic bindings (e.g. "use Rocket Launcher") to the
- *  appropriate weapon when `gameLevel.items == ITEMS_QUAKE`.
- *  `ITEM_NONE` means no equivalent exists.
- */
-static const GameItemTag quakeWeaponMap[WEAPON_LAST] = {
-  [WEAPON_BLASTER]          = WEAPON_QUAKE_SHOTGUN,
-  [WEAPON_SHOTGUN]          = WEAPON_QUAKE_SHOTGUN,
-  [WEAPON_SUPER_SHOTGUN]    = WEAPON_QUAKE_SUPER_SHOTGUN,
-  [WEAPON_MACHINEGUN]       = WEAPON_QUAKE_NAILGUN,
-  [WEAPON_HAND_GRENADE]     = ITEM_NONE,
-  [WEAPON_GRENADE_LAUNCHER] = WEAPON_QUAKE_GRENADE_LAUNCHER,
-  [WEAPON_ROCKET_LAUNCHER]  = WEAPON_QUAKE_ROCKET_LAUNCHER,
-  [WEAPON_HYPERBLASTER]     = WEAPON_QUAKE_SUPER_NAILGUN,
-  [WEAPON_LIGHTNING]        = WEAPON_QUAKE_THUNDERBOLT,
-  [WEAPON_RAILGUN]          = WEAPON_QUAKE_THUNDERBOLT,
-  [WEAPON_BFG10K]           = ITEM_NONE,
-};
-
-static const GameItemTag quake2WeaponMap[WEAPON_LAST] = {
-  [WEAPON_BLASTER] = WEAPON_QUAKE2_BLASTER,
-  [WEAPON_SHOTGUN] = WEAPON_QUAKE2_SHOTGUN,
-  [WEAPON_SUPER_SHOTGUN] = WEAPON_QUAKE2_SUPER_SHOTGUN,
-  [WEAPON_MACHINEGUN] = WEAPON_QUAKE2_MACHINEGUN,
-  [WEAPON_HAND_GRENADE] = WEAPON_QUAKE2_HAND_GRENADE,
-  [WEAPON_GRENADE_LAUNCHER] = WEAPON_QUAKE2_GRENADE_LAUNCHER,
-  [WEAPON_ROCKET_LAUNCHER] = WEAPON_QUAKE2_ROCKET_LAUNCHER,
-  [WEAPON_HYPERBLASTER] = WEAPON_QUAKE2_HYPERBLASTER,
-  [WEAPON_LIGHTNING] = WEAPON_QUAKE2_CHAINGUN,
-  [WEAPON_RAILGUN] = WEAPON_QUAKE2_RAILGUN,
-  [WEAPON_BFG10K] = WEAPON_QUAKE2_BFG,
-};
-
-/**
- * @brief Returns the active set's equivalent of a Quetoo weapon, or NULL if
- * no mapping exists or the item already belongs to a non-default set.
+ * @brief Returns the active set's equivalent weapon, or NULL if none exists.
  */
 const GameItem *G_MappedWeapon(const GameItem *weapon) {
 
-  if (weapon->def.tag < WEAPON_FIRST || weapon->def.tag >= WEAPON_QUAKE_SHOTGUN) {
+  if (weapon->def.type != ITEM_TYPE_WEAPON) {
     return NULL;
   }
 
-  const GameItemTag mapped = gameLevel.items == ITEMS_QUAKE2
-    ? quake2WeaponMap[weapon->def.tag]
-    : gameLevel.items == ITEMS_QUAKE ? quakeWeaponMap[weapon->def.tag] : ITEM_NONE;
+  const GameItemTag mapped = GameItems_MapTag(gameLevel.items, weapon->def.tag);
   if (!mapped) {
     return NULL;
   }
 
   return &gameItems[mapped];
+}
+
+/**
+ * @brief Returns the authored definition, a level-owned converted copy, or NULL for suppression.
+ * @details Converted copies borrow unchanged strings. Never pass them to FreeEntity;
+ * their allocations are reclaimed with MEM_TAG_GAME_LEVEL.
+ */
+const Entity *G_PreprocessItems(const Entity *def) {
+  if (gameLevel.items == ITEMS_DEFAULT) {
+    return def;
+  }
+  const GameItem *item = G_FindItemByClassName(gi.EntityValue(def, "classname")->string);
+  if (!item) {
+    return def;
+  }
+  const GameItemTag tag = GameItems_MapTag(gameLevel.items, item->def.tag);
+  if (!tag) {
+    return NULL;
+  }
+  if (tag == item->def.tag) {
+    return def;
+  }
+
+  Entity *copy = NULL, *previous = NULL, **next = &copy;
+  for (const Entity *in = def; in; in = in->next) {
+    // A foreign model override must not hide the replacement's model.
+    if (!Str_Compare(in->key, "model")) {
+      continue;
+    }
+    Entity *out = gi.Malloc(sizeof(Entity), MEM_TAG_GAME_LEVEL);
+    *out = *in;
+    out->prev = previous;
+    out->next = NULL;
+    if (!Str_Compare(in->key, "classname")) {
+      const char *classname = gameItems[tag].def.classname;
+      out->string = gi.LinkMalloc(strlen(classname) + 1, out);
+      strcpy(out->string, classname);
+      out->nullableString = out->string;
+      out->parsed = ENTITY_STRING;
+    }
+    *next = out;
+    next = &out->next;
+    previous = out;
+  }
+  return copy;
 }
 
 /**
@@ -268,10 +280,11 @@ static int32_t G_ItemTimer(const GameItem *item) {
 /**
  * @brief Publishes the seconds until the next mega health and each powerup respawns, to the
  * `CS_ITEM_TIMER_*` config strings. A config string is empty if no such item is pending, or if
- * `g_itemTimers` is off.
+ * `g_itemTimers` is off; otherwise it contains seconds and the respawning item tag.
  */
 void G_RunItemTimers(void) {
   uint32_t respawns[CS_ITEM_TIMER_INVISIBILITY - CS_ITEM_TIMER_MEGA + 1];
+  GameItemTag tags[lengthof(respawns)] = { ITEM_NONE };
 
   for (size_t i = 0; i < lengthof(respawns); i++) {
     respawns[i] = UINT32_MAX;
@@ -284,11 +297,13 @@ void G_RunItemTimers(void) {
         continue;
       }
 
-      const int32_t timer = G_ItemTimer(G_ItemRespawnTarget(ent)->item);
+      const GameItem *item = G_ItemRespawnTarget(ent)->item;
+      const int32_t timer = G_ItemTimer(item);
       if (timer) {
         uint32_t *respawn = &respawns[timer - CS_ITEM_TIMER_MEGA];
         if (ent->nextThink < *respawn) {
           *respawn = ent->nextThink;
+          tags[timer - CS_ITEM_TIMER_MEGA] = item->def.tag;
         }
       }
     });
@@ -299,7 +314,8 @@ void G_RunItemTimers(void) {
       gi.SetConfigString(CS_ITEM_TIMER_MEGA + (int32_t) i, NULL);
     } else {
       const uint32_t millis = respawns[i] > gameLevel.time ? respawns[i] - gameLevel.time : 0;
-      gi.SetConfigString(CS_ITEM_TIMER_MEGA + (int32_t) i, va("%u", (millis + 999) / 1000));
+      gi.SetConfigString(CS_ITEM_TIMER_MEGA + (int32_t) i,
+                        va("%u %d", (millis + 999) / 1000, tags[i]));
     }
   }
 }
@@ -1110,6 +1126,12 @@ static const GameItem *G_ResolveInventoryItem_Common(GameClient *cl, const char 
     }
   }
 
+  for (GameItemTag tag = WEAPON_FIRST; tag < ITEM_TOTAL; tag++) {
+    const GameItem *item = &gameItems[tag];
+    if (cl->inventory[tag] && !Str_CaseCompare(item->def.name, name)) {
+      return item;
+    }
+  }
   return G_FindItem(name);
 }
 
@@ -1427,28 +1449,7 @@ GameItem *gameItems;
  * @brief Returns true if the item belongs to the active item set.
  */
 bool G_ItemAvailable(const GameItem *item) {
-  static const GameItemTag ranges[][ITEM_TYPE_TOTAL][2] = {
-    [ITEMS_DEFAULT] = {
-      [ITEM_TYPE_WEAPON] = { WEAPON_FIRST, WEAPON_QUAKE_SHOTGUN },
-      [ITEM_TYPE_AMMO] = { AMMO_FIRST, AMMO_QUAKE_SHELLS },
-      [ITEM_TYPE_ARMOR] = { ARMOR_FIRST, ARMOR_QUAKE_JACKET },
-      [ITEM_TYPE_HEALTH] = { HEALTH_FIRST, HEALTH_QUAKE_MEDIUM },
-    },
-    [ITEMS_QUAKE] = {
-      [ITEM_TYPE_WEAPON] = { WEAPON_QUAKE_SHOTGUN, WEAPON_QUAKE2_BLASTER },
-      [ITEM_TYPE_AMMO] = { AMMO_QUAKE_SHELLS, AMMO_QUAKE2_SHELLS },
-      [ITEM_TYPE_ARMOR] = { ARMOR_QUAKE_JACKET, ARMOR_QUAKE2_SHARD },
-      [ITEM_TYPE_HEALTH] = { HEALTH_QUAKE_MEDIUM, HEALTH_QUAKE2_SMALL },
-    },
-    [ITEMS_QUAKE2] = {
-      [ITEM_TYPE_WEAPON] = { WEAPON_QUAKE2_BLASTER, WEAPON_LAST },
-      [ITEM_TYPE_AMMO] = { AMMO_QUAKE2_SHELLS, AMMO_LAST },
-      [ITEM_TYPE_ARMOR] = { ARMOR_QUAKE2_SHARD, ARMOR_LAST },
-      [ITEM_TYPE_HEALTH] = { HEALTH_QUAKE2_SMALL, HEALTH_LAST },
-    },
-  };
-  const GameItemTag *range = ranges[gameLevel.items][item->def.type];
-  return !range[1] || (item->def.tag >= range[0] && item->def.tag < range[1]);
+  return GameItems_MapTag(gameLevel.items, item->def.tag) == item->def.tag;
 }
 
 /**

@@ -45,7 +45,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1069
+#define PROTOCOL_MINOR 1070
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -680,7 +680,8 @@ static const GamePlay gameplays[] = {
 typedef enum {
   ITEMS_DEFAULT,
   ITEMS_QUAKE,
-  ITEMS_QUAKE2
+  ITEMS_QUAKE2,
+  ITEMS_QUETOO
 } GameItems;
 
 // GameItemType and GameItemTag are defined in bg_item.h
