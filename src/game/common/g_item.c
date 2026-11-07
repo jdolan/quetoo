@@ -102,7 +102,24 @@ const Entity *G_PreprocessItems(const Entity *def) {
   if (!item) {
     return def;
   }
-  const GameItemTag tag = GameItems_MapTag(gameLevel.items, item->def.tag);
+  GameItemTag tag = GameItems_MapTag(gameLevel.items, item->def.tag);
+  const char *mode = GameItems_Name(gameLevel.items);
+  for (const Entity *pair = def; pair; pair = pair->next) {
+    if (Str_Compare(pair->key, mode)) {
+      continue;
+    }
+    if (!*pair->string) {
+      return NULL;
+    }
+    const GameItem *replacement = G_FindItemByClassName(pair->string);
+    if (!replacement) {
+      G_Warn("%s has unknown %s item replacement \"%s\"; suppressing item\n",
+             item->def.classname, mode, pair->string);
+      return NULL;
+    }
+    tag = replacement->def.tag;
+    break;
+  }
   if (!tag) {
     return NULL;
   }

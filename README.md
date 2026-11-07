@@ -46,6 +46,15 @@ foreign items without equivalents and retaining shared powerups, flags and tech.
 If neither selects a roster, effective `default` leaves every pickup as authored,
 including mixed rosters.
 
+Any item may specify `quetoo`, `quake`, and `quake2` keys containing exact
+replacement item classnames. The key for the effective roster overrides the
+mapping table, even for same-roster items or replacements outside that roster.
+For example, `ammo_quake2_bullets` with `"quetoo" "ammo_bolts"` supplies the
+converted lightning gun rather than the machinegun. An absent key uses the table;
+a present empty value suppresses the item. An unknown replacement warns and
+suppresses it rather than silently using the table. Effective `default` ignores
+these overrides.
+
 Changes are latched until a full map reload (`map <name>`); `restart` does not
 rebuild pickups. Read-only `g_itemsMode` reports the effective roster. The in-game
 editor always shows the authored entities.
