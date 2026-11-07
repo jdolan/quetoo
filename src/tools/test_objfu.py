@@ -4,15 +4,108 @@ from pathlib import Path
 from unittest.mock import patch
 
 import numpy as np
+import pygame
 
 from md3 import Md3Model, Md3Surface
 from md3fu import Animation
-from objfu import (ITEM_MAXS, ITEM_MINS, default_config, find_models, ground_config, item_layout,
+from objfu import (ConfigPreview, FlyCamera, ITEM_MAXS, ITEM_MINS, default_config, find_models, ground_config, item_layout,
                    load_muzzle, model_config, parse_model_config, replace_model_section, save_muzzle,
                    load_player, main, model_bounds, orbit_offset, pan_delta, parse_mesh_config, pick_box, resolve_obj_args, transform_vertices, view_coverage, view_guide, view_reference, view_reference_models, view_references, view_silhouette, view_transform, view_vertical_fov)
 
 
 class ObjfuConfigTest(unittest.TestCase):
+  def test_preview_deselect_keeps_document_and_process(self):
+    preview = ConfigPreview.__new__(ConfigPreview)
+    preview.index = 2
+    preview.selected = True
+    preview.running = True
+    with patch.object(preview, "connection", create=True) as connection:
+      preview.deselect()
+      self.assertFalse(preview.selected)
+      self.assertTrue(preview.running)
+      self.assertEqual(preview.index, 2)
+      connection.send.assert_not_called()
+      preview.select(2)
+      self.assertTrue(preview.selected)
+      connection.send.assert_called_once_with(("select", 2))
+
+  def test_fly_camera_movement(self):
+    camera = FlyCamera((0, 0, 0), 0, 0, 100)
+    camera.move(1, 0, .5)
+    np.testing.assert_allclose(camera.position, (0, -20, 0), atol=1e-10)
+    camera.move(0, 1, .25, fast=True)
+    np.testing.assert_allclose(camera.position, (-240, -20, 0), atol=1e-10)
+    start = camera.position.copy()
+    camera.move(1, 1, 1)
+    self.assertAlmostEqual(np.linalg.norm(camera.position - start), 240)
+    other = FlyCamera((0, 0, 0), 0, 0, 100)
+    for _ in range(10):
+      other.move(1, 0, .05)
+    np.testing.assert_allclose(other.position, (0, -20, 0), atol=1e-10)
+
+  def test_fly_camera_fine_movement_on_large_grid(self):
+    camera = FlyCamera((0, 0, 0), 0, 0, 2000)
+    start = camera.position.copy()
+    camera.move(1, 0, 1 / 60)
+    self.assertAlmostEqual(np.linalg.norm(camera.position - start), 240 / 60)
+    camera.event(pygame.event.Event(pygame.MOUSEWHEEL, y=-100))
+    start = camera.position.copy()
+    camera.move(1, 0, 1)
+    self.assertAlmostEqual(np.linalg.norm(camera.position - start), 1)
+
+  def test_fly_camera_right_button_and_focus_release(self):
+    camera = FlyCamera((0, 0, 0), 0, 0, 100)
+    with patch("pygame.event.set_grab") as grab, patch("pygame.mouse.set_visible") as visible, \
+         patch("pygame.mouse.get_rel"):
+      camera.event(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=1))
+      self.assertFalse(camera.looking)
+      camera.event(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=3))
+      self.assertTrue(camera.looking)
+      grab.assert_called_with(True)
+      visible.assert_called_with(False)
+      camera.event(pygame.event.Event(pygame.MOUSEMOTION, rel=(10, 1000)))
+      self.assertEqual(camera.pitch, 85)
+      camera.event(pygame.event.Event(pygame.WINDOWFOCUSLOST))
+      self.assertFalse(camera.looking)
+      grab.assert_called_with(False)
+      visible.assert_called_with(True)
+      camera.event(pygame.event.Event(pygame.MOUSEMOTION, rel=(10, -1000)))
+      self.assertEqual(camera.pitch, 85)
+      camera.event(pygame.event.Event(pygame.MOUSEBUTTONDOWN, button=3))
+      camera.event(pygame.event.Event(pygame.MOUSEBUTTONUP, button=3))
+      self.assertFalse(camera.looking)
+
+  def test_fly_camera_keyboard_focus_and_save_shortcut(self):
+    camera = FlyCamera((0, 0, 0), 0, 0, 100)
+    keys = {pygame.K_w: True, pygame.K_s: False, pygame.K_a: False, pygame.K_d: False}
+    with patch("pygame.key.get_focused", return_value=True) as focused, \
+         patch("pygame.key.get_pressed", return_value=keys), \
+         patch("pygame.key.get_mods", return_value=0) as mods:
+      camera.update(.5)
+      np.testing.assert_allclose(camera.position, (0, -20, 0), atol=1e-10)
+      start = camera.position.copy()
+      focused.return_value = False
+      camera.update(.5)
+      np.testing.assert_allclose(camera.position, start)
+      focused.return_value = True
+      mods.return_value = pygame.KMOD_CTRL
+      camera.update(.5)
+      np.testing.assert_allclose(camera.position, start)
+
+  def test_fly_camera_mouse_turns_view_toward_motion(self):
+    for yaw in (0, 35, 135, 270):
+      for dx in (-10, 10):
+        camera = FlyCamera((0, 0, 0), yaw, 15, 100)
+        camera.looking = True
+        forward = -orbit_offset(yaw, 15, 1)
+        right = np.cross(forward, (0, 0, 1))
+        camera.event(pygame.event.Event(pygame.MOUSEMOTION, rel=(dx, 0)))
+        with patch("objfu.gluLookAt") as look:
+          camera.apply()
+        values = look.call_args.args
+        direction = np.array(values[3:6]) - np.array(values[:3])
+        self.assertGreater(np.dot(direction, right) * dx, 0)
+
   def test_model_config_shared_muzzle_and_isolated_update(self):
     text = ('// author notes\n{\n"type" "view"\n"scale" "2"\n"translate" "3 4 5"\n}\n'
             '{\n"type" "link"\n"translate" "6 7 8"\n}\n'

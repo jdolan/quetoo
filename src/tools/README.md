@@ -122,8 +122,8 @@ objfu 'weapons/quake2_*' --config view
   bounds, and off. The preview window is resizable in every mode.
   Generated translations and muzzle positions default to integers; hand-edited
   integer and floating-point values are both supported.
-- `muzzle`: shows the untransformed model with an orbit camera and its muzzle
-  marker. Edit the muzzle block's `origin`, orbiting to inspect its placement on
+- `muzzle`: shows the untransformed model with a free-fly camera and its muzzle
+  marker. Edit the muzzle block's `origin`, moving to inspect its placement on
   the barrel from different directions. Tab / PgDn and Shift+Tab / PgUp cycle
   through a batch. Placement transforms do not affect this preview.
 - `link`: attaches the mesh to the standing Enforcer's `tag_weapon`, through
@@ -154,14 +154,19 @@ confirmation before overwriting.
 
 Transforms follow the engine's file order, including XYZ-axis `rotate` (not
 player pitch/yaw/roll), quoted or unquoted vectors, and transformed `muzzle`.
-Drag to orbit, Cmd+drag to pan and scroll to zoom in world/link mode. T toggles
+WASD flies the camera at 240 units/second; hold the right mouse button to look around. Shift moves
+four times faster, and the scroll wheel adjusts movement speed down to 1 unit/second. Left-click still
+selects models. The view-mode placement camera stays fixed. T toggles
 the text overlays in every mode; configuration errors remain visible.
+Escape deselects the preview and releases mouse-look without closing either
+window; click a model or cycle the selection to select again. The config editor
+retains its open document and unsaved edits. Close the window to quit.
 `--player` selects another normalized player directory (default
 `players/enforcer`, `default.skin`); `-p` supplies data roots. Previews are unlit diffuse textures, not the game's
 PBR renderer.
 
-Without `--config`, the original orbit viewer and muzzle hotkeys are unchanged:
-arrows adjust X/Y, Q/E adjust Z, Shift increases the step, R resets, and S writes
+Without `--config`, the same free-fly controls apply:
+arrows adjust muzzle X/Y, Q/E adjust Z, Shift increases the step, R resets, and Ctrl+S (Cmd+S on macOS) writes
 the shared muzzle block to `model.cfg`, preserving placement blocks.
 
 ## md3fu
