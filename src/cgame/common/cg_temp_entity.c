@@ -1436,7 +1436,7 @@ void Cg_ParseTempEntity(void) {
       pos = cgi.ReadPosition();
       dir = cgi.ReadDir();
       i = cgi.ReadByte();
-      Cg_BlasterEffect(pos, dir, Cg_ClientEffectColor(i, NULL, COLOR_HUE_ORANGE),
+      Cg_BlasterEffect(pos, dir, Cg_EffectColor(NULL, COLOR_HUE_ORANGE),
                        type == TE_QUAKE2_BLASTER ? cgameMedia.sounds.blasterHit : cgameMedia.sounds.hyperblasterHit);
       break;
 

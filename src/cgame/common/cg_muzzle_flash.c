@@ -1044,7 +1044,7 @@ void Cg_ParseMuzzleFlash(void) {
       break;
     case MZ_QUAKE2_BLASTER:
       sample = cgameMedia.sounds.blasterFire;
-      Cg_BlasterFlash(muzzle, origin, angles, client);
+      Cg_BlasterFlash(muzzle, origin, angles, MAX_CLIENTS);
       pitch = 3;
       break;
     case MZ_QUAKE2_SHOTGUN:
@@ -1091,7 +1091,7 @@ void Cg_ParseMuzzleFlash(void) {
       break;
     case MZ_QUAKE2_HYPERBLASTER:
       sample = cgameMedia.sounds.quake2HyperblasterFire;
-      Cg_BlasterFlash(muzzle, origin, angles, client);
+      Cg_BlasterFlash(muzzle, origin, angles, MAX_CLIENTS);
       pitch = 3;
       break;
     case MZ_QUAKE2_RAILGUN:

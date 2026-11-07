@@ -1091,6 +1091,7 @@ void G_FireQuake2Chaingun(GameClient *cl) {
   cl->kickAngles.z += RandomRangef(-0.7f, 0.7f);
   G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_CHAINGUN1 + shots - 1);
   G_WeaponFired(cl, 100, shots);
+  cl->quake2AttackTime = cl->weaponFireTime;
 }
 
 void G_FireQuake2GrenadeLauncher(GameClient *cl) {
@@ -1129,7 +1130,7 @@ void G_FireQuake2Hyperblaster(GameClient *cl) {
   if (G_FireWeapon(cl)) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
-    G_BlasterProjectile(cl->entity, cl->entity, org, forward, 1000, 15, 1, MOD_QUAKE2_HYPERBLASTER);
+    G_BlasterProjectile(cl->entity, cl->entity, org, forward, 1800, 15, 1, MOD_QUAKE2_HYPERBLASTER);
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_HYPERBLASTER);
     G_WeaponFired(cl, 100, 1);
   }
@@ -1143,7 +1144,8 @@ void G_FireQuake2Railgun(GameClient *cl) {
   if (G_FireWeapon(cl)) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
-    G_RailgunProjectile(cl->entity, cl->entity, org, forward, 100, 200, MOD_QUAKE2_RAILGUN);
+    const int32_t damage = (gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB ? 999 : 100;
+    G_RailgunProjectile(cl->entity, cl->entity, org, forward, damage, 200, MOD_QUAKE2_RAILGUN);
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_RAILGUN);
     G_WeaponFired(cl, 1500, 1);
   }
@@ -1185,6 +1187,7 @@ static void G_FireQuake2BFG_(GameEntity *ent) {
   GameClient *cl = ent->owner->client;
 
   if (ent->owner->inUse && cl && !ent->owner->dead && cl->weapon == &gameItems[WEAPON_QUAKE2_BFG] &&
+      !cl->nextWeapon && cl->weaponChangeTime <= gameLevel.time &&
       cl->inventory[AMMO_QUAKE2_CELLS] >= cl->weapon->def.quantity) {
 
     Vec3 forward, org;

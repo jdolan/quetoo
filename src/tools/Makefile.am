@@ -4,6 +4,7 @@ EXTRA_DIST = \
 	ai_profile.py \
 	tools-env.sh \
 	matfu.py \
+	test_matfu.py \
 	unpak.py \
 	mdl2obj.py \
 	md22obj.py \

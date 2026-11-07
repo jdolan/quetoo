@@ -1873,8 +1873,9 @@ def cmd_batch(args) -> int:
     proc_normal = None
     proc_height = None
     if generated is not None:
-      # The GUI saves freshly generated normals and their height as they are.
-      proc_normal, proc_height = generated
+      proc_normal, height = generated
+      if generate_height:
+        proc_height = apply_height_filters(height, params, as_heightmap=as_heightmap)
       norm_rgb = proc_normal
       norm_alpha = proc_height
     elif norm_rgb is not None:

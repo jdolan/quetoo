@@ -547,6 +547,26 @@ static const GameItem *G_Ai_SpamWeapon(const GameClient *cl) {
 }
 
 /**
+ * @brief Solves the low grenade arc, accounting for the throw's upward loft.
+ */
+static bool G_Ai_GrenadeElevation(float distance, float height, float gravity, float speed, float loft,
+                                  float *elevation, float *flightMillis) {
+  const float launch = sqrtf(speed * speed + loft * loft);
+  const float launchSquared = launch * launch;
+  const float lift = gravity * distance * distance + 2.f * height * launchSquared;
+  const float discriminant = launchSquared * launchSquared - gravity * lift;
+
+  if (discriminant < 0.f) {
+    return false;
+  }
+
+  const float launchElevation = atanf((launchSquared - sqrtf(discriminant)) / (gravity * distance));
+  *elevation = launchElevation - atan2f(loft, speed);
+  *flightMillis = 1000.f * distance / (launch * cosf(launchElevation));
+  return true;
+}
+
+/**
  * @brief Resolves the view angles that lob a grenade from the bot's eye to the given point.
  * @param holdMillis For hand grenades, the time to hold the grenade so that it flies far enough.
  * @return True if a grenade can reach the point.
@@ -563,34 +583,36 @@ static bool G_Ai_SpamAngles(const GameClient *cl, const GameItem *weapon, const 
     return false;
   }
 
-  float speed, loft;
+  float speed, loft, elevation, flightMillis;
+  const Vec3 dir = Vec3_Normalize(Vec3_Subtract(point, eye));
+
+  if (weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE) {
+    for (uint32_t hold = QUETOO_TICK_MILLIS; hold < 3000; hold += QUETOO_TICK_MILLIS) {
+      speed = floorf(400.f + 400.f * hold / 3000.f);
+      if (G_Ai_GrenadeElevation(distance, height, gravity, speed, AI_HAND_GRENADE_LOFT,
+                                &elevation, &flightMillis) &&
+          hold + flightMillis + 2 * QUETOO_TICK_MILLIS < 3000.f) {
+        *holdMillis = hold;
+        *angles = MakeVec3(-Degrees(elevation), Vec3_Euler(dir).y, 0.f);
+        return true;
+      }
+    }
+    return false;
+  }
+
   if (weapon->def.flags & WF_TIMED) {
     loft = AI_HAND_GRENADE_LOFT;
-    if (weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE) {
-      speed = Clampf(sqrtf(gravity * distance) * 1.2f, 400.f, 800.f);
-      *holdMillis = (uint32_t) ((speed - 400.f) / 400.f * 3000.f);
-    } else {
-      speed = Clampf(sqrtf(gravity * distance) * 1.2f, 500.f, 1200.f);
-      *holdMillis = (uint32_t) (speed / 500.f * 1000.f);
-    }
+    speed = Clampf(sqrtf(gravity * distance) * 1.2f, 500.f, 1200.f);
+    *holdMillis = (uint32_t) (speed / 500.f * 1000.f);
   } else {
     loft = weapon->def.tag == WEAPON_QUAKE2_GRENADE_LAUNCHER ? 200.f : AI_GRENADE_LOFT;
     speed = G_Ai_ProjectileSpeed(weapon);
     *holdMillis = 0;
   }
 
-  const float launch = sqrtf(speed * speed + loft * loft);
-  const float launchSquared = launch * launch;
-  const float lift = gravity * distance * distance + 2.f * height * launchSquared;
-  const float discriminant = launchSquared * launchSquared - gravity * lift;
-
-  if (discriminant < 0.f) {
+  if (!G_Ai_GrenadeElevation(distance, height, gravity, speed, loft, &elevation, &flightMillis)) {
     return false;
   }
-
-  const float elevation = atanf((launchSquared - sqrtf(discriminant)) / (gravity * distance)) -
-                          atan2f(loft, speed);
-  const Vec3 dir = Vec3_Normalize(Vec3_Subtract(point, eye));
 
   *angles = MakeVec3(-Degrees(elevation), Vec3_Euler(dir).y, 0.f);
   return true;
@@ -777,7 +799,7 @@ static float G_Ai_SplashRadius(const GameItem *weapon) {
     return 120.f;
   }
   if (weapon->def.tag == WEAPON_QUAKE2_BFG) {
-    return QUAKE2_BFG_BLAST_RADIUS;
+    return QUAKE2_BFG_RADIUS;
   }
   if (weapon->def.tag == WEAPON_QUAKE2_GRENADE_LAUNCHER ||
       weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE) {
@@ -872,6 +894,10 @@ static bool G_Ai_IsTeammateNear(const GameClient *cl, const Vec3 start, const Ve
  * strikes. A grenade bounces from a wall, so the burst there is an estimate.
  */
 static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
+
+  if (cl->weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE && !cl->ai->aimHoldMillis) {
+    return false;
+  }
 
   const Vec3 eye = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
   const Vec3 end = Vec3_Fmaf(eye, MAX_WORLD_DIST, cl->forward);

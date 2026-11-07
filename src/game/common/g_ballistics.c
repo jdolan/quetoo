@@ -150,6 +150,21 @@ static void G_BulletImpact(const CollisionTrace *trace) {
 }
 
 /**
+ * @brief Fades the ricochet ember while keeping its collision and damage active.
+ */
+static void G_Quake2HyperblasterEmber_Think(GameEntity *ent) {
+
+  if (gameLevel.time >= ent->timestamp) {
+    G_FreeEntity(ent);
+    return;
+  }
+
+  // animation1 carries the remaining ember brightness, independent of client visibility.
+  ent->s.animation1 = 255 * (ent->timestamp - gameLevel.time) / 1000;
+  ent->nextThink = (uint32_t) Minui64(ent->timestamp, gameLevel.time + QUETOO_TICK_MILLIS);
+}
+
+/**
  * @brief Touch callback for the blaster projectile; deals energy damage and emits an impact effect.
  */
 static void G_BlasterProjectile_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
@@ -191,6 +206,22 @@ static void G_BlasterProjectile_Touch(GameEntity *ent, GameEntity *other, const 
       gi.WriteByte(ent->owner->s.client);
       gi.Multicast(ent->s.origin, MULTICAST_PHS);
     }
+
+    if (ent->mod == MOD_QUAKE2_HYPERBLASTER && !(ent->s.effects & EF_DESPAWN) &&
+        !other->takeDamage && G_IsStructural(trace)) {
+      const float impact = Vec3_Dot(ent->velocity, trace->plane.normal);
+      const float incidence = Clampf01(-impact / Maxf(Vec3_Length(ent->velocity), 1.f));
+      ent->velocity = Vec3_Scale(Vec3_Fmaf(ent->velocity, -2.f * impact, trace->plane.normal),
+                                1.f - .75f * incidence);
+      ent->s.angles = Vec3_Euler(ent->velocity);
+      ent->moveType = MOVE_TYPE_BOUNCE;
+      ent->s.effects |= EF_DESPAWN;
+      ent->s.animation1 = 255;
+      ent->timestamp = gameLevel.time + 1000;
+      ent->Think = G_Quake2HyperblasterEmber_Think;
+      ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
+      return;
+    }
   }
 
   G_FreeEntity(ent);
@@ -226,7 +257,8 @@ void G_BlasterProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
   projectile->nextThink = gameLevel.time + 8000;
   projectile->Think = G_FreeEntity;
   projectile->Touch = G_BlasterProjectile_Touch;
-  projectile->s.client = G_ProjectileClient(emitter);
+  projectile->s.client = mod == MOD_QUAKE2_BLASTER || mod == MOD_QUAKE2_HYPERBLASTER
+    ? MAX_CLIENTS : G_ProjectileClient(emitter);
   projectile->s.trail = mod == MOD_QUAKE2_HYPERBLASTER ? TRAIL_QUAKE2_HYPERBLASTER : TRAIL_BLASTER;
 
   gi.LinkEntity(projectile);
