@@ -293,11 +293,13 @@ static void G_Use_f(GameClient *cl) {
 
   const char *s = gi.Args();
   const GameItem *it;
+  bool explicitClassname = true;
   
   if (s && *s) {
-    it = G_FindItem(s);
+    it = G_FindItemByClassName(s);
+    explicitClassname = it != NULL;
     if (!it) {
-      it = G_FindItemByClassName(s);
+      it = G_ResolveInventoryItem(cl, s);
     }
   } else {
     it = cl->lastPickup;
@@ -311,9 +313,8 @@ static void G_Use_f(GameClient *cl) {
     return;
   }
 
-  // In Quake item set maps, redirect Quetoo weapon names to their Quake equivalents
-  // so that generic bindings (e.g. "use Rocket Launcher") work across both item sets.
-  if (gameLevel.items == ITEMS_QUAKE && it->def.type == ITEM_TYPE_WEAPON) {
+  // Redirect generic weapon bindings to the active roster.
+  if (!explicitClassname && gameLevel.items != ITEMS_DEFAULT && it->def.type == ITEM_TYPE_WEAPON) {
     const GameItem *mapped = G_MappedWeapon(it);
     if (mapped) {
       it = mapped;

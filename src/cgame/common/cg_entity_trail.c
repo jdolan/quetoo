@@ -283,6 +283,61 @@ static void Cg_BlasterTrail(ClientEntity *ent, const Vec3 start, const Vec3 end)
 }
 
 /**
+ * @brief Renders the Quake II hyperblaster bolt: a glow and a light, shedding bright embers that fall
+ * away from the bolt, bounce on the floor and fade quickly.
+ */
+static void Cg_Quake2HyperblasterTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
+
+  const Vec3 color = Cg_EffectColor(NULL, COLOR_HUE_ORANGE);
+  const bool ember = ent->current.effects & EF_DESPAWN;
+  const float fade = ember ? ent->current.animation1 / 255.f : 1.f;
+  const float spacing = ember ? 4.f : 12.f;
+
+  const int32_t liquid = Cg_TrailContents(start, end) & CONTENTS_MASK_LIQUID;
+  if (liquid) {
+    Cg_BubbleTrail(ent, start, end, 2.f);
+  }
+
+  Vec3 org, forward;
+  const int32_t count = Cg_TrailCount(end, spacing, ent, TRAIL_PRIMARY, &org, &forward);
+
+  for (int32_t i = 0; i < count && !liquid; i++) {
+
+    const uint32_t lifetime = ember ? (uint32_t) Maxf(1.f, 500.f * fade) : RandomRangeu(400, 900);
+
+    if (!Cg_AddSprite(&(CGameSprite) {
+      .atlasImage = cgameMedia.sprites.particle,
+      .lifetime = lifetime,
+      .origin = Vec3_Fmaf(org, i * spacing, forward),
+      .velocity = Vec3_Add(Vec3_Scale(forward, RandomRangef(20.f, 60.f)), Vec3_RandomRange(-24.f, 24.f)),
+      .acceleration.z = -SPRITE_GRAVITY * 3.f,
+      .bounce = ember ? 0.f : .4f,
+      .size = RandomRangef(1.5f, 2.5f) * (ember ? 2.f : 1.f) * fade,
+      .sizeVelocity = -1.f / MILLIS_TO_SECONDS(lifetime),
+      .color = Vec3_Scale(color, 3.f * fade),
+      .endColor = Vec3_Scale(color, ember ? 0.f : .2f),
+      .lighting = .1f,
+    })) {
+      break;
+    }
+  }
+
+  cgi.AddSprite(cgi.view, &(RenderSprite) {
+    .media = (RenderMedia *) cgameMedia.sprites.particle,
+    .origin = end,
+    .size = 8.f * fade,
+    .color = Vec3_Scale(color, fade),
+  });
+
+  Cg_AddLight(&(CGameLight) {
+    .origin = end,
+    .radius = (ember ? 80.f : 200.f) * fade,
+    .color = color,
+    .intensity = 2.5f * fade,
+  });
+}
+
+/**
  * @brief Renders the grenade projectile trail with smoke and a pulsing dynamic light.
  */
 static void Cg_GrenadeTrail(ClientEntity *ent, const Vec3 start, const Vec3 end) {
@@ -1280,6 +1335,9 @@ void Cg_EntityTrail(ClientEntity *ent) {
   switch (s->trail) {
     case TRAIL_BLASTER:
       Cg_BlasterTrail(ent, start, end);
+      break;
+    case TRAIL_QUAKE2_HYPERBLASTER:
+      Cg_Quake2HyperblasterTrail(ent, start, end);
       break;
     case TRAIL_GRENADE:
       Cg_GrenadeTrail(ent, start, end);

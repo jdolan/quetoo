@@ -139,6 +139,7 @@ Cvar *g_fragLimit;
 Cvar *g_friendlyFire;
 Cvar *g_gameplay;
 Cvar *g_movement;
+Cvar *g_items;
 
 // player movement parameters (hydrated into PMoveParams by G_MovementParams)
 Cvar *g_airAcceleration;
@@ -757,6 +758,25 @@ static PMovement G_CoerceMovement(void) {
 }
 
 /**
+ * @brief Resolves latched server item conversion over the level's request.
+ */
+GameItems G_ResolveItems(const char *name) {
+  GameItems items = ITEMS_DEFAULT;
+  if (name && *name && !GameItems_ByName(name, &items)) {
+    G_Warn("Unknown items \"%s\" in this level, using default\n", name);
+  }
+  if (Str_CaseCompare(g_items->string, "default")) {
+    if (!GameItems_ByName(g_items->string, &items)) {
+      G_Warn("Unknown items \"%s\", using %s\n", g_items->string, GameItems_Name(items));
+    }
+    gi.ForceSetCvarString(g_items->name, GameItems_Name(items));
+  }
+  g_items->modified = false;
+  gi.ForceSetCvarString("g_itemsMode", GameItems_Name(items));
+  return items;
+}
+
+/**
  * @brief Resolves the movement for a level that asks for `name`, which may be
  * empty. `g_movement` still wins if the admin named one.
  */
@@ -1335,6 +1355,10 @@ void G_Init(void) {
   g_duckStandSpeed = gi.AddCvar("g_duckStandSpeed", "200.0", 0, "Rate the view rises/falls when standing/ducking. Default 200.0.");
   g_gravity = gi.AddCvar("g_gravity", "default", CVAR_SERVER_INFO, "The world gravity: \"default\" defers to the level, else the movement's.");
   g_movement = gi.AddCvar("g_movement", "default", CVAR_SERVER_INFO, "The player movement to run: \"default\" defers to the level, otherwise a movement name such as \"quetoo\" or \"quake\".");
+  g_items = gi.AddCvar("g_items", "default", CVAR_SERVER_INFO | CVAR_LATCH,
+    "Item conversion: default defers to the level; quetoo, quake or quake2 converts authored items. Applied on full map reload.");
+  gi.AddCvar("g_itemsMode", "", CVAR_SERVER_INFO | CVAR_NO_SET,
+    "The effective item conversion mode. default leaves authored items unchanged.");
   g_groundAcceleration = gi.AddCvar("g_groundAcceleration", "10.0", 0, "Ground acceleration. Default 10.0.");
   g_groundAccelerationSlick = gi.AddCvar("g_groundAccelerationSlick", "4.375", 0, "Ground acceleration on slick surfaces. Default 4.375.");
   g_groundFriction = gi.AddCvar("g_groundFriction", "6.0", 0, "Ground friction. Default 6.0.");

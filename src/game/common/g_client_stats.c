@@ -29,6 +29,30 @@ _Static_assert(MAX_CLIENTS <= 64, "GameWeaponStats::hitClients must have a bit f
 static GameItemTag G_WeaponTagForMod(GameMeansOfDeath mod) {
 
   switch (mod & ~MOD_FRIENDLY_FIRE) {
+    case MOD_QUAKE2_BLASTER:
+      return WEAPON_QUAKE2_BLASTER;
+    case MOD_QUAKE2_SHOTGUN:
+      return WEAPON_QUAKE2_SHOTGUN;
+    case MOD_QUAKE2_SUPER_SHOTGUN:
+      return WEAPON_QUAKE2_SUPER_SHOTGUN;
+    case MOD_QUAKE2_MACHINEGUN:
+      return WEAPON_QUAKE2_MACHINEGUN;
+    case MOD_QUAKE2_CHAINGUN:
+      return WEAPON_QUAKE2_CHAINGUN;
+    case MOD_QUAKE2_HANDGRENADE:
+      return WEAPON_QUAKE2_HAND_GRENADE;
+    case MOD_QUAKE2_GRENADE:
+      return WEAPON_QUAKE2_GRENADE_LAUNCHER;
+    case MOD_QUAKE2_ROCKET:
+      return WEAPON_QUAKE2_ROCKET_LAUNCHER;
+    case MOD_QUAKE2_HYPERBLASTER:
+      return WEAPON_QUAKE2_HYPERBLASTER;
+    case MOD_QUAKE2_RAILGUN:
+      return WEAPON_QUAKE2_RAILGUN;
+    case MOD_QUAKE2_BFG_LASER:
+    case MOD_QUAKE2_BFG_BLAST:
+    case MOD_QUAKE2_BFG_EFFECT:
+      return WEAPON_QUAKE2_BFG;
     case MOD_BLASTER:
       return WEAPON_BLASTER;
     case MOD_SHOTGUN:
@@ -150,7 +174,16 @@ void G_ClientDamageStats(const GameEntity *attacker, const GameEntity *target, i
 
   stats->damage += damage;
 
-  if (damage <= 0 || (mod & ~MOD_FRIENDLY_FIRE) == MOD_BFG_LASER) {
+  switch (mod & ~MOD_FRIENDLY_FIRE) {
+    case MOD_BFG_LASER:
+    case MOD_QUAKE2_BFG_LASER:
+    case MOD_QUAKE2_BFG_EFFECT:
+      return;
+    default:
+      break;
+  }
+
+  if (damage <= 0) {
     return;
   }
 

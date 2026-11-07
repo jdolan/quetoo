@@ -150,6 +150,21 @@ static void G_BulletImpact(const CollisionTrace *trace) {
 }
 
 /**
+ * @brief Fades the ricochet ember while keeping its collision and damage active.
+ */
+static void G_Quake2HyperblasterEmber_Think(GameEntity *ent) {
+
+  if (gameLevel.time >= ent->timestamp) {
+    G_FreeEntity(ent);
+    return;
+  }
+
+  // animation1 carries the remaining ember brightness, independent of client visibility.
+  ent->s.animation1 = 255 * (ent->timestamp - gameLevel.time) / 1000;
+  ent->nextThink = (uint32_t) Minui64(ent->timestamp, gameLevel.time + QUETOO_TICK_MILLIS);
+}
+
+/**
  * @brief Touch callback for the blaster projectile; deals energy damage and emits an impact effect.
  */
 static void G_BlasterProjectile_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
@@ -184,11 +199,28 @@ static void G_BlasterProjectile_Touch(GameEntity *ent, GameEntity *other, const 
     if (G_IsStructural(trace)) {
 
       gi.WriteByte(SV_CMD_TEMP_ENTITY);
-      gi.WriteByte(TE_BLASTER);
+      gi.WriteByte(ent->mod == MOD_QUAKE2_BLASTER ? TE_QUAKE2_BLASTER :
+                   ent->mod == MOD_QUAKE2_HYPERBLASTER ? TE_QUAKE2_HYPERBLASTER : TE_BLASTER);
       gi.WritePosition(ent->s.origin);
       gi.WriteDir(trace->plane.normal);
       gi.WriteByte(ent->owner->s.client);
       gi.Multicast(ent->s.origin, MULTICAST_PHS);
+    }
+
+    if (ent->mod == MOD_QUAKE2_HYPERBLASTER && !(ent->s.effects & EF_DESPAWN) &&
+        !other->takeDamage && G_IsStructural(trace)) {
+      const float impact = Vec3_Dot(ent->velocity, trace->plane.normal);
+      const float incidence = Clampf01(-impact / Maxf(Vec3_Length(ent->velocity), 1.f));
+      ent->velocity = Vec3_Scale(Vec3_Fmaf(ent->velocity, -2.f * impact, trace->plane.normal),
+                                1.f - .75f * incidence);
+      ent->s.angles = Vec3_Euler(ent->velocity);
+      ent->moveType = MOVE_TYPE_BOUNCE;
+      ent->s.effects |= EF_DESPAWN;
+      ent->s.animation1 = 255;
+      ent->timestamp = gameLevel.time + 1000;
+      ent->Think = G_Quake2HyperblasterEmber_Think;
+      ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS;
+      return;
     }
   }
 
@@ -225,8 +257,9 @@ void G_BlasterProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
   projectile->nextThink = gameLevel.time + 8000;
   projectile->Think = G_FreeEntity;
   projectile->Touch = G_BlasterProjectile_Touch;
-  projectile->s.client = G_ProjectileClient(emitter);
-  projectile->s.trail = TRAIL_BLASTER;
+  projectile->s.client = mod == MOD_QUAKE2_BLASTER || mod == MOD_QUAKE2_HYPERBLASTER
+    ? MAX_CLIENTS : G_ProjectileClient(emitter);
+  projectile->s.trail = mod == MOD_QUAKE2_HYPERBLASTER ? TRAIL_QUAKE2_HYPERBLASTER : TRAIL_BLASTER;
 
   gi.LinkEntity(projectile);
 }
@@ -425,7 +458,7 @@ static void G_GrenadeProjectile_Explode(GameEntity *ent) {
   G_RadiusDamage(ent, ent->owner, ent->enemy, ent->damage, ent->knockback, ent->damageRadius, mod);
 
   gi.WriteByte(SV_CMD_TEMP_ENTITY);
-  gi.WriteByte(TE_EXPLOSION);
+  gi.WriteByte(mod == MOD_QUAKE2_GRENADE || mod == MOD_QUAKE2_HANDGRENADE ? TE_QUAKE2_GRENADE_EXPLOSION : TE_EXPLOSION);
   gi.WritePosition(ent->s.origin);
   gi.WriteDir(Vec3_Up());
   gi.Multicast(ent->s.origin, MULTICAST_PHS);
@@ -531,10 +564,13 @@ void G_GrenadeProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
   Vec3_Vectors(projectile->s.angles, &forward, &right, &up);
   projectile->velocity = Vec3_Scale(dir, speed);
 
-  projectile->velocity = Vec3_Fmaf(projectile->velocity, RandomRangef(90.f, 110.f), up);
+  projectile->velocity = Vec3_Fmaf(projectile->velocity,
+    mod == MOD_QUAKE2_GRENADE ? RandomRangef(190.f, 210.f) : RandomRangef(90.f, 110.f), up);
   projectile->velocity = Vec3_Fmaf(projectile->velocity, RandomRangef(-10.f, 10.f), right);
 
-  G_PlayerProjectile(projectile, 0.33);
+  if (mod != MOD_QUAKE2_GRENADE) {
+    G_PlayerProjectile(projectile, 0.33);
+  }
 
   projectile->solid = SOLID_PROJECTILE;
   projectile->mass = 75.f;
@@ -554,7 +590,7 @@ void G_GrenadeProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
   projectile->hitSound = gameMedia.sounds.grenadeHit;
   projectile->s.client = G_ProjectileClient(emitter);
   projectile->s.trail = TRAIL_GRENADE;
-  projectile->s.model1 = gameMedia.models.grenade;
+  projectile->s.model1 = mod == MOD_QUAKE2_GRENADE ? gameMedia.models.quake2Grenade : gameMedia.models.grenade;
 
   if (G_ImmediateImpact(emitter, projectile)) {
     return;
@@ -631,7 +667,9 @@ void G_HandGrenadeProjectile(GameEntity *ent, GameEntity *projectile, Vec3 const
   projectile->velocity = Vec3_Fmaf(projectile->velocity, RandomRangef(-10.f, 10.f), right);
 
   // add some of the player's velocity to the projectile
-  G_PlayerProjectile(projectile, 0.33);
+  if (projectile->mod != MOD_QUAKE2_HANDGRENADE) {
+    G_PlayerProjectile(projectile, 0.33);
+  }
 
   projectile->spawnFlags = HAND_GRENADE;
 
@@ -703,10 +741,12 @@ static void G_RocketProjectile_Touch(GameEntity *ent, GameEntity *other, const C
         .mod = directMod
       });
 
-      G_RadiusDamage(ent, ent->owner, other, ent->damage, ent->knockback, ent->damageRadius, splashMod);
+      const bool quake2 = ent->mod == MOD_QUAKE2_ROCKET;
+      G_RadiusDamage(ent, ent->owner, other, quake2 ? 120 : ent->damage,
+                     quake2 ? 120 : ent->knockback, ent->damageRadius, splashMod);
 
       gi.WriteByte(SV_CMD_TEMP_ENTITY);
-      gi.WriteByte(TE_EXPLOSION);
+      gi.WriteByte(quake2 ? TE_QUAKE2_ROCKET_EXPLOSION : TE_EXPLOSION);
       gi.WritePosition(ent->s.origin);
       gi.WriteDir(trace->plane.normal);
       gi.Multicast(ent->s.origin, MULTICAST_PHS);
@@ -1328,11 +1368,17 @@ void G_RailgunProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
 
   // send rail trail
   gi.WriteByte(SV_CMD_TEMP_ENTITY);
-  gi.WriteByte(TE_RAIL);
-  gi.WritePosition(start);
-  gi.WritePosition(tr.end);
-  gi.WriteDir(tr.plane.normal);
-  gi.WriteLong(tr.surface);
+  if (mod == MOD_QUAKE2_RAILGUN) {
+    gi.WriteByte(TE_QUAKE2_RAIL);
+    gi.WritePosition(start);
+    gi.WritePosition(tr.end);
+  } else {
+    gi.WriteByte(TE_RAIL);
+    gi.WritePosition(start);
+    gi.WritePosition(tr.end);
+    gi.WriteDir(tr.plane.normal);
+    gi.WriteLong(tr.surface);
+  }
   gi.WriteByte(emitter->s.client);
 
   gi.Multicast(start, MULTICAST_PHS);
@@ -1481,3 +1527,219 @@ void G_BfgProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start
   gi.LinkEntity(projectile);
 }
 
+/**
+ * @brief The Quake II BFG's delayed blast: every damageable entity within its radius that can see
+ * both the explosion and its owner takes damage falling off with the square root of its distance.
+ */
+static void G_Quake2BfgProjectile_Explode(GameEntity *ent) {
+
+  G_ForEachEntity(other, {
+
+    if (other == ent || other == ent->owner || !other->takeDamage) {
+      continue;
+    }
+
+    if (!G_CanDamage(other, ent)) {
+      continue;
+    }
+
+    if (ent->owner && ent->owner->inUse && !G_CanDamage(other, ent->owner)) {
+      continue;
+    }
+
+    const Vec3 center = Box3_Center(other->absBounds);
+    const Vec3 dir = Vec3_Subtract(center, ent->s.origin);
+    const float dist = Vec3_Length(dir);
+
+    if (dist > ent->damageRadius) {
+      continue;
+    }
+
+    const int32_t damage = ent->damage * (1.f - sqrtf(dist / ent->damageRadius));
+
+    gi.WriteByte(SV_CMD_TEMP_ENTITY);
+    gi.WriteByte(TE_QUAKE2_BFG_EXPLOSION);
+    gi.WritePosition(other->s.origin);
+    gi.Multicast(other->s.origin, MULTICAST_PHS);
+
+    G_Damage(&(GameDamage) {
+      .target = other,
+      .inflictor = ent,
+      .attacker = ent->owner,
+      .dir = dir,
+      .point = other->s.origin,
+      .normal = Vec3_Zero(),
+      .damage = damage,
+      .knockback = 0,
+      .flags = DMG_ENERGY,
+      .mod = MOD_QUAKE2_BFG_EFFECT
+    });
+  });
+
+  G_FreeEntity(ent);
+}
+
+/**
+ * @brief Touch callback for the Quake II BFG projectile. The ball deals its core damage and a small
+ * radius blast, then lingers for one Quake II frame before the delayed line-of-sight blast.
+ */
+static void G_Quake2BfgProjectile_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
+
+  if (other == ent->owner) {
+    return;
+  }
+
+  if (other->solid < SOLID_DEAD) {
+    return;
+  }
+
+  if (trace == NULL) {
+    return;
+  }
+
+  if (G_IsSky(trace)) {
+    G_FreeEntity(ent);
+    return;
+  }
+
+  G_Damage(&(GameDamage) {
+    .target = other,
+    .inflictor = ent,
+    .attacker = ent->owner,
+    .dir = ent->velocity,
+    .point = ent->s.origin,
+    .normal = trace->plane.normal,
+    .damage = QUAKE2_BFG_DAMAGE,
+    .knockback = 0,
+    .flags = DMG_ENERGY,
+    .mod = MOD_QUAKE2_BFG_BLAST
+  });
+
+  G_RadiusDamage(ent, ent->owner, other, QUAKE2_BFG_DAMAGE, QUAKE2_BFG_DAMAGE, QUAKE2_BFG_BLAST_RADIUS,
+                 MOD_QUAKE2_BFG_BLAST);
+
+  // back away from the surface by a Quake II frame of flight, as bfg_touch does
+  const Vec3 back = Vec3_Fmaf(ent->s.origin, -0.1f, ent->velocity);
+  const CollisionTrace tr = gi.Trace(ent->s.origin, back, Box3_Zero(), ent, CONTENTS_MASK_SOLID);
+  ent->s.origin = tr.end;
+
+  gi.WriteByte(SV_CMD_TEMP_ENTITY);
+  gi.WriteByte(TE_QUAKE2_BFG_BIGEXPLOSION);
+  gi.WritePosition(ent->s.origin);
+  gi.Multicast(ent->s.origin, MULTICAST_PHS);
+
+  ent->solid = SOLID_NOT;
+  ent->moveType = MOVE_TYPE_NONE;
+  ent->velocity = Vec3_Zero();
+  ent->Touch = NULL;
+  ent->s.sound = 0;
+  ent->s.trail = TRAIL_NONE;
+  ent->serverFlags |= SVF_NO_CLIENT;
+  ent->Think = G_Quake2BfgProjectile_Explode;
+  ent->nextThink = gameLevel.time + 100;
+
+  gi.LinkEntity(ent);
+}
+
+/**
+ * @brief Think callback for the Quake II BFG projectile. Every Quake II frame, it fires a laser at
+ * each player within range. The laser passes through players, damaging each, and ends at the first
+ * thing that is not a player.
+ */
+static void G_Quake2BfgProjectile_Think(GameEntity *ent) {
+
+  if (gameLevel.time >= ent->timestamp) {
+    G_FreeEntity(ent);
+    return;
+  }
+
+  G_ForEachEntity(other, {
+
+    if (other == ent || other == ent->owner || !other->client || !other->takeDamage) {
+      continue;
+    }
+
+    const Vec3 center = Box3_Center(other->absBounds);
+    if (Vec3_Distance(center, ent->s.origin) > QUAKE2_BFG_LASER_RADIUS) {
+      continue;
+    }
+
+    const Vec3 dir = Vec3_Normalize(Vec3_Subtract(center, ent->s.origin));
+    const Vec3 end = Vec3_Fmaf(ent->s.origin, 2048.f, dir);
+
+    Vec3 start = ent->s.origin;
+    GameEntity *ignore = ent;
+    CollisionTrace tr;
+
+    for (int32_t pierced = 0; pierced <= MAX_CLIENTS; pierced++) {
+      tr = gi.Trace(start, end, Box3_Zero(), ignore, CONTENTS_MASK_CLIP_PROJECTILE);
+      GameEntity *hit = tr.ent;
+      if (!hit) {
+        break;
+      }
+
+      if (hit->takeDamage && hit != ent->owner) {
+        G_Damage(&(GameDamage) {
+          .target = hit,
+          .inflictor = ent,
+          .attacker = ent->owner,
+          .dir = dir,
+          .point = tr.end,
+          .normal = Vec3_Zero(),
+          .damage = QUAKE2_BFG_LASER_DAMAGE,
+          .knockback = 1,
+          .flags = DMG_ENERGY,
+          .mod = MOD_QUAKE2_BFG_LASER
+        });
+      }
+
+      if (!hit->client || tr.fraction == 1.f) {
+        break;
+      }
+
+      ignore = hit;
+      start = tr.end;
+    }
+
+    gi.WriteByte(SV_CMD_TEMP_ENTITY);
+    gi.WriteByte(TE_QUAKE2_BFG_LASER);
+    gi.WriteShort(ent->s.number);
+    gi.WritePosition(tr.end);
+    gi.Multicast(ent->s.origin, MULTICAST_PHS);
+  });
+
+  ent->nextThink = gameLevel.time + 100;
+}
+
+/**
+ * @brief Fires a Quake II BFG9000 ball, which lasers nearby players in flight, and on impact deals
+ * a direct and radius blast followed by a delayed line-of-sight blast.
+ */
+void G_Quake2BfgProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start, const Vec3 dir) {
+
+  GameEntity *projectile = G_AllocEntity(__func__);
+  projectile->owner = attacker;
+  projectile->mod = MOD_QUAKE2_BFG_BLAST;
+
+  projectile->s.origin = start;
+  projectile->bounds = Box3_Zero();
+  projectile->velocity = Vec3_Scale(dir, QUAKE2_BFG_SPEED);
+
+  projectile->solid = SOLID_PROJECTILE;
+  projectile->clipMask = CONTENTS_MASK_CLIP_PROJECTILE;
+  projectile->damage = QUAKE2_BFG_DAMAGE;
+  projectile->damageRadius = QUAKE2_BFG_RADIUS;
+  projectile->moveType = MOVE_TYPE_FLY;
+  projectile->nextThink = gameLevel.time + 100;
+  projectile->timestamp = gameLevel.time + 8000 * 1000 / QUAKE2_BFG_SPEED;
+  projectile->Think = G_Quake2BfgProjectile_Think;
+  projectile->Touch = G_Quake2BfgProjectile_Touch;
+  projectile->s.client = G_ProjectileClient(emitter);
+  projectile->s.trail = TRAIL_BFG;
+
+  if (G_ImmediateImpact(emitter, projectile)) {
+    return;
+  }
+
+  gi.LinkEntity(projectile);
+}

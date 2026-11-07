@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Computes a player model's visual bounding box in its standing (idle) pose,
-and derives the uniform scale + translate needed in world.cfg/link.cfg to
+and derives the uniform scale + translate needed in model.cfg to
 normalize a third-party player model to Quetoo's reference player model,
 qforcer (see src/game/common/bg_pmove.c's PM_BOUNDS for the underlying
 collision hitbox both are meant to roughly fill).
@@ -15,8 +15,8 @@ Two separate measurements are combined:
     LEGS_IDLE + TORSO_STAND1/2 pose): used to measure the total standing
     height, feet to head-top.
 
-world.cfg (applied to the root "legs" entity) gets both the translate and
-the scale; link.cfg (applied to the "torso"/"head" child entities, in their
+The world block (applied to the root "legs" entity) gets both the translate and
+the scale; the link block (applied to the "torso"/"head" child entities, in their
 own local space before being attached via tag) gets only the same scale, so
 the whole hierarchy scales uniformly without perturbing the tag attachments.
 """
@@ -256,20 +256,23 @@ def compute_normalization(reference: PlayerBounds, model: PlayerBounds) -> tuple
   return scale, translate
 
 
-def write_mesh_config(path: Path, translate: Vec3 | None, scale: float | None):
+def write_mesh_config(path: Path, mode: str, translate: Vec3 | None, scale: float | None):
+  from objfu import replace_model_section
+
   lines = []
   if translate is not None:
     lines.append(f'translate "{translate[0]:.3f} {translate[1]:.3f} {translate[2]:.3f}"')
   if scale is not None:
     lines.append(f'scale "{scale:.4f}"')
-  path.write_text("\n".join(lines) + "\n")
+  text = path.read_text() if path.exists() else ""
+  path.write_text(replace_model_section(text, mode, "\n".join(lines)))
 
 
 def main():
   parser = argparse.ArgumentParser(description=__doc__)
   parser.add_argument("model_dirs", nargs="+", type=Path, help="players/<model> directories")
   parser.add_argument("--reference", type=Path, help="reference model directory (default: qforcer, alongside the first model_dir's players/ root)")
-  parser.add_argument("--write", action="store_true", help="write world.cfg/link.cfg into each model directory")
+  parser.add_argument("--write", action="store_true", help="update world/link blocks in each model.cfg")
   parser.add_argument("--epsilon", type=float, default=0.02, help="skip writing configs if scale is within this fraction of 1.0 and translate is within 1 unit")
   args = parser.parse_args()
 
@@ -294,9 +297,9 @@ def main():
     if identity:
       print("  (close enough to reference; no config needed)")
     elif args.write:
-      write_mesh_config(model_dir / "world.cfg", translate, scale)
-      write_mesh_config(model_dir / "link.cfg", None, scale)
-      print(f"  wrote {model_dir / 'world.cfg'} and {model_dir / 'link.cfg'}")
+      write_mesh_config(model_dir / "model.cfg", "world", translate, scale)
+      write_mesh_config(model_dir / "model.cfg", "link", None, scale)
+      print(f"  wrote {model_dir / 'model.cfg'}")
     print()
 
 

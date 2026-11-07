@@ -264,7 +264,41 @@ static void Cg_WeaponKick(const PMoveCmd *cmd) {
         degrees = 5.0;
         break;
       case WEAPON_BFG10K:
+      case WEAPON_QUAKE2_BFG:
         degrees = 20.0;
+        break;
+      case WEAPON_QUAKE2_BLASTER:
+        degrees = 1.0;
+        break;
+      case WEAPON_QUAKE2_SHOTGUN:
+        degrees = 1.5;
+        break;
+      case WEAPON_QUAKE2_SUPER_SHOTGUN:
+        degrees = 2.5;
+        break;
+      case WEAPON_QUAKE2_MACHINEGUN:
+        degrees = 6.0;
+        interval = 1372.0;
+        break;
+      case WEAPON_QUAKE2_CHAINGUN:
+        degrees = 4.0;
+        interval = 1176.0;
+        break;
+      case WEAPON_QUAKE2_HAND_GRENADE:
+        degrees = 2.0;
+        break;
+      case WEAPON_QUAKE2_GRENADE_LAUNCHER:
+        degrees = 2.6;
+        break;
+      case WEAPON_QUAKE2_ROCKET_LAUNCHER:
+        degrees = 2.4;
+        break;
+      case WEAPON_QUAKE2_HYPERBLASTER:
+        degrees = 5.0;
+        interval = 1176.0;
+        break;
+      case WEAPON_QUAKE2_RAILGUN:
+        degrees = 5.0;
         break;
       default:
         return;

@@ -255,9 +255,11 @@ static bool G_Ai_IsMapControlItem(const GameItem *item) {
     case ITEM_TYPE_POWERUP:
       return true;
     case ITEM_TYPE_HEALTH:
-      return item->def.tag == HEALTH_MEGA || item->def.tag == HEALTH_QUAKE_MEGA;
+      return item->def.tag == HEALTH_MEGA || item->def.tag == HEALTH_QUAKE_MEGA ||
+             item->def.tag == HEALTH_QUAKE2_MEGA;
     case ITEM_TYPE_ARMOR:
-      return item->def.tag == ARMOR_BODY || item->def.tag == ARMOR_QUAKE_BODY;
+      return item->def.tag == ARMOR_BODY || item->def.tag == ARMOR_QUAKE_BODY ||
+             item->def.tag == ARMOR_QUAKE2_BODY;
     default:
       return false;
   }

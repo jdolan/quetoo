@@ -124,6 +124,9 @@ void Cg_LoadMedia(void) {
   cgameMedia.sounds.quakeGrenadelauncherFire = cgi.LoadSample("weapons/quake_grenadelauncher/fire", ASSET_CONTEXT_SOUNDS);
   cgameMedia.sounds.quakeRocketlauncherFire = cgi.LoadSample("weapons/quake_rocketlauncher/fire", ASSET_CONTEXT_SOUNDS);
 
+  cgameMedia.sounds.quake2ShotgunFire = cgi.LoadSample("weapons/quake2_shotgun/fire", ASSET_CONTEXT_SOUNDS);
+  cgameMedia.sounds.quake2HyperblasterFire = cgi.LoadSample("weapons/quake2_hyperblaster/fire", ASSET_CONTEXT_SOUNDS);
+
   cgameMedia.sounds.explosion = cgi.LoadSample("weapons/common/explosion", ASSET_CONTEXT_SOUNDS);
   cgameMedia.sounds.teleport = cgi.LoadSample("misc/teleport", ASSET_CONTEXT_SOUNDS);
   cgameMedia.sounds.respawn = cgi.LoadSample("misc/respawn", ASSET_CONTEXT_SOUNDS);
@@ -144,6 +147,11 @@ void Cg_LoadMedia(void) {
   for (uint32_t i = 0; i < lengthof(cgameMedia.sounds.machinegunFire); i++) {
     Str_Format(name, sizeof(name), "weapons/machinegun/fire_%" PRIu32, i + 1);
     cgameMedia.sounds.machinegunFire[i] = cgi.LoadSample(name, ASSET_CONTEXT_SOUNDS);
+  }
+
+  for (uint32_t i = 0; i < lengthof(cgameMedia.sounds.quake2MachinegunFire); i++) {
+    Str_Format(name, sizeof(name), "weapons/quake2_machinegun/fire_%" PRIu32, i + 1);
+    cgameMedia.sounds.quake2MachinegunFire[i] = cgi.LoadSample(name, ASSET_CONTEXT_SOUNDS);
   }
 
   for (uint32_t i = 0; i < lengthof(cgameMedia.sounds.machinegunHit); i++) {

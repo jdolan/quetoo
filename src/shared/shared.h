@@ -51,6 +51,10 @@
 
 #define MAX_CONFIG_STRINGS (CS_GAME + MAX_GAME_CONFIG_STRINGS)
 
+static_assert(MAX_CONFIG_STRINGS <= INT16_MAX, "Config strings exceed their wire index");
+static_assert(MAX_MODELS <= INT16_MAX && MAX_SOUNDS <= INT16_MAX && MAX_IMAGES <= INT16_MAX,
+              "Media registries exceed their wire indices");
+
 /**
  * @brief Entity animation sequences (player animations) are dictated by the
  * game module but are run (interpolated) by the client game.
@@ -208,7 +212,7 @@ typedef struct {
   /**
    * @brief Precached model indexes (primary and up to three linked models).
    */
-  uint8_t model1, model2, model3, model4;
+  uint16_t model1, model2, model3, model4;
 
   /**
    * @brief Entity tint color.
@@ -223,7 +227,7 @@ typedef struct {
   /**
    * @brief Ambient looping sound index.
    */
-  uint8_t sound;
+  uint16_t sound;
 
   /**
    * @brief Solid type; determines which entities the client will predict collisions against.
@@ -352,7 +356,10 @@ typedef struct {
 /**
  * @brief The number of inventory slots in `PlayerState`. Must match `ITEM_TOTAL` in `bg_item`.h`.
  */
-#define MAX_INVENTORY 64
+#define MAX_INVENTORY 256
+
+static_assert(MAX_INVENTORY % 64 == 0 && MAX_INVENTORY <= 256,
+              "Inventory must fit its delta mask blocks and byte-sized item tags");
 
 /**
  * @brief Player state structures contain authoritative snapshots of the

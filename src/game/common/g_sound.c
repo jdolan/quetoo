@@ -49,7 +49,7 @@ static void G_Sound(const GamePlaySound *play) {
 
   gi.WriteByte(SV_CMD_SOUND);
   gi.WriteByte(flags);
-  gi.WriteByte(play->index);
+  gi.WriteShort(play->index);
 
   if (flags & SOUND_ENTITY) {
     gi.WriteShort(play->entity->s.number);

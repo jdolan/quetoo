@@ -94,7 +94,7 @@ static void Cg_EntityEffects_Common(ClientEntity *ent, RenderEntity *e) {
   e->effects = ent->current.effects;
 
   if (e->effects & EF_ROTATE) {
-    const float rotate = cgi.client->unclampedTime;
+    const float rotate = cgi.client->unclampedTime * .333f;
     e->angles.y = cg_entityRotate->value * rotate / M_PI;
   }
 

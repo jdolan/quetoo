@@ -97,24 +97,33 @@ static void G_ClientObituary(GameClient *cl, GameEntity *attacker, uint32_t mod)
     const char *msg = "%s was killed by %s";
 
     switch (mod) {
+      case MOD_QUAKE2_BLASTER:
       case MOD_BLASTER:
         msg = "%s was humiliated by %s's blaster :blaster:";
         break;
+      case MOD_QUAKE2_SHOTGUN:
       case MOD_SHOTGUN:
         msg = "%s was gunned down by %s's shotgun :shotgun:";
         break;
+      case MOD_QUAKE2_SUPER_SHOTGUN:
       case MOD_SUPER_SHOTGUN:
         msg = "%s was blown away by %s's super shotgun :sshotgun:";
         break;
+      case MOD_QUAKE2_CHAINGUN:
+        msg = "%s was perforated by %s's chaingun :machinegun:";
+        break;
+      case MOD_QUAKE2_MACHINEGUN:
       case MOD_MACHINEGUN:
         msg = "%s was perforated by %s's machinegun :machinegun:";
         break;
+      case MOD_QUAKE2_GRENADE:
       case MOD_GRENADE:
         msg = "%s was popped by %s's grenade :grenade:";
         break;
       case MOD_GRENADE_SPLASH:
         msg = "%s was shredded by %s's shrapnel :grenade:";
         break;
+      case MOD_QUAKE2_HANDGRENADE:
       case MOD_HANDGRENADE:
         msg = "%s caught %s's handgrenade :handgrenade:";
         break;
@@ -124,12 +133,14 @@ static void G_ClientObituary(GameClient *cl, GameEntity *attacker, uint32_t mod)
       case MOD_HANDGRENADE_KAMIKAZE:
         msg = "%s felt %s's pain :handgrenade:";
         break;
+      case MOD_QUAKE2_ROCKET:
       case MOD_ROCKET:
         msg = "%s ate %s's rocket :rocket:";
         break;
       case MOD_ROCKET_SPLASH:
         msg = "%s almost dodged %s's rocket :rocket:";
         break;
+      case MOD_QUAKE2_HYPERBLASTER:
       case MOD_HYPERBLASTER:
         msg = "%s was melted by %s's hyperblaster :hyperblaster:";
         break;
@@ -139,12 +150,18 @@ static void G_ClientObituary(GameClient *cl, GameEntity *attacker, uint32_t mod)
       case MOD_LIGHTNING_DISCHARGE:
         msg = "%s was shocked by %s's discharge :lightning:";
         break;
+      case MOD_QUAKE2_RAILGUN:
       case MOD_RAILGUN:
         msg = "%s was railed by %s :railgun:";
         break;
+      case MOD_QUAKE2_BFG_LASER:
       case MOD_BFG_LASER:
         msg = "%s saw the pretty lights from %s's BFG :bfg:";
         break;
+      case MOD_QUAKE2_BFG_EFFECT:
+        msg = "%s couldn't hide from %s's BFG :bfg:";
+        break;
+      case MOD_QUAKE2_BFG_BLAST:
       case MOD_BFG_BLAST:
         msg = "%s was disintegrated by %s's BFG blast :bfg:";
         break;
@@ -391,6 +408,7 @@ static void G_ClientObituary(GameClient *cl, GameEntity *attacker, uint32_t mod)
         case MOD_LIGHTNING_DISCHARGE:
           msg = "%s took a toaster bath :death:";
           break;
+        case MOD_QUAKE2_BFG_BLAST:
         case MOD_BFG_BLAST:
           msg = "%s should have used a smaller gun :death:";
           break;
@@ -977,7 +995,7 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
         0,            // how fast it flies
         120,          // damage dealt
         120,          // knockback
-        240.0,          // blast radius
+        cl->heldGrenade->mod == MOD_QUAKE2_HANDGRENADE ? 160.f : 240.f, // blast radius
         Clampf(3000 - (int32_t) (gameLevel.time - nadeHoldTime), 1, 3000) // time before explode (next think)
     );
   }
@@ -1123,19 +1141,23 @@ static void G_Give(GameClient *cl, char *it, int16_t quantity) {
 static void G_InitInventory_Common(GameClient *cl) {
   const GameItem *item;
 
-  // instagib gets railgun and slugs, both in normal mode and warmup
+  // instagib gets the railgun role, both in normal mode and warmup
   if ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB) {
     G_Give(cl, "Railgun", 1);
-    G_Give(cl, "Grenades", 1);
-    item = &gameItems[WEAPON_RAILGUN];
+    if (G_FindItem("Grenades")) {
+      G_Give(cl, "Grenades", 1);
+    }
+    item = G_FindItem("Railgun");
   }
   // arena yields all weapons, health, etc..
   else if ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_ARENA) {
     G_Give(cl, "Railgun", 50);
-    G_Give(cl, "Lightning Gun", 200);
+    G_Give(cl, gameLevel.items == ITEMS_QUAKE2 ? "Chaingun" : "Lightning Gun", 200);
     G_Give(cl, "Hyperblaster", 200);
     G_Give(cl, "Rocket Launcher", 50);
-    G_Give(cl, "Hand Grenades", 1);
+    if (G_FindItem("Hand Grenades")) {
+      G_Give(cl, "Hand Grenades", 1);
+    }
     G_Give(cl, "Grenade Launcher", 50);
     G_Give(cl, "Machinegun", 200);
     G_Give(cl, "Super Shotgun", 80);
@@ -1144,7 +1166,7 @@ static void G_InitInventory_Common(GameClient *cl) {
 
     G_Give(cl, "Body Armor", -1);
 
-    item = &gameItems[WEAPON_ROCKET_LAUNCHER];
+    item = G_FindItem("Rocket Launcher");
   }
   // dm gets the blaster, or the quake shotgun + shells in quake item sets
   else if (gameLevel.items == ITEMS_QUAKE) {
@@ -1152,7 +1174,7 @@ static void G_InitInventory_Common(GameClient *cl) {
     item = &gameItems[WEAPON_QUAKE_SHOTGUN];
   } else {
     G_Give(cl, "Blaster", -1);
-    item = &gameItems[WEAPON_BLASTER];
+    item = &gameItems[gameLevel.items == ITEMS_QUAKE2 ? WEAPON_QUAKE2_BLASTER : WEAPON_BLASTER];
   }
 
   G_UseWeapon(cl, item);

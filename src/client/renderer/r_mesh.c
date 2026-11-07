@@ -29,16 +29,29 @@ void R_ApplyMeshConfig(RenderEntity *e) {
   assert(IS_MESH_MODEL(e->model));
 
   const RenderMeshConfig *c;
+  float lateralScale = 1.f;
   
   if (e->parent) {
     c = &e->model->mesh->config.link;
   } else if (e->effects & EF_WEAPON) {
     c = &e->model->mesh->config.view;
+    switch (Cvar_GetInteger("hand")) {
+      case 1:
+        break;
+      case 2:
+        lateralScale = -1.f;
+        break;
+      default:
+        lateralScale = 0.f;
+        break;
+    }
   } else {
     c = &e->model->mesh->config.world;
   }
 
-  e->matrix = Mat4_Concat(e->matrix, c->transform);
+  Mat4 transform = c->transform;
+  transform.m[3][1] *= lateralScale;
+  e->matrix = Mat4_Concat(e->matrix, transform);
 }
 
 /**

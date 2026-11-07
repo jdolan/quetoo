@@ -23,6 +23,7 @@
 
 #include "collision/entity.h"
 #include "game/race/g_race.h"
+#include "game/common/bg_game.h"
 
 /**
  * @file
@@ -372,6 +373,31 @@ START_TEST(check_G_Race_Line_BspMismatchRejected) {
 
 } END_TEST
 
+START_TEST(check_GameItems_Conversion) {
+  for (GameItemTag tag = WEAPON_FIRST; tag < ITEM_TOTAL; tag++) {
+    ck_assert_int_eq(GameItems_MapTag(ITEMS_DEFAULT, tag), tag);
+    for (GameItems mode = ITEMS_QUAKE; mode <= ITEMS_QUETOO; mode++) {
+      const GameItemTag mapped = GameItems_MapTag(mode, tag);
+      ck_assert_int_eq(GameItems_MapTag(mode, mapped), mapped);
+    }
+  }
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUAKE2, WEAPON_LIGHTNING), WEAPON_QUAKE2_CHAINGUN);
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUETOO, WEAPON_QUAKE_THUNDERBOLT), WEAPON_LIGHTNING);
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUAKE, WEAPON_BFG10K), ITEM_NONE);
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUAKE, WEAPON_QUAKE2_HAND_GRENADE), ITEM_NONE);
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUAKE, HEALTH_QUAKE2_SMALL), ITEM_NONE);
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUAKE2, AMMO_QUAKE_BOLTS), AMMO_QUAKE2_BULLETS);
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUETOO, HEALTH_QUAKE2_MEGA), HEALTH_MEGA);
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUAKE2, ARMOR_QUAKE_BODY), ARMOR_QUAKE2_BODY);
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUAKE, POWERUP_QUAD), POWERUP_QUAD);
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUAKE2, POWERUP_ADRENALINE), POWERUP_ADRENALINE);
+  GameItems mode = ITEMS_DEFAULT;
+  ck_assert(GameItems_ByName("QUETOO", &mode));
+  ck_assert_int_eq(mode, ITEMS_QUETOO);
+  ck_assert(!GameItems_ByName("missing", &mode));
+  ck_assert_int_eq(mode, ITEMS_QUETOO);
+} END_TEST
+
 /**
  * @brief Test entry point.
  */
@@ -387,6 +413,7 @@ int32_t main(int32_t argc, char **argv) {
   tcase_add_test(tcase, check_G_Race_Records_MalformedSkipped);
   tcase_add_test(tcase, check_G_Race_Line_RoundTrip);
   tcase_add_test(tcase, check_G_Race_Line_BspMismatchRejected);
+  tcase_add_test(tcase, check_GameItems_Conversion);
 
   Suite *suite = suite_create("check_race");
   suite_add_tcase(suite, tcase);

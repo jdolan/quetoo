@@ -4,13 +4,16 @@ EXTRA_DIST = \
 	ai_profile.py \
 	tools-env.sh \
 	matfu.py \
+	test_matfu.py \
 	unpak.py \
 	mdl2obj.py \
 	md22obj.py \
 	md32obj.py \
+	test_md32obj.py \
 	md3.py \
 	md3fu.py \
 	objfu.py \
+	test_objfu.py \
 	playerfu.py \
  	pyproject.toml \
 	skyfu.py \

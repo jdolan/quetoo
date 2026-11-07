@@ -77,7 +77,8 @@ static void updateBindings(View *self, ident data) {
 
   switch (this->item) {
     case ItemTimerViewMega:
-      item = cgameState.items == ITEMS_QUAKE ? HEALTH_QUAKE_MEGA : HEALTH_MEGA;
+      item = cgameState.items == ITEMS_QUAKE2 ? HEALTH_QUAKE2_MEGA
+        : cgameState.items == ITEMS_QUAKE ? HEALTH_QUAKE_MEGA : HEALTH_MEGA;
       index = CS_ITEM_TIMER_MEGA;
       break;
     case ItemTimerViewQuad:
@@ -94,7 +95,13 @@ static void updateBindings(View *self, ident data) {
       break;
   }
 
-  $((PowerupView *) self, update, item, (int16_t) atoi(cgi.ConfigString(index)));
+  int32_t seconds = 0, tag = ITEM_NONE;
+  sscanf(cgi.ConfigString(index), "%d %d", &seconds, &tag);
+  if (this->item == ItemTimerViewMega &&
+      (tag == HEALTH_MEGA || tag == HEALTH_QUAKE_MEGA || tag == HEALTH_QUAKE2_MEGA)) {
+    item = (GameItemTag) tag;
+  }
+  $((PowerupView *) self, update, item, (int16_t) seconds);
 }
 
 #pragma mark - Class lifecycle

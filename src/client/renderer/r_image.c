@@ -77,6 +77,13 @@ static ident R_Screenshot_encode(Thread *thread) {
   SDL_Surface *surface = thread->data;
   assert(surface);
 
+  // Image writers take packed BGR24; SDL surfaces may pad each row.
+  const size_t rowBytes = (size_t) surface->w * 3;
+  byte *pixels = Mem_Malloc(rowBytes * surface->h);
+  for (int32_t y = 0; y < surface->h; y++) {
+    memcpy(pixels + y * rowBytes, (byte *) surface->pixels + y * surface->pitch, rowBytes);
+  }
+
   time_t t = time(NULL);
   struct tm *tm = localtime(&t);
   strftime(date, sizeof(date), "%Y-%m-%d-%H-%M-%S", tm);
@@ -87,13 +94,13 @@ static ident R_Screenshot_encode(Thread *thread) {
   bool res;
   if (!Str_Compare(r_screenshotFormat->string, "tga")) {
     Str_Append(path, ".tga", sizeof(path));
-    res = Img_WriteTGA(path, surface->pixels, surface->w, surface->h);
+    res = Img_WriteTGA(path, pixels, surface->w, surface->h);
   } else if (!Str_Compare(r_screenshotFormat->string, "jpg")) {
     Str_Append(path, ".jpg", sizeof(path));
-    res = Img_WriteJPG(path, surface->pixels, surface->w, surface->h, 95);
+    res = Img_WriteJPG(path, pixels, surface->w, surface->h, 95);
   } else {
     Str_Append(path, ".png", sizeof(path));
-    res = Img_WritePNG(path, surface->pixels, surface->w, surface->h);
+    res = Img_WritePNG(path, pixels, surface->w, surface->h);
   }
 
   if (res) {
@@ -102,6 +109,7 @@ static ident R_Screenshot_encode(Thread *thread) {
     Com_Warn("Failed to write %s\n", path);
   }
 
+  Mem_Free(pixels);
   SDL_DestroySurface(surface);
 
   return NULL;

@@ -341,6 +341,196 @@ const GameItemDef gameItemDefs[] = {
   },
 
   {
+    .classname = "weapon_quake2_blaster",
+    .pickupSound = "weapons/common/pickup.wav",
+    .model = "models/weapons/blaster/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/blaster",
+    .name = "Blaster",
+    .quantity = 0,
+    .type = ITEM_TYPE_WEAPON,
+    .tag = WEAPON_QUAKE2_BLASTER,
+    .effectColor = { { 0.731f, 0.379f, 0.025f, 1.f } },
+    .flags = WF_PROJECTILE,
+    .priority = 0.10,
+    .precaches = "weapons/blaster/fire.wav"
+  },
+
+  {
+    .classname = "weapon_quake2_shotgun",
+    .pickupSound = "weapons/common/pickup.wav",
+    .model = "models/weapons/quake2_shotgun/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/shotgun",
+    .name = "Shotgun",
+    .quantity = 1,
+    .ammo = AMMO_QUAKE2_SHELLS,
+    .type = ITEM_TYPE_WEAPON,
+    .tag = WEAPON_QUAKE2_SHOTGUN,
+    .effectColor = { { 0.731f, 0.379f, 0.025f, 1.f } },
+    .flags = WF_HITSCAN | WF_SHORT_RANGE | WF_MED_RANGE,
+    .priority = 0.15,
+    .precaches = "weapons/shotgun/fire.wav"
+  },
+
+  {
+    .classname = "weapon_quake2_supershotgun",
+    .pickupSound = "weapons/common/pickup.wav",
+    .model = "models/weapons/quake2_supershotgun/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/supershotgun",
+    .name = "Super Shotgun",
+    .quantity = 2,
+    .ammo = AMMO_QUAKE2_SHELLS,
+    .type = ITEM_TYPE_WEAPON,
+    .tag = WEAPON_QUAKE2_SUPER_SHOTGUN,
+    .effectColor = { { 0.731f, 0.379f, 0.025f, 1.f } },
+    .flags = WF_HITSCAN | WF_SHORT_RANGE,
+    .priority = 0.25,
+    .precaches = "weapons/supershotgun/fire.wav"
+  },
+
+  {
+    .classname = "weapon_quake2_machinegun",
+    .pickupSound = "weapons/common/pickup.wav",
+    .model = "models/weapons/quake2_machinegun/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/machinegun",
+    .name = "Machinegun",
+    .quantity = 1,
+    .ammo = AMMO_QUAKE2_BULLETS,
+    .type = ITEM_TYPE_WEAPON,
+    .tag = WEAPON_QUAKE2_MACHINEGUN,
+    .effectColor = { { 0.739f, 0.556f, 0.032f, 1.f } },
+    .flags = WF_HITSCAN | WF_MED_RANGE | WF_LONG_RANGE,
+    .priority = 0.30,
+    .precaches = "weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
+    "weapons/machinegun/fire_3.wav"
+  },
+
+  {
+    .classname = "weapon_quake2_handgrenades",
+    .pickupSound = "weapons/common/pickup.wav",
+    .model = "models/ammo/quake2_grenades/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/handgrenade",
+    .name = "Hand Grenades",
+    .quantity = 1,
+    .ammo = AMMO_QUAKE2_GRENADES,
+    .type = ITEM_TYPE_WEAPON,
+    .tag = WEAPON_QUAKE2_HAND_GRENADE,
+    .effectColor = { { 0.050f, 0.821f, 0.033f, 1.f } },
+    .flags = WF_PROJECTILE | WF_EXPLOSIVE | WF_TIMED | WF_MED_RANGE,
+    .priority = 0.30,
+    .precaches = "weapons/handgrenades/hg_throw.wav weapons/handgrenades/hg_clang.ogg "
+    "weapons/handgrenades/hg_tick.ogg"
+  },
+
+  {
+    .classname = "weapon_quake2_grenadelauncher",
+    .pickupSound = "weapons/common/pickup.wav",
+    .model = "models/weapons/quake2_grenadelauncher/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/grenadelauncher",
+    .name = "Grenade Launcher",
+    .quantity = 1,
+    .ammo = AMMO_QUAKE2_GRENADES,
+    .type = ITEM_TYPE_WEAPON,
+    .tag = WEAPON_QUAKE2_GRENADE_LAUNCHER,
+    .effectColor = { { 0.050f, 0.821f, 0.033f, 1.f } },
+    .flags = WF_PROJECTILE | WF_EXPLOSIVE | WF_MED_RANGE,
+    .priority = 0.48,
+    .precaches = "models/projectiles/quake2_grenade/tris.obj weapons/grenadelauncher/fire.wav"
+  },
+
+  {
+    .classname = "weapon_quake2_rocketlauncher",
+    .pickupSound = "weapons/common/pickup.wav",
+    .model = "models/weapons/quake2_rocketlauncher/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/rocketlauncher",
+    .name = "Rocket Launcher",
+    .quantity = 1,
+    .ammo = AMMO_QUAKE2_ROCKETS,
+    .type = ITEM_TYPE_WEAPON,
+    .tag = WEAPON_QUAKE2_ROCKET_LAUNCHER,
+    .effectColor = { { 0.666f, 0.027f, 0.030f, 1.f } },
+    .flags = WF_PROJECTILE | WF_EXPLOSIVE | WF_MED_RANGE | WF_LONG_RANGE,
+    .priority = 0.50,
+    .precaches = "models/projectiles/rocket/tris.obj projectiles/rocket/fly.wav "
+    "weapons/rocketlauncher/fire.wav"
+  },
+
+  {
+    .classname = "weapon_quake2_hyperblaster",
+    .pickupSound = "weapons/common/pickup.wav",
+    .model = "models/weapons/quake2_hyperblaster/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/quake2_hyperblaster",
+    .name = "Hyperblaster",
+    .quantity = 1,
+    .ammo = AMMO_QUAKE2_CELLS,
+    .type = ITEM_TYPE_WEAPON,
+    .tag = WEAPON_QUAKE2_HYPERBLASTER,
+    .effectColor = { { 0.046f, 0.669f, 0.683f, 1.f } },
+    .flags = WF_PROJECTILE | WF_MED_RANGE | WF_LONG_RANGE,
+    .priority = 0.50,
+    .precaches = "weapons/hyperblaster/fire.wav weapons/hyperblaster/hit.wav"
+  },
+
+  {
+    .classname = "weapon_quake2_chaingun",
+    .pickupSound = "weapons/common/pickup.wav",
+    .model = "models/weapons/quake2_chaingun/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/quake2_chaingun",
+    .name = "Chaingun",
+    .quantity = 1,
+    .ammo = AMMO_QUAKE2_BULLETS,
+    .type = ITEM_TYPE_WEAPON,
+    .tag = WEAPON_QUAKE2_CHAINGUN,
+    .effectColor = { { 0.739f, 0.556f, 0.032f, 1.f } },
+    .flags = WF_HITSCAN | WF_MED_RANGE | WF_LONG_RANGE,
+    .priority = 0.5,
+    .precaches = "weapons/machinegun/fire_1.wav weapons/machinegun/fire_2.wav "
+    "weapons/machinegun/fire_3.wav"
+  },
+
+  {
+    .classname = "weapon_quake2_railgun",
+    .pickupSound = "weapons/common/pickup.wav",
+    .model = "models/weapons/quake2_railgun/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/railgun",
+    .name = "Railgun",
+    .quantity = 1,
+    .ammo = AMMO_QUAKE2_SLUGS,
+    .type = ITEM_TYPE_WEAPON,
+    .tag = WEAPON_QUAKE2_RAILGUN,
+    .effectColor = { { 0.040f, 0.082f, 0.587f, 1.f } },
+    .flags = WF_HITSCAN | WF_LONG_RANGE,
+    .priority = 0.66,
+    .precaches = "weapons/railgun/fire.wav"
+  },
+
+  {
+    .classname = "weapon_quake2_bfg",
+    .pickupSound = "weapons/common/pickup.wav",
+    .model = "models/weapons/quake2_bfg/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/bfg",
+    .name = "BFG10K",
+    .quantity = 50,
+    .ammo = AMMO_QUAKE2_CELLS,
+    .type = ITEM_TYPE_WEAPON,
+    .tag = WEAPON_QUAKE2_BFG,
+    .effectColor = { { 0.468f, 0.772f, 0.005f, 1.f } },
+    .flags = WF_PROJECTILE | WF_MED_RANGE | WF_LONG_RANGE,
+    .priority = 0.66,
+    .precaches = "weapons/bfg/prime.wav weapons/bfg/hit.wav"
+  },
+
+  {
     .classname = "ammo_shells",
     .pickupSound = "ammo/common/pickup.wav",
     .model = "models/ammo/shells/tris.md3",
@@ -534,6 +724,103 @@ const GameItemDef gameItemDefs[] = {
   },
 
   {
+    .classname = "ammo_quake2_shells",
+    .pickupSound = "ammo/common/pickup.wav",
+    .model = "models/ammo/quake2_shells/tris.obj",
+    .effects = 0,
+    .icon = "pics/shotgun",
+    .name = "Shells",
+    .quantity = 10,
+    .max = 100,
+    .type = ITEM_TYPE_AMMO,
+    .tag = AMMO_QUAKE2_SHELLS,
+    .effectColor = { { 0.731f, 0.379f, 0.025f, 1.f } },
+    .priority = 0.15,
+    .precaches = ""
+  },
+
+  {
+    .classname = "ammo_quake2_bullets",
+    .pickupSound = "ammo/common/pickup.wav",
+    .model = "models/ammo/quake2_bullets/tris.obj",
+    .effects = 0,
+    .icon = "pics/machinegun",
+    .name = "Bullets",
+    .quantity = 50,
+    .max = 200,
+    .type = ITEM_TYPE_AMMO,
+    .tag = AMMO_QUAKE2_BULLETS,
+    .effectColor = { { 0.739f, 0.556f, 0.032f, 1.f } },
+    .priority = 0.15,
+    .precaches = ""
+  },
+
+  {
+    .classname = "ammo_quake2_grenades",
+    .pickupSound = "ammo/common/pickup.wav",
+    .model = "models/ammo/quake2_grenades/tris.obj",
+    .effects = 0,
+    .icon = "pics/handgrenade",
+    .name = "Grenades",
+    .quantity = 5,
+    .max = 50,
+    .type = ITEM_TYPE_AMMO,
+    .tag = AMMO_QUAKE2_GRENADES,
+    .effectColor = { { 0.050f, 0.821f, 0.033f, 1.f } },
+    .priority = 0.15,
+    .precaches = "weapons/handgrenades/hg_throw.wav weapons/handgrenades/hg_clang.ogg "
+    "weapons/handgrenades/hg_tick.ogg"
+  },
+
+  {
+    .classname = "ammo_quake2_rockets",
+    .pickupSound = "ammo/common/pickup.wav",
+    .model = "models/ammo/quake2_rockets/tris.obj",
+    .effects = 0,
+    .icon = "pics/rocketlauncher",
+    .name = "Rockets",
+    .quantity = 5,
+    .max = 50,
+    .type = ITEM_TYPE_AMMO,
+    .tag = AMMO_QUAKE2_ROCKETS,
+    .effectColor = { { 0.666f, 0.027f, 0.030f, 1.f } },
+    .priority = 0.15,
+    .precaches = ""
+  },
+
+  {
+    .classname = "ammo_quake2_cells",
+    .pickupSound = "ammo/common/pickup.wav",
+    .model = "models/ammo/quake2_cells/tris.obj",
+    .effects = 0,
+    .icon = "pics/hyperblaster",
+    .name = "Cells",
+    .quantity = 50,
+    .max = 200,
+    .type = ITEM_TYPE_AMMO,
+    .tag = AMMO_QUAKE2_CELLS,
+    .effectColor = { { 0.046f, 0.669f, 0.683f, 1.f } },
+    .priority = 0.15,
+    .precaches = ""
+  },
+
+  {
+    .classname = "ammo_quake2_slugs",
+    .pickupSound = "ammo/common/pickup.wav",
+    .model = "models/ammo/quake2_slugs/tris.obj",
+    .effects = 0,
+    .icon = "pics/railgun",
+    .name = "Slugs",
+    .quantity = 10,
+    .max = 50,
+    .type = ITEM_TYPE_AMMO,
+    .tag = AMMO_QUAKE2_SLUGS,
+    .effectColor = { { 0.040f, 0.082f, 0.587f, 1.f } },
+    .priority = 0.15,
+    .precaches = ""
+  },
+
+  {
     .classname = "item_armor_shard",
     .pickupSound = "armor/shard/pickup.wav",
     .model = "models/armor/shard/tris.md3",
@@ -645,6 +932,69 @@ const GameItemDef gameItemDefs[] = {
   },
 
   {
+    .classname = "item_quake2_armor_shard",
+    .pickupSound = "armor/shard/pickup.wav",
+    .model = "models/armor/quake2_shard/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/armor_shard",
+    .name = "Armor Shard",
+    .quantity = 2,
+    .type = ITEM_TYPE_ARMOR,
+    .tag = ARMOR_QUAKE2_SHARD,
+    .effectColor = { { 0.3f, 0.8f, 0.2f, 1.f } },
+    .priority = 0.10,
+    .precaches = ""
+  },
+
+  {
+    .classname = "item_quake2_armor_jacket",
+    .pickupSound = "armor/jacket/pickup.wav",
+    .model = "models/armor/quake2_jacket/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/armor_jacket",
+    .name = "Jacket Armor",
+    .quantity = 25,
+    .max = 50,
+    .type = ITEM_TYPE_ARMOR,
+    .tag = ARMOR_QUAKE2_JACKET,
+    .effectColor = { { 0.122f, 0.628f, 0.143f, 1.f } },
+    .priority = 0.50,
+    .precaches = ""
+  },
+
+  {
+    .classname = "item_quake2_armor_combat",
+    .pickupSound = "armor/combat/pickup.wav",
+    .model = "models/armor/quake2_combat/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/armor_combat",
+    .name = "Combat Armor",
+    .quantity = 50,
+    .max = 100,
+    .type = ITEM_TYPE_ARMOR,
+    .tag = ARMOR_QUAKE2_COMBAT,
+    .effectColor = { { 0.511f, 0.423f, 0.105f, 1.f } },
+    .priority = 0.66,
+    .precaches = ""
+  },
+
+  {
+    .classname = "item_quake2_armor_body",
+    .pickupSound = "armor/body/pickup.wav",
+    .model = "models/armor/quake2_body/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/armor_body",
+    .name = "Body Armor",
+    .quantity = 100,
+    .max = 200,
+    .type = ITEM_TYPE_ARMOR,
+    .tag = ARMOR_QUAKE2_BODY,
+    .effectColor = { { 0.436f, 0.145f, 0.130f, 1.f } },
+    .priority = 0.80,
+    .precaches = ""
+  },
+
+  {
     .classname = "item_health_small",
     .pickupSound = "health/small/pickup.wav",
     .model = "models/health/small/tris.obj",
@@ -745,6 +1095,66 @@ const GameItemDef gameItemDefs[] = {
     .type = ITEM_TYPE_HEALTH,
     .tag = HEALTH_QUAKE_MEGA,
     .effectColor = { { 0.620f, 0.167f, 0.107f, 1.f } },
+    .priority = 0.80,
+    .precaches = ""
+  },
+
+  {
+    .classname = "item_quake2_health_small",
+    .pickupSound = "health/small/pickup.wav",
+    .model = "models/health/quake2_small/tris.obj",
+    .effects = 0,
+    .icon = "pics/health_small",
+    .name = "Small Health",
+    .quantity = 2,
+    .type = ITEM_TYPE_HEALTH,
+    .tag = HEALTH_QUAKE2_SMALL,
+    .effectColor = { { 0.405f, 0.707f, 0.014f, 1.f } },
+    .priority = 0.10,
+    .precaches = ""
+  },
+
+  {
+    .classname = "item_quake2_health_medium",
+    .pickupSound = "health/medium/pickup.wav",
+    .model = "models/health/quake2_medium/tris.obj",
+    .effects = 0,
+    .icon = "pics/health_medium",
+    .name = "Medium Health",
+    .quantity = 10,
+    .type = ITEM_TYPE_HEALTH,
+    .tag = HEALTH_QUAKE2_MEDIUM,
+    .effectColor = { { 0.866f, 0.594f, 0.023f, 1.f } },
+    .priority = 0.25,
+    .precaches = ""
+  },
+
+  {
+    .classname = "item_quake2_health_large",
+    .pickupSound = "health/large/pickup.wav",
+    .model = "models/health/quake2_large/tris.obj",
+    .effects = 0,
+    .icon = "pics/health_large",
+    .name = "Large Health",
+    .quantity = 25,
+    .type = ITEM_TYPE_HEALTH,
+    .tag = HEALTH_QUAKE2_LARGE,
+    .effectColor = { { 0.754f, 0.153f, 0.016f, 1.f } },
+    .priority = 0.40,
+    .precaches = ""
+  },
+
+  {
+    .classname = "item_quake2_health_mega",
+    .pickupSound = "health/mega/pickup.wav",
+    .model = "models/health/quake2_mega/tris.obj",
+    .effects = 0,
+    .icon = "pics/health_mega",
+    .name = "Mega Health",
+    .quantity = 100,
+    .type = ITEM_TYPE_HEALTH,
+    .tag = HEALTH_QUAKE2_MEGA,
+    .effectColor = { { 0.029f, 0.462f, 0.741f, 1.f } },
     .priority = 0.80,
     .precaches = ""
   },

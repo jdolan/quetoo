@@ -53,6 +53,8 @@ static void G_ChangeWeapon(GameClient *cl, const GameItem *item) {
   cl->weaponChangeTime = gameLevel.time + 500;
 
   cl->nextWeapon = item;
+  cl->quake2AttackTime = 0;
+  cl->quake2AttackFrame = 0;
 
   cl->weaponFireTime = gameLevel.time + 100; // enable fire
   cl->grenadeHoldTime = 0; // put the pin back in
@@ -89,7 +91,7 @@ bool G_PickupWeapon(GameClient *cl, GameEntity *ent) {
   if (ammo) {
     const int16_t *stock = &cl->inventory[ammo->def.tag];
 
-    if (*stock >= ent->health) {
+    if (*stock >= ent->health && ent->item->def.tag < WEAPON_QUAKE2_BLASTER) {
       G_AddAmmo(cl, ammo, ent->health / 2);
     } else {
       G_AddAmmo(cl, ammo, ent->health);
@@ -101,7 +103,8 @@ bool G_PickupWeapon(GameClient *cl, GameEntity *ent) {
 
     // if weapons stay is disabled, or this is a team weapon, setup respawn
     if (!g_weaponStay->integer || ent->team) {
-      G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_weaponRespawnTime->value));
+      G_SetItemRespawn(ent, ent->item->def.tag >= WEAPON_QUAKE2_BLASTER
+                            ? 30000 : SECONDS_TO_MILLIS(g_weaponRespawnTime->value));
     }
   }
 
@@ -111,7 +114,7 @@ bool G_PickupWeapon(GameClient *cl, GameEntity *ent) {
 
     const GameItemTag tag = (gameLevel.items == ITEMS_QUAKE)
       ? WEAPON_QUAKE_SHOTGUN
-      : WEAPON_BLASTER;
+      : gameLevel.items == ITEMS_QUAKE2 ? WEAPON_QUAKE2_BLASTER : WEAPON_BLASTER;
 
     if (cl->weapon == &gameItems[tag]) {
       G_ChangeWeapon(cl, ent->item);
@@ -351,6 +354,8 @@ static void G_WeaponFired(GameClient *cl, uint32_t interval, uint32_t ammoNeeded
  */
 void G_ClientWeaponThink(GameClient *cl) {
 
+  cl->weaponSound = 0;
+
   if (cl->entity->dead) {
     return;
   }
@@ -537,6 +542,9 @@ static void G_PullGrenadePin(GameClient *cl) {
   GameEntity *nade = G_AllocEntity(__func__);
   cl->heldGrenade = nade;
   nade->owner = cl->entity;
+  if (cl->weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE) {
+    nade->mod = MOD_QUAKE2_HANDGRENADE;
+  }
   nade->s.origin = cl->entity->s.origin;
   nade->solid = SOLID_NOT;
   nade->serverFlags |= SVF_NO_CLIENT;
@@ -548,7 +556,7 @@ static void G_PullGrenadePin(GameClient *cl) {
   nade->Touch = G_GrenadeProjectile_Touch;
   nade->touchTime = gameLevel.time;
   nade->s.trail = TRAIL_GRENADE;
-  nade->s.model1 = gameMedia.models.grenade;
+  nade->s.model1 = nade->mod == MOD_QUAKE2_HANDGRENADE ? gameMedia.models.quake2Grenade : gameMedia.models.grenade;
   nade->s.sound = gameMedia.sounds.grenadeTick;
   gi.LinkEntity(nade);
 }
@@ -578,7 +586,7 @@ static bool G_CheckGrenadeHold(GameClient *cl, uint32_t buttons) {
 /**
  * @brief Handles hand grenade pin-pulling, priming, and throwing logic.
  */
-void G_FireHandGrenade(GameClient *cl) {
+static void G_FireHandGrenade_(GameClient *cl, bool quake2) {
 
   uint32_t buttons = (cl->latchedButtons | cl->buttons);
 
@@ -646,8 +654,14 @@ void G_FireHandGrenade(GameClient *cl) {
   }
 
   // figure out how fast/far to throw
-  throwSpeed *= (float) holdTime / 1000;
-  throwSpeed = Clampf(throwSpeed, 500, 1200);
+  if (quake2) {
+    throwSpeed = 400.f + 400.f * holdTime / nadeTime;
+    throwSpeed = Clampf(throwSpeed, 400, 800);
+    cl->heldGrenade->mod = MOD_QUAKE2_HANDGRENADE;
+  } else {
+    throwSpeed *= (float) holdTime / 1000;
+    throwSpeed = Clampf(throwSpeed, 500, 1200);
+  }
   const int32_t fuse = Clampf((int32_t) nadeTime - (int32_t) holdTime, 1, (int32_t) nadeTime);
 
   Vec3 forward, right, up, org;
@@ -659,9 +673,9 @@ void G_FireHandGrenade(GameClient *cl) {
       org,                    // starting point
       forward,                // direction
       (uint32_t) throwSpeed, // how fast does it fly
-      120,                    // damage dealt
-      120,                    // knockback
-      240.0,                  // blast radius
+      quake2 ? 125 : 120,     // damage dealt
+      quake2 ? 125 : 120,     // knockback
+      quake2 ? 165.f : 240.f, // blast radius
       fuse                    // time before explode (next think)
   );
 
@@ -672,11 +686,19 @@ void G_FireHandGrenade(GameClient *cl) {
   }, MULTICAST_PHS);
 
   // push the next fire time out by the interval (2 secs)
-  G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceHandgrenadeRefire->value), ammoNeeded);
+  G_WeaponFired(cl, quake2 ? 1000 : SECONDS_TO_MILLIS(g_balanceHandgrenadeRefire->value), ammoNeeded);
 
   cl->grenadeHoldTime = 0;
   cl->grenadeHoldFrame = 0;
   cl->heldGrenade = NULL;
+}
+
+void G_FireHandGrenade(GameClient *cl) {
+  G_FireHandGrenade_(cl, false);
+}
+
+void G_FireQuake2HandGrenade(GameClient *cl) {
+  G_FireHandGrenade_(cl, true);
 }
 
 /**
@@ -771,7 +793,7 @@ void G_FireLightning(GameClient *cl) {
  * @brief Fires a railgun slug that instantly hits the first target along its path.
  */
 void G_FireRailgun(GameClient *cl) {
-
+  cl->weaponSound = gameMedia.sounds.railgunHum;
   if (G_FireWeapon(cl)) {
     Vec3 forward, right, up, org;
 
@@ -946,10 +968,188 @@ void G_FireQuakeThunderbolt(GameClient *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
-    G_LightningProjectile(cl->entity, org, forward, g_balanceQuakeThunderboltDamage->integer,
+    const int32_t damage = (gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB
+      ? 999 : g_balanceQuakeThunderboltDamage->integer;
+    G_LightningProjectile(cl->entity, org, forward, damage,
       g_balanceQuakeThunderboltKnockback->integer, MOD_QUAKE_THUNDERBOLT, MOD_QUAKE_THUNDERBOLT_DISCHARGE);
 
     G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuakeThunderboltRefire->value), cl->weapon->def.quantity);
+  }
+}
+
+/**
+ * @brief Quake II applies bullet spread at 8192 units, but G_BulletProjectile applies it at
+ * MAX_WORLD_DIST, so Quake II spreads are scaled to keep their angles.
+ */
+#define QUAKE2_SPREAD(s) ((int32_t) ((s) * MAX_WORLD_DIST / 8192.0))
+
+/**
+ * @brief Fires the base Quake II blaster.
+ */
+void G_FireQuake2Blaster(GameClient *cl) {
+  if (G_FireWeapon(cl)) {
+    Vec3 forward, org;
+    G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
+    G_BlasterProjectile(cl->entity, cl->entity, org, forward, 1000, 15, 1, MOD_QUAKE2_BLASTER);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_BLASTER);
+    G_WeaponFired(cl, 500, 0);
+  }
+}
+
+void G_FireQuake2Shotgun(GameClient *cl) {
+  if (G_FireWeapon(cl)) {
+    Vec3 forward, org;
+    G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
+    G_ShotgunProjectiles(cl->entity, cl->entity, org, forward, 4, 8, QUAKE2_SPREAD(500), QUAKE2_SPREAD(500), 12, MOD_QUAKE2_SHOTGUN);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_SHOTGUN);
+    G_WeaponFired(cl, 1000, 1);
+  }
+}
+
+void G_FireQuake2SuperShotgun(GameClient *cl) {
+  if (G_FireWeapon(cl)) {
+    Vec3 forward, org;
+    G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
+    const Vec3 angles = Vec3_Euler(forward);
+    for (int32_t side = -1; side <= 1; side += 2) {
+      Vec3 aim;
+      Vec3_Vectors(Vec3_Add(angles, MakeVec3(0, side * 5, 0)), &aim, NULL, NULL);
+      G_ShotgunProjectiles(cl->entity, cl->entity, org, aim, 6, 12, QUAKE2_SPREAD(1000), QUAKE2_SPREAD(500), 10, MOD_QUAKE2_SUPER_SHOTGUN);
+    }
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_SUPER_SHOTGUN);
+    G_WeaponFired(cl, 1100, 2);
+  }
+}
+
+void G_FireQuake2Machinegun(GameClient *cl) {
+  if (G_FireWeapon(cl)) {
+    Vec3 forward, org;
+    G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
+    G_BulletProjectile(cl->entity, cl->entity, org, forward, 8, 2, QUAKE2_SPREAD(300), QUAKE2_SPREAD(500), MOD_QUAKE2_MACHINEGUN);
+    cl->kickAngles.x += RandomRangef(-0.7f, 0.7f);
+    cl->kickAngles.z += RandomRangef(-0.7f, 0.7f);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_MACHINEGUN);
+    G_WeaponFired(cl, 100, 1);
+  }
+}
+
+void G_FireQuake2Chaingun(GameClient *cl) {
+  const bool attack = (cl->buttons | cl->latchedButtons) & BUTTON_ATTACK;
+  if (!cl->quake2AttackFrame) {
+    if (!G_FireWeapon(cl)) {
+      return;
+    }
+    cl->quake2AttackFrame = 5;
+    cl->quake2AttackTime = gameLevel.time;
+
+    G_MulticastSound(&(const GamePlaySound) {
+      .index = gameMedia.sounds.quake2ChaingunSpinUp,
+      .entity = cl->entity,
+    }, MULTICAST_PHS);
+  }
+  if (cl->quake2AttackFrame < 22) {
+    cl->weaponSound = gameMedia.sounds.quake2ChaingunHum;
+  }
+  if (gameLevel.time < cl->quake2AttackTime || gameLevel.time < cl->weaponFireTime) {
+    return;
+  }
+  cl->quake2AttackTime = gameLevel.time + 100;
+  cl->latchedButtons &= ~BUTTON_ATTACK;
+  if (cl->quake2AttackFrame == 14 && !attack) {
+    cl->quake2AttackFrame = 0;
+    cl->weaponFireTime = gameLevel.time + 100;
+    return;
+  }
+  if (cl->quake2AttackFrame >= 22) {
+    if (++cl->quake2AttackFrame >= 32) {
+      cl->quake2AttackFrame = 0;
+    }
+    return;
+  }
+  if (cl->quake2AttackFrame == 21 && attack && cl->inventory[cl->ammoIndex]) {
+    cl->quake2AttackFrame = 15;
+  } else if (++cl->quake2AttackFrame == 22) {
+    G_MulticastSound(&(const GamePlaySound) {
+      .index = gameMedia.sounds.quake2ChaingunSpinDown,
+      .entity = cl->entity,
+    }, MULTICAST_PHS);
+  }
+  const int32_t requested = cl->quake2AttackFrame <= 9 ? 1
+    : cl->quake2AttackFrame <= 14 ? (attack ? 2 : 1) : 3;
+  const int32_t shots = Mini(requested, cl->inventory[cl->ammoIndex]);
+  if (!shots) {
+    cl->quake2AttackFrame = 22;
+    G_UseBestWeapon(cl);
+    return;
+  }
+  Vec3 forward, right, up, org;
+  G_ClientProjectile(cl, &forward, &right, &up, &org, 1.f);
+  for (int32_t i = 0; i < shots; i++) {
+    const Vec3 muzzle = Vec3_Fmaf(Vec3_Fmaf(org, RandomRangef(-4, 4), right),
+                                 RandomRangef(-4, 4), up);
+    G_BulletProjectile(cl->entity, cl->entity, muzzle, forward, 6, 2, QUAKE2_SPREAD(300), QUAKE2_SPREAD(500), MOD_QUAKE2_CHAINGUN);
+  }
+  cl->kickAngles.x += RandomRangef(-0.7f, 0.7f);
+  cl->kickAngles.z += RandomRangef(-0.7f, 0.7f);
+  G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_CHAINGUN1 + shots - 1);
+  G_WeaponFired(cl, 100, shots);
+  cl->quake2AttackTime = cl->weaponFireTime;
+}
+
+void G_FireQuake2GrenadeLauncher(GameClient *cl) {
+  if (G_FireWeapon(cl)) {
+    Vec3 forward, org;
+    G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
+    G_GrenadeProjectile(cl->entity, cl->entity, org, forward, 600, 120, 120, 160, 2500, MOD_QUAKE2_GRENADE);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_GRENADE_LAUNCHER);
+    G_WeaponFired(cl, 800, 1);
+  }
+}
+
+void G_FireQuake2RocketLauncher(GameClient *cl) {
+  if (G_FireWeapon(cl)) {
+    Vec3 forward, org;
+    G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
+    const int32_t damage = 100 + Randomf() * 20;
+    G_RocketProjectile(cl->entity, cl->entity, org, forward, 650, damage, damage, 120, MOD_QUAKE2_ROCKET);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_ROCKET_LAUNCHER);
+    G_WeaponFired(cl, 800, 1);
+  }
+}
+
+void G_FireQuake2Hyperblaster(GameClient *cl) {
+  const bool attack = (cl->buttons | cl->latchedButtons) & BUTTON_ATTACK;
+  if (attack && cl->inventory[cl->ammoIndex]) {
+    cl->quake2AttackFrame = 1;
+    cl->weaponSound = gameMedia.sounds.quake2HyperblasterHum;
+  } else if (cl->quake2AttackFrame) {
+    cl->quake2AttackFrame = 0;
+    G_MulticastSound(&(const GamePlaySound) {
+      .index = gameMedia.sounds.quake2HyperblasterSpinDown,
+      .entity = cl->entity,
+    }, MULTICAST_PHS);
+  }
+  if (G_FireWeapon(cl)) {
+    Vec3 forward, org;
+    G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
+    G_BlasterProjectile(cl->entity, cl->entity, org, forward, 1800, 15, 1, MOD_QUAKE2_HYPERBLASTER);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_HYPERBLASTER);
+    G_WeaponFired(cl, 100, 1);
+  }
+}
+
+/**
+ * @brief Fires the Quake II railgun, which hums while it is held, as G_SetClientSound does in Quake II.
+ */
+void G_FireQuake2Railgun(GameClient *cl) {
+  cl->weaponSound = gameMedia.sounds.railgunHum;
+  if (G_FireWeapon(cl)) {
+    Vec3 forward, org;
+    G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
+    const int32_t damage = (gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB ? 999 : 100;
+    G_RailgunProjectile(cl->entity, cl->entity, org, forward, damage, 200, MOD_QUAKE2_RAILGUN);
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_RAILGUN);
+    G_WeaponFired(cl, 1500, 1);
   }
 }
 
@@ -978,6 +1178,51 @@ static void G_FireBfg_(GameEntity *ent) {
 
   ent->Think = G_FreeEntity;
   ent->nextThink = gameLevel.time + 1;
+}
+
+/**
+ * @brief Launches the Quake II BFG ball at the end of its windup. As in Quake II, firing is
+ * abandoned if the weapon was put away, its owner died, or its cells dropped during the windup.
+ */
+static void G_FireQuake2BFG_(GameEntity *ent) {
+
+  GameClient *cl = ent->owner->client;
+
+  if (ent->owner->inUse && cl && !ent->owner->dead && cl->weapon == &gameItems[WEAPON_QUAKE2_BFG] &&
+      !cl->nextWeapon && cl->weaponChangeTime <= gameLevel.time &&
+      cl->inventory[AMMO_QUAKE2_CELLS] >= cl->weapon->def.quantity) {
+
+    Vec3 forward, org;
+    G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
+    G_Quake2BfgProjectile(cl->entity, cl->entity, org, forward);
+
+    G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_BFG);
+
+    G_WeaponFired(cl, 1600, cl->weapon->def.quantity);
+  }
+
+  G_FreeEntity(ent);
+}
+
+/**
+ * @brief Fires the Quake II BFG9000. The BFG10K's prime sound begins a 0.8 second windup, after which
+ * the ball launches with the muzzle flash. A shot takes 2.4 seconds in all.
+ */
+void G_FireQuake2BFG(GameClient *cl) {
+  if (G_FireWeapon(cl)) {
+    cl->weaponFireTime = gameLevel.time + 2400;
+
+    GameEntity *timer = G_AllocEntity(__func__);
+    timer->owner = cl->entity;
+    timer->serverFlags = SVF_NO_CLIENT;
+    timer->Think = G_FireQuake2BFG_;
+    timer->nextThink = gameLevel.time + 800;
+
+    G_MulticastSound(&(const GamePlaySound) {
+      .index = gameMedia.sounds.bfgPrime,
+      .entity = cl->entity,
+    }, MULTICAST_PHS);
+  }
 }
 
 /**

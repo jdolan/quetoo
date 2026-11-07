@@ -45,8 +45,9 @@ float G_Ai_ItemNeed(const GameClient *cl, const GameEntity *other) {
 
   switch (item->def.type) {
     case ITEM_TYPE_HEALTH: {
-      const bool boost = item->def.tag == HEALTH_SMALL || item->def.tag == HEALTH_MEGA ||
-                         item->def.tag == HEALTH_QUAKE_MEGA;
+      const bool boost = item->def.tag == HEALTH_SMALL || item->def.tag == HEALTH_QUAKE2_SMALL ||
+                         item->def.tag == HEALTH_MEGA || item->def.tag == HEALTH_QUAKE_MEGA ||
+                         item->def.tag == HEALTH_QUAKE2_MEGA;
       const int32_t max = boost ? cl->maxBoostHealth : ent->maxHealth;
 
       return Clampf((max - ent->health) / (float) Maxi(1, item->def.quantity), 0.f, 1.f);
@@ -64,7 +65,8 @@ float G_Ai_ItemNeed(const GameClient *cl, const GameEntity *other) {
                            cl->inventory[current->def.tag] * G_ArmorInfo(current)->normalProtection :
                            0.f;
       const float after = count * G_ArmorInfo(give)->normalProtection;
-      const GameItem *armor = item->def.tag == ARMOR_SHARD ? give : item;
+      const GameItem *armor = (item->def.tag == ARMOR_SHARD || item->def.tag == ARMOR_QUAKE2_SHARD)
+        ? give : item;
       const float full = Maxi(1, item->def.quantity) * G_ArmorInfo(armor)->normalProtection;
 
       return Clampf((after - before) / full, 0.f, 1.f);
@@ -96,8 +98,8 @@ bool G_Ai_CanPickup(const GameClient *cl, const GameEntity *other) {
   switch (item->def.type)
   {
     case ITEM_TYPE_HEALTH:
-      if (item->def.tag == HEALTH_SMALL ||
-        item->def.tag == HEALTH_MEGA) {
+      if (item->def.tag == HEALTH_SMALL || item->def.tag == HEALTH_QUAKE2_SMALL ||
+          item->def.tag == HEALTH_MEGA || item->def.tag == HEALTH_QUAKE2_MEGA) {
         return true;
       }
 
@@ -149,5 +151,4 @@ bool G_Ai_CanPickup(const GameClient *cl, const GameEntity *other) {
       return true;
   }
 }
-
 

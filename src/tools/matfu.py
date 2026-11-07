@@ -1842,7 +1842,19 @@ def cmd_batch(args) -> int:
 
     norm_rgb = None
     norm_alpha = None
-    if needs_normal_src:
+    generated = None
+    if needs_normal_src and args.from_diffuse:
+      if diffuse_path is None:
+        print(f"  - {base}: no diffuse, skipping")
+        skipped += 1
+        continue
+      generated = normals_from_diffuse(
+        _load_image_rgb(diffuse_path),
+        strength=float(params.get("normal_strength", 1.0)),
+        cutoff=float(params.get("n_freq_cutoff", 0.5)),
+        low_gain=float(params.get("n_freq_low_gain", 1.0)),
+        high_gain=float(params.get("n_freq_high_gain", 1.0)))
+    elif needs_normal_src:
       loaded = _load_normal_rgba(normal_path)
       if loaded is None:
         print(f"  - {base}: no normalmap, skipping")
@@ -1860,7 +1872,13 @@ def cmd_batch(args) -> int:
     # Process pipeline
     proc_normal = None
     proc_height = None
-    if norm_rgb is not None:
+    if generated is not None:
+      proc_normal, height = generated
+      if generate_height:
+        proc_height = apply_height_filters(height, params, as_heightmap=as_heightmap)
+      norm_rgb = proc_normal
+      norm_alpha = proc_height
+    elif norm_rgb is not None:
       proc_normal = process_normal(
         to_opengl_normal(norm_rgb, source_is_directx=dx_to_gl), params)
       if generate_height:
@@ -1948,6 +1966,9 @@ def main() -> int:
                      help="Comma-separated list of {normal,height,spec}.")
   batch.add_argument("--filter",
                      help="Only process bases whose name contains this substring.")
+  batch.add_argument("--from-diffuse", action="store_true",
+                     help="Generate normals from the diffuse, as the GUI's Generate from diffuse "
+                          "then Save, instead of reprocessing the existing normalmap.")
   batch.add_argument("--dry-run", action="store_true",
                      help="Report what would be written without writing.")
   batch.set_defaults(func=cmd_batch)

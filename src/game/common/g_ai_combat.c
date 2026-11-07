@@ -468,6 +468,20 @@ uint32_t G_Ai_Target(GameClient *cl, PMoveCmd *cmd) {
  * @return The projectile speed of the given weapon.
  */
 static float G_Ai_ProjectileSpeed(const GameItem *weapon) {
+  switch (weapon->def.tag) {
+    case WEAPON_QUAKE2_BLASTER:
+    case WEAPON_QUAKE2_HYPERBLASTER:
+      return 1000.f;
+    case WEAPON_QUAKE2_GRENADE_LAUNCHER:
+    case WEAPON_QUAKE2_HAND_GRENADE:
+      return 600.f;
+    case WEAPON_QUAKE2_ROCKET_LAUNCHER:
+      return 650.f;
+    case WEAPON_QUAKE2_BFG:
+      return 400.f;
+    default:
+      break;
+  }
 
   const char *classname = weapon->def.classname;
   const char *name = classname + (Str_HasPrefix(classname, "weapon_") ? strlen("weapon_") : 0);
@@ -517,6 +531,8 @@ static const GameItem *G_Ai_SpamWeapon(const GameClient *cl) {
     WEAPON_GRENADE_LAUNCHER,
     WEAPON_QUAKE_GRENADE_LAUNCHER,
     WEAPON_HAND_GRENADE,
+    WEAPON_QUAKE2_GRENADE_LAUNCHER,
+    WEAPON_QUAKE2_HAND_GRENADE,
   };
 
   for (size_t i = 0; i < lengthof(tags); i++) {
@@ -528,6 +544,26 @@ static const GameItem *G_Ai_SpamWeapon(const GameClient *cl) {
   }
 
   return NULL;
+}
+
+/**
+ * @brief Solves the low grenade arc, accounting for the throw's upward loft.
+ */
+static bool G_Ai_GrenadeElevation(float distance, float height, float gravity, float speed, float loft,
+                                  float *elevation, float *flightMillis) {
+  const float launch = sqrtf(speed * speed + loft * loft);
+  const float launchSquared = launch * launch;
+  const float lift = gravity * distance * distance + 2.f * height * launchSquared;
+  const float discriminant = launchSquared * launchSquared - gravity * lift;
+
+  if (discriminant < 0.f) {
+    return false;
+  }
+
+  const float launchElevation = atanf((launchSquared - sqrtf(discriminant)) / (gravity * distance));
+  *elevation = launchElevation - atan2f(loft, speed);
+  *flightMillis = 1000.f * distance / (launch * cosf(launchElevation));
+  return true;
 }
 
 /**
@@ -547,29 +583,36 @@ static bool G_Ai_SpamAngles(const GameClient *cl, const GameItem *weapon, const 
     return false;
   }
 
-  float speed, loft;
+  float speed, loft, elevation, flightMillis;
+  const Vec3 dir = Vec3_Normalize(Vec3_Subtract(point, eye));
+
+  if (weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE) {
+    for (uint32_t hold = QUETOO_TICK_MILLIS; hold < 3000; hold += QUETOO_TICK_MILLIS) {
+      speed = floorf(400.f + 400.f * hold / 3000.f);
+      if (G_Ai_GrenadeElevation(distance, height, gravity, speed, AI_HAND_GRENADE_LOFT,
+                                &elevation, &flightMillis) &&
+          hold + flightMillis + 2 * QUETOO_TICK_MILLIS < 3000.f) {
+        *holdMillis = hold;
+        *angles = MakeVec3(-Degrees(elevation), Vec3_Euler(dir).y, 0.f);
+        return true;
+      }
+    }
+    return false;
+  }
+
   if (weapon->def.flags & WF_TIMED) {
     loft = AI_HAND_GRENADE_LOFT;
     speed = Clampf(sqrtf(gravity * distance) * 1.2f, 500.f, 1200.f);
     *holdMillis = (uint32_t) (speed / 500.f * 1000.f);
   } else {
-    loft = AI_GRENADE_LOFT;
+    loft = weapon->def.tag == WEAPON_QUAKE2_GRENADE_LAUNCHER ? 200.f : AI_GRENADE_LOFT;
     speed = G_Ai_ProjectileSpeed(weapon);
     *holdMillis = 0;
   }
 
-  const float launch = sqrtf(speed * speed + loft * loft);
-  const float launchSquared = launch * launch;
-  const float lift = gravity * distance * distance + 2.f * height * launchSquared;
-  const float discriminant = launchSquared * launchSquared - gravity * lift;
-
-  if (discriminant < 0.f) {
+  if (!G_Ai_GrenadeElevation(distance, height, gravity, speed, loft, &elevation, &flightMillis)) {
     return false;
   }
-
-  const float elevation = atanf((launchSquared - sqrtf(discriminant)) / (gravity * distance)) -
-                          atan2f(loft, speed);
-  const Vec3 dir = Vec3_Normalize(Vec3_Subtract(point, eye));
 
   *angles = MakeVec3(-Degrees(elevation), Vec3_Euler(dir).y, 0.f);
   return true;
@@ -683,7 +726,9 @@ static bool G_Ai_CanSpam(const GameClient *cl) {
 static bool G_Ai_IsLobbed(const GameItem *weapon) {
   return weapon == &gameItems[WEAPON_GRENADE_LAUNCHER] ||
          weapon == &gameItems[WEAPON_QUAKE_GRENADE_LAUNCHER] ||
-         weapon == &gameItems[WEAPON_HAND_GRENADE];
+         weapon == &gameItems[WEAPON_HAND_GRENADE] ||
+         weapon == &gameItems[WEAPON_QUAKE2_GRENADE_LAUNCHER] ||
+         weapon == &gameItems[WEAPON_QUAKE2_HAND_GRENADE];
 }
 
 /**
@@ -704,9 +749,12 @@ static bool G_Ai_IsLobbed(const GameItem *weapon) {
 static CollisionTrace G_Ai_LobTrace(const GameClient *cl) {
 
   const bool timed = (cl->weapon->def.flags & WF_TIMED) != 0;
-  const float speed = timed ? Clampf(cl->ai->aimHoldMillis * .5f, 500.f, 1200.f) :
-                              G_Ai_ProjectileSpeed(cl->weapon);
-  const float loft = timed ? AI_HAND_GRENADE_LOFT : AI_GRENADE_LOFT;
+  const float speed = cl->weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE
+    ? Clampf(400.f + cl->ai->aimHoldMillis * (400.f / 3000.f), 400.f, 800.f)
+    : timed ? Clampf(cl->ai->aimHoldMillis * .5f, 500.f, 1200.f)
+    : G_Ai_ProjectileSpeed(cl->weapon);
+  const float loft = timed || cl->weapon->def.tag == WEAPON_QUAKE2_GRENADE_LAUNCHER
+    ? AI_HAND_GRENADE_LOFT : AI_GRENADE_LOFT;
   const float gravity = G_LevelGravity();
 
   Vec3 origin = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
@@ -746,6 +794,16 @@ static float G_Ai_SplashRadius(const GameItem *weapon) {
 
   if (!g_friendlyFire->value) {
     return 0.f;
+  }
+  if (weapon->def.tag == WEAPON_QUAKE2_ROCKET_LAUNCHER) {
+    return 120.f;
+  }
+  if (weapon->def.tag == WEAPON_QUAKE2_BFG) {
+    return QUAKE2_BFG_RADIUS;
+  }
+  if (weapon->def.tag == WEAPON_QUAKE2_GRENADE_LAUNCHER ||
+      weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE) {
+    return 160.f;
   }
 
   const Cvar *damage = NULL, *radius = NULL;
@@ -837,6 +895,10 @@ static bool G_Ai_IsTeammateNear(const GameClient *cl, const Vec3 start, const Ve
  */
 static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
 
+  if (cl->weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE && !cl->ai->aimHoldMillis) {
+    return false;
+  }
+
   const Vec3 eye = Vec3_Add(cl->entity->s.origin, cl->ps.pmState.viewOffset);
   const Vec3 end = Vec3_Fmaf(eye, MAX_WORLD_DIST, cl->forward);
 
@@ -863,6 +925,11 @@ static bool G_Ai_ClearToFire(const GameClient *cl, const GameEntity *enemy) {
 
   if (reach > 0.f && cl->weapon == &gameItems[WEAPON_BFG10K] &&
       G_Ai_IsTeammateNear(cl, eye, trace.end, g_balanceBfgRadius->value)) {
+    return false;
+  }
+
+  if (reach > 0.f && cl->weapon == &gameItems[WEAPON_QUAKE2_BFG] &&
+      G_Ai_IsTeammateNear(cl, eye, trace.end, QUAKE2_BFG_LASER_RADIUS)) {
     return false;
   }
 

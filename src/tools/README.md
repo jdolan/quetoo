@@ -43,10 +43,126 @@ Run any of the installed commands:
 - `tintfu.py`: build player skin tintmaps from mesh coverage and a region recipe
 - `playerfu.py`: normalize a third-party Quake III player model into Quetoo's
   `players/<name>/` layout
-- `objfu.py`: OBJ viewer / muzzle helper
+- `objfu.py`: OBJ viewer, muzzle helper and world/link/view configuration editor
 - `skyfu.py`: Skybox cubemap packer
 - `symbolicate_dmp.py`: Symbolicate a Windows crash dump
 - `verify_projects.py`: Check that the three build systems agree
+
+## md32obj
+
+Converts a single-frame MD3 to OBJ. Multi-frame inputs require an explicit,
+zero-based pose selection; animation is not retained in an OBJ:
+
+```sh
+md32obj pickup.md3 --frame 0 -o tris.obj
+```
+
+Some Q2PRO packs name their MD3 replacements `tris.md2`. Check the file magic,
+not the extension, before choosing `md32obj` versus `md22obj`.
+
+## objfu
+
+Preview a static OBJ and edit its `model.cfg` in a companion text window:
+
+```sh
+objfu models/weapons/quake2_chaingun/tris.obj --config world
+objfu models/weapons/quake2_chaingun/tris.obj --config link
+objfu models/weapons/quake2_chaingun/tris.obj --config view
+objfu 'weapons/quake2_*' --config muzzle
+```
+
+`model.cfg` uses flat entity-style blocks. The `type` pair comes first; transforms
+are applied in their written order. Omitted placement blocks mean identity.
+
+```text
+{
+  "type" "world"
+  "scale" "0.8"
+}
+{
+  "type" "link"
+  "translate" "4 0 -12"
+  "scale" "0.65"
+}
+{
+  "type" "view"
+  "translate" "9 -6 -32"
+  "scale" "0.9"
+}
+{
+  "type" "muzzle"
+  "origin" "24 0 20"
+}
+```
+
+The muzzle is one point in untransformed model space, shared by all placements.
+Legacy `world.cfg`, `link.cfg` and `view.cfg` files are no longer loaded.
+The text editor shows the complete file; the selected mode controls the preview.
+
+Models may be named by OBJ path, by model directory, or by a quoted glob,
+which is matched against model directories under each data root's `models/`:
+
+```sh
+objfu '*quake2*' --config world
+objfu 'ammo/quake2_*' armor/quake2_body --config world
+objfu 'weapons/quake2_*' --config view
+```
+
+- `world`: floor at Z=0, a 16-unit grid and a standing Enforcer for scale.
+  The item's origin sits 16 units above the floor, where the game rests it, and
+  its collision box (`ITEM_BOUNDS` in `g_item.c`) and axes are drawn there.
+  **Rest on floor** prepends a translation that seats the transformed mesh's
+  bottom within half a unit of the floor without changing its rotation or scale.
+  Several models may be edited together in world mode, to compare them with
+  each other. Each is placed in a grid with its own collision box, axes and
+  label. Click a model, press Tab / Shift+Tab, or use the editor's selector to
+  choose which configuration the editor holds. Unsaved edits are kept per file,
+  and **Save all** writes every edited file.
+  B cycles the boxes between the collision box, each model's transformed
+  bounds, and off. The preview window is resizable in every mode.
+  Generated translations and muzzle positions default to integers; hand-edited
+  integer and floating-point values are both supported.
+- `muzzle`: shows the untransformed model with an orbit camera and its muzzle
+  marker. Edit the muzzle block's `origin`, orbiting to inspect its placement on
+  the barrel from different directions. Tab / PgDn and Shift+Tab / PgUp cycle
+  through a batch. Placement transforms do not affect this preview.
+- `link`: attaches the mesh to the standing Enforcer's `tag_weapon`, through
+  its legs/torso tag hierarchy.
+- `view`: fixed first-person camera looking down +X, with the model facing
+  away according to its configuration. `--hand right|left|center` selects the
+  engine's handed offset (default right); `--fov` matches `cg_fov`'s horizontal
+  FOV at 16:9 (default 110). There is no weapon bob or recoil.
+  Several models may be given to `link` and `view` as well. They are shown one
+  at a time: Tab / PgDn selects the next, Shift+Tab / PgUp the previous, and the
+  editor's selector also chooses. In `view`, the mouse wheel also cycles: down
+  for the next, up for the previous. Unsaved edits are kept per file, and
+  **Save all** writes every edited file.
+  The view configuration's Y translation is retained for right hand, negated
+  for left hand, and zeroed for center hand, matching the engine.
+  A translucent cyan silhouette averages the screen coverage of the existing
+  Quetoo weapons; brighter regions are shared by more weapons. It is rebuilt
+  from their current meshes and `model.cfg` view blocks on each launch, excludes Quake
+  and Quake2 models and the selected model, and follows the selected FOV
+  and hand. Press **G** in the preview to hide/show it. No reference assets or
+  configurations are modified.
+
+Text edits update the preview immediately; **Save** writes the selected model's
+complete `model.cfg`. **Reload** reads external edits. Invalid text is
+reported, retains the last valid preview, and cannot be saved. Closing either
+window prompts before discarding unsaved edits; externally changed files require
+confirmation before overwriting.
+
+Transforms follow the engine's file order, including XYZ-axis `rotate` (not
+player pitch/yaw/roll), quoted or unquoted vectors, and transformed `muzzle`.
+Drag to orbit, Cmd+drag to pan and scroll to zoom in world/link mode. T toggles
+the text overlays in every mode; configuration errors remain visible.
+`--player` selects another normalized player directory (default
+`players/enforcer`, `default.skin`); `-p` supplies data roots. Previews are unlit diffuse textures, not the game's
+PBR renderer.
+
+Without `--config`, the original orbit viewer and muzzle hotkeys are unchanged:
+arrows adjust X/Y, Q/E adjust Z, Shift increases the step, R resets, and S writes
+the shared muzzle block to `model.cfg`, preserving placement blocks.
 
 ## md3fu
 
@@ -225,3 +341,14 @@ matfu batch \
 `--save` controls which outputs to write (any combination of
 `normal`, `height`, `spec`). `--filter SUBSTR` restricts processing to
 bases whose name contains `SUBSTR`.
+
+By default batch mode reprocesses each existing `*_norm.png`. With
+`--from-diffuse` it instead generates the normalmap from the diffuse with
+the preset's normal strength and frequency settings, exactly as the GUI's
+Generate from diffuse followed by Save, so a preset can regenerate a set
+of normalmaps without compounding:
+
+```bash
+matfu batch --preset preset.json --from-diffuse --save normal \
+    --files models/weapons/quake2_*/*_norm.png
+```

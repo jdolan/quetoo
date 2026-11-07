@@ -587,6 +587,8 @@ static void Cg_ClearState(void) {
 
   Cg_ClearInput();
 
+  Cg_ClearDelayedSamples();
+
   Cg_FreeEntities();
 
   Cg_FreeEditorEntities();
@@ -642,6 +644,8 @@ static void Cg_PopulateScene(const ClientFrame *frame) {
   Cg_AddSprites();
 
   Cg_AddLights();
+
+  Cg_AddDelayedSamples();
 
   Cg_SceneDidPopulate(frame);
 }

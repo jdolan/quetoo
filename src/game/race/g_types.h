@@ -45,7 +45,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1068
+#define PROTOCOL_MINOR 1070
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -375,6 +375,19 @@ typedef enum {
   MZ_QUAKE_GRENADE_LAUNCHER,
   MZ_QUAKE_ROCKET_LAUNCHER,
 
+  MZ_QUAKE2_BLASTER,
+  MZ_QUAKE2_SHOTGUN,
+  MZ_QUAKE2_SUPER_SHOTGUN,
+  MZ_QUAKE2_MACHINEGUN,
+  MZ_QUAKE2_GRENADE_LAUNCHER,
+  MZ_QUAKE2_ROCKET_LAUNCHER,
+  MZ_QUAKE2_HYPERBLASTER,
+  MZ_QUAKE2_RAILGUN,
+  MZ_QUAKE2_BFG,
+  MZ_QUAKE2_CHAINGUN1,
+  MZ_QUAKE2_CHAINGUN2,
+  MZ_QUAKE2_CHAINGUN3,
+
   MZ_LASER,
 } GameMuzzleFlash;
 
@@ -401,7 +414,15 @@ typedef enum {
   TE_GIB,
   TE_RIPPLE,
   TE_HOOK_IMPACT,
-  TE_NAIL
+  TE_NAIL,
+  TE_QUAKE2_BLASTER,
+  TE_QUAKE2_HYPERBLASTER,
+  TE_QUAKE2_ROCKET_EXPLOSION,
+  TE_QUAKE2_GRENADE_EXPLOSION,
+  TE_QUAKE2_BFG_LASER,
+  TE_QUAKE2_BFG_EXPLOSION,
+  TE_QUAKE2_BFG_BIGEXPLOSION,
+  TE_QUAKE2_RAIL
 } GameTempEntity;
 
 /**
@@ -571,6 +592,7 @@ typedef enum {
   TRAIL_QUAKE_NAIL,
   TRAIL_QUAKE_GRENADE,
   TRAIL_LASER,
+  TRAIL_QUAKE2_HYPERBLASTER,
 } GameEntityTrail;
 
 /**
@@ -657,7 +679,9 @@ static const GamePlay gameplays[] = {
  */
 typedef enum {
   ITEMS_DEFAULT,
-  ITEMS_QUAKE
+  ITEMS_QUAKE,
+  ITEMS_QUAKE2,
+  ITEMS_QUETOO
 } GameItems;
 
 // GameItemType and GameItemTag are defined in bg_item.h
@@ -925,6 +949,7 @@ typedef struct {
 
     uint16_t grenade;
     uint16_t quakeGrenade;
+    uint16_t quake2Grenade;
     uint16_t quakeNail;
     uint16_t rocket;
     uint16_t quakeRocket;
@@ -948,6 +973,12 @@ typedef struct {
     uint16_t grenadeTick;
     uint16_t quakeGrenadeHit;
     uint16_t quakeNailHit;
+    uint16_t quake2ChaingunSpinUp;
+    uint16_t quake2ChaingunHum;
+    uint16_t quake2ChaingunSpinDown;
+    uint16_t quake2HyperblasterHum;
+    uint16_t quake2HyperblasterSpinDown;
+    uint16_t railgunHum;
     uint16_t rocketFly;
     uint16_t lightningFly;
     uint16_t laserFly;
@@ -1258,6 +1289,19 @@ typedef struct {
   MOD_TURRET_QUAKE_THUNDERBOLT,
   MOD_TURRET_LASER,
   MOD_TURRET_GIBLETS,
+  MOD_QUAKE2_BLASTER,
+  MOD_QUAKE2_SHOTGUN,
+  MOD_QUAKE2_SUPER_SHOTGUN,
+  MOD_QUAKE2_MACHINEGUN,
+  MOD_QUAKE2_CHAINGUN,
+  MOD_QUAKE2_HANDGRENADE,
+  MOD_QUAKE2_GRENADE,
+  MOD_QUAKE2_ROCKET,
+  MOD_QUAKE2_HYPERBLASTER,
+  MOD_QUAKE2_RAILGUN,
+  MOD_QUAKE2_BFG_LASER,
+  MOD_QUAKE2_BFG_BLAST,
+  MOD_QUAKE2_BFG_EFFECT,
   MOD_FRIENDLY_FIRE = 0x8000000
 } GameMeansOfDeath;
 
@@ -1726,6 +1770,14 @@ struct GameClient {
    * @brief Level time when the weapon was last fired.
    */
   uint32_t weaponFiredTime;
+
+  uint32_t quake2AttackTime;
+  uint32_t quake2AttackFrame;
+
+  /**
+   * @brief The looping sound of the active weapon, set by its think function each frame.
+   */
+  uint16_t weaponSound;
 
   /**
    * @brief Level time when the weapon was last changed.

@@ -243,6 +243,7 @@ static bool Cg_IsProjectileTrail(const uint8_t trail) {
     case TRAIL_QUAKE_GRENADE:
     case TRAIL_ROCKET:
     case TRAIL_HYPERBLASTER:
+    case TRAIL_QUAKE2_HYPERBLASTER:
     case TRAIL_BFG:
       return true;
     default:

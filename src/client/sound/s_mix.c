@@ -354,8 +354,8 @@ void S_AddSample(SoundStage *stage, const SoundPlaySample *play) {
     }
   }
 
-  if (stage->numSamples == MAX_SOUNDS) {
-    Com_Debug(DEBUG_SOUND, "MAX_SOUNDS");
+  if (stage->numSamples == MAX_SOUND_SUBMISSIONS) {
+    Com_Debug(DEBUG_SOUND, "MAX_SOUND_SUBMISSIONS");
     return;
   }
 

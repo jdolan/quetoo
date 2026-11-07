@@ -65,46 +65,73 @@ const GameItem *G_FindItem(const char *name) {
     }
   }
 
-  return fallback;
+  if (fallback) {
+    const GameItemTag mapped = GameItems_MapTag(gameLevel.items, fallback->def.tag);
+    return mapped ? &gameItems[mapped] : NULL;
+  }
+  return NULL;
 }
 
 /**
- * @brief Maps Quetoo weapon tags to their Quake equivalent, by gameplay role.
- *  Used to redirect generic bindings (e.g. "use Rocket Launcher") to the
- *  appropriate weapon when `gameLevel.items == ITEMS_QUAKE`.
- *  `WEAPON_NONE` means no equivalent exists.
- */
-static const GameItemTag quakeWeaponMap[WEAPON_LAST] = {
-  [WEAPON_BLASTER]          = WEAPON_QUAKE_SHOTGUN,
-  [WEAPON_SHOTGUN]          = WEAPON_QUAKE_SHOTGUN,
-  [WEAPON_SUPER_SHOTGUN]    = WEAPON_QUAKE_SUPER_SHOTGUN,
-  [WEAPON_MACHINEGUN]       = WEAPON_QUAKE_NAILGUN,
-  [WEAPON_HAND_GRENADE]     = ITEM_NONE,
-  [WEAPON_GRENADE_LAUNCHER] = WEAPON_QUAKE_GRENADE_LAUNCHER,
-  [WEAPON_ROCKET_LAUNCHER]  = WEAPON_QUAKE_ROCKET_LAUNCHER,
-  [WEAPON_HYPERBLASTER]     = WEAPON_QUAKE_SUPER_NAILGUN,
-  [WEAPON_LIGHTNING]        = WEAPON_QUAKE_THUNDERBOLT,
-  [WEAPON_RAILGUN]          = WEAPON_QUAKE_THUNDERBOLT,
-  [WEAPON_BFG10K]           = ITEM_NONE,
-};
-
-/**
- * @brief Returns the Quake equivalent of a Quetoo weapon item when
- *  `gameLevel.items == ITEMS_QUAKE`, or `NULL` if no mapping exists or the item is
- *  already a Quake weapon.
+ * @brief Returns the active set's equivalent weapon, or NULL if none exists.
  */
 const GameItem *G_MappedWeapon(const GameItem *weapon) {
 
-  if (weapon->def.tag < WEAPON_FIRST || weapon->def.tag >= WEAPON_QUAKE_SHOTGUN) {
-    return NULL; // already a Quake weapon, or unmapped
+  if (weapon->def.type != ITEM_TYPE_WEAPON) {
+    return NULL;
   }
 
-  const GameItemTag mapped = quakeWeaponMap[weapon->def.tag];
+  const GameItemTag mapped = GameItems_MapTag(gameLevel.items, weapon->def.tag);
   if (!mapped) {
     return NULL;
   }
 
   return &gameItems[mapped];
+}
+
+/**
+ * @brief Returns the authored definition, a level-owned converted copy, or NULL for suppression.
+ * @details Converted copies borrow unchanged strings. Never pass them to FreeEntity;
+ * their allocations are reclaimed with MEM_TAG_GAME_LEVEL.
+ */
+const Entity *G_PreprocessItems(const Entity *def) {
+  if (gameLevel.items == ITEMS_DEFAULT) {
+    return def;
+  }
+  const GameItem *item = G_FindItemByClassName(gi.EntityValue(def, "classname")->string);
+  if (!item) {
+    return def;
+  }
+  const GameItemTag tag = GameItems_MapTag(gameLevel.items, item->def.tag);
+  if (!tag) {
+    return NULL;
+  }
+  if (tag == item->def.tag) {
+    return def;
+  }
+
+  Entity *copy = NULL, *previous = NULL, **next = &copy;
+  for (const Entity *in = def; in; in = in->next) {
+    // A foreign model override must not hide the replacement's model.
+    if (!Str_Compare(in->key, "model")) {
+      continue;
+    }
+    Entity *out = gi.Malloc(sizeof(Entity), MEM_TAG_GAME_LEVEL);
+    *out = *in;
+    out->prev = previous;
+    out->next = NULL;
+    if (!Str_Compare(in->key, "classname")) {
+      const char *classname = gameItems[tag].def.classname;
+      out->string = gi.LinkMalloc(strlen(classname) + 1, out);
+      strcpy(out->string, classname);
+      out->nullableString = out->string;
+      out->parsed = ENTITY_STRING;
+    }
+    *next = out;
+    next = &out->next;
+    previous = out;
+  }
+  return copy;
 }
 
 /**
@@ -114,7 +141,10 @@ const GameItem *G_MappedWeapon(const GameItem *weapon) {
  */
 const GameItem *G_ClientArmor(const GameClient *cl) {
 
-  for (GameItemTag armor = ARMOR_QUAKE_BODY; armor > ARMOR_SHARD; armor--) {
+  for (GameItemTag armor = ARMOR_LAST - 1; armor > ARMOR_SHARD; armor--) {
+    if (armor == ARMOR_QUAKE2_SHARD) {
+      continue;
+    }
 
     if (cl->inventory[armor]) {
       return &gameItems[armor];
@@ -234,6 +264,7 @@ static int32_t G_ItemTimer(const GameItem *item) {
   switch (item->def.tag) {
     case HEALTH_MEGA:
     case HEALTH_QUAKE_MEGA:
+    case HEALTH_QUAKE2_MEGA:
       return CS_ITEM_TIMER_MEGA;
     case POWERUP_QUAD:
       return CS_ITEM_TIMER_QUAD;
@@ -249,10 +280,11 @@ static int32_t G_ItemTimer(const GameItem *item) {
 /**
  * @brief Publishes the seconds until the next mega health and each powerup respawns, to the
  * `CS_ITEM_TIMER_*` config strings. A config string is empty if no such item is pending, or if
- * `g_itemTimers` is off.
+ * `g_itemTimers` is off; otherwise it contains seconds and the respawning item tag.
  */
 void G_RunItemTimers(void) {
   uint32_t respawns[CS_ITEM_TIMER_INVISIBILITY - CS_ITEM_TIMER_MEGA + 1];
+  GameItemTag tags[lengthof(respawns)] = { ITEM_NONE };
 
   for (size_t i = 0; i < lengthof(respawns); i++) {
     respawns[i] = UINT32_MAX;
@@ -265,11 +297,13 @@ void G_RunItemTimers(void) {
         continue;
       }
 
-      const int32_t timer = G_ItemTimer(G_ItemRespawnTarget(ent)->item);
+      const GameItem *item = G_ItemRespawnTarget(ent)->item;
+      const int32_t timer = G_ItemTimer(item);
       if (timer) {
         uint32_t *respawn = &respawns[timer - CS_ITEM_TIMER_MEGA];
         if (ent->nextThink < *respawn) {
           *respawn = ent->nextThink;
+          tags[timer - CS_ITEM_TIMER_MEGA] = item->def.tag;
         }
       }
     });
@@ -280,7 +314,8 @@ void G_RunItemTimers(void) {
       gi.SetConfigString(CS_ITEM_TIMER_MEGA + (int32_t) i, NULL);
     } else {
       const uint32_t millis = respawns[i] > gameLevel.time ? respawns[i] - gameLevel.time : 0;
-      gi.SetConfigString(CS_ITEM_TIMER_MEGA + (int32_t) i, va("%u", (millis + 999) / 1000));
+      gi.SetConfigString(CS_ITEM_TIMER_MEGA + (int32_t) i,
+                        va("%u %d", (millis + 999) / 1000, tags[i]));
     }
   }
 }
@@ -527,7 +562,8 @@ static bool G_PickupAmmo(GameClient *cl, GameEntity *ent) {
   }
 
   if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
-    G_SetItemRespawn(ent, g_ammoRespawnTime->value * 1000);
+    G_SetItemRespawn(ent, ent->item->def.tag >= AMMO_QUAKE2_SHELLS
+                         ? 30000 : g_ammoRespawnTime->value * 1000);
   }
 
   return true;
@@ -540,12 +576,16 @@ static bool G_PickupGrenades(GameClient *cl, GameEntity *ent) {
 
   const bool pickup = G_PickupAmmo(cl, ent);
   if (pickup) {
-    if (!cl->inventory[WEAPON_HAND_GRENADE]) {
-      cl->inventory[WEAPON_HAND_GRENADE]++;
+    const GameItemTag weapon = ent->item->def.tag == AMMO_QUAKE2_GRENADES
+      ? WEAPON_QUAKE2_HAND_GRENADE : WEAPON_HAND_GRENADE;
+    const GameItemTag blaster = ent->item->def.tag == AMMO_QUAKE2_GRENADES
+      ? WEAPON_QUAKE2_BLASTER : WEAPON_BLASTER;
+    if (!cl->inventory[weapon]) {
+      cl->inventory[weapon]++;
     }
 
-    if (cl->persistent.autoSwitch && cl->weapon == &gameItems[WEAPON_BLASTER]) {
-      G_UseWeapon(cl, &gameItems[WEAPON_HAND_GRENADE]);
+    if (cl->persistent.autoSwitch && cl->weapon == &gameItems[blaster]) {
+      G_UseWeapon(cl, &gameItems[weapon]);
     }
   }
 
@@ -556,7 +596,8 @@ static bool G_PickupGrenades(GameClient *cl, GameEntity *ent) {
  * @brief When "using" grenades, route it to the Hand Grenades
  */
 static void G_UseGrenades(GameClient *cl, const GameItem *item) {
-  G_UseWeapon(cl, G_FindItem("Hand Grenades"));
+  G_UseWeapon(cl, &gameItems[item->def.tag == AMMO_QUAKE2_GRENADES
+                            ? WEAPON_QUAKE2_HAND_GRENADE : WEAPON_HAND_GRENADE]);
 }
 
 /**
@@ -566,8 +607,10 @@ static bool G_PickupGrenadeLauncher(GameClient *cl, GameEntity *ent) {
 
   const bool pickup = G_PickupWeapon(cl, ent);
   if (pickup) {
-    if (!cl->inventory[WEAPON_HAND_GRENADE]) {
-      cl->inventory[WEAPON_HAND_GRENADE]++;
+    const GameItemTag weapon = ent->item->def.tag == WEAPON_QUAKE2_GRENADE_LAUNCHER
+      ? WEAPON_QUAKE2_HAND_GRENADE : WEAPON_HAND_GRENADE;
+    if (!cl->inventory[weapon]) {
+      cl->inventory[weapon]++;
     }
   }
 
@@ -637,10 +680,54 @@ static bool G_PickupHealth(GameClient *cl, GameEntity *ent) {
 }
 
 /**
+ * @brief Megahealth stays hidden until its carrier loses the excess health.
+ */
+static void G_Quake2MegaHealthThink(GameEntity *ent) {
+  const GameEntity *carrier = ent->owner;
+  if (carrier && carrier->inUse && !carrier->dead &&
+      carrier->s.spawnId == ent->timestamp && carrier->health > carrier->maxHealth) {
+    ent->nextThink = gameLevel.time + 1000;
+    return;
+  }
+  ent->owner = NULL;
+  G_SetItemRespawn(ent, 20000);
+}
+
+/**
+ * @brief Quake II health ignores the normal cap for stimpacks and megahealth.
+ */
+static bool G_PickupQuake2Health(GameClient *cl, GameEntity *ent) {
+  const GameItemTag tag = ent->item->def.tag;
+  const bool ignoreMax = tag == HEALTH_QUAKE2_SMALL || tag == HEALTH_QUAKE2_MEGA;
+  if (!ignoreMax && cl->entity->health >= cl->entity->maxHealth) {
+    return false;
+  }
+  const int32_t amount = ent->count ? ent->count : ent->item->def.quantity;
+  cl->entity->health = Mini(cl->entity->health + amount,
+                           ignoreMax ? INT16_MAX : cl->entity->maxHealth);
+  if (tag == HEALTH_QUAKE2_MEGA) {
+    cl->boostTime = gameLevel.time + 5000;
+  }
+  if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
+    G_SetItemRespawn(ent, tag == HEALTH_QUAKE2_MEGA ? 20000 : 30000);
+    if (tag == HEALTH_QUAKE2_MEGA) {
+      ent->owner = cl->entity;
+      ent->timestamp = cl->entity->s.spawnId;
+      ent->Think = G_Quake2MegaHealthThink;
+      ent->nextThink = gameLevel.time + 5000;
+    }
+  }
+  return true;
+}
+
+/**
  * @return The `GameArmorInfo` for the specified item.
  */
 const GameArmorInfo *G_ArmorInfo(const GameItem *armor) {
   static const GameArmorInfo armorInfo[] = {
+    { ARMOR_QUAKE2_JACKET, 0.3, 0.0 },
+    { ARMOR_QUAKE2_COMBAT, 0.6, 0.3 },
+    { ARMOR_QUAKE2_BODY,   0.8, 0.6 },
     { ARMOR_QUAKE_JACKET, 0.3, 0.0 },
     { ARMOR_QUAKE_COMBAT, 0.6, 0.0 },
     { ARMOR_QUAKE_BODY,   0.8, 0.0 },
@@ -685,13 +772,14 @@ bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const 
   *give = NULL;
   *count = 0;
 
-  if (newArmor->def.tag == ARMOR_SHARD) {
+  if (newArmor->def.tag == ARMOR_SHARD || newArmor->def.tag == ARMOR_QUAKE2_SHARD) {
     if (currentArmor) {
       *give = currentArmor;
       *count = Clampf(cl->inventory[currentArmor->def.tag] + newArmor->def.quantity, 0,
                       cl->maxArmor);
     } else {
-      *give = &gameItems[ARMOR_JACKET];
+      *give = &gameItems[newArmor->def.tag == ARMOR_QUAKE2_SHARD
+                         ? ARMOR_QUAKE2_JACKET : ARMOR_JACKET];
       *count = Clampf((int16_t) newArmor->def.quantity, 0, cl->maxArmor);
     }
 
@@ -705,7 +793,7 @@ bool G_ResolveArmorPickup(const GameClient *cl, const GameItem *newArmor, const 
     return true;
   }
 
-  if (newArmor->def.tag >= ARMOR_QUAKE_JACKET) {
+  if (newArmor->def.tag >= ARMOR_QUAKE_JACKET && newArmor->def.tag <= ARMOR_QUAKE_BODY) {
     const float currentScore = currentInfo->normalProtection * cl->inventory[currentArmor->def.tag];
     const float newScore = newInfo->normalProtection * newArmor->def.quantity;
 
@@ -798,6 +886,27 @@ static bool G_PickupArmor(GameClient *cl, GameEntity *ent) {
   }
 
   return taken;
+}
+
+/**
+ * @brief Quake II armor uses salvage and a twenty-second deathmatch respawn.
+ */
+static bool G_PickupQuake2Armor(GameClient *cl, GameEntity *ent) {
+  const GameItem *drop, *give;
+  int16_t count;
+  if (!G_ResolveArmorPickup(cl, ent->item, &drop, &give, &count)) {
+    return false;
+  }
+  if (drop) {
+    cl->inventory[drop->def.tag] = 0;
+  }
+  if (give) {
+    cl->inventory[give->def.tag] = count;
+  }
+  if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
+    G_SetItemRespawn(ent, 20000);
+  }
+  return true;
 }
 
 /**
@@ -1017,6 +1126,12 @@ static const GameItem *G_ResolveInventoryItem_Common(GameClient *cl, const char 
     }
   }
 
+  for (GameItemTag tag = WEAPON_FIRST; tag < ITEM_TOTAL; tag++) {
+    const GameItem *item = &gameItems[tag];
+    if (cl->inventory[tag] && !Str_CaseCompare(item->def.name, name)) {
+      return item;
+    }
+  }
   return G_FindItem(name);
 }
 
@@ -1125,7 +1240,8 @@ static void G_ResetItem_Common(GameEntity *ent) {
   }
 
   // if we were mid-respawn, get us out of it
-  if (ent->Think == G_ItemRespawn) {
+  if (ent->Think == G_ItemRespawn || ent->Think == G_Quake2MegaHealthThink) {
+    ent->owner = NULL;
     ent->nextThink = 0;
     ent->Think = NULL;
   }
@@ -1333,44 +1449,7 @@ GameItem *gameItems;
  * @brief Returns true if the item belongs to the active item set.
  */
 bool G_ItemAvailable(const GameItem *item) {
-
-  if (item->def.type == ITEM_TYPE_WEAPON) {
-    if (gameLevel.items == ITEMS_QUAKE) {
-      return item->def.tag >= WEAPON_QUAKE_SHOTGUN;
-    } else {
-      return item->def.tag < WEAPON_QUAKE_SHOTGUN;
-    }
-  }
-
-  if (item->def.type == ITEM_TYPE_AMMO) {
-    if (gameLevel.items == ITEMS_QUAKE) {
-      return item->def.tag >= AMMO_QUAKE_SHELLS;
-    } else {
-      return item->def.tag < AMMO_QUAKE_SHELLS;
-    }
-  }
-
-  if (item->def.type == ITEM_TYPE_ARMOR) {
-    if (gameLevel.items == ITEMS_QUAKE) {
-      return item->def.tag >= ARMOR_QUAKE_JACKET;
-    } else {
-      return item->def.tag < ARMOR_QUAKE_JACKET;
-    }
-  }
-
-  if (item->def.type == ITEM_TYPE_HEALTH) {
-    if (gameLevel.items == ITEMS_QUAKE) {
-      return item->def.tag >= HEALTH_QUAKE_MEDIUM;
-    } else {
-      return item->def.tag < HEALTH_QUAKE_MEDIUM;
-    }
-  }
-
-  if (item->def.type == ITEM_TYPE_POWERUP) {
-    return true;
-  }
-
-  return true;
+  return GameItems_MapTag(gameLevel.items, item->def.tag) == item->def.tag;
 }
 
 /**
@@ -1381,13 +1460,34 @@ static void G_InitItem_Common(GameItem *it) {
 
   switch (it->def.type) {
     case ITEM_TYPE_ARMOR:
-      it->Pickup = G_PickupArmor;
+      it->Pickup = it->def.tag >= ARMOR_QUAKE2_SHARD ? G_PickupQuake2Armor : G_PickupArmor;
       break;
 
     case ITEM_TYPE_WEAPON:
       it->Pickup = G_PickupWeapon;
       it->Use = G_UseWeapon;
       it->Drop = G_DropWeapon;
+
+      if (it->def.tag >= WEAPON_QUAKE2_BLASTER) {
+        switch (it->def.tag) {
+          case WEAPON_QUAKE2_BLASTER: it->Think = G_FireQuake2Blaster; it->Drop = NULL; break;
+          case WEAPON_QUAKE2_SHOTGUN: it->Think = G_FireQuake2Shotgun; break;
+          case WEAPON_QUAKE2_SUPER_SHOTGUN: it->Think = G_FireQuake2SuperShotgun; break;
+          case WEAPON_QUAKE2_MACHINEGUN: it->Think = G_FireQuake2Machinegun; break;
+          case WEAPON_QUAKE2_CHAINGUN: it->Think = G_FireQuake2Chaingun; break;
+          case WEAPON_QUAKE2_HAND_GRENADE: it->Think = G_FireQuake2HandGrenade; it->Drop = NULL; break;
+          case WEAPON_QUAKE2_GRENADE_LAUNCHER:
+            it->Think = G_FireQuake2GrenadeLauncher;
+            it->Pickup = G_PickupGrenadeLauncher;
+            break;
+          case WEAPON_QUAKE2_ROCKET_LAUNCHER: it->Think = G_FireQuake2RocketLauncher; break;
+          case WEAPON_QUAKE2_HYPERBLASTER: it->Think = G_FireQuake2Hyperblaster; break;
+          case WEAPON_QUAKE2_RAILGUN: it->Think = G_FireQuake2Railgun; break;
+          case WEAPON_QUAKE2_BFG: it->Think = G_FireQuake2BFG; break;
+          default: G_Error("Invalid Quake II weapon %s\n", it->def.classname);
+        }
+        break;
+      }
 
       if (!Str_Compare(it->def.classname, "weapon_blaster") ||
           !Str_Compare(it->def.classname, "weapon_handgrenades")) {
@@ -1438,14 +1538,15 @@ static void G_InitItem_Common(GameItem *it) {
     case ITEM_TYPE_AMMO:
       it->Pickup = G_PickupAmmo;
       it->Drop = G_DropItem;
-      if (!Str_Compare(it->def.classname, "ammo_grenades")) {
+      if (!Str_Compare(it->def.classname, "ammo_grenades") ||
+          it->def.tag == AMMO_QUAKE2_GRENADES) {
         it->Pickup = G_PickupGrenades;
         it->Use = G_UseGrenades;
       }
       break;
 
     case ITEM_TYPE_HEALTH:
-      it->Pickup = G_PickupHealth;
+      it->Pickup = it->def.tag >= HEALTH_QUAKE2_SMALL ? G_PickupQuake2Health : G_PickupHealth;
       break;
 
     case ITEM_TYPE_POWERUP:
@@ -1492,4 +1593,3 @@ void G_InitItems(void) {
     G_SetupItem(&gameItems[tag]);
   }
 }
-

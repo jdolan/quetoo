@@ -37,7 +37,7 @@ void Cg_AddDecal(const RenderDecal *decal) {
 /**
  * @brief Spawns blaster impact sprites, a burn decal, a brief dynamic light, and plays the hit sound.
  */
-static void Cg_BlasterEffect(const Vec3 org, const Vec3 dir, const Vec3 color) {
+static void Cg_BlasterEffect(const Vec3 org, const Vec3 dir, const Vec3 color, const SoundSample *sample) {
 
   for (int32_t i = 0; i < 2; i++) {
     const float saturation = RandomRangef(.8f, 1.f);
@@ -117,7 +117,7 @@ static void Cg_BlasterEffect(const Vec3 org, const Vec3 dir, const Vec3 color) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameMedia.sounds.blasterHit,
+    .sample = sample,
     .origin = org,
   });
 }
@@ -540,7 +540,7 @@ void Cg_SparksEffect(const Vec3 org, const Vec3 dir, int32_t count) {
 /**
  * @brief Spawns explosion sprites, ember particles, a burn decal, a bright decaying light, and plays the explosion sound.
  */
-static void Cg_ExplosionEffect(const Vec3 org, const Vec3 dir) {
+static void Cg_ExplosionEffect(const Vec3 org, const Vec3 dir, const SoundSample *sample) {
 
   if (cgi.PointContents(org) & CONTENTS_MASK_LIQUID) {
     for (int32_t i = 0; i < 16; i++) {
@@ -661,7 +661,7 @@ static void Cg_ExplosionEffect(const Vec3 org, const Vec3 dir) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameMedia.sounds.explosion,
+    .sample = sample,
     .origin = org,
   });
 }
@@ -758,6 +758,91 @@ static void Cg_LightningDischargeEffect(const Vec3 org) {
   });
 
   
+}
+
+/**
+ * @brief Sizes a Quake II particle as Quake II's GL renderer does: a fixed size up close, growing
+ * with depth so that it does not vanish in the distance.
+ */
+static void Cg_Quake2ParticleThink(CGameSprite *sprite, float life, float delta) {
+
+  const float depth = Vec3_Dot(Vec3_Subtract(sprite->origin, cgi.view->origin), cgi.view->forward);
+  const float scale = depth < 20.f ? 1.f : 1.f + depth * .004f;
+
+  sprite->size = 1.5f * scale;
+}
+
+/**
+ * @brief Adds a particle of Quake II's palette, which fades out over `lifetime` as its alpha
+ * would in Quake II.
+ */
+static void Cg_Quake2Particle(const Vec3 org, const Vec3 vel, const Color32 color, uint32_t lifetime) {
+
+  Cg_AddSprite(&(CGameSprite) {
+    .atlasImage = cgameMedia.sprites.particle,
+    .origin = org,
+    .velocity = vel,
+    .lifetime = lifetime,
+    .size = 1.5f,
+    .color = Color32_Color(color).vec3,
+    .endColor = Vec3_Zero(),
+    .Think = Cg_Quake2ParticleThink,
+  });
+}
+
+/**
+ * @brief Quake II's `crand`, a random float in [-1, 1].
+ */
+static inline float Cg_Quake2Crand(void) {
+  return RandomRangef(-1.f, 1.f);
+}
+
+/**
+ * @brief Renders the Quake II railgun trail, as Quake II's `CL_RailTrail` does: a blue spiral of
+ * radius 3 that drifts outward, around a core of grey particles, with no light, impact effect or
+ * impact sound.
+ * The colors are those of Quake II's palette, indices 0x74 to 0x7b and 0x00 to 0x0f.
+ */
+static void Cg_Quake2RailEffect(const Vec3 start, const Vec3 end) {
+
+  static const Color32 spiral[] = {
+    { .r = 23, .g = 83, .b = 111, .a = 255 }, { .r = 19, .g = 75, .b = 103, .a = 255 },
+    { .r = 15, .g = 67, .b = 91, .a = 255 }, { .r = 11, .g = 63, .b = 83, .a = 255 },
+    { .r = 7, .g = 55, .b = 75, .a = 255 }, { .r = 7, .g = 47, .b = 63, .a = 255 },
+    { .r = 7, .g = 39, .b = 51, .a = 255 }, { .r = 0, .g = 31, .b = 43, .a = 255 },
+  };
+
+  static const uint8_t core[] = {
+    0, 15, 31, 47, 63, 75, 91, 107, 123, 139, 155, 171, 187, 203, 219, 235,
+  };
+
+  Vec3 forward;
+  float len = Vec3_DistanceDir(end, start, &forward);
+
+  // MakeNormalVectors
+  Vec3 right = MakeVec3(forward.z, -forward.x, forward.y);
+  right = Vec3_Normalize(Vec3_Fmaf(right, -Vec3_Dot(right, forward), forward));
+  const Vec3 up = Vec3_Cross(right, forward);
+
+  for (int32_t i = 0; i < len; i++) {
+    const float d = i * .1f;
+    const Vec3 dir = Vec3_Fmaf(Vec3_Scale(right, cosf(d)), sinf(d), up);
+    const Vec3 move = Vec3_Fmaf(start, i, forward);
+
+    Cg_Quake2Particle(Vec3_Fmaf(move, 3.f, dir), Vec3_Scale(dir, 6.f),
+                      spiral[RandomRangeu(0, lengthof(spiral))],
+                      SECONDS_TO_MILLIS(1.f + Randomf() * .2f));
+  }
+
+  for (float f = 0.f; f < len; f += .75f) {
+    const Vec3 move = Vec3_Fmaf(start, f, forward);
+    const uint8_t gray = core[RandomRangeu(0, lengthof(core))];
+
+    Cg_Quake2Particle(Vec3_Add(move, MakeVec3(Cg_Quake2Crand() * 3.f, Cg_Quake2Crand() * 3.f, Cg_Quake2Crand() * 3.f)),
+                      MakeVec3(Cg_Quake2Crand() * 3.f, Cg_Quake2Crand() * 3.f, Cg_Quake2Crand() * 3.f),
+                      MakeColor32(gray, gray, gray, 255),
+                      SECONDS_TO_MILLIS(.6f + Randomf() * .2f));
+  }
 }
 
 /**
@@ -1008,9 +1093,77 @@ static void Cg_BfgLaserEffect(const int16_t orgEntity, const int16_t destEntity)
 }
 
 /**
+ * @brief Think callback that keeps a Quake II BFG laser anchored to its ball as it flies.
+ */
+static void Cg_Quake2BfgLaserThink(CGameSprite *sprite, float life, float delta) {
+
+  const CGameBfgLaserData data = { .data = sprite->data };
+
+  sprite->origin = cgi.client->entities[data.org].origin;
+}
+
+/**
+ * @brief Spawns a Quake II BFG laser from the ball to where it ended. The game sends a new laser
+ * each Quake II frame, so each lasts that long.
+ */
+static void Cg_Quake2BfgLaserEffect(const int16_t orgEntity, const Vec3 end) {
+
+  const Vec3 org = cgi.client->entities[orgEntity].origin;
+
+  Cg_AddSprite(&(CGameSprite) {
+    .type = SPRITE_BEAM,
+    .image = cgameMedia.beams.rail,
+    .origin = org,
+    .termination = end,
+    .size = 4.f,
+    .lifetime = 100,
+    .flags = SPRITE_SERVER_TIME | SPRITE_DATA_NOFREE,
+    .color = ColorHSV(COLOR_HUE_GREEN, 1.f, 1.f).vec3,
+    .data = ((CGameBfgLaserData) { .org = orgEntity }).data,
+    .Think = Cg_Quake2BfgLaserThink,
+    .lighting = .5f,
+  });
+
+  Cg_AddLight(&(CGameLight) {
+    .origin = end,
+    .radius = 80.f,
+    .color = MakeVec3(.4f, 1.f, .4f),
+    .intensity = 2.f,
+    .decay = 100,
+  });
+
+  if (cgi.BoxContents(Box3_FromPoints((const Vec3[]) { org, end }, 2)) & CONTENTS_MASK_LIQUID) {
+    Cg_BubbleTrail(NULL, org, end, 4.f);
+  }
+}
+
+/**
+ * @brief Spawns the green burst the Quake II BFG's delayed blast leaves on each entity it damages.
+ */
+static void Cg_Quake2BfgExplosionEffect(const Vec3 org) {
+
+  Cg_AddSprite(&(CGameSprite) {
+    .animation = cgameMedia.sprites.bfgExplosion2,
+    .lifetime = Cg_AnimationLifetime(cgameMedia.sprites.bfgExplosion2, 30),
+    .size = RandomRangef(60.f, 80.f),
+    .rotation = RandomRadian(),
+    .origin = org,
+    .color = MakeVec3(1.f, 1.f, 1.f),
+  });
+
+  Cg_AddLight(&(const CGameLight) {
+    .origin = org,
+    .radius = 150.f,
+    .color = MakeVec3(.4f, 1.f, .4f),
+    .intensity = 2.f,
+    .decay = 500
+  });
+}
+
+/**
  * @brief Spawns BFG explosion sprites, flash billboards, a large burn decal, and a decaying light.
  */
-static void Cg_BfgEffect(const Vec3 org) {
+static void Cg_BfgEffect(const Vec3 org, const SoundSample *sample) {
   // explosion 1
   for (int32_t i = 0; i < 4; i++) {
 
@@ -1097,7 +1250,7 @@ static void Cg_BfgEffect(const Vec3 org) {
   });
 
   Cg_AddSample(cgi.stage, &(const SoundPlaySample) {
-    .sample = cgameMedia.sounds.bfgHit,
+    .sample = sample,
     .origin = org,
   });
 }
@@ -1275,7 +1428,16 @@ void Cg_ParseTempEntity(void) {
       pos = cgi.ReadPosition();
       dir = cgi.ReadDir();
       i = cgi.ReadByte();
-      Cg_BlasterEffect(pos, dir, Cg_ClientEffectColor(i, NULL, COLOR_HUE_ORANGE));
+      Cg_BlasterEffect(pos, dir, Cg_ClientEffectColor(i, NULL, COLOR_HUE_ORANGE), cgameMedia.sounds.blasterHit);
+      break;
+
+    case TE_QUAKE2_BLASTER:
+    case TE_QUAKE2_HYPERBLASTER:
+      pos = cgi.ReadPosition();
+      dir = cgi.ReadDir();
+      i = cgi.ReadByte();
+      Cg_BlasterEffect(pos, dir, Cg_EffectColor(NULL, COLOR_HUE_ORANGE),
+                       type == TE_QUAKE2_BLASTER ? cgameMedia.sounds.blasterHit : cgameMedia.sounds.hyperblasterHit);
       break;
 
     case TE_TRACER:
@@ -1341,10 +1503,28 @@ void Cg_ParseTempEntity(void) {
       break;
     }
 
+    case TE_QUAKE2_RAIL: {
+      pos = cgi.ReadPosition();
+      pos2 = cgi.ReadPosition();
+      const int32_t client = cgi.ReadByte();
+      if (client == cgi.client->frame.ps.client && Cg_ViewIsSelf()) {
+        pos = cgameState.clients[client].weaponMuzzle;
+      }
+      Cg_Quake2RailEffect(pos, pos2);
+      break;
+    }
+
     case TE_EXPLOSION: // rocket and grenade explosions
       pos = cgi.ReadPosition();
       dir = cgi.ReadDir();
-      Cg_ExplosionEffect(pos, dir);
+      Cg_ExplosionEffect(pos, dir, cgameMedia.sounds.explosion);
+      break;
+
+    case TE_QUAKE2_ROCKET_EXPLOSION:
+    case TE_QUAKE2_GRENADE_EXPLOSION:
+      pos = cgi.ReadPosition();
+      dir = cgi.ReadDir();
+      Cg_ExplosionEffect(pos, dir, cgameMedia.sounds.explosion);
       break;
 
     case TE_BFG_LASER:
@@ -1369,7 +1549,27 @@ void Cg_ParseTempEntity(void) {
 
     case TE_BFG: // bfg explosion
       pos = cgi.ReadPosition();
-      Cg_BfgEffect(pos);
+      Cg_BfgEffect(pos, cgameMedia.sounds.bfgHit);
+      break;
+
+    case TE_QUAKE2_BFG_LASER:
+      i = cgi.ReadShort();
+      pos = cgi.ReadPosition();
+      if (i < 0 || i >= MAX_ENTITIES) {
+        Cg_Warn("TE_QUAKE2_BFG_LASER: invalid entity index %d\n", i);
+        break;
+      }
+      Cg_Quake2BfgLaserEffect(i, pos);
+      break;
+
+    case TE_QUAKE2_BFG_EXPLOSION:
+      pos = cgi.ReadPosition();
+      Cg_Quake2BfgExplosionEffect(pos);
+      break;
+
+    case TE_QUAKE2_BFG_BIGEXPLOSION:
+      pos = cgi.ReadPosition();
+      Cg_BfgEffect(pos, cgameMedia.sounds.bfgHit);
       break;
 
     case TE_BUBBLES: // bubbles chasing projectiles in water

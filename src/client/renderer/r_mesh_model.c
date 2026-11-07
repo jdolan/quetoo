@@ -24,8 +24,7 @@
 /**
  * @brief Loads a mesh config from a file.
  */
-static void R_LoadMeshConfig(RenderMeshConfig *config, const char *path) {
-  void *buf;
+static bool R_LoadMeshConfig(RenderMeshConfig *config, Parser *parser) {
   char token[MAX_STRING_CHARS];
 
   memset(config, 0, sizeof(*config));
@@ -33,23 +32,20 @@ static void R_LoadMeshConfig(RenderMeshConfig *config, const char *path) {
   config->transform = Mat4_Identity();
   config->scale = 1.f;
 
-  if (Fs_Load(path, &buf) == -1) {
-    return;
-  }
-
-  Parser parser = Parse_Init((const char *) buf, PARSER_DEFAULT);
-
   while (true) {
 
-    if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
-      break;
+    if (!Parse_Token(parser, PARSE_DEFAULT, token, sizeof(token))) {
+      return false;
+    }
+    if (!Str_Compare(token, "}")) {
+      return true;
     }
 
     if (!Str_Compare(token, "translate")) {
 
       Vec3 v;
-      if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
-        break;
+      if (Parse_Primitive(parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
+        return false;
       }
 
       config->translate = v;
@@ -60,8 +56,8 @@ static void R_LoadMeshConfig(RenderMeshConfig *config, const char *path) {
     if (!Str_Compare(token, "rotate")) {
 
       Vec3 v;
-      if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
-        break;
+      if (Parse_Primitive(parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
+        return false;
       }
 
       config->rotate = v;
@@ -72,8 +68,8 @@ static void R_LoadMeshConfig(RenderMeshConfig *config, const char *path) {
     if (!Str_Compare(token, "scale")) {
 
       float v;
-      if (!Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, &v, 1)) {
-        break;
+      if (!Parse_Primitive(parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, &v, 1)) {
+        return false;
       }
 
       config->scale = v;
@@ -81,19 +77,8 @@ static void R_LoadMeshConfig(RenderMeshConfig *config, const char *path) {
       continue;
     }
 
-    if (!Str_Compare(token, "muzzle")) {
-
-      Vec3 v;
-      if (Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP, PARSE_FLOAT, v.xyz, 3) != 3) {
-        break;
-      }
-
-      config->muzzle = v;
-      continue;
-    }
+    return false;
   }
-
-  Fs_Free(buf);
 }
 
 /**
@@ -104,67 +89,145 @@ void R_LoadMeshConfigs(RenderModel *mod) {
 
   Dirname(mod->media.name, path);
 
-  R_LoadMeshConfig(&mod->mesh->config.world, va("%s/world.cfg", path));
-  R_LoadMeshConfig(&mod->mesh->config.link, va("%s/link.cfg", path));
-  R_LoadMeshConfig(&mod->mesh->config.view, va("%s/view.cfg", path));
-}
-
-/**
- * @brief Returns true if the mesh config has no effect: no translation or rotation, and a scale of
- * one, or of zero, which a config of only zeros holds.
- */
-static bool R_MeshConfigIsEmpty(const RenderMeshConfig *config) {
-  return Vec3_Equal(config->translate, Vec3_Zero()) &&
-         Vec3_Equal(config->rotate, Vec3_Zero()) &&
-         (config->scale == 1.f || config->scale == 0.f) &&
-         Vec3_Equal(config->muzzle, Vec3_Zero());
-}
-
-/**
- * @brief Saves a mesh config to a file, deleting the file if the config is empty.
- * @return True if the file was written or deleted.
- */
-static bool R_SaveMeshConfig(const RenderMeshConfig *cfg, const char *path) {
-
-  if (R_MeshConfigIsEmpty(cfg)) {
-    if (Fs_Exists(path)) {
-      if (Fs_Delete(path)) {
-        Com_Debug(DEBUG_RENDERER, "Deleted %s\n", path);
-      } else {
-        Com_Warn("Failed to delete %s\n", path);
-        return false;
+  RenderMeshConfig *configs[] = {
+    &mod->mesh->config.world, &mod->mesh->config.link, &mod->mesh->config.view
+  };
+  const char *names[] = { "world", "link", "view", "muzzle" };
+  for (size_t i = 0; i < lengthof(configs); i++) {
+    memset(configs[i], 0, sizeof(*configs[i]));
+    configs[i]->transform = Mat4_Identity();
+    configs[i]->scale = 1.f;
+  }
+  void *buf;
+  const char *file = va("%s/model.cfg", path);
+  if (Fs_Load(file, &buf) == -1) {
+    return;
+  }
+  Parser parser = Parse_Init(buf, PARSER_ALL_COMMENTS);
+  char token[MAX_STRING_CHARS];
+  bool seen[4] = { false };
+  bool valid = true;
+  Vec3 muzzle = Vec3_Zero();
+  while (Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+    if (Str_Compare(token, "{") ||
+        !Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token)) || Str_Compare(token, "type") ||
+        !Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+      valid = false;
+      break;
+    }
+    size_t i;
+    for (i = 0; i < lengthof(names); i++) {
+      if (!Str_Compare(token, names[i])) {
+        break;
       }
     }
-    return true;
+    if (i == lengthof(names) || seen[i]) {
+      valid = false;
+      break;
+    }
+    seen[i] = true;
+    if (i < lengthof(configs)) {
+      valid = R_LoadMeshConfig(configs[i], &parser);
+    } else {
+      valid = Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token)) && !Str_Compare(token, "origin") &&
+              Parse_Primitive(&parser, PARSE_DEFAULT | PARSE_WITHIN_QUOTES | PARSE_NO_WRAP,
+                              PARSE_FLOAT, muzzle.xyz, 3) == 3 &&
+              Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token)) && !Str_Compare(token, "}");
+    }
+    if (!valid) {
+      break;
+    }
+  }
+  if (!valid) {
+    Com_Error(ERROR_DROP, "Invalid model config %s at line %u\n", file, parser.position.row);
+  }
+  for (size_t i = 0; i < lengthof(configs); i++) {
+    configs[i]->muzzle = muzzle;
+  }
+  Fs_Free(buf);
+}
+
+/**
+ * @brief Updates the world block without rewriting the other model config blocks.
+ */
+static bool R_SaveMeshConfig(const RenderMeshConfig *cfg, const char *path) {
+  void *buf = NULL;
+  Fs_Load(path, &buf);
+  const char *start = buf;
+  const char *worldStart = NULL, *worldEnd = NULL;
+  if (buf) {
+    Parser parser = Parse_Init(buf, PARSER_ALL_COMMENTS);
+    char token[MAX_STRING_CHARS];
+    while (true) {
+      const char *block = parser.position.ptr;
+      if (!Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+        break;
+      }
+      if (Str_Compare(token, "{") ||
+          !Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token)) || Str_Compare(token, "type") ||
+          !Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+        Com_Warn("Cannot update invalid model config %s\n", path);
+        Fs_Free(buf);
+        return false;
+      }
+      const bool world = !Str_Compare(token, "world");
+      bool closed = false;
+      while (Parse_Token(&parser, PARSE_DEFAULT, token, sizeof(token))) {
+        if (!Str_Compare(token, "}")) {
+          closed = true;
+          break;
+        }
+      }
+      if (!closed || (world && worldStart)) {
+        Com_Warn("Cannot update invalid model config %s\n", path);
+        Fs_Free(buf);
+        return false;
+      }
+      if (world) {
+        worldStart = block;
+        worldEnd = parser.position.ptr;
+      }
+    }
   }
 
   File *file = Fs_OpenWrite(path);
   if (!file) {
     Com_Warn("Failed to write %s\n", path);
+    if (buf) {
+      Fs_Free(buf);
+    }
     return false;
   }
 
   char line[MAX_STRING_CHARS];
   size_t len;
+  if (buf) {
+    Fs_Write(file, start, 1, worldStart ? (size_t) (worldStart - start) : strlen(start));
+  }
+  const char *header = "\n{\n\"type\" \"world\"\n";
+  Fs_Write(file, header, 1, strlen(header));
 
   if (!Vec3_Equal(cfg->translate, Vec3_Zero())) {
-    len = (size_t) Str_Format(line, sizeof(line), "translate %g %g %g\n", cfg->translate.x, cfg->translate.y, cfg->translate.z);
+    len = (size_t) Str_Format(line, sizeof(line), "\"translate\" \"%g %g %g\"\n", cfg->translate.x, cfg->translate.y, cfg->translate.z);
     Fs_Write(file, line, 1, len);
   }
 
   if (!Vec3_Equal(cfg->rotate, Vec3_Zero())) {
-    len = (size_t) Str_Format(line, sizeof(line), "rotate %g %g %g\n", cfg->rotate.x, cfg->rotate.y, cfg->rotate.z);
+    len = (size_t) Str_Format(line, sizeof(line), "\"rotate\" \"%g %g %g\"\n", cfg->rotate.x, cfg->rotate.y, cfg->rotate.z);
     Fs_Write(file, line, 1, len);
   }
 
   if (cfg->scale != 1.f) {
-    len = (size_t) Str_Format(line, sizeof(line), "scale %g\n", cfg->scale);
+    len = (size_t) Str_Format(line, sizeof(line), "\"scale\" \"%g\"\n", cfg->scale);
     Fs_Write(file, line, 1, len);
   }
 
-  if (!Vec3_Equal(cfg->muzzle, Vec3_Zero())) {
-    len = (size_t) Str_Format(line, sizeof(line), "muzzle %g %g %g\n", cfg->muzzle.x, cfg->muzzle.y, cfg->muzzle.z);
-    Fs_Write(file, line, 1, len);
+  Fs_Write(file, "}\n", 1, 2);
+  if (worldEnd) {
+    Fs_Write(file, worldEnd, 1, strlen(worldEnd));
+  }
+  if (buf) {
+    Fs_Free(buf);
   }
 
   Fs_Close(file);
@@ -190,7 +253,7 @@ static void R_SaveMeshConfigs_enumerator(const RenderMedia *media, void *data) {
   char path[MAX_QPATH];
   Dirname(mod->media.name, path);
 
-  if (R_SaveMeshConfig(&mod->mesh->config.world, va("%s/world.cfg", path))) {
+  if (R_SaveMeshConfig(&mod->mesh->config.world, va("%s/model.cfg", path))) {
     mod->mesh->config.world.dirty = false;
     (*(int32_t *) data)++;
   }

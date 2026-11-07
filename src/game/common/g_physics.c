@@ -1002,10 +1002,10 @@ static GameTouch touch;
  */
 static void G_TouchEntity(GameEntity *ent, const CollisionTrace *trace) {
 
-  // ensure that we only impact an entity once per frame
+  // Projectiles must handle each impact, including two surfaces of the same BSP entity.
 
   for (int32_t i = 0; i < touch.numEntities; i++) {
-    if (touch.entities[i] == trace->ent) {
+    if (touch.entities[i] == trace->ent && ent->solid != SOLID_PROJECTILE) {
       return;
     }
   }

@@ -225,8 +225,12 @@ GameLevelWillSpawnHook G_LevelWillSpawn = G_LevelWillSpawn_Common;
 /**
  * @brief Populates common entity fields and then dispatches the class initializer.
  */
-static void G_SpawnEntity(Entity *def) {
+static void G_SpawnEntity(const Entity *def) {
 
+  def = G_PreprocessItems(def);
+  if (!def) {
+    return;
+  }
   const char *classname = gi.EntityValue(def, "classname")->string;
   GameEntity *ent = G_AllocEntity(classname);
 
@@ -441,6 +445,7 @@ static void G_InitMedia_Common(void) {
 
   gameMedia.models.grenade = gi.ModelIndex("models/projectiles/grenade/tris");
   gameMedia.models.quakeGrenade = gi.ModelIndex("models/projectiles/quake_grenade/tris");
+  gameMedia.models.quake2Grenade = gi.ModelIndex("models/projectiles/quake2_grenade/tris");
   gameMedia.models.quakeNail = gi.ModelIndex("models/projectiles/quake_nail/tris");
   gameMedia.models.rocket = gi.ModelIndex("models/projectiles/rocket/tris");
   gameMedia.models.quakeRocket = gi.ModelIndex("models/projectiles/quake_rocket/tris");
@@ -461,6 +466,12 @@ static void G_InitMedia_Common(void) {
   gameMedia.sounds.grenadeTick = gi.SoundIndex("weapons/handgrenades/hg_tick.ogg");
   gameMedia.sounds.quakeGrenadeHit = gi.SoundIndex("projectiles/quake_grenade/hit");
   gameMedia.sounds.quakeNailHit = gi.SoundIndex("projectiles/quake_nail/hit");
+  gameMedia.sounds.quake2ChaingunSpinUp = gi.SoundIndex("weapons/quake2_chaingun/spinup");
+  gameMedia.sounds.quake2ChaingunHum = gi.SoundIndex("weapons/quake2_chaingun/hum");
+  gameMedia.sounds.quake2ChaingunSpinDown = gi.SoundIndex("weapons/quake2_chaingun/spindown");
+  gameMedia.sounds.quake2HyperblasterHum = gi.SoundIndex("weapons/quake2_hyperblaster/hum");
+  gameMedia.sounds.quake2HyperblasterSpinDown = gi.SoundIndex("weapons/quake2_hyperblaster/spindown");
+  gameMedia.sounds.railgunHum = gi.SoundIndex("weapons/railgun/hum");
   gameMedia.sounds.rocketFly = gi.SoundIndex("projectiles/rocket/fly");
   gameMedia.sounds.lightningFly = gi.SoundIndex("weapons/lightning/fly");
   gameMedia.sounds.laserFly = gi.SoundIndex("trigger/laser/fly");
@@ -773,7 +784,7 @@ static void G_worldspawn_Music(void) {
 /*QUAKED worldspawn (0 0 0) ?
  The worldspawn entity defines global conditions and behavior for the entire level. All brushes not belonging to an explicit entity implicitly belong to worldspawn.
 
-The map list's entry for the level takes precedence over the gameplay, movement, gravity, min_clients, ai, num_teams, frag_limit, capture_limit, time_limit and music given here. A server setting other than "default" takes precedence over both, except for ai and music, which have no server setting.
+The map list's entry for the level takes precedence over the gameplay, movement, items, gravity, min_clients, ai, num_teams, frag_limit, capture_limit, time_limit and music given here. A server setting other than "default" takes precedence over both, except for ai and music, which have no server setting.
  -------- KEYS --------
  message : The map title.
  games : Space-delimited games this map is made for, one or more of dm, tdm, duel, ctf, instagib, race (default dm). Shown and filtered in the Create Server map browser.
@@ -782,7 +793,7 @@ The map list's entry for the level takes precedence over the gameplay, movement,
  gravity : Gravity for the level; unset, the movement's applies, 800 for most.
  gameplay : The gameplay mode, one of deathmatch, team_deathmatch, instagib, team_instagib, arena, team_arena (default deathmatch).
  movement : The player movement, one of quetoo, race, quake, quake2, quake3 (default quetoo, or race in the race module).
- items : The item set for this map: "default" (Quetoo weapons) or "quake" (Quake weapons).
+ items : Item conversion: "default" preserves authored items; "quetoo", "quake", or "quake2" converts to that roster and suppresses items without equivalents. Independent of movement. Map-list items takes precedence; a named g_items overrides both on full map reload.
  min_clients : The number of clients, humans and AI, the game fills to; unset, 0.
  ai : The AI players, by name and separated by spaces, that join the level first. They always join, even beyond min_clients; any others that min_clients asks for are picked at random.
  num_teams : The number of teams, 2 to 4, in team gameplays; unset, the teams that the map has spawn points or flags for. In CTF, at most the teams that the map has flags for.
@@ -834,12 +845,12 @@ static void G_worldspawn(GameEntity *ent) {
 
   gi.SetConfigString(CS_GAMEPLAY, va("%d", gameLevel.gameplay));
 
-  const Entity *items = gi.EntityValue(ent->def, "items");
-  if (Str_CaseCompare(items->string, "quake") == 0) {
-    gameLevel.items = ITEMS_QUAKE;
-  } else {
-    gameLevel.items = ITEMS_DEFAULT;
+  const Entity *itemsMap = G_MapListEntryValue("items");
+  const char *items = gi.EntityValue(ent->def, "items")->string;
+  if (itemsMap && *itemsMap->string) {
+    items = itemsMap->string;
   }
+  gameLevel.items = G_ResolveItems(items);
 
   gi.SetConfigString(CS_ITEM_SET, va("%d", gameLevel.items));
 

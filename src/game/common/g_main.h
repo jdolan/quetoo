@@ -180,6 +180,8 @@ extern Cvar *g_duckSpeed;
 extern Cvar *g_duckStandSpeed;
 extern Cvar *g_gravity;
 extern Cvar *g_movement;
+extern Cvar *g_items;
+GameItems G_ResolveItems(const char *name);
 extern Cvar *g_groundAcceleration;
 extern Cvar *g_groundAccelerationSlick;
 extern Cvar *g_groundFriction;
