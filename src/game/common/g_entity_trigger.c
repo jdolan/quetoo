@@ -246,6 +246,9 @@ static void G_trigger_push_Push(GameEntity *ent, GameEntity *other, int32_t dept
   other->velocity = Vec3_Scale(ent->moveDir, ent->speed * 10.0);
 
   if (other->client) {
+    // a push ends any teleport hold: both share pmState.time, so refreshing the push timer
+    // every touch would otherwise keep a player who teleports into a push frozen indefinitely
+    other->client->ps.pmState.flags &= ~PMF_TIME_TELEPORT;
     other->client->ps.pmState.flags |= PMF_TIME_PUSHED;
     other->client->ps.pmState.time = PM_PUSH_MILLIS;
 
