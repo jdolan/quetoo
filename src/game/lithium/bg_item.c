@@ -1226,6 +1226,21 @@ const GameItemDef gameItemDefs[] = {
   },
 
   {
+    .classname = "item_quake2_adrenaline",
+    .pickupSound = "powerups/adrenaline/pickup.wav",
+    .model = "models/powerups/quake2_adrenaline/tris.obj",
+    .effects = EF_ROTATE | EF_BOB,
+    .icon = "pics/adrenaline",
+    .name = "Adrenaline",
+    .quantity = 0,
+    .type = ITEM_TYPE_POWERUP,
+    .tag = POWERUP_QUAKE2_ADRENALINE,
+    .effectColor = { { 0.022f, 0.627f, 0.069f, 1.f } },
+    .priority = 0.45,
+    .precaches = ""
+  },
+
+  {
     .classname = "item_quake2_backpack",
     .pickupSound = "ammo/common/pickup_large.wav",
     .model = "models/powerups/quake2_backpack/tris.obj",

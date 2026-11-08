@@ -80,6 +80,7 @@ static inline GameItemTag GameItems_MapTag(GameItems items, GameItemTag tag) {
     { HEALTH_MEDIUM, HEALTH_QUAKE_MEDIUM, HEALTH_QUAKE2_MEDIUM },
     { HEALTH_LARGE, HEALTH_QUAKE_LARGE, HEALTH_QUAKE2_LARGE },
     { HEALTH_MEGA, HEALTH_QUAKE_MEGA, HEALTH_QUAKE2_MEGA },
+    { POWERUP_ADRENALINE, POWERUP_ADRENALINE, POWERUP_QUAKE2_ADRENALINE },
   };
   const size_t column = items == ITEMS_QUETOO ? 0 : items == ITEMS_QUAKE ? 1 : 2;
   // A same-roster item must not be converted through another row sharing its tag.

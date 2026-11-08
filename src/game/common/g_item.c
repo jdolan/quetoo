@@ -338,16 +338,26 @@ void G_RunItemTimers(void) {
 }
 
 /**
- * @brief Handles pickup of the adrenaline powerup, restoring the player to max health.
+ * @brief Handles pickup of the adrenaline powerup, boosting the player to 1.2 times their max
+ * health, even if they are already at it. The boost decays back to max health over time, as the
+ * health from other boosting items does. Adrenaline is consumed on pickup, so it is never held
+ * and can not be dropped.
  */
 static bool G_PickupAdrenaline(GameClient *cl, GameEntity *ent) {
 
-  if (cl->entity->health < cl->entity->maxHealth) {
-    cl->entity->health = cl->entity->maxHealth;
+  GameEntity *self = cl->entity;
+
+  const int32_t boosted = Mini(self->maxHealth * 6 / 5, cl->maxBoostHealth);
+  if (self->health < boosted) {
+    self->health = boosted;
+  }
+
+  if (self->health > self->maxHealth && !cl->boostTime) {
+    cl->boostTime = gameLevel.time + 1000;
   }
 
   if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
-    G_SetItemRespawn(ent, 40000);
+    G_SetItemRespawn(ent, ent->item->def.tag == POWERUP_QUAKE2_ADRENALINE ? 60000 : 40000);
   }
 
   return true;
@@ -1678,7 +1688,8 @@ static void G_InitItem_Common(GameItem *it) {
       break;
 
     case ITEM_TYPE_POWERUP:
-      if (!Str_Compare(it->def.classname, "item_adrenaline")) {
+      if (!Str_Compare(it->def.classname, "item_adrenaline") ||
+          !Str_Compare(it->def.classname, "item_quake2_adrenaline")) {
         it->Pickup = G_PickupAdrenaline;
       } else if (!Str_Compare(it->def.classname, "item_quad")) {
         it->Pickup = G_PickupQuadDamage;
