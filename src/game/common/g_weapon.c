@@ -81,9 +81,18 @@ void G_AutoSwitchWeapon(GameClient *cl, const GameItem *weapon, bool hadWeapon) 
   const uint16_t autoSwitch = cl->persistent.autoSwitch;
   if (autoSwitch == 1) { // switch from starting weapon
 
-    const GameItemTag tag = (gameLevel.items == ITEMS_QUAKE)
-      ? WEAPON_QUAKE_SHOTGUN
-      : gameLevel.items == ITEMS_QUAKE2 ? WEAPON_QUAKE2_BLASTER : WEAPON_BLASTER;
+    GameItemTag tag;
+    switch (gameLevel.items) {
+      case ITEMS_QUAKE:
+        tag = WEAPON_QUAKE_SHOTGUN;
+        break;
+      case ITEMS_QUAKE2:
+        tag = WEAPON_QUAKE2_BLASTER;
+        break;
+      default:
+        tag = WEAPON_BLASTER;
+        break;
+    }
 
     if (cl->weapon == &gameItems[tag]) {
       G_ChangeWeapon(cl, weapon);
