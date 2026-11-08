@@ -390,7 +390,11 @@ START_TEST(check_GameItems_Conversion) {
   ck_assert_int_eq(GameItems_MapTag(ITEMS_QUETOO, HEALTH_QUAKE2_MEGA), HEALTH_MEGA);
   ck_assert_int_eq(GameItems_MapTag(ITEMS_QUAKE2, ARMOR_QUAKE_BODY), ARMOR_QUAKE2_BODY);
   ck_assert_int_eq(GameItems_MapTag(ITEMS_QUAKE, POWERUP_QUAD), POWERUP_QUAD);
-  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUAKE2, POWERUP_ADRENALINE), POWERUP_ADRENALINE);
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUAKE2, POWERUP_ADRENALINE), POWERUP_QUAKE2_ADRENALINE);
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUAKE, POWERUP_ADRENALINE), POWERUP_ADRENALINE);
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUETOO, POWERUP_QUAKE2_ADRENALINE), POWERUP_ADRENALINE);
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUAKE2, POWERUP_INVULNERABILITY), POWERUP_QUAKE2_INVULNERABILITY);
+  ck_assert_int_eq(GameItems_MapTag(ITEMS_QUETOO, POWERUP_QUAKE2_INVULNERABILITY), POWERUP_INVULNERABILITY);
   GameItems mode = ITEMS_DEFAULT;
   ck_assert(GameItems_ByName("QUETOO", &mode));
   ck_assert_int_eq(mode, ITEMS_QUETOO);

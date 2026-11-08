@@ -286,6 +286,7 @@ static int32_t G_ItemTimer(const GameItem *item) {
     case POWERUP_QUAD:
       return CS_ITEM_TIMER_QUAD;
     case POWERUP_INVULNERABILITY:
+    case POWERUP_QUAKE2_INVULNERABILITY:
       return CS_ITEM_TIMER_INVULNERABILITY;
     case POWERUP_INVISIBILITY:
       return CS_ITEM_TIMER_INVISIBILITY;
@@ -338,16 +339,26 @@ void G_RunItemTimers(void) {
 }
 
 /**
- * @brief Handles pickup of the adrenaline powerup, restoring the player to max health.
+ * @brief Handles pickup of the adrenaline powerup, boosting the player to `g_balanceAdrenalineBoost`
+ * times their max health, even if they are already at it. The boost decays back to max health over
+ * time, as the health from other boosting items does. Adrenaline is consumed on pickup, so it is
+ * never held and can not be dropped.
  */
 static bool G_PickupAdrenaline(GameClient *cl, GameEntity *ent) {
 
-  if (cl->entity->health < cl->entity->maxHealth) {
-    cl->entity->health = cl->entity->maxHealth;
+  GameEntity *self = cl->entity;
+
+  const int32_t boosted = Mini((int32_t) (self->maxHealth * g_balanceAdrenalineBoost->value), cl->maxBoostHealth);
+  if (self->health < boosted) {
+    self->health = boosted;
+  }
+
+  if (self->health > self->maxHealth && !cl->boostTime) {
+    cl->boostTime = gameLevel.time + 1000;
   }
 
   if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
-    G_SetItemRespawn(ent, 40000);
+    G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_balanceAdrenalineRespawnTime->value));
   }
 
   return true;
@@ -492,7 +503,9 @@ GameEntity *G_TossInvulnerability(GameClient *cl) {
     return NULL;
   }
 
-  GameEntity *item = G_DropItem(cl, &gameItems[POWERUP_INVULNERABILITY]);
+  // the invulnerability is held as Quetoo's, but drops as the item set's own
+  const GameItemTag tag = GameItems_MapTag(gameLevel.items, POWERUP_INVULNERABILITY);
+  GameEntity *item = G_DropItem(cl, &gameItems[tag]);
 
   if (item) {
     item->timestamp = cl->invulnerabilityTime;
@@ -517,10 +530,24 @@ static void G_TossInventory_Common(GameClient *cl) {
 GameTossInventoryHook G_TossInventory = G_TossInventory_Common;
 
 /**
+ * @brief The most of an ammo item the client can carry. The Quake II ammo pack raises every cap.
+ */
+int16_t G_AmmoMax(const GameClient *cl, const GameItem *item) {
+  const int16_t max = item->def.max;
+
+  if (!max || !cl->inventory[BACKPACK_QUAKE2]) {
+    return max;
+  }
+
+  // Quake II's pack takes 200 to 300, and 50 or 100 to double
+  return max >= 200 ? max * 3 / 2 : max * 2;
+}
+
+/**
  * @brief Adds the given amount of ammo to the client's inventory, clamped to the item's maximum.
  */
 bool G_AddAmmo(GameClient *cl, const GameItem *item, int16_t count) {
-  int16_t max = item->def.max;
+  const int16_t max = G_AmmoMax(cl, item);
 
   if (!max) {
     return false;
@@ -543,7 +570,7 @@ bool G_AddAmmo(GameClient *cl, const GameItem *item, int16_t count) {
  * @brief Sets the client's ammo count for the given item to an absolute value, clamped to its maximum.
  */
 bool G_SetAmmo(GameClient *cl, const GameItem *item, int16_t count) {
-  int16_t max = item->def.max;
+  const int16_t max = G_AmmoMax(cl, item);
 
   if (!max) {
     return false;
@@ -947,6 +974,8 @@ static void G_DropItem_SetExpiration(GameEntity *ent) {
   uint32_t expiration;
   if (ent->item->def.type == ITEM_TYPE_POWERUP) { // expire from last touch
     expiration = ent->timestamp - gameLevel.time;
+  } else if (ent->item->def.type == ITEM_TYPE_BACKPACK) { // as in QuakeWorld
+    expiration = 120000;
   } else { // general case
     expiration = 30000;
   }
@@ -1470,6 +1499,165 @@ bool G_ItemAvailable(const GameItem *item) {
 }
 
 /**
+ * @brief Grenade ammo comes with the means to throw it: grant the hand grenade weapon.
+ * @return True if the weapon was newly granted.
+ */
+static bool G_GrantHandGrenade(GameClient *cl, GameItemTag ammo) {
+
+  if (ammo != AMMO_GRENADES && ammo != AMMO_QUAKE2_GRENADES) {
+    return false;
+  }
+
+  const GameItemTag weapon = ammo == AMMO_QUAKE2_GRENADES
+    ? WEAPON_QUAKE2_HAND_GRENADE : WEAPON_HAND_GRENADE;
+
+  if (!cl->inventory[ammo] || cl->inventory[weapon]) {
+    return false;
+  }
+
+  cl->inventory[weapon] = 1;
+  return true;
+}
+
+/**
+ * @see g_item.h
+ */
+void G_Quake2BackpackContents(GameBackpack *backpack) {
+
+  static const struct {
+    GameItemTag tag;
+    int16_t count;
+  } bonus[] = {
+    { AMMO_QUAKE2_BULLETS, 30 },
+    { AMMO_QUAKE2_SHELLS, 15 },
+    { AMMO_QUAKE2_CELLS, 30 },
+    { AMMO_QUAKE2_GRENADES, 5 },
+    { AMMO_QUAKE2_ROCKETS, 5 },
+    { AMMO_QUAKE2_SLUGS, 10 },
+  };
+
+  memset(backpack, 0, sizeof(*backpack));
+
+  for (size_t i = 0; i < lengthof(bonus); i++) {
+    const GameItemTag tag = GameItems_MapTag(gameLevel.items, bonus[i].tag);
+    if (!tag) {
+      continue;
+    }
+
+    backpack->ammo[tag - AMMO_FIRST] = bonus[i].count;
+
+    if (tag == AMMO_GRENADES) {
+      backpack->weapons |= 1ull << (WEAPON_HAND_GRENADE - WEAPON_FIRST);
+    } else if (tag == AMMO_QUAKE2_GRENADES) {
+      backpack->weapons |= 1ull << (WEAPON_QUAKE2_HAND_GRENADE - WEAPON_FIRST);
+    }
+  }
+}
+
+/**
+ * @brief Handles pickup of the Quake II ammo pack, which raises the client's ammo capacity for as
+ * long as it is held, and tops off a little of each ammo the level uses.
+ */
+static bool G_PickupQuake2Backpack(GameClient *cl, GameEntity *ent) {
+
+  if (cl->inventory[BACKPACK_QUAKE2]) {
+    return false;
+  }
+
+  cl->inventory[BACKPACK_QUAKE2] = 1;
+
+  GameBackpack contents;
+  G_Quake2BackpackContents(&contents);
+
+  for (GameItemTag tag = AMMO_FIRST; tag < AMMO_LAST; tag++) {
+    const int16_t count = contents.ammo[tag - AMMO_FIRST];
+    if (count) {
+      G_AddAmmo(cl, &gameItems[tag], count);
+      G_GrantHandGrenade(cl, tag);
+    }
+  }
+
+  if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
+    G_SetItemRespawn(ent, 60000);
+  }
+
+  return true;
+}
+
+/**
+ * @brief Handles pickup of a backpack dropped by a fragged player, granting its weapons and ammo.
+ * @return False if the backpack holds nothing the client could use.
+ */
+static bool G_PickupBackpack(GameClient *cl, GameEntity *ent) {
+
+  const GameBackpack *backpack = &ent->backpack;
+  bool pickup = false;
+
+  uint64_t owned = 0;
+
+  for (GameItemTag tag = WEAPON_FIRST; tag < WEAPON_LAST; tag++) {
+    const uint64_t bit = 1ull << (tag - WEAPON_FIRST);
+    if (!(backpack->weapons & bit)) {
+      continue;
+    }
+    if (cl->inventory[tag]) {
+      owned |= bit;
+    } else {
+      cl->inventory[tag] = 1;
+      pickup = true;
+    }
+  }
+
+  for (GameItemTag tag = AMMO_FIRST; tag < AMMO_LAST; tag++) {
+    const int16_t count = backpack->ammo[tag - AMMO_FIRST];
+    if (!count) {
+      continue;
+    }
+
+    const int16_t before = cl->inventory[tag];
+    if (G_AddAmmo(cl, &gameItems[tag], count) && cl->inventory[tag] > before) {
+      pickup = true;
+    }
+
+    if (G_GrantHandGrenade(cl, tag)) {
+      pickup = true;
+    }
+  }
+
+  if (!pickup) {
+    return false;
+  }
+
+  // switch to the first weapon the pack leaves the client able to fire, preferring new ones
+  const GameItem *candidate = NULL;
+  bool candidateOwned = true;
+
+  for (GameItemTag tag = WEAPON_FIRST; tag < WEAPON_LAST; tag++) {
+    const uint64_t bit = 1ull << (tag - WEAPON_FIRST);
+    if (!(backpack->weapons & bit)) {
+      continue;
+    }
+
+    const GameItem *weapon = &gameItems[tag];
+    if (weapon->def.ammo && cl->inventory[weapon->def.ammo] < weapon->def.quantity) {
+      continue;
+    }
+
+    const bool hadWeapon = (owned & bit) != 0;
+    if (!candidate || (candidateOwned && !hadWeapon)) {
+      candidate = weapon;
+      candidateOwned = hadWeapon;
+    }
+  }
+
+  if (candidate) {
+    G_AutoSwitchWeapon(cl, candidate, candidateOwned);
+  }
+
+  return true;
+}
+
+/**
  * @brief The tail of the `G_InitItem` chain, answering for the deathmatch item
  * types and erroring on any other.
  */
@@ -1567,15 +1755,21 @@ static void G_InitItem_Common(GameItem *it) {
       break;
 
     case ITEM_TYPE_POWERUP:
-      if (!Str_Compare(it->def.classname, "item_adrenaline")) {
+      if (!Str_Compare(it->def.classname, "item_adrenaline") ||
+          !Str_Compare(it->def.classname, "item_quake2_adrenaline")) {
         it->Pickup = G_PickupAdrenaline;
       } else if (!Str_Compare(it->def.classname, "item_quad")) {
         it->Pickup = G_PickupQuadDamage;
       } else if (!Str_Compare(it->def.classname, "item_invisibility")) {
         it->Pickup = G_PickupInvisibility;
-      } else if (!Str_Compare(it->def.classname, "item_invulnerability")) {
+      } else if (!Str_Compare(it->def.classname, "item_invulnerability") ||
+                 !Str_Compare(it->def.classname, "item_quake2_invulnerability")) {
         it->Pickup = G_PickupInvulnerability;
       }
+      break;
+
+    case ITEM_TYPE_BACKPACK:
+      it->Pickup = it->def.tag == BACKPACK_QUAKE2 ? G_PickupQuake2Backpack : G_PickupBackpack;
       break;
 
     default:

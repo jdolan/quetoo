@@ -41,6 +41,12 @@ extern GameItem *gameItems;
 extern const Box3 ITEM_BOUNDS;
 
 bool G_AddAmmo(GameClient *cl, const GameItem *item, int16_t count);
+
+/**
+ * @brief Fills `backpack` with what the Quake II ammo pack grants in the current item set.
+ */
+void G_Quake2BackpackContents(GameBackpack *backpack);
+int16_t G_AmmoMax(const GameClient *cl, const GameItem *item);
 void G_CheckItemHazard(GameEntity *ent);
 GameEntity *G_DropItem(GameClient *cl, const GameItem *item);
 void G_DropInventoryItem(GameClient *cl, const GameItem *item);

@@ -113,6 +113,12 @@ bool G_Ai_HasLineOfSight(const GameClient *cl, const GameEntity *other);
 bool G_Ai_WouldArm(const GameClient *cl, const GameItem *item);
 
 /**
+ * @return True if the AI is unarmed, and the backpack, whether dropped or the Quake II ammo pack,
+ * holds a weapon or ammo that would let it fire a weapon of at least the armed priority.
+ */
+bool G_Ai_BackpackWouldArm(const GameClient *cl, const GameEntity *ent);
+
+/**
  * @return True if the entity is a map control item and the AI is armed, or a dropped weapon that
  * the AI lacks. Bots go after these above all else, even in combat. An unarmed bot arms itself
  * first, so that it can defend the map control item it then takes.

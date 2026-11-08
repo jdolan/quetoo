@@ -26,11 +26,16 @@
  */
 static float G_Ai_AmmoNeed(const GameClient *cl, const GameItem *ammo, const int32_t count) {
 
-  if (!ammo || count <= 0 || !ammo->def.max) {
+  if (!ammo || count <= 0) {
     return 0.f;
   }
 
-  const int32_t room = ammo->def.max - cl->inventory[ammo->def.tag];
+  const int32_t max = G_AmmoMax(cl, ammo);
+  if (!max) {
+    return 0.f;
+  }
+
+  const int32_t room = max - cl->inventory[ammo->def.tag];
 
   return Clampf(room / (float) count, 0.f, 1.f);
 }
@@ -78,6 +83,23 @@ float G_Ai_ItemNeed(const GameClient *cl, const GameEntity *other) {
         return G_Ai_AmmoNeed(cl, item->def.ammo ? &gameItems[item->def.ammo] : NULL, other->health);
       }
       return 1.f;
+    case ITEM_TYPE_BACKPACK: {
+      if (item->def.tag == BACKPACK_QUAKE2) {
+        return 1.f;
+      }
+
+      float need = 0.f;
+      for (GameItemTag tag = AMMO_FIRST; tag < AMMO_LAST; tag++) {
+        const int16_t count = other->backpack.ammo[tag - AMMO_FIRST];
+        need = Maxf(need, G_Ai_AmmoNeed(cl, &gameItems[tag], count));
+      }
+      for (GameItemTag tag = WEAPON_FIRST; tag < WEAPON_LAST; tag++) {
+        if ((other->backpack.weapons & (1ull << (tag - WEAPON_FIRST))) && !cl->inventory[tag]) {
+          return 1.f;
+        }
+      }
+      return need;
+    }
     default:
       return 1.f;
   }
@@ -110,7 +132,7 @@ bool G_Ai_CanPickup(const GameClient *cl, const GameEntity *other) {
       return G_ResolveArmorPickup(cl, item, &drop, &give, &count);
     }
     case ITEM_TYPE_AMMO:
-      return inventory[item->def.tag] < item->def.max;
+      return inventory[item->def.tag] < G_AmmoMax(cl, item);
     case ITEM_TYPE_WEAPON:
       if (inventory[item->def.tag]) {
         if (g_weaponStay->integer && other->team == NULL) {
@@ -118,13 +140,19 @@ bool G_Ai_CanPickup(const GameClient *cl, const GameEntity *other) {
         }
 
         if (item->def.ammo) {
-          return inventory[item->def.ammo] < gameItems[item->def.ammo].def.max;
+          return inventory[item->def.ammo] < G_AmmoMax(cl, &gameItems[item->def.ammo]);
         }
 
         return false;
       }
 
       return true;
+    case ITEM_TYPE_BACKPACK:
+      if (item->def.tag == BACKPACK_QUAKE2) {
+        return !inventory[BACKPACK_QUAKE2];
+      }
+
+      return G_Ai_ItemNeed(cl, other) > 0.f;
 #if defined(G_TECH)
     case ITEM_TYPE_TECH:
       for (GameItemTag tag = TECH_FIRST; tag < TECH_LAST; tag++) {

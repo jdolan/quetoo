@@ -299,18 +299,11 @@ static void G_Ballistics_Rocket(const GameBallisticsType *type, GameEntity *ent,
 }
 
 /**
- * @brief Fires a Quake rocket.
- */
-static void G_Ballistics_QuakeRocket(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
-  G_QuakeRocketProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback, ent->damageRadius);
-}
-
-/**
  * @brief Fires a grenade.
  */
 static void G_Ballistics_Grenade(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_GrenadeProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback,
-    ent->damageRadius, SECONDS_TO_MILLIS(g_balanceGrenadelauncherTimer->value), mod);
+    ent->damageRadius, SECONDS_TO_MILLIS(g_balanceGrenadeLauncherTimer->value), mod);
 }
 
 /**
@@ -318,7 +311,7 @@ static void G_Ballistics_Grenade(const GameBallisticsType *type, GameEntity *ent
  */
 static void G_Ballistics_QuakeGrenade(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_QuakeGrenadeProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback,
-    ent->damageRadius, SECONDS_TO_MILLIS(g_balanceQuakeGrenadelauncherTimer->value));
+    ent->damageRadius, SECONDS_TO_MILLIS(g_balanceQuakeGrenadeLauncherTimer->value), mod);
 }
 
 /**
@@ -405,17 +398,17 @@ static const GameBallisticsType ballisticsTypes[] = {
     .pellets = &g_balanceShotgunPellets,
   }, {
     .name = "supershotgun",
-    .refire = &g_balanceSupershotgunRefire,
+    .refire = &g_balanceSuperShotgunRefire,
     .minWait = 200,
     .Fire = G_Ballistics_Shotgun,
     .flash = MZ_SUPER_SHOTGUN,
     .ballisticsMod = MOD_BALLISTICS_SUPER_SHOTGUN,
     .turretMod = MOD_TURRET_SUPER_SHOTGUN,
-    .damage = &g_balanceSupershotgunDamage,
-    .knockback = &g_balanceSupershotgunKnockback,
-    .spreadX = &g_balanceSupershotgunSpreadX,
-    .spreadY = &g_balanceSupershotgunSpreadY,
-    .pellets = &g_balanceSupershotgunPellets,
+    .damage = &g_balanceSuperShotgunDamage,
+    .knockback = &g_balanceSuperShotgunKnockback,
+    .spreadX = &g_balanceSuperShotgunSpreadX,
+    .spreadY = &g_balanceSuperShotgunSpreadY,
+    .pellets = &g_balanceSuperShotgunPellets,
   }, {
     .name = "machinegun",
     .refire = &g_balanceMachinegunRefire,
@@ -430,28 +423,28 @@ static const GameBallisticsType ballisticsTypes[] = {
     .spreadY = &g_balanceMachinegunSpreadY,
   }, {
     .name = "grenadelauncher",
-    .refire = &g_balanceGrenadelauncherRefire,
+    .refire = &g_balanceGrenadeLauncherRefire,
     .minWait = 400,
     .Fire = G_Ballistics_Grenade,
     .flash = MZ_GRENADE_LAUNCHER,
     .ballisticsMod = MOD_BALLISTICS_GRENADE,
     .turretMod = MOD_TURRET_GRENADE,
-    .damage = &g_balanceGrenadelauncherDamage,
-    .knockback = &g_balanceGrenadelauncherKnockback,
-    .speed = &g_balanceGrenadelauncherSpeed,
-    .radius = &g_balanceGrenadelauncherRadius,
+    .damage = &g_balanceGrenadeLauncherDamage,
+    .knockback = &g_balanceGrenadeLauncherKnockback,
+    .speed = &g_balanceGrenadeLauncherSpeed,
+    .radius = &g_balanceGrenadeLauncherRadius,
   }, {
     .name = "rocketlauncher",
-    .refire = &g_balanceRocketlauncherRefire,
+    .refire = &g_balanceRocketLauncherRefire,
     .minWait = 400,
     .Fire = G_Ballistics_Rocket,
     .flash = MZ_ROCKET_LAUNCHER,
     .ballisticsMod = MOD_BALLISTICS_ROCKET,
     .turretMod = MOD_TURRET_ROCKET,
-    .damage = &g_balanceRocketlauncherDamage,
-    .knockback = &g_balanceRocketlauncherKnockback,
-    .speed = &g_balanceRocketlauncherSpeed,
-    .radius = &g_balanceRocketlauncherRadius,
+    .damage = &g_balanceRocketLauncherDamage,
+    .knockback = &g_balanceRocketLauncherKnockback,
+    .speed = &g_balanceRocketLauncherSpeed,
+    .radius = &g_balanceRocketLauncherRadius,
   }, {
     .name = "hyperblaster",
     .refire = &g_balanceHyperblasterRefire,
@@ -512,17 +505,17 @@ static const GameBallisticsType ballisticsTypes[] = {
     .pellets = &g_balanceQuakeShotgunPellets,
   }, {
     .name = "quake_supershotgun",
-    .refire = &g_balanceQuakeSupershotgunRefire,
+    .refire = &g_balanceQuakeSuperShotgunRefire,
     .minWait = 200,
     .Fire = G_Ballistics_Shotgun,
     .flash = MZ_QUAKE_SUPER_SHOTGUN,
     .ballisticsMod = MOD_BALLISTICS_QUAKE_SUPER_SHOTGUN,
     .turretMod = MOD_TURRET_QUAKE_SUPER_SHOTGUN,
-    .damage = &g_balanceQuakeSupershotgunDamage,
-    .knockback = &g_balanceQuakeSupershotgunKnockback,
-    .spreadX = &g_balanceQuakeSupershotgunSpreadX,
-    .spreadY = &g_balanceQuakeSupershotgunSpreadY,
-    .pellets = &g_balanceQuakeSupershotgunPellets,
+    .damage = &g_balanceQuakeSuperShotgunDamage,
+    .knockback = &g_balanceQuakeSuperShotgunKnockback,
+    .spreadX = &g_balanceQuakeSuperShotgunSpreadX,
+    .spreadY = &g_balanceQuakeSuperShotgunSpreadY,
+    .pellets = &g_balanceQuakeSuperShotgunPellets,
   }, {
     .name = "quake_nailgun",
     .refire = &g_balanceQuakeNailgunRefire,
@@ -536,39 +529,39 @@ static const GameBallisticsType ballisticsTypes[] = {
     .speed = &g_balanceQuakeNailgunSpeed,
   }, {
     .name = "quake_supernailgun",
-    .refire = &g_balanceQuakeSupernailgunRefire,
+    .refire = &g_balanceQuakeSuperNailgunRefire,
     .minWait = 60,
     .Fire = G_Ballistics_Nail,
     .flash = MZ_QUAKE_SUPER_NAILGUN,
     .ballisticsMod = MOD_BALLISTICS_QUAKE_SUPER_NAILGUN,
     .turretMod = MOD_TURRET_QUAKE_SUPER_NAILGUN,
-    .damage = &g_balanceQuakeSupernailgunDamage,
-    .knockback = &g_balanceQuakeSupernailgunKnockback,
-    .speed = &g_balanceQuakeSupernailgunSpeed,
+    .damage = &g_balanceQuakeSuperNailgunDamage,
+    .knockback = &g_balanceQuakeSuperNailgunKnockback,
+    .speed = &g_balanceQuakeSuperNailgunSpeed,
   }, {
     .name = "quake_grenadelauncher",
-    .refire = &g_balanceQuakeGrenadelauncherRefire,
+    .refire = &g_balanceQuakeGrenadeLauncherRefire,
     .minWait = 400,
     .Fire = G_Ballistics_QuakeGrenade,
     .flash = MZ_QUAKE_GRENADE_LAUNCHER,
     .ballisticsMod = MOD_BALLISTICS_QUAKE_GRENADE,
     .turretMod = MOD_TURRET_QUAKE_GRENADE,
-    .damage = &g_balanceQuakeGrenadelauncherDamage,
-    .knockback = &g_balanceQuakeGrenadelauncherKnockback,
-    .speed = &g_balanceQuakeGrenadelauncherSpeed,
-    .radius = &g_balanceQuakeGrenadelauncherRadius,
+    .damage = &g_balanceQuakeGrenadeLauncherDamage,
+    .knockback = &g_balanceQuakeGrenadeLauncherKnockback,
+    .speed = &g_balanceQuakeGrenadeLauncherSpeed,
+    .radius = &g_balanceQuakeGrenadeLauncherRadius,
   }, {
     .name = "quake_rocketlauncher",
-    .refire = &g_balanceQuakeRocketlauncherRefire,
+    .refire = &g_balanceQuakeRocketLauncherRefire,
     .minWait = 400,
-    .Fire = G_Ballistics_QuakeRocket,
+    .Fire = G_Ballistics_Rocket,
     .flash = MZ_QUAKE_ROCKET_LAUNCHER,
     .ballisticsMod = MOD_BALLISTICS_QUAKE_ROCKET,
     .turretMod = MOD_TURRET_QUAKE_ROCKET,
-    .damage = &g_balanceQuakeRocketlauncherDamage,
-    .knockback = &g_balanceQuakeRocketlauncherKnockback,
-    .speed = &g_balanceQuakeRocketlauncherSpeed,
-    .radius = &g_balanceQuakeRocketlauncherRadius,
+    .damage = &g_balanceQuakeRocketLauncherDamage,
+    .knockback = &g_balanceQuakeRocketLauncherKnockback,
+    .speed = &g_balanceQuakeRocketLauncherSpeed,
+    .radius = &g_balanceQuakeRocketLauncherRadius,
   }, {
     .name = "quake_thunderbolt",
     .flash = MZ_LIGHTNING,

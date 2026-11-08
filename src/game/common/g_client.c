@@ -976,7 +976,12 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
   G_TossInvulnerability(cl);
 
   if ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_DEATHMATCH && mod != MOD_TRIGGER_HURT) {
-    G_TossWeapon(cl);
+    const int32_t backpackMode = G_DropBackpackMode();
+    if (backpackMode) {
+      G_DropBackpack(cl, backpackMode == 2);
+    } else {
+      G_TossWeapon(cl);
+    }
   }
 
   const bool gibbed = ent->health <= -CLIENT_CORPSE_HEALTH;
@@ -1172,9 +1177,12 @@ static void G_InitInventory_Common(GameClient *cl) {
   else if (gameLevel.items == ITEMS_QUAKE) {
     G_Give(cl, "Shotgun", 10);
     item = &gameItems[WEAPON_QUAKE_SHOTGUN];
+  } else if (gameLevel.items == ITEMS_QUAKE2) {
+    G_Give(cl, "Blaster", -1);
+    item = &gameItems[WEAPON_QUAKE2_BLASTER];
   } else {
     G_Give(cl, "Blaster", -1);
-    item = &gameItems[gameLevel.items == ITEMS_QUAKE2 ? WEAPON_QUAKE2_BLASTER : WEAPON_BLASTER];
+    item = &gameItems[WEAPON_BLASTER];
   }
 
   G_UseWeapon(cl, item);

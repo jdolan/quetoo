@@ -1055,7 +1055,7 @@ const GameItemDef gameItemDefs[] = {
   },
 
   {
-    .classname = "item_health_quake_medium",
+    .classname = "item_quake_health_medium",
     .pickupSound = "health/medium/pickup.wav",
     .model = "models/health/quake_medium/tris.obj",
     .effects = 0,
@@ -1070,7 +1070,7 @@ const GameItemDef gameItemDefs[] = {
   },
 
   {
-    .classname = "item_health_quake_large",
+    .classname = "item_quake_health_large",
     .pickupSound = "health/large/pickup.wav",
     .model = "models/health/quake_large/tris.obj",
     .effects = 0,
@@ -1085,7 +1085,7 @@ const GameItemDef gameItemDefs[] = {
   },
 
   {
-    .classname = "item_health_quake_mega",
+    .classname = "item_quake_health_mega",
     .pickupSound = "health/mega/pickup.wav",
     .model = "models/health/quake_mega/tris.obj",
     .effects = 0,
@@ -1223,6 +1223,68 @@ const GameItemDef gameItemDefs[] = {
     .precaches = "powerups/invisibility/expire.wav",
     .lightColor = { { 1.f, .9f, 0.f } },
     .lightRadius = 120.f
+  },
+
+  {
+    .classname = "item_quake2_adrenaline",
+    .pickupSound = "powerups/adrenaline/pickup.wav",
+    .model = "models/powerups/quake2_adrenaline/tris.obj",
+    .effects = EF_ROTATE | EF_BOB,
+    .icon = "pics/adrenaline",
+    .name = "Adrenaline",
+    .quantity = 0,
+    .type = ITEM_TYPE_POWERUP,
+    .tag = POWERUP_QUAKE2_ADRENALINE,
+    .effectColor = { { 0.022f, 0.627f, 0.069f, 1.f } },
+    .priority = 0.45,
+    .precaches = ""
+  },
+
+  {
+    .classname = "item_quake2_invulnerability",
+    .pickupSound = "powerups/common/pickup.wav",
+    .model = "models/powerups/quake2_invulnerability/tris.obj",
+    .effects = EF_ROTATE | EF_LIGHT | EF_LIGHT_PULSE,
+    .icon = "pics/invulnerability",
+    .name = "Invulnerability",
+    .quantity = 0,
+    .type = ITEM_TYPE_POWERUP,
+    .tag = POWERUP_QUAKE2_INVULNERABILITY,
+    .effectColor = { { 0.492f, 0.004f, 0.015f, 1.f } },
+    .priority = 0.90,
+    .precaches = "powerups/invulnerability/expire.wav",
+    .lightColor = { { 1.f, .2f, .2f } },
+    .lightRadius = 160.f
+  },
+
+  {
+    .classname = "item_quake2_backpack",
+    .pickupSound = "ammo/common/pickup_large.wav",
+    .model = "models/powerups/quake2_backpack/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/backpack",
+    .name = "Ammo Pack",
+    .quantity = 0,
+    .type = ITEM_TYPE_BACKPACK,
+    .tag = BACKPACK_QUAKE2,
+    .effectColor = { { 0.739f, 0.556f, 0.032f, 1.f } },
+    .priority = 0.60,
+    .precaches = ""
+  },
+
+  {
+    .classname = "item_quake_backpack",
+    .pickupSound = "ammo/common/pickup_large.wav",
+    .model = "models/powerups/quake2_backpack/tris.obj",
+    .effects = EF_ROTATE,
+    .icon = "pics/backpack",
+    .name = "Backpack",
+    .quantity = 0,
+    .type = ITEM_TYPE_BACKPACK,
+    .tag = BACKPACK_QUAKE,
+    .effectColor = { { 0.739f, 0.556f, 0.032f, 1.f } },
+    .priority = 0.30,
+    .precaches = ""
   },
 
 };

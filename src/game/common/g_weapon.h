@@ -25,10 +25,13 @@
 
 #if defined(__G_LOCAL_H__)
 bool G_PickupWeapon(GameClient *cl, GameEntity *other);
+void G_AutoSwitchWeapon(GameClient *cl, const GameItem *weapon, bool hadWeapon);
 void G_UseBestWeapon(GameClient *cl);
 void G_UseWeapon(GameClient *cl, const GameItem *item);
 GameEntity *G_DropWeapon(GameClient *cl, const GameItem *item);
 GameEntity *G_TossWeapon(GameClient *cl);
+GameEntity *G_DropBackpack(GameClient *cl, bool allWeapons);
+int32_t G_DropBackpackMode(void);
 void G_FireBlaster(GameClient *cl);
 void G_FireShotgun(GameClient *cl);
 void G_FireSuperShotgun(GameClient *cl);
