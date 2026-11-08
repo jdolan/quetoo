@@ -361,7 +361,7 @@ static void G_Ai_Profile_Link(const GameClient *cl, int32_t *from, int32_t *to,
 
   *from = G_Ai_Profile_Node(a);
   *to = G_Ai_Profile_Node(b);
-  *travelType = link ? link->travelType : -1;
+  *travelType = link ? (int32_t) link->travelType : -1;
 }
 
 /**

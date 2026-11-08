@@ -96,6 +96,7 @@ START_TEST(check_Mem_LinkMalloc_MultipleChildren) {
   byte *children[10];
   for (int i = 0; i < 10; i++) {
     children[i] = Mem_LinkMalloc(100, parent);
+    ck_assert_ptr_nonnull(children[i]);
   }
   
   ck_assert(Mem_Size() == 1 + (100 * 10));

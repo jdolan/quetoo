@@ -140,11 +140,13 @@ bool Ui_HandleEvent(const SDL_Event *event) {
           if (event->key.key == SDLK_TAB || event->key.key == SDLK_KP_TAB) {
             return false;
           }
+          __attribute__((fallthrough));
         case SDL_EVENT_KEY_UP:
         case SDL_EVENT_TEXT_INPUT:
           if (cls.keyState.dest == KEY_CHAT) {
             break;
           }
+          __attribute__((fallthrough));
         default:
           return false;
       }

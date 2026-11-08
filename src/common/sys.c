@@ -390,7 +390,7 @@ void Sys_InstallDesktopEntry(void) {
     FILE *f = fopen(desktopDest, "r");
     if (f) {
       char contents[4096] = "";
-      fread(contents, 1, sizeof(contents) - 1, f);
+      contents[fread(contents, 1, sizeof(contents) - 1, f)] = '\0';
       fclose(f);
       const bool upToDate = Str_Find(contents, expectedExec) != NULL;
       if (upToDate) {
@@ -673,6 +673,15 @@ static void Sys_EnsureCrashLogPath(void) {
 }
 
 /**
+ * @brief Writes to a file descriptor from a crash handler, which cannot recover from a failure.
+ * @details glibc declares `write` with `warn_unused_result`, which a `(void)` cast does not silence.
+ */
+#define Sys_CrashWrite(fd, buf, len) do { \
+    const ssize_t written_ = write((fd), (buf), (len)); \
+    (void) written_; \
+  } while (0)
+
+/**
  * @brief Appends text to the crash log (creating it if needed) and to stderr.
  */
 static void Sys_WriteCrashLog(const char *text) {
@@ -745,7 +754,7 @@ void Sys_Raise(const char *msg) {
     fflush(quetoo.logFile);
 #else
     // a fatal signal can arrive while this thread holds the stream's lock
-    (void) write(fileno(quetoo.logFile), crash, Str_Length(crash));
+    Sys_CrashWrite(fileno(quetoo.logFile), crash, Str_Length(crash));
 #endif
   }
 
@@ -892,8 +901,8 @@ static void Sys_CrashSignal(int sig, siginfo_t *info, void *ctx) {
     if (fds[i] == -1) {
       continue;
     }
-    (void) write(fds[i], header, sizeof(header) - 1);
-    (void) write(fds[i], sigName, Str_Length(sigName));
+    Sys_CrashWrite(fds[i], header, sizeof(header) - 1);
+    Sys_CrashWrite(fds[i], sigName, Str_Length(sigName));
 #if HAVE_EXECINFO
     backtrace_symbols_fd(frames, count, fds[i]);
 #endif
