@@ -589,7 +589,7 @@ void G_GrenadeProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
   projectile->touchTime = gameLevel.time;
   projectile->hitSound = gameMedia.sounds.grenadeHit;
   projectile->s.client = G_ProjectileClient(emitter);
-  projectile->s.trail = TRAIL_GRENADE;
+  projectile->s.trail = mod == MOD_QUAKE2_GRENADE ? TRAIL_QUAKE_GRENADE : TRAIL_GRENADE;
   projectile->s.model1 = mod == MOD_QUAKE2_GRENADE ? gameMedia.models.quake2Grenade : gameMedia.models.grenade;
 
   if (G_ImmediateImpact(emitter, projectile)) {

@@ -617,7 +617,7 @@ static void G_PullGrenadePin(GameClient *cl) {
   nade->Think = G_HeldGrenadeThink;
   nade->Touch = G_GrenadeProjectile_Touch;
   nade->touchTime = gameLevel.time;
-  nade->s.trail = TRAIL_GRENADE;
+  nade->s.trail = nade->mod == MOD_QUAKE2_HANDGRENADE ? TRAIL_QUAKE_GRENADE : TRAIL_GRENADE;
   nade->s.model1 = nade->mod == MOD_QUAKE2_HANDGRENADE ? gameMedia.models.quake2Grenade : gameMedia.models.grenade;
   nade->s.sound = gameMedia.sounds.grenadeTick;
   gi.LinkEntity(nade);
