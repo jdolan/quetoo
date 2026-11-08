@@ -404,27 +404,14 @@ void G_ShotgunProjectiles(GameEntity *emitter, GameEntity *attacker, const Vec3 
   }
 }
 
-#define HAND_GRENADE 1
-#define HAND_GRENADE_HELD 2
-#define QUAKE_GRENADE 4
+#define HAND_GRENADE_HELD 1
 
 /**
  * @brief Detonates a grenade projectile, dealing direct and splash radius damage.
  */
 static void G_GrenadeProjectile_Explode(GameEntity *ent) {
-  uint32_t mod;
 
   if (ent->enemy) { // direct hit
-
-    if (ent->mod) {
-      mod = ent->mod;
-    } else if (ent->spawnFlags & HAND_GRENADE) {
-      mod = MOD_HANDGRENADE;
-    } else if (ent->spawnFlags & QUAKE_GRENADE) {
-      mod = MOD_QUAKE_GRENADE;
-    } else {
-      mod = MOD_GRENADE;
-    }
 
     G_Damage(&(GameDamage) {
       .target = ent->enemy,
@@ -436,22 +423,24 @@ static void G_GrenadeProjectile_Explode(GameEntity *ent) {
       .damage = ent->damage,
       .knockback = ent->knockback,
       .flags = 0,
-      .mod = mod
+      .mod = ent->mod
     });
   }
 
-  if (ent->mod) {
-    mod = ent->mod;
-  } else if (ent->spawnFlags & HAND_GRENADE) {
-    if (ent->spawnFlags & HAND_GRENADE_HELD) {
-      mod = MOD_HANDGRENADE_KAMIKAZE;
-    } else {
-      mod = MOD_HANDGRENADE_SPLASH;
-    }
-  } else if (ent->spawnFlags & QUAKE_GRENADE) {
-    mod = MOD_QUAKE_GRENADE_SPLASH;
-  } else {
-    mod = MOD_GRENADE_SPLASH;
+  uint32_t mod = ent->mod;
+
+  switch (mod) {
+    case MOD_GRENADE:
+      mod = MOD_GRENADE_SPLASH;
+      break;
+    case MOD_QUAKE_GRENADE:
+      mod = MOD_QUAKE_GRENADE_SPLASH;
+      break;
+    case MOD_HANDGRENADE:
+      mod = (ent->spawnFlags & HAND_GRENADE_HELD) ? MOD_HANDGRENADE_KAMIKAZE : MOD_HANDGRENADE_SPLASH;
+      break;
+    default:
+      break;
   }
 
   // hurt anything else nearby
@@ -602,7 +591,7 @@ void G_GrenadeProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 s
 /**
  * @brief Fires a Quake grenade projectile with bounce physics and a timed fuse.
  */
-void G_QuakeGrenadeProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start, const Vec3 dir, int32_t speed, int32_t damage, int32_t knockback, float damageRadius, uint32_t timer) {
+void G_QuakeGrenadeProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start, const Vec3 dir, int32_t speed, int32_t damage, int32_t knockback, float damageRadius, uint32_t timer, uint32_t mod) {
 
   const Box3 bounds = Box3f(6.f, 6.f, 3.f);
 
@@ -610,7 +599,7 @@ void G_QuakeGrenadeProjectile(GameEntity *emitter, GameEntity *attacker, const V
 
   GameEntity *projectile = G_AllocEntity(__func__);
   projectile->owner = attacker;
-  projectile->spawnFlags = QUAKE_GRENADE;
+  projectile->mod = mod;
 
   projectile->s.origin = start;
   projectile->bounds = bounds;
@@ -647,6 +636,12 @@ void G_QuakeGrenadeProjectile(GameEntity *emitter, GameEntity *attacker, const V
   projectile->s.client = G_ProjectileClient(emitter);
   projectile->s.trail = TRAIL_QUAKE_GRENADE;
   projectile->s.model1 = gameMedia.models.quakeGrenade;
+
+  if (G_ImmediateImpact(emitter, projectile)) {
+    return;
+  }
+
+  gi.LinkEntity(projectile);
 }
 
 // tossing a hand grenade
@@ -670,8 +665,6 @@ void G_HandGrenadeProjectile(GameEntity *ent, GameEntity *projectile, Vec3 const
   if (projectile->mod != MOD_QUAKE2_HANDGRENADE) {
     G_PlayerProjectile(projectile, 0.33);
   }
-
-  projectile->spawnFlags = HAND_GRENADE;
 
   // if client is holding it, let the nade know it's being held
   if (ent->client->grenadeHoldTime) {
@@ -703,14 +696,32 @@ void G_HandGrenadeProjectile(GameEntity *ent, GameEntity *projectile, Vec3 const
 }
 
 /**
+ * @return True if the means of death is that of a Quake rocket, fired by a player, ballistics or turret.
+ */
+static bool G_IsQuakeRocket(uint32_t mod) {
+  return mod == MOD_QUAKE_ROCKET || mod == MOD_BALLISTICS_QUAKE_ROCKET || mod == MOD_TURRET_QUAKE_ROCKET;
+}
+
+/**
+ * @return The means of death for the splash damage of a rocket fired with the given means of death.
+ */
+static uint32_t G_RocketProjectile_SplashMod(uint32_t mod) {
+  switch (mod) {
+    case MOD_ROCKET:
+      return MOD_ROCKET_SPLASH;
+    case MOD_QUAKE_ROCKET:
+      return MOD_QUAKE_ROCKET_SPLASH;
+    default:
+      return mod;
+  }
+}
+
+/**
  * @brief Touch callback for the rocket projectile; deals direct and radius explosion damage on impact.
  */
-#define QUAKE_ROCKET 1
-
 static void G_RocketProjectile_Touch(GameEntity *ent, GameEntity *other, const CollisionTrace *trace) {
-  const bool quakeRocket = (ent->spawnFlags & QUAKE_ROCKET) != 0;
-  const uint32_t directMod = ent->mod ?: (quakeRocket ? MOD_QUAKE_ROCKET : MOD_ROCKET);
-  const uint32_t splashMod = ent->mod ?: (quakeRocket ? MOD_QUAKE_ROCKET_SPLASH : MOD_ROCKET_SPLASH);
+  const uint32_t directMod = ent->mod;
+  const uint32_t splashMod = G_RocketProjectile_SplashMod(ent->mod);
 
   if (other == ent->owner) {
     return;
@@ -764,6 +775,7 @@ static void G_RocketProjectile_Touch(GameEntity *ent, GameEntity *other, const C
 void G_RocketProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start, const Vec3 dir, int32_t speed, int32_t damage, int32_t knockback, float damageRadius, uint32_t mod) {
 
   const Box3 bounds = Box3f(8.f, 8.f, 8.f);
+  const bool quake = G_IsQuakeRocket(mod);
 
   GameEntity *projectile = G_AllocEntity(__func__);
   projectile->owner = attacker;
@@ -785,46 +797,7 @@ void G_RocketProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 st
   projectile->nextThink = gameLevel.time + 8000;
   projectile->Think = G_FreeEntity;
   projectile->Touch = G_RocketProjectile_Touch;
-  projectile->s.model1 = gameMedia.models.rocket;
-  projectile->s.sound = gameMedia.sounds.rocketFly;
-  projectile->s.client = G_ProjectileClient(emitter);
-  projectile->s.trail = TRAIL_ROCKET;
-
-  if (G_ImmediateImpact(emitter, projectile)) {
-    return;
-  }
-
-  gi.LinkEntity(projectile);
-}
-
-/**
- * @brief Fires a Quake rocket projectile that explodes with radius damage on impact.
- */
-void G_QuakeRocketProjectile(GameEntity *emitter, GameEntity *attacker, const Vec3 start, const Vec3 dir, int32_t speed, int32_t damage, int32_t knockback, float damageRadius) {
-
-  const Box3 bounds = Box3f(8.f, 8.f, 8.f);
-
-  GameEntity *projectile = G_AllocEntity(__func__);
-  projectile->owner = attacker;
-  projectile->spawnFlags = QUAKE_ROCKET;
-
-  projectile->s.origin = start;
-  projectile->bounds = bounds;
-  projectile->s.angles = Vec3_Euler(dir);
-  projectile->velocity = Vec3_Scale(dir, speed);
-  projectile->avelocity = Vec3_Zero();
-
-  projectile->solid = SOLID_PROJECTILE;
-  projectile->clipMask = CONTENTS_MASK_CLIP_PROJECTILE;
-  projectile->damage = damage;
-  projectile->damageRadius = damageRadius;
-  projectile->knockback = knockback;
-  projectile->rippleSize = 32.0;
-  projectile->moveType = MOVE_TYPE_FLY;
-  projectile->nextThink = gameLevel.time + 8000;
-  projectile->Think = G_FreeEntity;
-  projectile->Touch = G_RocketProjectile_Touch;
-  projectile->s.model1 = gameMedia.models.quakeRocket;
+  projectile->s.model1 = quake ? gameMedia.models.quakeRocket : gameMedia.models.rocket;
   projectile->s.sound = gameMedia.sounds.rocketFly;
   projectile->s.client = G_ProjectileClient(emitter);
   projectile->s.trail = TRAIL_ROCKET;

@@ -299,13 +299,6 @@ static void G_Ballistics_Rocket(const GameBallisticsType *type, GameEntity *ent,
 }
 
 /**
- * @brief Fires a Quake rocket.
- */
-static void G_Ballistics_QuakeRocket(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
-  G_QuakeRocketProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback, ent->damageRadius);
-}
-
-/**
  * @brief Fires a grenade.
  */
 static void G_Ballistics_Grenade(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
@@ -318,7 +311,7 @@ static void G_Ballistics_Grenade(const GameBallisticsType *type, GameEntity *ent
  */
 static void G_Ballistics_QuakeGrenade(const GameBallisticsType *type, GameEntity *ent, GameEntity *attacker, const Vec3 start, const Vec3 dir, uint32_t mod) {
   G_QuakeGrenadeProjectile(ent, attacker, start, dir, ent->speed, ent->damage, ent->knockback,
-    ent->damageRadius, SECONDS_TO_MILLIS(g_balanceQuakeGrenadeLauncherTimer->value));
+    ent->damageRadius, SECONDS_TO_MILLIS(g_balanceQuakeGrenadeLauncherTimer->value), mod);
 }
 
 /**
@@ -561,7 +554,7 @@ static const GameBallisticsType ballisticsTypes[] = {
     .name = "quake_rocketlauncher",
     .refire = &g_balanceQuakeRocketLauncherRefire,
     .minWait = 400,
-    .Fire = G_Ballistics_QuakeRocket,
+    .Fire = G_Ballistics_Rocket,
     .flash = MZ_QUAKE_ROCKET_LAUNCHER,
     .ballisticsMod = MOD_BALLISTICS_QUAKE_ROCKET,
     .turretMod = MOD_TURRET_QUAKE_ROCKET,

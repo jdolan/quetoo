@@ -1393,7 +1393,7 @@ void G_Init(void) {
   g_balanceQuake2GrenadeLauncherRefire = gi.AddCvar("g_balanceQuake2GrenadeLauncherRefire", "0.8", 0, NULL);
   g_balanceQuake2GrenadeLauncherSpeed = gi.AddCvar("g_balanceQuake2GrenadeLauncherSpeed", "600", 0, NULL);
   g_balanceQuake2GrenadeLauncherTimer = gi.AddCvar("g_balanceQuake2GrenadeLauncherTimer", "2.5", 0, NULL);
-  g_balanceQuake2RocketLauncherDamage = gi.AddCvar("g_balanceQuake2RocketLauncherDamage", "100", 0, "The minimum direct damage. Quake II adds up to 20 more at random.");
+  g_balanceQuake2RocketLauncherDamage = gi.AddCvar("g_balanceQuake2RocketLauncherDamage", "100", 0, NULL);
   g_balanceQuake2RocketLauncherKnockback = gi.AddCvar("g_balanceQuake2RocketLauncherKnockback", "42", 0, NULL);
   g_balanceQuake2RocketLauncherRadius = gi.AddCvar("g_balanceQuake2RocketLauncherRadius", "120", 0, NULL);
   g_balanceQuake2RocketLauncherRefire = gi.AddCvar("g_balanceQuake2RocketLauncherRefire", "0.8", 0, NULL);

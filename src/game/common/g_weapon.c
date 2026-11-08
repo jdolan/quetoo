@@ -612,9 +612,7 @@ static void G_PullGrenadePin(GameClient *cl) {
   GameEntity *nade = G_AllocEntity(__func__);
   cl->heldGrenade = nade;
   nade->owner = cl->entity;
-  if (cl->weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE) {
-    nade->mod = MOD_QUAKE2_HANDGRENADE;
-  }
+  nade->mod = cl->weapon->def.tag == WEAPON_QUAKE2_HAND_GRENADE ? MOD_QUAKE2_HANDGRENADE : MOD_HANDGRENADE;
   nade->s.origin = cl->entity->s.origin;
   nade->solid = SOLID_NOT;
   nade->serverFlags |= SVF_NO_CLIENT;
@@ -727,7 +725,6 @@ static void G_FireHandGrenade_(GameClient *cl, bool quake2) {
   if (quake2) {
     throwSpeed = 400.f + 400.f * holdTime / nadeTime;
     throwSpeed = Clampf(throwSpeed, 400, 800);
-    cl->heldGrenade->mod = MOD_QUAKE2_HANDGRENADE;
   } else {
     throwSpeed *= (float) holdTime / 1000;
     throwSpeed = Clampf(throwSpeed, 500, 1200);
@@ -783,7 +780,7 @@ void G_FireGrenadeLauncher(GameClient *cl) {
 
     G_GrenadeProjectile(cl->entity, cl->entity, org, forward, g_balanceGrenadeLauncherSpeed->integer,
       g_balanceGrenadeLauncherDamage->integer, g_balanceGrenadeLauncherKnockback->integer,
-      g_balanceGrenadeLauncherRadius->value, SECONDS_TO_MILLIS(g_balanceGrenadeLauncherTimer->value), 0);
+      g_balanceGrenadeLauncherRadius->value, SECONDS_TO_MILLIS(g_balanceGrenadeLauncherTimer->value), MOD_GRENADE);
 
     G_ClientMuzzleFlash(cl->entity, MZ_GRENADE_LAUNCHER);
 
@@ -803,7 +800,7 @@ void G_FireRocketLauncher(GameClient *cl) {
 
     G_RocketProjectile(cl->entity, cl->entity, org, forward, g_balanceRocketLauncherSpeed->integer,
       g_balanceRocketLauncherDamage->integer, g_balanceRocketLauncherKnockback->integer,
-      g_balanceRocketLauncherRadius->value, 0);
+      g_balanceRocketLauncherRadius->value, MOD_ROCKET);
 
     G_ClientMuzzleFlash(cl->entity, MZ_ROCKET_LAUNCHER);
 
@@ -988,7 +985,8 @@ void G_FireQuakeGrenadeLauncher(GameClient *cl) {
 
     G_QuakeGrenadeProjectile(cl->entity, cl->entity, org, forward, g_balanceQuakeGrenadeLauncherSpeed->integer,
       g_balanceQuakeGrenadeLauncherDamage->integer, g_balanceQuakeGrenadeLauncherKnockback->integer,
-      g_balanceQuakeGrenadeLauncherRadius->value, SECONDS_TO_MILLIS(g_balanceQuakeGrenadeLauncherTimer->value));
+      g_balanceQuakeGrenadeLauncherRadius->value, SECONDS_TO_MILLIS(g_balanceQuakeGrenadeLauncherTimer->value),
+      MOD_QUAKE_GRENADE);
 
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE_GRENADE_LAUNCHER);
 
@@ -1006,9 +1004,12 @@ void G_FireQuakeRocketLauncher(GameClient *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
-    G_QuakeRocketProjectile(cl->entity, cl->entity, org, forward, g_balanceQuakeRocketLauncherSpeed->integer,
-      g_balanceQuakeRocketLauncherDamage->integer, g_balanceQuakeRocketLauncherKnockback->integer,
-      g_balanceQuakeRocketLauncherRadius->value);
+    G_RocketProjectile(cl->entity, cl->entity, org, forward,
+                       g_balanceQuakeRocketLauncherSpeed->integer,
+                       g_balanceQuakeRocketLauncherDamage->integer,
+                       g_balanceQuakeRocketLauncherKnockback->integer,
+                       g_balanceQuakeRocketLauncherRadius->value,
+                       MOD_QUAKE_ROCKET);
 
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE_ROCKET_LAUNCHER);
 
@@ -1187,10 +1188,12 @@ void G_FireQuake2RocketLauncher(GameClient *cl) {
   if (G_FireWeapon(cl)) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
-    const int32_t damage = g_balanceQuake2RocketLauncherDamage->integer + Randomf() * 20;
-    G_RocketProjectile(cl->entity, cl->entity, org, forward, g_balanceQuake2RocketLauncherSpeed->integer,
-      damage, g_balanceQuake2RocketLauncherKnockback->integer, g_balanceQuake2RocketLauncherRadius->value,
-      MOD_QUAKE2_ROCKET);
+    G_RocketProjectile(cl->entity, cl->entity, org, forward,
+                       g_balanceQuake2RocketLauncherSpeed->integer,
+                       g_balanceQuake2RocketLauncherDamage->integer,
+                       g_balanceQuake2RocketLauncherKnockback->integer,
+                       g_balanceQuake2RocketLauncherRadius->value,
+                       MOD_QUAKE2_ROCKET);
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_ROCKET_LAUNCHER);
     G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuake2RocketLauncherRefire->value), 1);
   }
