@@ -743,7 +743,7 @@ static void G_RocketProjectile_Touch(GameEntity *ent, GameEntity *other, const C
 
       const bool quake2 = ent->mod == MOD_QUAKE2_ROCKET;
       G_RadiusDamage(ent, ent->owner, other, quake2 ? 120 : ent->damage,
-                     quake2 ? 120 : ent->knockback, ent->damageRadius, splashMod);
+                     ent->knockback, ent->damageRadius, splashMod);
 
       gi.WriteByte(SV_CMD_TEMP_ENTITY);
       gi.WriteByte(quake2 ? TE_QUAKE2_ROCKET_EXPLOSION : TE_EXPLOSION);

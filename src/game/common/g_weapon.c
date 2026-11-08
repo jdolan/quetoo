@@ -23,6 +23,12 @@
 #include "bg_pmove.h"
 
 /**
+ * @brief Quake II turns knockback into velocity as 500 / mass, where Quetoo does 100 / sqrt(mass).
+ * Quake II's knockback values are scaled to Quetoo's by their ratio at the player's mass of 200.
+ */
+#define QUAKE2_KNOCKBACK(k) ((int32_t) roundf((k) * 0.3536f))
+
+/**
  * @brief Switches the client to a new weapon, animating the deselect/select sequence.
  */
 static void G_ChangeWeapon(GameClient *cl, const GameItem *item) {
@@ -744,7 +750,7 @@ static void G_FireHandGrenade_(GameClient *cl, bool quake2) {
       forward,                // direction
       (uint32_t) throwSpeed, // how fast does it fly
       quake2 ? 125 : 120,     // damage dealt
-      quake2 ? 125 : 120,     // knockback
+      quake2 ? QUAKE2_KNOCKBACK(125) : 120, // knockback
       quake2 ? 165.f : 240.f, // blast radius
       fuse                    // time before explode (next think)
   );
@@ -1070,7 +1076,7 @@ void G_FireQuake2Shotgun(GameClient *cl) {
   if (G_FireWeapon(cl)) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
-    G_ShotgunProjectiles(cl->entity, cl->entity, org, forward, 4, 8, QUAKE2_SPREAD(500), QUAKE2_SPREAD(500), 12, MOD_QUAKE2_SHOTGUN);
+    G_ShotgunProjectiles(cl->entity, cl->entity, org, forward, 4, QUAKE2_KNOCKBACK(8), QUAKE2_SPREAD(500), QUAKE2_SPREAD(500), 12, MOD_QUAKE2_SHOTGUN);
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_SHOTGUN);
     G_WeaponFired(cl, 1000, 1);
   }
@@ -1084,7 +1090,7 @@ void G_FireQuake2SuperShotgun(GameClient *cl) {
     for (int32_t side = -1; side <= 1; side += 2) {
       Vec3 aim;
       Vec3_Vectors(Vec3_Add(angles, MakeVec3(0, side * 5, 0)), &aim, NULL, NULL);
-      G_ShotgunProjectiles(cl->entity, cl->entity, org, aim, 6, 12, QUAKE2_SPREAD(1000), QUAKE2_SPREAD(500), 10, MOD_QUAKE2_SUPER_SHOTGUN);
+      G_ShotgunProjectiles(cl->entity, cl->entity, org, aim, 6, QUAKE2_KNOCKBACK(12), QUAKE2_SPREAD(1000), QUAKE2_SPREAD(500), 10, MOD_QUAKE2_SUPER_SHOTGUN);
     }
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_SUPER_SHOTGUN);
     G_WeaponFired(cl, 1100, 2);
@@ -1095,7 +1101,7 @@ void G_FireQuake2Machinegun(GameClient *cl) {
   if (G_FireWeapon(cl)) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
-    G_BulletProjectile(cl->entity, cl->entity, org, forward, 8, 2, QUAKE2_SPREAD(300), QUAKE2_SPREAD(500), MOD_QUAKE2_MACHINEGUN);
+    G_BulletProjectile(cl->entity, cl->entity, org, forward, 8, QUAKE2_KNOCKBACK(2), QUAKE2_SPREAD(300), QUAKE2_SPREAD(500), MOD_QUAKE2_MACHINEGUN);
     cl->kickAngles.x += RandomRangef(-0.7f, 0.7f);
     cl->kickAngles.z += RandomRangef(-0.7f, 0.7f);
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_MACHINEGUN);
@@ -1157,7 +1163,7 @@ void G_FireQuake2Chaingun(GameClient *cl) {
   for (int32_t i = 0; i < shots; i++) {
     const Vec3 muzzle = Vec3_Fmaf(Vec3_Fmaf(org, RandomRangef(-4, 4), right),
                                  RandomRangef(-4, 4), up);
-    G_BulletProjectile(cl->entity, cl->entity, muzzle, forward, 6, 2, QUAKE2_SPREAD(300), QUAKE2_SPREAD(500), MOD_QUAKE2_CHAINGUN);
+    G_BulletProjectile(cl->entity, cl->entity, muzzle, forward, 6, QUAKE2_KNOCKBACK(2), QUAKE2_SPREAD(300), QUAKE2_SPREAD(500), MOD_QUAKE2_CHAINGUN);
   }
   cl->kickAngles.x += RandomRangef(-0.7f, 0.7f);
   cl->kickAngles.z += RandomRangef(-0.7f, 0.7f);
@@ -1170,7 +1176,7 @@ void G_FireQuake2GrenadeLauncher(GameClient *cl) {
   if (G_FireWeapon(cl)) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
-    G_GrenadeProjectile(cl->entity, cl->entity, org, forward, 600, 120, 120, 160, 2500, MOD_QUAKE2_GRENADE);
+    G_GrenadeProjectile(cl->entity, cl->entity, org, forward, 600, 120, QUAKE2_KNOCKBACK(120), 160, 2500, MOD_QUAKE2_GRENADE);
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_GRENADE_LAUNCHER);
     G_WeaponFired(cl, 800, 1);
   }
@@ -1181,7 +1187,7 @@ void G_FireQuake2RocketLauncher(GameClient *cl) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
     const int32_t damage = 100 + Randomf() * 20;
-    G_RocketProjectile(cl->entity, cl->entity, org, forward, 650, damage, damage, 120, MOD_QUAKE2_ROCKET);
+    G_RocketProjectile(cl->entity, cl->entity, org, forward, 650, damage, QUAKE2_KNOCKBACK(120), 120, MOD_QUAKE2_ROCKET);
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_ROCKET_LAUNCHER);
     G_WeaponFired(cl, 800, 1);
   }
@@ -1217,7 +1223,7 @@ void G_FireQuake2Railgun(GameClient *cl) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
     const int32_t damage = (gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_INSTAGIB ? 999 : 100;
-    G_RailgunProjectile(cl->entity, cl->entity, org, forward, damage, 200, MOD_QUAKE2_RAILGUN);
+    G_RailgunProjectile(cl->entity, cl->entity, org, forward, damage, QUAKE2_KNOCKBACK(200), MOD_QUAKE2_RAILGUN);
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_RAILGUN);
     G_WeaponFired(cl, 1500, 1);
   }
