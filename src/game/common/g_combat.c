@@ -467,7 +467,13 @@ void G_Damage(const GameDamage *dmg) {
       knockback *= g_selfKnockback->value;
     }
 
-    knockbackVel = Vec3_Scale(ndir, knockback * 100.f / sqrtf(mass));
+    // Quake II knockback values are tuned for its own scaling, 500 / mass, which is gentler than ours
+    const GameMeansOfDeath baseMod = mod & ~MOD_FRIENDLY_FIRE;
+    if (baseMod >= MOD_QUAKE2_BLASTER && baseMod <= MOD_QUAKE2_BFG_EFFECT) {
+      knockbackVel = Vec3_Scale(ndir, knockback * 500.f / Maxf(mass, 50.f));
+    } else {
+      knockbackVel = Vec3_Scale(ndir, knockback * 100.f / sqrtf(mass));
+    }
 
     target->velocity = Vec3_Add(target->velocity, knockbackVel);
 
