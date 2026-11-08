@@ -1499,6 +1499,27 @@ bool G_ItemAvailable(const GameItem *item) {
 }
 
 /**
+ * @brief Grenade ammo comes with the means to throw it: grant the hand grenade weapon.
+ * @return True if the weapon was newly granted.
+ */
+static bool G_GrantHandGrenade(GameClient *cl, GameItemTag ammo) {
+
+  if (ammo != AMMO_GRENADES && ammo != AMMO_QUAKE2_GRENADES) {
+    return false;
+  }
+
+  const GameItemTag weapon = ammo == AMMO_QUAKE2_GRENADES
+    ? WEAPON_QUAKE2_HAND_GRENADE : WEAPON_HAND_GRENADE;
+
+  if (!cl->inventory[ammo] || cl->inventory[weapon]) {
+    return false;
+  }
+
+  cl->inventory[weapon] = 1;
+  return true;
+}
+
+/**
  * @brief Handles pickup of the Quake II ammo pack, which raises the client's ammo capacity for as
  * long as it is held, and tops off a little of each ammo the level uses.
  */
@@ -1526,6 +1547,7 @@ static bool G_PickupQuake2Backpack(GameClient *cl, GameEntity *ent) {
     const GameItemTag tag = GameItems_MapTag(gameLevel.items, bonus[i].tag);
     if (tag) {
       G_AddAmmo(cl, &gameItems[tag], bonus[i].count);
+      G_GrantHandGrenade(cl, tag);
     }
   }
 
@@ -1545,18 +1567,18 @@ static bool G_PickupBackpack(GameClient *cl, GameEntity *ent) {
   const GameBackpack *backpack = &ent->backpack;
   bool pickup = false;
 
-  const GameItem *received = NULL;
+  uint64_t owned = 0;
 
   for (GameItemTag tag = WEAPON_FIRST; tag < WEAPON_LAST; tag++) {
-    if (!(backpack->weapons & (1ull << (tag - WEAPON_FIRST)))) {
+    const uint64_t bit = 1ull << (tag - WEAPON_FIRST);
+    if (!(backpack->weapons & bit)) {
       continue;
     }
-    if (!cl->inventory[tag]) {
+    if (cl->inventory[tag]) {
+      owned |= bit;
+    } else {
       cl->inventory[tag] = 1;
       pickup = true;
-      if (!received) {
-        received = &gameItems[tag];
-      }
     }
   }
 
@@ -1571,14 +1593,8 @@ static bool G_PickupBackpack(GameClient *cl, GameEntity *ent) {
       pickup = true;
     }
 
-    // grenade ammo comes with the means to throw it
-    if (tag == AMMO_GRENADES || tag == AMMO_QUAKE2_GRENADES) {
-      const GameItemTag weapon = tag == AMMO_QUAKE2_GRENADES
-        ? WEAPON_QUAKE2_HAND_GRENADE : WEAPON_HAND_GRENADE;
-      if (cl->inventory[tag] && !cl->inventory[weapon]) {
-        cl->inventory[weapon] = 1;
-        pickup = true;
-      }
+    if (G_GrantHandGrenade(cl, tag)) {
+      pickup = true;
     }
   }
 
@@ -1586,8 +1602,30 @@ static bool G_PickupBackpack(GameClient *cl, GameEntity *ent) {
     return false;
   }
 
-  if (received) {
-    G_AutoSwitchWeapon(cl, received, false);
+  // switch to the first weapon the pack leaves the client able to fire, preferring new ones
+  const GameItem *candidate = NULL;
+  bool candidateOwned = true;
+
+  for (GameItemTag tag = WEAPON_FIRST; tag < WEAPON_LAST; tag++) {
+    const uint64_t bit = 1ull << (tag - WEAPON_FIRST);
+    if (!(backpack->weapons & bit)) {
+      continue;
+    }
+
+    const GameItem *weapon = &gameItems[tag];
+    if (weapon->def.ammo && cl->inventory[weapon->def.ammo] < weapon->def.quantity) {
+      continue;
+    }
+
+    const bool hadWeapon = (owned & bit) != 0;
+    if (!candidate || (candidateOwned && !hadWeapon)) {
+      candidate = weapon;
+      candidateOwned = hadWeapon;
+    }
+  }
+
+  if (candidate) {
+    G_AutoSwitchWeapon(cl, candidate, candidateOwned);
   }
 
   return true;

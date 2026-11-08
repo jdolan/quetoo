@@ -627,7 +627,9 @@ static float G_Ai_ItemValue(const GameClient *cl, const GameEntity *ent, const u
     return 0.f;
   }
 
-  const bool arms = G_Ai_WouldArm(cl, item);
+  const bool arms = item->def.type == ITEM_TYPE_BACKPACK
+    ? G_Ai_BackpackWouldArm(cl, ent)
+    : G_Ai_WouldArm(cl, item);
   const bool heals = item->def.type == ITEM_TYPE_HEALTH || item->def.type == ITEM_TYPE_ARMOR;
 
   if (retreat && !heals && !arms) {

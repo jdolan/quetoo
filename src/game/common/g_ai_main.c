@@ -127,6 +127,41 @@ bool G_Ai_WouldArm(const GameClient *cl, const GameItem *item) {
 }
 
 /**
+ * @see g_ai_main.h
+ */
+bool G_Ai_BackpackWouldArm(const GameClient *cl, const GameEntity *ent) {
+
+  if (G_Ai_IsArmed(cl)) {
+    return false;
+  }
+
+  const float threshold = G_Ai_ArmedPriority(cl);
+  const GameBackpack *backpack = &ent->backpack;
+
+  for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
+    const GameItem *it = &gameItems[t];
+    if (it->def.priority < threshold) {
+      continue;
+    }
+
+    if (!cl->inventory[t] && !(backpack->weapons & (1ull << (t - WEAPON_FIRST)))) {
+      continue;
+    }
+
+    if (!it->def.ammo) {
+      return true;
+    }
+
+    const int16_t held = cl->inventory[it->def.ammo] + backpack->ammo[it->def.ammo - AMMO_FIRST];
+    if (held >= it->def.quantity) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * @return The highest priority of the weapons that the bot holds with enough ammo to fire.
  */
 static float G_Ai_BestWeaponPriority(const GameClient *cl) {
