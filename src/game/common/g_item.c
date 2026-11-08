@@ -358,7 +358,7 @@ static bool G_PickupAdrenaline(GameClient *cl, GameEntity *ent) {
   }
 
   if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
-    G_SetItemRespawn(ent, 30000);
+    G_SetItemRespawn(ent, 45000);
   }
 
   return true;
