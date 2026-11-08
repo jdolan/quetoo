@@ -286,6 +286,7 @@ static int32_t G_ItemTimer(const GameItem *item) {
     case POWERUP_QUAD:
       return CS_ITEM_TIMER_QUAD;
     case POWERUP_INVULNERABILITY:
+    case POWERUP_QUAKE2_INVULNERABILITY:
       return CS_ITEM_TIMER_INVULNERABILITY;
     case POWERUP_INVISIBILITY:
       return CS_ITEM_TIMER_INVISIBILITY;
@@ -502,7 +503,9 @@ GameEntity *G_TossInvulnerability(GameClient *cl) {
     return NULL;
   }
 
-  GameEntity *item = G_DropItem(cl, &gameItems[POWERUP_INVULNERABILITY]);
+  // the invulnerability is held as Quetoo's, but drops as the item set's own
+  const GameItemTag tag = GameItems_MapTag(gameLevel.items, POWERUP_INVULNERABILITY);
+  GameEntity *item = G_DropItem(cl, &gameItems[tag]);
 
   if (item) {
     item->timestamp = cl->invulnerabilityTime;
@@ -1695,7 +1698,8 @@ static void G_InitItem_Common(GameItem *it) {
         it->Pickup = G_PickupQuadDamage;
       } else if (!Str_Compare(it->def.classname, "item_invisibility")) {
         it->Pickup = G_PickupInvisibility;
-      } else if (!Str_Compare(it->def.classname, "item_invulnerability")) {
+      } else if (!Str_Compare(it->def.classname, "item_invulnerability") ||
+                 !Str_Compare(it->def.classname, "item_quake2_invulnerability")) {
         it->Pickup = G_PickupInvulnerability;
       }
       break;

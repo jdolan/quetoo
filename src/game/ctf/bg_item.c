@@ -1241,6 +1241,23 @@ const GameItemDef gameItemDefs[] = {
   },
 
   {
+    .classname = "item_quake2_invulnerability",
+    .pickupSound = "powerups/common/pickup.wav",
+    .model = "models/powerups/quake2_invulnerability/tris.obj",
+    .effects = EF_ROTATE | EF_LIGHT | EF_LIGHT_PULSE,
+    .icon = "pics/invulnerability",
+    .name = "Invulnerability",
+    .quantity = 0,
+    .type = ITEM_TYPE_POWERUP,
+    .tag = POWERUP_QUAKE2_INVULNERABILITY,
+    .effectColor = { { 0.492f, 0.004f, 0.015f, 1.f } },
+    .priority = 0.90,
+    .precaches = "powerups/invulnerability/expire.wav",
+    .lightColor = { { 1.f, .2f, .2f } },
+    .lightRadius = 160.f
+  },
+
+  {
     .classname = "item_quake2_backpack",
     .pickupSound = "ammo/common/pickup_large.wav",
     .model = "models/powerups/quake2_backpack/tris.obj",
