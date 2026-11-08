@@ -66,7 +66,7 @@ static const char *selectedGamePlay(const PracticeViewController *self) {
  */
 static void setEnabled(Control *control, bool enabled) {
 
-  const ControlState state = enabled
+  const unsigned int state = enabled
     ? control->state & ~ControlStateDisabled
     : control->state | ControlStateDisabled;
 

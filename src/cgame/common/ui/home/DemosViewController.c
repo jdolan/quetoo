@@ -91,7 +91,7 @@ static void updatePlay(DemosViewController *self, bool selected) {
 
   Control *control = (Control *) self->play;
 
-  const ControlState state = selected
+  const unsigned int state = selected
     ? control->state & ~ControlStateDisabled
     : control->state | ControlStateDisabled;
 

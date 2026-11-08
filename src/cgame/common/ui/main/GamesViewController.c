@@ -224,7 +224,7 @@ static void viewWillAppear(ViewController *self) {
 
   Control *gamesList = (Control *) this->gamesList;
 
-  const ControlState state = *cgi.state > CL_DISCONNECTED
+  const unsigned int state = *cgi.state > CL_DISCONNECTED
     ? gamesList->state | ControlStateDisabled
     : gamesList->state & ~ControlStateDisabled;
 

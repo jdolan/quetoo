@@ -901,14 +901,16 @@ static int Installer_Thread(void *unused) {
 
       case INSTALLER_CHECKING_BIN: {
 
-        if (INSTALLER_ASSET == NULL) {
+        // a local rather than the macro, which is a constant on every supported platform
+        const char *asset = INSTALLER_ASSET;
+        if (asset == NULL) {
           SDL_LockMutex(module.mutex);
           in->state = INSTALLER_CHECKING_DATA;
           SDL_UnlockMutex(module.mutex);
           break;
         }
 
-        const bool ok = Installer_FetchRelease(QUETOO_RELEASES_API_URL, INSTALLER_ASSET, &module.release);
+        const bool ok = Installer_FetchRelease(QUETOO_RELEASES_API_URL, asset, &module.release);
 
         char parent[MAX_OS_PATH];
         Installer_StagingParent(parent, sizeof(parent));

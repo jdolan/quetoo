@@ -138,6 +138,8 @@ static bool Archive_CreateParent(const char *path) {
   return SDL_CreateDirectory(dir);
 }
 
+#if !defined(_WIN32)
+
 /**
  * @brief Runs `args` to completion, logging its output if it fails.
  * @return True if the process exited zero.
@@ -170,6 +172,8 @@ static bool Archive_Spawn(const char * const *args) {
 
   return exitCode == 0;
 }
+
+#endif
 
 /**
  * @brief Extracts a `.zip` with the vendored miniz, sanitizing every member.
