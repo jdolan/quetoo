@@ -1055,7 +1055,7 @@ const GameItemDef gameItemDefs[] = {
   },
 
   {
-    .classname = "item_health_quake_medium",
+    .classname = "item_quake_health_medium",
     .pickupSound = "health/medium/pickup.wav",
     .model = "models/health/quake_medium/tris.obj",
     .effects = 0,
@@ -1070,7 +1070,7 @@ const GameItemDef gameItemDefs[] = {
   },
 
   {
-    .classname = "item_health_quake_large",
+    .classname = "item_quake_health_large",
     .pickupSound = "health/large/pickup.wav",
     .model = "models/health/quake_large/tris.obj",
     .effects = 0,
@@ -1085,7 +1085,7 @@ const GameItemDef gameItemDefs[] = {
   },
 
   {
-    .classname = "item_health_quake_mega",
+    .classname = "item_quake_health_mega",
     .pickupSound = "health/mega/pickup.wav",
     .model = "models/health/quake_mega/tris.obj",
     .effects = 0,
