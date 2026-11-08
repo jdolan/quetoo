@@ -171,6 +171,7 @@ Cvar *g_deathCamHeight;
 Cvar *g_deathCamRise;
 Cvar *g_deathCamTime;
 Cvar *g_deathCamVelocity;
+Cvar *g_dropBackpacks;
 Cvar *g_itemTimers;
 Cvar *g_motd;
 Cvar *g_numTeams;
@@ -1383,6 +1384,7 @@ void G_Init(void) {
   g_deathCamRise = gi.AddCvar("g_deathCamRise", "90", 0, "Initial upward speed of the death camera, in units per second.");
   g_deathCamTime = gi.AddCvar("g_deathCamTime", "800", 0, "Time in milliseconds for the death camera to settle.");
   g_deathCamVelocity = gi.AddCvar("g_deathCamVelocity", "0.25", 0, "Fraction of the player's velocity inherited by the death camera.");
+  g_dropBackpacks = gi.AddCvar("g_dropBackpacks", "default", CVAR_SERVER_INFO, "Fragged players drop a backpack: 0 off, 1 held weapon and ammo, 2 all weapons and ammo; \"default\" is 1 for Quake items, else 0.");
   g_numTeams = gi.AddCvar("g_numTeams", "default", CVAR_SERVER_INFO, "The number of teams: \"default\" defers to the level, else to the teams that the map has spawn points or flags for.");
   g_itemTimers = gi.AddCvar("g_itemTimers", "1", CVAR_SERVER_INFO, "Publishes the time until the mega health and each powerup respawns, for the HUD.");
   g_motd = gi.AddCvar("g_motd", "", CVAR_SERVER_INFO, "Message of the day, shown to clients on initial connect.");

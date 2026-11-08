@@ -976,7 +976,12 @@ static void G_ClientDie(GameEntity *ent, GameEntity *attacker, uint32_t mod) {
   G_TossInvulnerability(cl);
 
   if ((gameLevel.gameplay & ~GAMEPLAY_TEAMS) == GAMEPLAY_DEATHMATCH && mod != MOD_TRIGGER_HURT) {
-    G_TossWeapon(cl);
+    const int32_t backpackMode = G_DropBackpackMode();
+    if (backpackMode) {
+      G_DropBackpack(cl, backpackMode == 2);
+    } else {
+      G_TossWeapon(cl);
+    }
   }
 
   const bool gibbed = ent->health <= -CLIENT_CORPSE_HEALTH;

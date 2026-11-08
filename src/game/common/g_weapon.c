@@ -73,6 +73,31 @@ static void G_ChangeWeapon(GameClient *cl, const GameItem *item) {
 }
 
 /**
+ * @brief Switches to a weapon the client has just picked up, as their `autoSwitch` preference allows.
+ * @param hadWeapon True if the client already carried the weapon before this pickup.
+ */
+void G_AutoSwitchWeapon(GameClient *cl, const GameItem *weapon, bool hadWeapon) {
+
+  const uint16_t autoSwitch = cl->persistent.autoSwitch;
+  if (autoSwitch == 1) { // switch from starting weapon
+
+    const GameItemTag tag = (gameLevel.items == ITEMS_QUAKE)
+      ? WEAPON_QUAKE_SHOTGUN
+      : gameLevel.items == ITEMS_QUAKE2 ? WEAPON_QUAKE2_BLASTER : WEAPON_BLASTER;
+
+    if (cl->weapon == &gameItems[tag]) {
+      G_ChangeWeapon(cl, weapon);
+    }
+  } else if (autoSwitch == 2) { // switch to all
+    G_ChangeWeapon(cl, weapon);
+  } else if (autoSwitch == 3) { // switch to new
+    if (!hadWeapon) {
+      G_ChangeWeapon(cl, weapon);
+    }
+  }
+}
+
+/**
  * @brief Gives the client the weapon item if eligible, staying it in place if `g_weaponStay` is set.
  * @return True if the weapon was successfully picked up, false otherwise.
  */
@@ -109,23 +134,7 @@ bool G_PickupWeapon(GameClient *cl, GameEntity *ent) {
   }
 
   // auto-switch the weapon if applicable
-  const uint16_t autoSwitch = cl->persistent.autoSwitch;
-  if (autoSwitch == 1) { // switch from starting weapon
-
-    const GameItemTag tag = (gameLevel.items == ITEMS_QUAKE)
-      ? WEAPON_QUAKE_SHOTGUN
-      : gameLevel.items == ITEMS_QUAKE2 ? WEAPON_QUAKE2_BLASTER : WEAPON_BLASTER;
-
-    if (cl->weapon == &gameItems[tag]) {
-      G_ChangeWeapon(cl, ent->item);
-    }
-  } else if (autoSwitch == 2) { // switch to all
-    G_ChangeWeapon(cl, ent->item);
-  } else if (autoSwitch == 3) { // switch to new
-    if (!hadWeapon) {
-      G_ChangeWeapon(cl, ent->item);
-    }
-  }
+  G_AutoSwitchWeapon(cl, ent->item, hadWeapon);
 
   return true;
 }
@@ -250,6 +259,59 @@ GameEntity *G_TossWeapon(GameClient *cl) {
     if (dropped->health > ammo) {
       dropped->health = ammo;
     }
+  }
+
+  return dropped;
+}
+
+/**
+ * @return The backpack mutator mode: 0 for none, 1 to drop the held weapon and all ammo, or 2 to
+ * drop every weapon and all ammo. "default" drops the held weapon only for Quake items.
+ */
+int32_t G_DropBackpackMode(void) {
+
+  if (!Str_CaseCompare(g_dropBackpacks->string, "default")) {
+    return gameLevel.items == ITEMS_QUAKE ? 1 : 0;
+  }
+
+  return Mini(Maxi(g_dropBackpacks->integer, 0), 2);
+}
+
+/**
+ * @brief Drops a backpack holding the client's ammo and weapons, as NetQuake and QuakeWorld do.
+ * @param allWeapons If true, every weapon the client owns is dropped, and not just the held one.
+ * @return The backpack entity, or NULL if the client has no ammo or there was no room for it.
+ */
+GameEntity *G_DropBackpack(GameClient *cl, bool allWeapons) {
+
+  GameBackpack backpack = { 0 };
+  bool hasAmmo = false;
+
+  for (GameItemTag tag = AMMO_FIRST; tag < AMMO_LAST; tag++) {
+    const int16_t count = cl->inventory[tag];
+    if (count > 0) {
+      backpack.ammo[tag - AMMO_FIRST] = count;
+      hasAmmo = true;
+    }
+  }
+
+  if (!hasAmmo) {
+    return NULL;
+  }
+
+  if (allWeapons) {
+    for (GameItemTag tag = WEAPON_FIRST; tag < WEAPON_LAST; tag++) {
+      if (cl->inventory[tag] && gameItems[tag].def.ammo) {
+        backpack.weapons |= 1ull << (tag - WEAPON_FIRST);
+      }
+    }
+  } else if (cl->weapon && cl->weapon->def.ammo) {
+    backpack.weapons |= 1ull << (cl->weapon->def.tag - WEAPON_FIRST);
+  }
+
+  GameEntity *dropped = G_DropItem(cl, &gameItems[BACKPACK_QUAKE]);
+  if (dropped) {
+    dropped->backpack = backpack;
   }
 
   return dropped;

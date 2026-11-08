@@ -1226,6 +1226,36 @@ const GameItemDef gameItemDefs[] = {
   },
 
   {
+    .classname = "item_quake2_backpack",
+    .pickupSound = "ammo/common/pickup_large.wav",
+    .model = "models/powerups/quake2_backpack/tris.obj",
+    .effects = 0,
+    .icon = "pics/backpack",
+    .name = "Ammo Pack",
+    .quantity = 0,
+    .type = ITEM_TYPE_BACKPACK,
+    .tag = BACKPACK_QUAKE2,
+    .effectColor = { { 0.739f, 0.556f, 0.032f, 1.f } },
+    .priority = 0.60,
+    .precaches = ""
+  },
+
+  {
+    .classname = "item_quake_backpack",
+    .pickupSound = "ammo/common/pickup_large.wav",
+    .model = "models/powerups/quake2_backpack/tris.obj",
+    .effects = 0,
+    .icon = "pics/backpack",
+    .name = "Backpack",
+    .quantity = 0,
+    .type = ITEM_TYPE_BACKPACK,
+    .tag = BACKPACK_QUAKE,
+    .effectColor = { { 0.739f, 0.556f, 0.032f, 1.f } },
+    .priority = 0.30,
+    .precaches = ""
+  },
+
+  {
     .classname = "item_tech_haste",
     .pickupSound = "powerups/common/pickup.wav",
     .model = "models/techs/haste/tris.obj",

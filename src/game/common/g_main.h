@@ -205,6 +205,7 @@ extern Cvar *g_deathCamHeight;
 extern Cvar *g_deathCamRise;
 extern Cvar *g_deathCamTime;
 extern Cvar *g_deathCamVelocity;
+extern Cvar *g_dropBackpacks;
 extern Cvar *g_itemTimers;
 extern Cvar *g_numTeams;
 extern Cvar *g_motd;

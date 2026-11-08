@@ -517,10 +517,24 @@ static void G_TossInventory_Common(GameClient *cl) {
 GameTossInventoryHook G_TossInventory = G_TossInventory_Common;
 
 /**
+ * @brief The most of an ammo item the client can carry. The Quake II ammo pack raises every cap.
+ */
+int16_t G_AmmoMax(const GameClient *cl, const GameItem *item) {
+  const int16_t max = item->def.max;
+
+  if (!max || !cl->inventory[BACKPACK_QUAKE2]) {
+    return max;
+  }
+
+  // Quake II's pack takes 200 to 300, and 50 or 100 to double
+  return max >= 200 ? max * 3 / 2 : max * 2;
+}
+
+/**
  * @brief Adds the given amount of ammo to the client's inventory, clamped to the item's maximum.
  */
 bool G_AddAmmo(GameClient *cl, const GameItem *item, int16_t count) {
-  int16_t max = item->def.max;
+  const int16_t max = G_AmmoMax(cl, item);
 
   if (!max) {
     return false;
@@ -543,7 +557,7 @@ bool G_AddAmmo(GameClient *cl, const GameItem *item, int16_t count) {
  * @brief Sets the client's ammo count for the given item to an absolute value, clamped to its maximum.
  */
 bool G_SetAmmo(GameClient *cl, const GameItem *item, int16_t count) {
-  int16_t max = item->def.max;
+  const int16_t max = G_AmmoMax(cl, item);
 
   if (!max) {
     return false;
@@ -947,6 +961,8 @@ static void G_DropItem_SetExpiration(GameEntity *ent) {
   uint32_t expiration;
   if (ent->item->def.type == ITEM_TYPE_POWERUP) { // expire from last touch
     expiration = ent->timestamp - gameLevel.time;
+  } else if (ent->item->def.type == ITEM_TYPE_BACKPACK) { // as in QuakeWorld
+    expiration = 120000;
   } else { // general case
     expiration = 30000;
   }
@@ -1470,6 +1486,101 @@ bool G_ItemAvailable(const GameItem *item) {
 }
 
 /**
+ * @brief Handles pickup of the Quake II ammo pack, which raises the client's ammo capacity for as
+ * long as it is held, and tops off a little of each ammo the level uses.
+ */
+static bool G_PickupQuake2Backpack(GameClient *cl, GameEntity *ent) {
+
+  if (cl->inventory[BACKPACK_QUAKE2]) {
+    return false;
+  }
+
+  cl->inventory[BACKPACK_QUAKE2] = 1;
+
+  static const struct {
+    GameItemTag tag;
+    int16_t count;
+  } bonus[] = {
+    { AMMO_QUAKE2_BULLETS, 30 },
+    { AMMO_QUAKE2_SHELLS, 15 },
+    { AMMO_QUAKE2_CELLS, 30 },
+    { AMMO_QUAKE2_GRENADES, 5 },
+    { AMMO_QUAKE2_ROCKETS, 5 },
+    { AMMO_QUAKE2_SLUGS, 10 },
+  };
+
+  for (size_t i = 0; i < lengthof(bonus); i++) {
+    const GameItemTag tag = GameItems_MapTag(gameLevel.items, bonus[i].tag);
+    if (tag) {
+      G_AddAmmo(cl, &gameItems[tag], bonus[i].count);
+    }
+  }
+
+  if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
+    G_SetItemRespawn(ent, 180000);
+  }
+
+  return true;
+}
+
+/**
+ * @brief Handles pickup of a backpack dropped by a fragged player, granting its weapons and ammo.
+ * @return False if the backpack holds nothing the client could use.
+ */
+static bool G_PickupBackpack(GameClient *cl, GameEntity *ent) {
+
+  const GameBackpack *backpack = &ent->backpack;
+  bool pickup = false;
+
+  const GameItem *received = NULL;
+
+  for (GameItemTag tag = WEAPON_FIRST; tag < WEAPON_LAST; tag++) {
+    if (!(backpack->weapons & (1ull << (tag - WEAPON_FIRST)))) {
+      continue;
+    }
+    if (!cl->inventory[tag]) {
+      cl->inventory[tag] = 1;
+      pickup = true;
+      if (!received) {
+        received = &gameItems[tag];
+      }
+    }
+  }
+
+  for (GameItemTag tag = AMMO_FIRST; tag < AMMO_LAST; tag++) {
+    const int16_t count = backpack->ammo[tag - AMMO_FIRST];
+    if (!count) {
+      continue;
+    }
+
+    const int16_t before = cl->inventory[tag];
+    if (G_AddAmmo(cl, &gameItems[tag], count) && cl->inventory[tag] > before) {
+      pickup = true;
+    }
+
+    // grenade ammo comes with the means to throw it
+    if (tag == AMMO_GRENADES || tag == AMMO_QUAKE2_GRENADES) {
+      const GameItemTag weapon = tag == AMMO_QUAKE2_GRENADES
+        ? WEAPON_QUAKE2_HAND_GRENADE : WEAPON_HAND_GRENADE;
+      if (cl->inventory[tag] && !cl->inventory[weapon]) {
+        cl->inventory[weapon] = 1;
+        pickup = true;
+      }
+    }
+  }
+
+  if (!pickup) {
+    return false;
+  }
+
+  if (received) {
+    G_AutoSwitchWeapon(cl, received, false);
+  }
+
+  return true;
+}
+
+/**
  * @brief The tail of the `G_InitItem` chain, answering for the deathmatch item
  * types and erroring on any other.
  */
@@ -1576,6 +1687,10 @@ static void G_InitItem_Common(GameItem *it) {
       } else if (!Str_Compare(it->def.classname, "item_invulnerability")) {
         it->Pickup = G_PickupInvulnerability;
       }
+      break;
+
+    case ITEM_TYPE_BACKPACK:
+      it->Pickup = it->def.tag == BACKPACK_QUAKE2 ? G_PickupQuake2Backpack : G_PickupBackpack;
       break;
 
     default:

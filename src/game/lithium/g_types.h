@@ -45,7 +45,7 @@
  * @brief Game protocol version (protocol minor version). To be incremented
  * whenever the game protocol changes.
  */
-#define PROTOCOL_MINOR 1070
+#define PROTOCOL_MINOR 1071
 
 /**
  * @brief Game-specific server protocol commands. These are parsed directly by
@@ -512,6 +512,23 @@ typedef struct {
    */
   float energyProtection;
 } GameArmorInfo;
+
+/**
+ * @brief The contents of a dropped backpack.
+ */
+typedef struct {
+  /**
+   * @brief The weapons carried, one bit per weapon, indexed by `tag - WEAPON_FIRST`.
+   */
+  uint64_t weapons;
+
+  /**
+   * @brief The ammo carried, indexed by `tag - AMMO_FIRST`.
+   */
+  int16_t ammo[AMMO_TOTAL];
+} GameBackpack;
+
+static_assert(WEAPON_TOTAL <= 64, "GameBackpack::weapons holds one bit per weapon");
 
 #if defined(__G_LOCAL_H__)
 
@@ -2029,6 +2046,11 @@ struct GameEntity {
    * @brief Item definition for bonus item entities.
    */
   const GameItem *item;
+
+  /**
+   * @brief The weapons and ammo carried by a dropped backpack.
+   */
+  GameBackpack backpack;
 
   /**
    * @brief Projectile definition for `ballistics_*` and `turret_*` entities, resolved from their
