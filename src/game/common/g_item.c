@@ -358,7 +358,7 @@ static bool G_PickupAdrenaline(GameClient *cl, GameEntity *ent) {
   }
 
   if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
-    G_SetItemRespawn(ent, ent->item->def.tag == POWERUP_QUAKE2_ADRENALINE ? 60000 : 40000);
+    G_SetItemRespawn(ent, 30000);
   }
 
   return true;
@@ -1552,7 +1552,7 @@ static bool G_PickupQuake2Backpack(GameClient *cl, GameEntity *ent) {
   }
 
   if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
-    G_SetItemRespawn(ent, 180000);
+    G_SetItemRespawn(ent, 60000);
   }
 
   return true;
