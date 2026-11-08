@@ -99,9 +99,27 @@ static void Cl_ReadDeltaEntity(ClientFrame *frame, const EntityState *from, int1
 
   // check to see if the delta was successful and valid
   if (!Cl_ValidDeltaEntity(ent, from, to)) {
+
+    // a dropped frame breaks interpolation, but not the entity's animations: restarting them
+    // would hold anything that plays out over seconds, like a death, at its first frame for as
+    // long as frames keep dropping. Restart only an entity that is new, or whose animation
+    // changed in the frames that were missed.
+    const bool continuous = ent->current.spawnId == to->spawnId &&
+                            ent->current.model1 == to->model1 &&
+                            ent->frameNum && cl.frame.frameNum - ent->frameNum <= PACKET_BACKUP;
+
     ent->prev = *to; // copy the current state to the previous
-    ent->animation1.time = ent->animation2.time = 0;
-    ent->animation1.frame = ent->animation2.frame = -1;
+
+    if (!continuous || ent->current.animation1 != to->animation1) {
+      ent->animation1.time = 0;
+      ent->animation1.frame = -1;
+    }
+
+    if (!continuous || ent->current.animation2 != to->animation2) {
+      ent->animation2.time = 0;
+      ent->animation2.frame = -1;
+    }
+
     ent->previousOrigin = to->origin;
     Cl_ResetTrails(ent);
     ent->legsCurrentYaw = to->angles.y;
