@@ -136,7 +136,14 @@ bool G_Ai_BackpackWouldArm(const GameClient *cl, const GameEntity *ent) {
   }
 
   const float threshold = G_Ai_ArmedPriority(cl);
+
+  GameBackpack mapPack;
   const GameBackpack *backpack = &ent->backpack;
+
+  if (ent->item->def.tag == BACKPACK_QUAKE2) {
+    G_Quake2BackpackContents(&mapPack);
+    backpack = &mapPack;
+  }
 
   for (GameItemTag t = WEAPON_FIRST; t < WEAPON_LAST; t++) {
     const GameItem *it = &gameItems[t];

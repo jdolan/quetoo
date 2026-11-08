@@ -1520,16 +1520,9 @@ static bool G_GrantHandGrenade(GameClient *cl, GameItemTag ammo) {
 }
 
 /**
- * @brief Handles pickup of the Quake II ammo pack, which raises the client's ammo capacity for as
- * long as it is held, and tops off a little of each ammo the level uses.
+ * @see g_item.h
  */
-static bool G_PickupQuake2Backpack(GameClient *cl, GameEntity *ent) {
-
-  if (cl->inventory[BACKPACK_QUAKE2]) {
-    return false;
-  }
-
-  cl->inventory[BACKPACK_QUAKE2] = 1;
+void G_Quake2BackpackContents(GameBackpack *backpack) {
 
   static const struct {
     GameItemTag tag;
@@ -1543,10 +1536,43 @@ static bool G_PickupQuake2Backpack(GameClient *cl, GameEntity *ent) {
     { AMMO_QUAKE2_SLUGS, 10 },
   };
 
+  memset(backpack, 0, sizeof(*backpack));
+
   for (size_t i = 0; i < lengthof(bonus); i++) {
     const GameItemTag tag = GameItems_MapTag(gameLevel.items, bonus[i].tag);
-    if (tag) {
-      G_AddAmmo(cl, &gameItems[tag], bonus[i].count);
+    if (!tag) {
+      continue;
+    }
+
+    backpack->ammo[tag - AMMO_FIRST] = bonus[i].count;
+
+    if (tag == AMMO_GRENADES) {
+      backpack->weapons |= 1ull << (WEAPON_HAND_GRENADE - WEAPON_FIRST);
+    } else if (tag == AMMO_QUAKE2_GRENADES) {
+      backpack->weapons |= 1ull << (WEAPON_QUAKE2_HAND_GRENADE - WEAPON_FIRST);
+    }
+  }
+}
+
+/**
+ * @brief Handles pickup of the Quake II ammo pack, which raises the client's ammo capacity for as
+ * long as it is held, and tops off a little of each ammo the level uses.
+ */
+static bool G_PickupQuake2Backpack(GameClient *cl, GameEntity *ent) {
+
+  if (cl->inventory[BACKPACK_QUAKE2]) {
+    return false;
+  }
+
+  cl->inventory[BACKPACK_QUAKE2] = 1;
+
+  GameBackpack contents;
+  G_Quake2BackpackContents(&contents);
+
+  for (GameItemTag tag = AMMO_FIRST; tag < AMMO_LAST; tag++) {
+    const int16_t count = contents.ammo[tag - AMMO_FIRST];
+    if (count) {
+      G_AddAmmo(cl, &gameItems[tag], count);
       G_GrantHandGrenade(cl, tag);
     }
   }

@@ -113,8 +113,8 @@ bool G_Ai_HasLineOfSight(const GameClient *cl, const GameEntity *other);
 bool G_Ai_WouldArm(const GameClient *cl, const GameItem *item);
 
 /**
- * @return True if the AI is unarmed, and the dropped backpack holds a weapon of at least the armed
- * priority that the AI could fire once it had picked the backpack up.
+ * @return True if the AI is unarmed, and the backpack, whether dropped or the Quake II ammo pack,
+ * holds a weapon or ammo that would let it fire a weapon of at least the armed priority.
  */
 bool G_Ai_BackpackWouldArm(const GameClient *cl, const GameEntity *ent);
 
