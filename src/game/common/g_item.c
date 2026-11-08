@@ -339,16 +339,16 @@ void G_RunItemTimers(void) {
 }
 
 /**
- * @brief Handles pickup of the adrenaline powerup, boosting the player to 1.2 times their max
- * health, even if they are already at it. The boost decays back to max health over time, as the
- * health from other boosting items does. Adrenaline is consumed on pickup, so it is never held
- * and can not be dropped.
+ * @brief Handles pickup of the adrenaline powerup, boosting the player to `g_balanceAdrenalineBoost`
+ * times their max health, even if they are already at it. The boost decays back to max health over
+ * time, as the health from other boosting items does. Adrenaline is consumed on pickup, so it is
+ * never held and can not be dropped.
  */
 static bool G_PickupAdrenaline(GameClient *cl, GameEntity *ent) {
 
   GameEntity *self = cl->entity;
 
-  const int32_t boosted = Mini(self->maxHealth * 6 / 5, cl->maxBoostHealth);
+  const int32_t boosted = Mini((int32_t) (self->maxHealth * g_balanceAdrenalineBoost->value), cl->maxBoostHealth);
   if (self->health < boosted) {
     self->health = boosted;
   }
@@ -358,7 +358,7 @@ static bool G_PickupAdrenaline(GameClient *cl, GameEntity *ent) {
   }
 
   if (!(ent->spawnFlags & SF_ITEM_DROPPED)) {
-    G_SetItemRespawn(ent, 45000);
+    G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_balanceAdrenalineRespawnTime->value));
   }
 
   return true;
