@@ -137,8 +137,7 @@ bool G_PickupWeapon(GameClient *cl, GameEntity *ent) {
 
     // if weapons stay is disabled, or this is a team weapon, setup respawn
     if (!g_weaponStay->integer || ent->team) {
-      G_SetItemRespawn(ent, ent->item->def.tag >= WEAPON_QUAKE2_BLASTER
-                            ? 30000 : SECONDS_TO_MILLIS(g_weaponRespawnTime->value));
+      G_SetItemRespawn(ent, SECONDS_TO_MILLIS(g_weaponRespawnTime->value));
     }
   }
 
