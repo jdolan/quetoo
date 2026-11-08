@@ -1177,9 +1177,12 @@ static void G_InitInventory_Common(GameClient *cl) {
   else if (gameLevel.items == ITEMS_QUAKE) {
     G_Give(cl, "Shotgun", 10);
     item = &gameItems[WEAPON_QUAKE_SHOTGUN];
+  } else if (gameLevel.items == ITEMS_QUAKE2) {
+    G_Give(cl, "Blaster", -1);
+    item = &gameItems[WEAPON_QUAKE2_BLASTER];
   } else {
     G_Give(cl, "Blaster", -1);
-    item = &gameItems[gameLevel.items == ITEMS_QUAKE2 ? WEAPON_QUAKE2_BLASTER : WEAPON_BLASTER];
+    item = &gameItems[WEAPON_BLASTER];
   }
 
   G_UseWeapon(cl, item);
