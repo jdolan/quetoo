@@ -34,7 +34,7 @@ static void R_LoadBspPlanes(RenderBspModel *bsp) {
   bsp->planes = out = Mem_LinkMalloc(bsp->numPlanes * sizeof(*out), bsp);
 
   for (int32_t i = 0; i < bsp->numPlanes; i++, out++, in++) {
-    out->collision = in;
+    out->collision = *in;
   }
 }
 

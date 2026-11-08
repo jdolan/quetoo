@@ -372,8 +372,10 @@ typedef struct {
 typedef struct {
   /**
    * @brief The collision plane.
+   * @remarks A copy, not a pointer into the collision model: that model is freed and reloaded
+   * each time a level loads, while the world is retained when the same map is loaded again.
    */
-  const CollisionPlane *collision;
+  CollisionPlane collision;
 } RenderBspPlane;
 
 /**
