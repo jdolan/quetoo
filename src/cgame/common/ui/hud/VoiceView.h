@@ -73,4 +73,4 @@ struct VoiceViewInterface {
  * @fn Class *VoiceView::_VoiceView(void)
  * @memberof VoiceView
  */
-OBJECTIVELYMVC_EXPORT Class *_VoiceView(void);
+CGAME_EXPORT Class *_VoiceView(void);
