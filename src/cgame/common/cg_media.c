@@ -117,12 +117,12 @@ void Cg_LoadMedia(void) {
 #endif
 
   cgameMedia.sounds.quakeShotgunFire = cgi.LoadSample("weapons/quake_shotgun/fire", ASSET_CONTEXT_SOUNDS);
-  cgameMedia.sounds.quakeSupershotgunFire = cgi.LoadSample("weapons/quake_supershotgun/fire", ASSET_CONTEXT_SOUNDS);
+  cgameMedia.sounds.quakeSuperShotgunFire = cgi.LoadSample("weapons/quake_supershotgun/fire", ASSET_CONTEXT_SOUNDS);
   cgameMedia.sounds.quakeNailgunFire = cgi.LoadSample("weapons/quake_nailgun/fire", ASSET_CONTEXT_SOUNDS);
-  cgameMedia.sounds.quakeSupernailgunFire = cgi.LoadSample("weapons/quake_supernailgun/fire", ASSET_CONTEXT_SOUNDS);
+  cgameMedia.sounds.quakeSuperNailgunFire = cgi.LoadSample("weapons/quake_supernailgun/fire", ASSET_CONTEXT_SOUNDS);
   cgameMedia.sounds.quakeNailHit = cgi.LoadSample("projectiles/quake_nail/hit", ASSET_CONTEXT_SOUNDS);
-  cgameMedia.sounds.quakeGrenadelauncherFire = cgi.LoadSample("weapons/quake_grenadelauncher/fire", ASSET_CONTEXT_SOUNDS);
-  cgameMedia.sounds.quakeRocketlauncherFire = cgi.LoadSample("weapons/quake_rocketlauncher/fire", ASSET_CONTEXT_SOUNDS);
+  cgameMedia.sounds.quakeGrenadeLauncherFire = cgi.LoadSample("weapons/quake_grenadelauncher/fire", ASSET_CONTEXT_SOUNDS);
+  cgameMedia.sounds.quakeRocketLauncherFire = cgi.LoadSample("weapons/quake_rocketlauncher/fire", ASSET_CONTEXT_SOUNDS);
 
   cgameMedia.sounds.quake2ShotgunFire = cgi.LoadSample("weapons/quake2_shotgun/fire", ASSET_CONTEXT_SOUNDS);
   cgameMedia.sounds.quake2HyperblasterFire = cgi.LoadSample("weapons/quake2_hyperblaster/fire", ASSET_CONTEXT_SOUNDS);

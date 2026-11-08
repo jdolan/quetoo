@@ -809,20 +809,20 @@ static float G_Ai_SplashRadius(const GameItem *weapon) {
   const Cvar *damage = NULL, *radius = NULL;
 
   if (weapon == &gameItems[WEAPON_ROCKET_LAUNCHER]) {
-    damage = g_balanceRocketlauncherDamage;
-    radius = g_balanceRocketlauncherRadius;
+    damage = g_balanceRocketLauncherDamage;
+    radius = g_balanceRocketLauncherRadius;
   } else if (weapon == &gameItems[WEAPON_GRENADE_LAUNCHER]) {
-    damage = g_balanceGrenadelauncherDamage;
-    radius = g_balanceGrenadelauncherRadius;
+    damage = g_balanceGrenadeLauncherDamage;
+    radius = g_balanceGrenadeLauncherRadius;
   } else if (weapon == &gameItems[WEAPON_BFG10K]) {
     damage = g_balanceBfgDamage;
     radius = g_balanceBfgRadius;
   } else if (weapon == &gameItems[WEAPON_QUAKE_ROCKET_LAUNCHER]) {
-    damage = g_balanceQuakeRocketlauncherDamage;
-    radius = g_balanceQuakeRocketlauncherRadius;
+    damage = g_balanceQuakeRocketLauncherDamage;
+    radius = g_balanceQuakeRocketLauncherRadius;
   } else if (weapon == &gameItems[WEAPON_QUAKE_GRENADE_LAUNCHER]) {
-    damage = g_balanceQuakeGrenadelauncherDamage;
-    radius = g_balanceQuakeGrenadelauncherRadius;
+    damage = g_balanceQuakeGrenadeLauncherDamage;
+    radius = g_balanceQuakeGrenadeLauncherRadius;
   } else {
     return 0.f;
   }

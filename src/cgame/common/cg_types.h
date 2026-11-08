@@ -356,12 +356,12 @@ typedef struct {
 #endif
 
     SoundSample *quakeShotgunFire;
-    SoundSample *quakeSupershotgunFire;
+    SoundSample *quakeSuperShotgunFire;
     SoundSample *quakeNailgunFire;
-    SoundSample *quakeSupernailgunFire;
+    SoundSample *quakeSuperNailgunFire;
     SoundSample *quakeNailHit;
-    SoundSample *quakeGrenadelauncherFire;
-    SoundSample *quakeRocketlauncherFire;
+    SoundSample *quakeGrenadeLauncherFire;
+    SoundSample *quakeRocketLauncherFire;
 
     SoundSample *quake2ShotgunFire;
     SoundSample *quake2MachinegunFire[5];

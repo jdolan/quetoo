@@ -563,13 +563,13 @@ void G_FireSuperShotgun(GameClient *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
-    G_ShotgunProjectiles(cl->entity, cl->entity, org, forward, g_balanceSupershotgunDamage->integer,
-      g_balanceSupershotgunKnockback->integer, g_balanceSupershotgunSpreadX->integer,
-      g_balanceSupershotgunSpreadY->integer, g_balanceSupershotgunPellets->integer, MOD_SUPER_SHOTGUN);
+    G_ShotgunProjectiles(cl->entity, cl->entity, org, forward, g_balanceSuperShotgunDamage->integer,
+      g_balanceSuperShotgunKnockback->integer, g_balanceSuperShotgunSpreadX->integer,
+      g_balanceSuperShotgunSpreadY->integer, g_balanceSuperShotgunPellets->integer, MOD_SUPER_SHOTGUN);
 
     G_ClientMuzzleFlash(cl->entity, MZ_SUPER_SHOTGUN);
 
-    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceSupershotgunRefire->value), cl->weapon->def.quantity);
+    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceSuperShotgunRefire->value), cl->weapon->def.quantity);
   }
 }
 
@@ -781,13 +781,13 @@ void G_FireGrenadeLauncher(GameClient *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
-    G_GrenadeProjectile(cl->entity, cl->entity, org, forward, g_balanceGrenadelauncherSpeed->integer,
-      g_balanceGrenadelauncherDamage->integer, g_balanceGrenadelauncherKnockback->integer,
-      g_balanceGrenadelauncherRadius->value, SECONDS_TO_MILLIS(g_balanceGrenadelauncherTimer->value), 0);
+    G_GrenadeProjectile(cl->entity, cl->entity, org, forward, g_balanceGrenadeLauncherSpeed->integer,
+      g_balanceGrenadeLauncherDamage->integer, g_balanceGrenadeLauncherKnockback->integer,
+      g_balanceGrenadeLauncherRadius->value, SECONDS_TO_MILLIS(g_balanceGrenadeLauncherTimer->value), 0);
 
     G_ClientMuzzleFlash(cl->entity, MZ_GRENADE_LAUNCHER);
 
-    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceGrenadelauncherRefire->value), cl->weapon->def.quantity);
+    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceGrenadeLauncherRefire->value), cl->weapon->def.quantity);
   }
 }
 
@@ -801,13 +801,13 @@ void G_FireRocketLauncher(GameClient *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 1.0);
 
-    G_RocketProjectile(cl->entity, cl->entity, org, forward, g_balanceRocketlauncherSpeed->integer,
-      g_balanceRocketlauncherDamage->integer, g_balanceRocketlauncherKnockback->integer,
-      g_balanceRocketlauncherRadius->value, 0);
+    G_RocketProjectile(cl->entity, cl->entity, org, forward, g_balanceRocketLauncherSpeed->integer,
+      g_balanceRocketLauncherDamage->integer, g_balanceRocketLauncherKnockback->integer,
+      g_balanceRocketLauncherRadius->value, 0);
 
     G_ClientMuzzleFlash(cl->entity, MZ_ROCKET_LAUNCHER);
 
-    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceRocketlauncherRefire->value), cl->weapon->def.quantity);
+    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceRocketLauncherRefire->value), cl->weapon->def.quantity);
   }
 }
 
@@ -913,14 +913,14 @@ void G_FireQuakeSuperShotgun(GameClient *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
-    G_ShotgunProjectiles(cl->entity, cl->entity, org, forward, g_balanceQuakeSupershotgunDamage->integer,
-      g_balanceQuakeSupershotgunKnockback->integer, g_balanceQuakeSupershotgunSpreadX->integer,
-      g_balanceQuakeSupershotgunSpreadY->integer, g_balanceQuakeSupershotgunPellets->integer,
+    G_ShotgunProjectiles(cl->entity, cl->entity, org, forward, g_balanceQuakeSuperShotgunDamage->integer,
+      g_balanceQuakeSuperShotgunKnockback->integer, g_balanceQuakeSuperShotgunSpreadX->integer,
+      g_balanceQuakeSuperShotgunSpreadY->integer, g_balanceQuakeSuperShotgunPellets->integer,
       MOD_QUAKE_SUPER_SHOTGUN);
 
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE_SUPER_SHOTGUN);
 
-    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuakeSupershotgunRefire->value), cl->weapon->def.quantity);
+    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuakeSuperShotgunRefire->value), cl->weapon->def.quantity);
   }
 }
 
@@ -967,12 +967,12 @@ void G_FireQuakeSuperNailgun(GameClient *cl) {
     cl->quakeNailgunBarrel++;
 
     G_NailProjectile(cl->entity, cl->entity, org, forward,
-      g_balanceQuakeSupernailgunSpeed->integer, g_balanceQuakeSupernailgunDamage->integer,
-      g_balanceQuakeSupernailgunKnockback->integer, MOD_QUAKE_SUPER_NAILGUN);
+      g_balanceQuakeSuperNailgunSpeed->integer, g_balanceQuakeSuperNailgunDamage->integer,
+      g_balanceQuakeSuperNailgunKnockback->integer, MOD_QUAKE_SUPER_NAILGUN);
 
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE_SUPER_NAILGUN);
 
-    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuakeSupernailgunRefire->value), cl->weapon->def.quantity);
+    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuakeSuperNailgunRefire->value), cl->weapon->def.quantity);
   }
 }
 
@@ -986,13 +986,13 @@ void G_FireQuakeGrenadeLauncher(GameClient *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
-    G_QuakeGrenadeProjectile(cl->entity, cl->entity, org, forward, g_balanceQuakeGrenadelauncherSpeed->integer,
-      g_balanceQuakeGrenadelauncherDamage->integer, g_balanceQuakeGrenadelauncherKnockback->integer,
-      g_balanceQuakeGrenadelauncherRadius->value, SECONDS_TO_MILLIS(g_balanceQuakeGrenadelauncherTimer->value));
+    G_QuakeGrenadeProjectile(cl->entity, cl->entity, org, forward, g_balanceQuakeGrenadeLauncherSpeed->integer,
+      g_balanceQuakeGrenadeLauncherDamage->integer, g_balanceQuakeGrenadeLauncherKnockback->integer,
+      g_balanceQuakeGrenadeLauncherRadius->value, SECONDS_TO_MILLIS(g_balanceQuakeGrenadeLauncherTimer->value));
 
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE_GRENADE_LAUNCHER);
 
-    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuakeGrenadelauncherRefire->value), cl->weapon->def.quantity);
+    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuakeGrenadeLauncherRefire->value), cl->weapon->def.quantity);
   }
 }
 
@@ -1006,13 +1006,13 @@ void G_FireQuakeRocketLauncher(GameClient *cl) {
 
     G_ClientProjectile(cl, &forward, &right, &up, &org, 0.0);
 
-    G_QuakeRocketProjectile(cl->entity, cl->entity, org, forward, g_balanceQuakeRocketlauncherSpeed->integer,
-      g_balanceQuakeRocketlauncherDamage->integer, g_balanceQuakeRocketlauncherKnockback->integer,
-      g_balanceQuakeRocketlauncherRadius->value);
+    G_QuakeRocketProjectile(cl->entity, cl->entity, org, forward, g_balanceQuakeRocketLauncherSpeed->integer,
+      g_balanceQuakeRocketLauncherDamage->integer, g_balanceQuakeRocketLauncherKnockback->integer,
+      g_balanceQuakeRocketLauncherRadius->value);
 
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE_ROCKET_LAUNCHER);
 
-    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuakeRocketlauncherRefire->value), cl->weapon->def.quantity);
+    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuakeRocketLauncherRefire->value), cl->weapon->def.quantity);
   }
 }
 
@@ -1081,13 +1081,13 @@ void G_FireQuake2SuperShotgun(GameClient *cl) {
     for (int32_t side = -1; side <= 1; side += 2) {
       Vec3 aim;
       Vec3_Vectors(Vec3_Add(angles, MakeVec3(0, side * 5, 0)), &aim, NULL, NULL);
-      G_ShotgunProjectiles(cl->entity, cl->entity, org, aim, g_balanceQuake2SupershotgunDamage->integer,
-        g_balanceQuake2SupershotgunKnockback->integer, g_balanceQuake2SupershotgunSpreadX->integer,
-        g_balanceQuake2SupershotgunSpreadY->integer, g_balanceQuake2SupershotgunPellets->integer,
+      G_ShotgunProjectiles(cl->entity, cl->entity, org, aim, g_balanceQuake2SuperShotgunDamage->integer,
+        g_balanceQuake2SuperShotgunKnockback->integer, g_balanceQuake2SuperShotgunSpreadX->integer,
+        g_balanceQuake2SuperShotgunSpreadY->integer, g_balanceQuake2SuperShotgunPellets->integer,
         MOD_QUAKE2_SUPER_SHOTGUN);
     }
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_SUPER_SHOTGUN);
-    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuake2SupershotgunRefire->value), 2);
+    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuake2SuperShotgunRefire->value), 2);
   }
 }
 
@@ -1174,12 +1174,12 @@ void G_FireQuake2GrenadeLauncher(GameClient *cl) {
   if (G_FireWeapon(cl)) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
-    G_GrenadeProjectile(cl->entity, cl->entity, org, forward, g_balanceQuake2GrenadelauncherSpeed->integer,
-      g_balanceQuake2GrenadelauncherDamage->integer, g_balanceQuake2GrenadelauncherKnockback->integer,
-      g_balanceQuake2GrenadelauncherRadius->value, SECONDS_TO_MILLIS(g_balanceQuake2GrenadelauncherTimer->value),
+    G_GrenadeProjectile(cl->entity, cl->entity, org, forward, g_balanceQuake2GrenadeLauncherSpeed->integer,
+      g_balanceQuake2GrenadeLauncherDamage->integer, g_balanceQuake2GrenadeLauncherKnockback->integer,
+      g_balanceQuake2GrenadeLauncherRadius->value, SECONDS_TO_MILLIS(g_balanceQuake2GrenadeLauncherTimer->value),
       MOD_QUAKE2_GRENADE);
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_GRENADE_LAUNCHER);
-    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuake2GrenadelauncherRefire->value), 1);
+    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuake2GrenadeLauncherRefire->value), 1);
   }
 }
 
@@ -1187,12 +1187,12 @@ void G_FireQuake2RocketLauncher(GameClient *cl) {
   if (G_FireWeapon(cl)) {
     Vec3 forward, org;
     G_ClientProjectile(cl, &forward, NULL, NULL, &org, 1.f);
-    const int32_t damage = g_balanceQuake2RocketlauncherDamage->integer + Randomf() * 20;
-    G_RocketProjectile(cl->entity, cl->entity, org, forward, g_balanceQuake2RocketlauncherSpeed->integer,
-      damage, g_balanceQuake2RocketlauncherKnockback->integer, g_balanceQuake2RocketlauncherRadius->value,
+    const int32_t damage = g_balanceQuake2RocketLauncherDamage->integer + Randomf() * 20;
+    G_RocketProjectile(cl->entity, cl->entity, org, forward, g_balanceQuake2RocketLauncherSpeed->integer,
+      damage, g_balanceQuake2RocketLauncherKnockback->integer, g_balanceQuake2RocketLauncherRadius->value,
       MOD_QUAKE2_ROCKET);
     G_ClientMuzzleFlash(cl->entity, MZ_QUAKE2_ROCKET_LAUNCHER);
-    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuake2RocketlauncherRefire->value), 1);
+    G_WeaponFired(cl, SECONDS_TO_MILLIS(g_balanceQuake2RocketLauncherRefire->value), 1);
   }
 }
 
