@@ -30,6 +30,33 @@
 #pragma mark - TextViewDelegate
 
 /**
+ * @brief Copies `line` into `out`, neutralizing characters that would let the text escape
+ * the quoted argument it is wrapped in and be interpreted as console commands.
+ * @details `Cbuf_Execute` splits on `;` only outside of double quotes, and always splits on
+ * newlines. There is no escape mechanism for quotes, so they are substituted rather than
+ * removed, which keeps the message readable (e.g. `he said "gg"` -> `he said 'gg'`).
+ * @see Cbuf_Execute
+ */
+static void sanitizeLine(const char *line, char *out, size_t size) {
+
+  size_t j = 0;
+  for (size_t i = 0; line[i] && j + 1 < size; i++) {
+    char c = line[i];
+
+    if (c == '"') {
+      c = '\'';
+    }
+    else if (c == '\n' || c == '\r') {
+      c = ' ';
+    }
+
+    out[j++] = c;
+  }
+
+  out[j] = '\0';
+}
+
+/**
  * @brief Sends the line when editing ended on Enter, and discards it when the client already
  * left chat, as it does on Escape.
  */
@@ -44,8 +71,14 @@ static void didEndEditing(TextView *textView) {
     const SDL_Keymod mods = SDL_GetModState();
     const bool team = cgameHudState.chat.team || (mods & (SDL_KMOD_SHIFT | SDL_KMOD_CTRL));
 
+    // The line is user input and is passed through the command buffer, so it must be quoted
+    // and sanitized, otherwise `hello; quit` would run `quit` as a separate command (#1164).
+    char sanitized[MAX_PRINT_MSG];
+    sanitizeLine(line, sanitized, sizeof(sanitized));
+
     char command[MAX_PRINT_MSG];
-    Str_Format(command, sizeof(command), "%s %.*s^7\n", team ? "sayTeam" : "say", MAX_PRINT_MSG - 32, line);
+    Str_Format(command, sizeof(command), "%s \"%.*s^7\"\n",
+        team ? "sayTeam" : "say", MAX_PRINT_MSG - 32, sanitized);
 
     cgi.Cbuf(command);
   }
