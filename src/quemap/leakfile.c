@@ -63,9 +63,11 @@ void WriteLeakFile(const Tree *tree) {
     Fs_Print(file, "%f %f %f\n", point.x, point.y, point.z);
   }
   
-  // add the entity origin
-  point = VectorForKey(node->occupant, "origin", Vec3_Zero());
-  Fs_Print(file, "%f %f %f\n", point.x, point.y, point.z);
+  // a map with no point entities has no occupied leaf to trace to
+  if (node->occupant) {
+    point = VectorForKey(node->occupant, "origin", Vec3_Zero());
+    Fs_Print(file, "%f %f %f\n", point.x, point.y, point.z);
+  }
 
   Fs_Close(file);
 }
