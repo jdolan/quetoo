@@ -2,6 +2,8 @@ EXTRA_DIST = \
 	README.md \
 	__init__.py \
 	ai_profile.py \
+	brushfu.py \
+	test_brushfu.py \
 	tools-env.sh \
 	matfu.py \
 	test_matfu.py \

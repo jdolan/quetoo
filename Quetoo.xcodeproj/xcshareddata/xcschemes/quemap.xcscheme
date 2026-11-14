@@ -154,7 +154,7 @@
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/lavatomb.map"
-            isEnabled = "YES">
+            isEnabled = "NO">
          </CommandLineArgument>
          <CommandLineArgument
             argument = "maps/loonies.map"
@@ -187,6 +187,10 @@
          <CommandLineArgument
             argument = "maps/wake.map"
             isEnabled = "NO">
+         </CommandLineArgument>
+         <CommandLineArgument
+            argument = "maps/rounded-corner-brushfu.map"
+            isEnabled = "YES">
          </CommandLineArgument>
       </CommandLineArguments>
    </LaunchAction>

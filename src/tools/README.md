@@ -18,6 +18,7 @@ source .venv/bin/activate
 Run any of the installed commands:
 
 - `ai-profile`
+- `brushfu`
 - `matfu`
 - `unpak`
 - `mdl2obj`
@@ -33,6 +34,7 @@ Run any of the installed commands:
 ## Tool scripts
 
 - `ai_profile.py`: run headless bot matches and read the game's bot profiler (`g_aiProfile`)
+- `brushfu.py`: generate curved and straight arched-hallway brushwork as integer-exact Valve 220 `.map` entities
 - `matfu.py`: Quetoo material authoring GUI
 - `unpak.py`: Quake PAK extraction
 - `mdl2obj.py`: Quake MDL v6 to OBJ
@@ -47,6 +49,81 @@ Run any of the installed commands:
 - `skyfu.py`: Skybox cubemap packer
 - `symbolicate_dmp.py`: Symbolicate a Windows crash dump
 - `verify_projects.py`: Check that the three build systems agree
+
+## brushfu
+
+Generates an arched hallway as Valve 220 brushwork, centered on the origin, and
+writes a complete `.map` (a `worldspawn` and a single `func_group` holding every brush) to `-o`
+or standard output. Paste it into a level, or move and rotate it in TrenchBroom.
+The hallway is a rectangular cross section with an elliptical arch on top and,
+optionally, another below, and the two may differ. Exactly one shape is
+required:
+
+- `--curve [DEGREES]` (default 90, at most 180) sweeps it around a vertical pivot
+  at the origin in `--segments` slices. It enters
+  across the plane `y = 0` heading `+Y`, with the inside of the bend toward `-X`,
+  and turns toward `-X`.
+- `--straight LENGTH` extrudes it along `X` from `-LENGTH / 2` to `LENGTH / 2`,
+  centered on `Y`. The length and `--width` must be even.
+
+`--width` and `--height` are the finished group's outside dimensions, so its
+bounding box is `--width` by `--height` (a curve's is that much wider around its
+pivot). The interior is `--width` minus two walls wide, and `--arch-top` and
+`--arch-bottom` are the rises of the interior arches from their spring lines.
+
+| Option | Default | Used by | Meaning |
+|---|---|---|---|
+| `--width` | 320 | both | overall width, outside to outside |
+| `--wall` | 32 | both | wall thickness, including over and under the arches |
+| `--height` | 240 | both | overall height, bottom of the outside to the top of the top arch's outside |
+| `--arch-top` | 96 | both | interior rise of the top arch above its spring line, `height - arch-top - wall` |
+| `--arch-bottom` | 0 | both | interior fall of the bottom arch below its spring line, `wall + arch-bottom`; 0 leaves the floor open |
+| `--facets-top` | 16 | both | top arch brushes per slice, even |
+| `--facets-bottom` | `--facets-top` | both | bottom arch brushes per slice, even |
+| `--segments` | 8 | curve | slices in the curve |
+| `--radius` | 0 | curve | pivot to the back of the inner wall |
+| `--texture`, `--texture-scale` | caulk, 0.25 | both | texture the interior surface |
+| `-o` | stdout | both | output file |
+
+The hallway spans `z = 0` to `--height`. Side walls stand between the spring
+lines. With no bottom arch the walls start at `z = 0` and there is no floor of
+its own, so sit it on a floor or extend the floor beneath the walls. With a
+bottom arch the interior is a closed ring, and the arches may even meet with no
+wall between them (an ellipse) when `--height` is exactly `arch-top +
+arch-bottom + 2 * wall`.
+Every face is `common/caulk` at 0.25 scale with neutral alignment,
+except the interior surface when `--texture` is given.
+
+```sh
+brushfu --curve --segments 16 --texture quake/city2_6 -o bend.map
+brushfu --straight 256 --texture quake/city2_6 -o hallway.map
+brushfu --straight 256 --arch-top 128 --arch-bottom 32 -o asymmetric.map
+```
+
+Every vertex is an integer and every face is exactly planar, so neither vertex
+snapping nor face splitting is needed, and adjacent brushes share their vertices
+exactly. A curve is built from tetrahedra, one 4-plane brush each: every vertex
+is its ideal circle point rounded to the grid, so the slices are uniform at any
+segment count, and each cell is cut so that neighbours share faces exactly, with
+creases along the triangle diagonals. The report on standard error gives the
+worst radial error in units. A straight hallway needs no cutting and is one
+prism per wall and arch facet.
+
+A curve and a straight hallway built with the same width, wall, height, arches and
+facets share their cross section vertex for vertex, so they abut with no
+gaps or overhangs once one is rotated a quarter turn and moved. Compile the
+result with `quemap` and check for leaks; in a sealed test hallway some segment
+counts leaked.
+
+`--texture NAME [--texture-scale 0.25]` textures the interior surface. Each
+interior vertex gets a texture coordinate, and each face's axes are solved to
+interpolate its corners, so the texture is continuous across every shared edge.
+`v` runs up from the floor (from the bottom crown of a closed ring) along the nearest wall, so both walls and both halves of the arches stand
+upright and meet at the top crown mirrored, identically in a curve and a straight
+hallway. `u` runs along the hallway: in a curve it is the distance along the
+vertex's own ring, zero in the middle of the bend, so the pattern shears toward
+the two ends because a bend cannot be flattened; in a straight hallway it is the
+distance along `X`.
 
 ## md32obj
 
