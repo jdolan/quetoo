@@ -865,6 +865,12 @@ static void G_func_bob_Top(GameEntity *ent) {
   ent->moveInfo.state = MOVE_STATE_TOP;
   ent->s.sound = 0;
 
+  if (ent->wait < 0.f) { // hold here until triggered again, see G_func_bob_Use
+    ent->Think = NULL;
+    ent->nextThink = 0;
+    return;
+  }
+
   ent->Think = G_func_bob_GoingDown;
   ent->nextThink = gameLevel.time + (uint32_t) (ent->wait * 1000.f);
 }
@@ -876,6 +882,12 @@ static void G_func_bob_Bottom(GameEntity *ent) {
   ent->moveInfo.state = MOVE_STATE_BOTTOM;
   ent->s.sound = 0;
 
+  if (ent->wait < 0.f) { // hold here until triggered again, see G_func_bob_Use
+    ent->Think = NULL;
+    ent->nextThink = 0;
+    return;
+  }
+
   ent->Think = G_func_bob_GoingUp;
   ent->nextThink = gameLevel.time + (uint32_t) (ent->wait * 1000.f);
 }
@@ -885,6 +897,10 @@ static void G_func_bob_Bottom(GameEntity *ent) {
  * continues toward wherever it was already headed, per `move_info.state`.
  */
 static void G_func_bob_Use(GameEntity *ent, GameEntity *other, GameEntity *activator) {
+
+  if (ent->wait < 0.f && ent->nextThink) { // stop-and-go: only a parked bob responds to triggers
+    return;
+  }
 
   if (ent->nextThink) { // active (moving, or waiting between legs) - pause in place
     ent->Think = NULL;
@@ -917,7 +933,11 @@ static void G_func_bob_Use(GameEntity *ent, GameEntity *other, GameEntity *activ
                second sweet spot in either direction - too short (stutters) or too long (a slow
                crawl before the entity gets moving) - get a flatter curve instead of always
                defaulting to a pure sine; set explicitly to override.
- wait : Seconds to pause at each end before reversing (default 0, i.e. continuous bobbing).
+ wait : Seconds to pause at each end before reversing (default 0, i.e. continuous bobbing). If -1,
+        the entity stops at each end and moves again, back toward the other end, only when
+        triggered; triggers received mid-leg are ignored.
+ delay : Seconds to wait after spawn before the first move (default 0). Added on top of any
+         `drift`. Ignored if `start_off` is set.
  drift : Multiplier (default 0, i.e. no startup delay) on the entity's own natural cycle length,
          used to pick a random startup delay so multiple func_bobs with identical keys don't move
          in lockstep - set this on an array of identical func_bobs to desync them. 1 spans one
@@ -1004,12 +1024,14 @@ void G_func_bob(GameEntity *ent) {
     // others, since the mapper has no easy way to know the entity's actual cycle length. So
     // derive the window from the entity's own numbers: the full up-down-wait cycle is twice
     // the leg time (computed above, alongside the auto-compression derivation) plus twice the wait.
-    const float cycleTime = 2.f * (legTime + ent->wait);
+    const float cycleTime = 2.f * (legTime + Maxf(ent->wait, 0.f));
 
     const float driftScale = gi.EntityValue(ent->def, "drift")->value;
 
     ent->Think = G_func_bob_GoingUp;
+    // "delay" is a fixed offset before the first move, added on top of the random drift
     ent->nextThink = gameLevel.time + QUETOO_TICK_MILLIS +
+                       (uint32_t) (Maxf(ent->delay, 0.f) * 1000.f) +
                        (uint32_t) (RandomRangef(0.f, Maxf(driftScale, 0.f) * cycleTime) * 1000.f);
   }
 }
