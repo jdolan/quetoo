@@ -2499,10 +2499,17 @@ again:
     ent->avelocity = Vec3_Zero();
     ent->moveInfo.speed = target->speed ? : ent->speed;
 
-    if (!(target->spawnFlags & PATH_CORNER_NO_EFFECTS)) {
-      ent->s.event = EV_CLIENT_TELEPORT;
-    }
     gi.LinkEntity(ent);
+
+    // a train's origin is its offset from where its brushwork was authored, not a place in the
+    // world, so the burst goes at the center of its bounds, as it does for a trigger_teleporter
+    if (!(target->spawnFlags & PATH_CORNER_NO_EFFECTS)) {
+      const Vec3 center = Box3_Center(ent->absBounds);
+      gi.WriteByte(SV_CMD_TEMP_ENTITY);
+      gi.WriteByte(TE_TELEPORT);
+      gi.WritePosition(center);
+      gi.Multicast(center, MULTICAST_PHS);
+    }
     goto again;
   }
 
