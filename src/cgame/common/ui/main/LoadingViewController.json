@@ -19,6 +19,10 @@
         },
         {
           "class": "Label",
+          "identifier": "credits"
+        },
+        {
+          "class": "Label",
           "identifier": "serverName"
         }
       ]

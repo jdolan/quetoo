@@ -40,6 +40,7 @@ static void loadView(ViewController *self) {
     MakeOutlet("mapShot", &this->mapShot),
     MakeOutlet("logo", &this->logo),
     MakeOutlet("mapTitle", &this->mapTitle),
+    MakeOutlet("credits", &this->credits),
     MakeOutlet("serverName", &this->serverName),
     MakeOutlet("progress", &this->progressBar)
   );
@@ -96,6 +97,37 @@ static const char *resolveMapTitle(void) {
 }
 
 /**
+ * @return The credits line for the map being loaded: `v<version> :: <author>`, from the
+ * worldspawn's `version` and `author` keys, or just whichever is set, or "" if neither is.
+ * @remarks The collision BSP is already loaded when the first loading frame is drawn (the server
+ * loaded it, or `Cl_UpdatePrediction` did), so this does not wait for the renderer's BSP load.
+ */
+static const char *resolveCredits(void) {
+
+  const CollisionBsp *bsp = cgi.Bsp();
+  if (bsp && bsp->numEntities > 0) {
+
+    const Entity *worldspawn = bsp->entities[0];
+
+    const char *version = cgi.EntityValue(worldspawn, "version")->nullableString;
+    const char *author = cgi.EntityValue(worldspawn, "author")->nullableString;
+
+    const bool hasVersion = version && *version;
+    const bool hasAuthor = author && *author;
+
+    if (hasVersion && hasAuthor) {
+      return va("v%s :: %s", version, author);
+    } else if (hasVersion) {
+      return va("v%s", version);
+    } else if (hasAuthor) {
+      return author;
+    }
+  }
+
+  return "";
+}
+
+/**
  * @return A human readable name for the server being loaded into.
  */
 static const char *resolveServerName(void) {
@@ -108,9 +140,16 @@ static const char *resolveServerName(void) {
     return "";
   }
 
+  // the address is only ever "localhost" for this client's own in-process server (see
+  // Cl_AttemptConnect), so its sv_hostname is the one to show; if it was cleared, use the default
   if (!Str_Compare(cgi.server->address, "localhost")) {
-    const char *hostname = cgi.GetCvarString("sv_hostname");
-    return *hostname ? hostname : "Local server";
+    const Cvar *hostname = cgi.GetCvar("sv_hostname");
+    if (!hostname) {
+      return "localhost";
+    }
+
+    const char *name = *hostname->string ? hostname->string : hostname->defaultString;
+    return va("%s (localhost)", name);
   }
 
   const ClientServerInfo *server = cgi.ServerInfo();
@@ -139,6 +178,11 @@ static void setProgress(LoadingViewController *self, const ClientLoading loading
     }
 
     $(self->mapTitle->text, setText, resolveMapTitle());
+
+    const char *credits = resolveCredits();
+    $(self->credits->text, setText, credits);
+    $((View *) self->credits, setVisibility,
+      *credits == '\0' ? ViewVisibilityHidden : ViewVisibilityVisible);
 
     const char *server = resolveServerName();
     $(self->serverName->text, setText, server);

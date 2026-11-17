@@ -44,6 +44,10 @@
   font-size: 28;
 }
 
-#serverName > Text {
+#credits > Text {
   color: #8fc7dc;
+}
+
+#serverName > Text {
+  color: #5d8191;
 }

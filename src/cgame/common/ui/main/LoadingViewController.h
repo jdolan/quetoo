@@ -69,6 +69,11 @@ struct LoadingViewController {
   Label *mapTitle;
 
   /**
+   * @brief The map's version and author, from its worldspawn.
+   */
+  Label *credits;
+
+  /**
    * @brief The name of the server being loaded into.
    */
   Label *serverName;
