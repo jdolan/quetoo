@@ -1615,6 +1615,7 @@ static void G_func_door_Touch(GameEntity *ent, GameEntity *other, const Collisio
 
   G_UnicastSound(&(const GamePlaySound) {
     .index = gameMedia.sounds.chat,
+    .flags = SOUND_RELATIVE
   }, other->client, true);
 }
 

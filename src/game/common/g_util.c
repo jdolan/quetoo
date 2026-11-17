@@ -254,6 +254,7 @@ void G_UseTargets(GameEntity *ent, GameEntity *activator) {
 
     G_UnicastSound(&(const GamePlaySound) {
       .index = ent->sound ?: gameMedia.sounds.chat,
+      .flags = SOUND_RELATIVE
     }, activator->client, true);
   }
 
