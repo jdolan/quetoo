@@ -7,12 +7,12 @@ extrudes it along X, centered on the origin. Move,
 rotate and texture the result in the editor; every brush face is `common/caulk` except the interior
 surface, when `--texture` is given.
 
-Every vertex is an integer, and every face is exactly planar, so the surface is contiguous between
-brushes and between segments without vertex snapping or face splitting. A curve is built from
-tetrahedra: its vertices are the ideal circle points rounded to the grid, which are evenly spaced at
-any segment count, and each cell is cut into tetrahedra so that neighbours agree on every shared
-face. A straight hallway needs no such cutting; it is one prism per wall and per arch facet. The
-two share their cross section exactly, so they abut vertex for vertex.
+Every vertex is an integer, so the surface is contiguous between brushes and between segments without
+vertex snapping or face splitting. A curve's vertices are the ideal circle points rounded to the grid,
+which are evenly spaced at any segment count. Rounding warps the faces between them, so each curve
+cell, one piece of the profile in one slice, is the convex hull of its corners: a single brush whose
+neighbours overlap it in slivers, never leaving a gap. A straight hallway needs no hulls; it is one
+prism per wall and per arch facet, and shares its cross section with the curve exactly.
 """
 
 import argparse
@@ -351,10 +351,13 @@ def surface_v(section: Section, scale: float):
 def vertex_textures(section: Section, paths: dict, segments: int, scale: float):
   """Assigns every interior surface vertex (joint, rho, z) a texture coordinate, in texels.
 
-  u is the distance along the vertex's own ring, so texels stay square along the bend; it is zero at
-  the middle of the bend on every ring, which splits the unavoidable shear between the two ends. Each
-  triangle's axes then interpolate its three vertices exactly, and every shared edge agrees on both
-  ends: the texture is continuous across the whole surface.
+  u is the fraction of the way along the vertex's own ring, times the length of the ring halfway across
+  the section, and is zero at the middle of the bend. It is therefore the same on every ring at a given
+  joint: the texture lines across the bend run straight across the hallway, so either end meets a
+  straight hallway cleanly, and the texture stretches or squeezes across the section instead of shearing
+  at the ends. Texels are square only along the middle ring. Each triangle's axes interpolate its three
+  vertices exactly, and every shared edge agrees on both ends: the texture is continuous across the
+  whole surface.
   """
   v = surface_v(section, scale)
   ring = {}
@@ -364,16 +367,17 @@ def vertex_textures(section: Section, paths: dict, segments: int, scale: float):
       steps.append(steps[-1] + hypot(b[0] - a[0], b[1] - a[1]))
     ring[rho] = steps
 
+  span = (ring[min(ring)][-1] + ring[max(ring)][-1]) / 2
   uv = {}
   for (rho, z), height in v.items():
     for i in range(segments + 1):
-      uv[(i, rho, z)] = ((ring[rho][i] - ring[rho][-1] / 2) / scale, height)
+      uv[(i, rho, z)] = ((ring[rho][i] / ring[rho][-1] - 0.5) * span / scale, height)
   return uv
 
 
-def textured_line(face, uvs, texture: str, scale: float) -> str:
-  """A face whose texture axes interpolate the texture coordinates of its three corners."""
-  a, b, c = (tuple(float(x) for x in p) for p in face.triple)
+def texture_axes(triple, uvs):
+  """The affine texture axes ((gradient, offset) for u and v, in texels) through three corners."""
+  a, b, c = (tuple(float(x) for x in p) for p in triple)
   e1, e2 = sub3(b, a), sub3(c, a)
   n = cross3(e1, e2)
   det = dot3(e1, cross3(e2, n))
@@ -383,8 +387,13 @@ def textured_line(face, uvs, texture: str, scale: float) -> str:
     q, r = cross3(e2, n), cross3(n, e1)
     g = tuple((d1 * q[m] + d2 * r[m]) / det for m in range(3))
     axes.append((g, uvs[0][k] - dot3(g, a)))
+  return axes
+
+
+def textured_line(face, uvs, texture: str, scale: float) -> str:
+  """A face whose texture axes interpolate the texture coordinates of its three corners."""
+  (gu, uo), (gv, vo) = texture_axes(face.triple, uvs)
   pts = " ".join(f"( {p[0]} {p[1]} {p[2]} )" for p in face.triple)
-  (gu, uo), (gv, vo) = axes
   fmt = lambda x: format(x, ".10g")
   u = " ".join(fmt(x * scale) for x in gu)
   v = " ".join(fmt(x * scale) for x in gv)
@@ -402,12 +411,34 @@ def check_texture_scale(scale: float) -> None:
     raise BrushError("texture scale must be positive")
 
 
+def corners_of(points, faces):
+  """The points that are true corners of the brush: where three independent faces meet."""
+  return sorted(p for p in set(points)
+                if any(dot3(a, cross3(b, c)) for a, b, c in combinations([f.normal for f in faces if p in f.points], 3)))
+
+
+def hull_brush(points, surface, uv, texture: str, scale: float) -> Brush:
+  """The convex hull of a cell's corners; a face lying in its visible quad takes the texture."""
+  faces = hull_faces(points)
+  lines = []
+  for f in faces:
+    if texture and len(f.points) >= 3 and all(p in surface for p in f.points):
+      lines.append(textured_line(f, [uv[p] for p in f.triple], texture, scale))
+    else:
+      lines.append(face_line(f))
+  return Brush(lines, corners_of(points, faces), faces)
+
+
 def build_curve(h: Hallway, degrees: float = 90.0, segments: int = 8, texture: str = None,
-                scale: float = SCALE) -> Hall:
-  """Builds the curve as one group of tetrahedra per slice.
+                scale: float = SCALE, merge: bool = True) -> Hall:
+  """Builds the curve as one group of brushes per slice.
 
   The pivot is the origin. The curve enters across the plane y = 0, with the inside of the bend toward
-  -X, heading +Y, and turns toward -X.
+  -X, heading +Y, and turns toward -X. Each cell, one profile piece of one slice, is the convex hull of
+  its corners: a single brush, however the rounded corners warp its faces. Neighbouring hulls overlap in
+  slivers and never leave a gap. With `merge` off, every cell is cut into tetrahedra instead, as
+  `tetrahedra` describes, which is how the cells are proven to tile; a tetrahedron holds at most one
+  visible triangle, so most are caulk plugs.
   """
   if segments < 1:
     raise BrushError("segments must be at least 1")
@@ -418,6 +449,7 @@ def build_curve(h: Hallway, degrees: float = 90.0, segments: int = 8, texture: s
   section = build_section(h)
   paths, radial = ring_paths(section.rhos, segments, radians(degrees))
   textures = vertex_textures(section, paths, segments, scale) if texture else {}
+  uv = {(*paths[rho][i], z): t for (i, rho, z), t in textures.items()}
 
   groups, inverted = [], 0
   for i in range(segments):
@@ -425,18 +457,18 @@ def build_curve(h: Hallway, degrees: float = 90.0, segments: int = 8, texture: s
     for piece in section.pieces:
       joints = [[(*paths[rho][i + j], z) for rho, z in piece.points] for j in (0, 1)]
       sides = [[joints[0][k], joints[0][k - 1], joints[1][k - 1], joints[1][k]] for k in range(len(piece.points))]
-      tets, bad = tetrahedra(joints, sides)
+      cell, bad = tetrahedra(joints, sides)
       inverted += bad
 
-      surface = {}
+      surface = set()
       if texture and piece.surface:
-        for j in (0, 1):
-          for rho, z in piece.surface:
-            surface[(*paths[rho][i + j], z)] = textures[(i + j, rho, z)]
-
-      for tet in tets:
-        faces = hull_faces(list(tet))
-        brushes.append(Brush(brush_lines(faces, surface, texture, scale), list(tet), faces))
+        a, b = (piece.points.index(s) for s in piece.surface)
+        surface = {joints[0][a], joints[0][b], joints[1][b], joints[1][a]}
+      if merge:
+        brushes.append(hull_brush(sorted({p for tet in cell for p in tet}), surface, uv, texture, scale))
+      else:
+        for tet in cell:
+          brushes.append(hull_brush(sorted(tet), surface, uv, texture, scale))
     groups.append(brushes)
   return Hall(groups, {"radial": radial, "inverted": inverted})
 
@@ -528,7 +560,8 @@ def parse_args(argv=None):
   p.add_argument("--facets-top", type=int, default=16, help="top arch brushes per slice, even (default 16)")
   p.add_argument("--facets-bottom", type=int, default=0, help="bottom arch brushes per slice, even (default: --facets-top)")
   p.add_argument("--segments", type=int, default=8, help="slices in a curve (default 8)")
-  p.add_argument("--radius", type=int, default=0, help="curve: pivot to the outside of the inner wall (default 0)")
+  p.add_argument("--radius", type=int, default=0, help="curve: pivot to the back of the inner wall (default 0)")
+  p.add_argument("--no-merge", action="store_true", help="curve: tile each cell with tetrahedra instead of one hull brush")
   p.add_argument("--texture", help="texture for the interior surface, continuous across every seam (default: caulk)")
   p.add_argument("--texture-scale", type=float, default=SCALE, help="texture scale of the interior surface (default 0.25)")
   p.add_argument("-o", "--output", help="output .map file; standard output if omitted")
@@ -543,7 +576,7 @@ def main(argv=None) -> int:
     if args.straight is not None:
       hall = build_straight(hallway, args.straight, args.texture, args.texture_scale)
     else:
-      hall = build_curve(hallway, args.curve, args.segments, args.texture, args.texture_scale)
+      hall = build_curve(hallway, args.curve, args.segments, args.texture, args.texture_scale, merge=not args.no_merge)
   except BrushError as e:
     print(f"brushfu: {e}", file=sys.stderr)
     return 1

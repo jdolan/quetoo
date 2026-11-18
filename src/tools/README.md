@@ -100,30 +100,39 @@ brushfu --straight 256 --texture quake/city2_6 -o hallway.map
 brushfu --straight 256 --arch-top 128 --arch-bottom 32 -o asymmetric.map
 ```
 
-Every vertex is an integer and every face is exactly planar, so neither vertex
-snapping nor face splitting is needed, and adjacent brushes share their vertices
-exactly. A curve is built from tetrahedra, one 4-plane brush each: every vertex
+Every vertex is an integer, so neither vertex snapping nor face splitting is
+needed, and adjacent cells share their corners exactly. Every corner of a curve
 is its ideal circle point rounded to the grid, so the slices are uniform at any
-segment count, and each cell is cut so that neighbours share faces exactly, with
-creases along the triangle diagonals. The report on standard error gives the
-worst radial error in units. A straight hallway needs no cutting and is one
-prism per wall and arch facet.
+segment count. Each cell, one piece of the cross section in one slice, is one
+brush: the convex hull of its corners (18 brushes per slice for the default
+hallway; 6 segments make 108). Where the rounded corners warp a cell's quad, the
+hull folds it along a diagonal, so a hull can grow a sliver into its neighbours
+and never leaves a gap between them. `--no-merge` cuts every cell into
+tetrahedra instead, which tile exactly and mostly serve as caulk plugs. The
+report on standard error gives the worst radial error in units. A straight
+hallway needs no cutting and is one prism per wall and arch facet.
 
 A curve and a straight hallway built with the same width, wall, height, arches and
 facets share their cross section vertex for vertex, so they abut with no
 gaps or overhangs once one is rotated a quarter turn and moved. Compile the
-result with `quemap` and check for leaks; in a sealed test hallway some segment
-counts leaked.
+result with `quemap` and check for leaks. Adjacent cell hulls overlap in thin
+slivers and have nearly coplanar fold planes, which `quemap`'s `SplitBrush`
+(it drops anything that sticks out less than `ON_EPSILON`) and its T-junction
+fixer handle imperfectly. A tight ring of 6-segment curves compiles with no
+warnings, but expect an occasional leak or hairline crack, and report it with the
+map.
 
 `--texture NAME [--texture-scale 0.25]` textures the interior surface. Each
 interior vertex gets a texture coordinate, and each face's axes are solved to
 interpolate its corners, so the texture is continuous across every shared edge.
 `v` runs up from the floor (from the bottom crown of a closed ring) along the nearest wall, so both walls and both halves of the arches stand
 upright and meet at the top crown mirrored, identically in a curve and a straight
-hallway. `u` runs along the hallway: in a curve it is the distance along the
-vertex's own ring, zero in the middle of the bend, so the pattern shears toward
-the two ends because a bend cannot be flattened; in a straight hallway it is the
-distance along `X`.
+hallway. `u` runs along the hallway: in a curve it is the fraction of the way along the
+vertex's own ring, times the length of the middle ring, and zero in the middle of the bend. It is
+the same on every ring at a joint, so the texture runs straight across either end and meets a straight hallway
+cleanly; the cost is that it stretches across the width of the bend, and texels
+are square only along the middle ring. In a straight hallway it is the distance
+along `X`.
 
 ## md32obj
 

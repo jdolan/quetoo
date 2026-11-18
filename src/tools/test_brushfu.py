@@ -1,3 +1,4 @@
+import math
 import re
 import tempfile
 import unittest
@@ -6,7 +7,7 @@ from itertools import combinations
 from pathlib import Path
 
 import brushfu
-from brushfu import BrushError, Hallway, build_curve, build_straight
+from brushfu import BrushError, Hallway, build_curve, build_section, build_straight
 
 FACE = re.compile(r"\(\s*(-?\d+)\s+(-?\d+)\s+(-?\d+)\s*\)\s*\(\s*(-?\d+)\s+(-?\d+)\s+(-?\d+)\s*\)\s*"
                   r"\(\s*(-?\d+)\s+(-?\d+)\s+(-?\d+)\s*\)")
@@ -58,6 +59,23 @@ def points(group):
   return {p for brush in group for p in brush.points}
 
 
+def volume(brush):
+  """Six times the brush's volume, exactly: a fan of triangles over every face, against the origin."""
+  total = 0
+  for face in brush.faces:
+    on = [p for p in brush.points if dot(face.normal, p) == face.dist]
+    if len(on) < 3:
+      continue
+    centre = [sum(p[k] for p in on) / len(on) for k in range(3)]
+    ref = sub(on[0], centre)
+    third = cross(face.normal, ref)
+    on.sort(key=lambda p: math.atan2(dot(sub(p, centre), third), dot(sub(p, centre), ref)))
+    for a, b in zip(on[1:], on[2:]):
+      sign = 1 if dot(cross(sub(a, on[0]), sub(b, on[0])), face.normal) > 0 else -1
+      total += sign * dot(on[0], cross(a, b))
+  return total
+
+
 TEXTURE = "quake/city2_6"
 
 
@@ -75,17 +93,26 @@ class BrushfuTest(unittest.TestCase):
         self.assertTrue(all(c.denominator == 1 for p in corners for c in p), brush.lines)
         self.assertEqual({tuple(int(c) for c in p) for p in corners}, set(brush.points))
 
-  def test_curve_brushes_are_integer_tetrahedra_without_inversions(self):
+  def test_curve_brushes_are_integer_and_convex(self):
     self.assertEqual(self.curve.stats["inverted"], 0)
     self.assertLess(self.curve.stats["radial"], 1.0)
-    faces = {}
-    for group in self.curve.groups:
-      for brush in group:
-        self.assertEqual(len(brush.points), 4)
-        for tri in combinations(sorted(brush.points), 3):
-          faces[tri] = faces.get(tri, 0) + 1
-    self.assertLessEqual(max(faces.values()), 2)
     self.assertRecoversPoints(self.curve)
+
+  def test_every_cell_is_one_brush_that_contains_its_tetrahedra(self):
+    for kwargs in ({}, {"radius": 128}, {"arch_top": 96, "arch_bottom": 32, "facets_bottom": 8}):
+      h = Hallway(**kwargs)
+      pieces = len(build_section(h).pieces)
+      plain = build_curve(h, 90, 6, TEXTURE, merge=False)
+      hulls = build_curve(h, 90, 6, TEXTURE)
+      self.assertEqual([len(g) for g in hulls.groups], [pieces] * 6)
+      self.assertRecoversPoints(hulls)
+      for a, b in zip(plain.groups, hulls.groups):
+        self.assertLess(len(b), len(a))
+        # a hull may grow past its tetrahedra where rounding warps a face, never shrink
+        self.assertGreaterEqual(sum(volume(x) for x in b), sum(volume(x) for x in a))
+        for tet in a:
+          self.assertTrue(any(all(f.normal[0] * p[0] + f.normal[1] * p[1] + f.normal[2] * p[2] <= f.dist
+                                  for f in hull.faces for p in tet.points) for hull in b))
 
   def test_curve_enters_and_leaves_square(self):
     self.assertEqual(len(self.curve.groups), 8)
@@ -129,8 +156,10 @@ class BrushfuTest(unittest.TestCase):
     self.assertEqual(section, {(160 - p[1], p[2]) for p in straight if p[0] == 64})
     entry = {(p[0], p[2]) for p in points(self.curve.groups[0]) if p[1] == 0}
     exit_ = {(p[1], p[2]) for p in points(self.curve.groups[-1]) if p[0] == 0}
-    self.assertEqual(section, entry)
-    self.assertEqual(section, exit_)
+    # a hull drops a vertex that is collinear with its neighbours, which quemap's T-junction fix covers
+    self.assertLessEqual(entry, section)
+    self.assertLessEqual(exit_, section)
+    self.assertGreater(len(entry), len(section) * 0.5)
 
   def texels(self, hall, scale=0.25):
     """Every textured corner's texture coordinates, as every textured face computes them."""
@@ -164,13 +193,22 @@ class BrushfuTest(unittest.TestCase):
     for scale in (0.25, 0.5):
       self.assertContinuous(self.texels(build_curve(self.hallway, 90, 6, TEXTURE, scale), scale))
 
+  def test_curve_texture_runs_straight_across_each_end(self):
+    curve = self.texels(build_curve(self.hallway, 90, 6, TEXTURE))
+    entry = {round(uvs[0][0], 3) for p, uvs in curve.items() if p[1] == 0}
+    exit_ = {round(uvs[0][0], 3) for p, uvs in curve.items() if p[0] == 0}
+    self.assertEqual(len(entry), 1)
+    self.assertEqual(len(exit_), 1)
+    self.assertAlmostEqual(entry.pop(), -exit_.pop(), places=2)
+
   def test_straight_texture_is_continuous_and_matches_the_curves_v(self):
     straight = self.texels(build_straight(self.hallway, 64, TEXTURE))
     self.assertContinuous(straight)
     curve = self.texels(build_curve(self.hallway, 90, 6, TEXTURE))
     seam = {(p[0], p[2]): round(uvs[0][1], 3) for p, uvs in curve.items() if p[1] == 0}
     ends = {(160 - p[1], p[2]): round(uvs[0][1], 3) for p, uvs in straight.items() if p[0] == -32}
-    self.assertEqual(seam, ends)
+    self.assertGreater(len(seam), len(ends) * 0.5)
+    self.assertEqual(seam, {key: ends[key] for key in seam})
 
   def test_bottom_arch_closes_the_floor_asymmetrically(self):
     h = Hallway(arch_top=96, arch_bottom=32, facets_bottom=8)
@@ -200,7 +238,7 @@ class BrushfuTest(unittest.TestCase):
 
     section = {(160 - p[1], p[2]) for p in points(straight.groups[0]) if p[0] == -32}
     entry = {(p[0], p[2]) for p in points(curve.groups[0]) if p[1] == 0}
-    self.assertEqual(section, entry)
+    self.assertLessEqual(entry, section)
 
   def test_arches_may_meet_without_walls(self):
     h = Hallway(arch_top=104, arch_bottom=104, height=272)
