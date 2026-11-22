@@ -26,6 +26,7 @@
 #include "tree.h"
 #include "portal.h"
 #include "qbsp.h"
+#include "work.h"
 
 static SDL_AtomicInt cActiveNodes;
 
@@ -187,14 +188,48 @@ static int32_t SelectSplitSideHeuristic(const MapBrushSide *side, const CsgBrush
 }
 
 /**
+ * @brief The split candidates of the node being scored, and their values.
+ */
+static struct {
+  const MapBrushSide **sides;
+  const CsgBrush *brushes;
+  int32_t *values;
+} scoring;
+
+/**
+ * @brief Scores one split candidate; `Work` runs this across candidates of large nodes.
+ */
+static void SelectSplitSide_score(int32_t index) {
+  scoring.values[index] = SelectSplitSideHeuristic(scoring.sides[index], scoring.brushes);
+}
+
+/**
+ * @return True if the plane passes through the volume, by the same test `SplitBrush` makes first.
+ */
+static bool PlaneSplitsVolume(const CsgBrush *volume, int32_t plane) {
+
+  const MapPlane *mapPlane = &planes[plane];
+
+  double dFront = 0.0, dBack = 0.0;
+  for (int32_t i = 0; i < volume->numBrushSides; i++) {
+    const Winding *w = volume->brushSides[i].winding;
+    if (!w) {
+      continue;
+    }
+    for (int32_t j = 0; j < w->numPoints; j++) {
+      const double d = Vec3_Dot(w->points[j], mapPlane->normal) - mapPlane->dist;
+      dFront = fmax(dFront, d);
+      dBack = fmin(dBack, d);
+    }
+  }
+
+  return dFront >= ON_EPSILON && dBack <= -ON_EPSILON;
+}
+
+/**
  * @return The original brush side from brushes with the highest heuristic value.
  */
 static const MapBrushSide *SelectSplitSide(Node *node, CsgBrush *brushes) {
-
-  const MapBrushSide *bestSide = NULL;
-  int32_t bestValue = INT32_MIN;
-
-  Vector *cache = $(alloc(Vector), initWithSize, sizeof(intptr_t));
 
   bool haveStructural = false;
   for (const CsgBrush *brush = brushes; brush; brush = brush->next) {
@@ -206,7 +241,18 @@ static const MapBrushSide *SelectSplitSide(Node *node, CsgBrush *brushes) {
     }
   }
 
+  // gather the candidates: the first side of each plane that the node's volume can be split by
+
+  bool *seen = Mem_Malloc(numPlanes * sizeof(bool));
+  memset(seen, 0, numPlanes * sizeof(bool));
+
+  Vector *candidates = $(alloc(Vector), initWithSize, sizeof(const MapBrushSide *));
+
+  int32_t numBrushes = 0;
+
   for (const CsgBrush *brush = brushes; brush; brush = brush->next) {
+
+    numBrushes++;
 
     if (brush->original->contents & CONTENTS_DETAIL) {
       if (haveStructural) {
@@ -227,20 +273,60 @@ static const MapBrushSide *SelectSplitSide(Node *node, CsgBrush *brushes) {
       assert(side->winding);
 
       const int32_t plane = side->plane & ~1;
-      bool cached = false;
-      for (size_t j = 0; j < cache->count; j++) {
-        if (VectorValue(cache, intptr_t, j) == plane) {
-          cached = true;
-          break;
-        }
-      }
-
-      if (cached) {
+      if (seen[plane]) {
         continue;
       }
 
+      if (!PlaneSplitsVolume(node->volume, plane)) {
+        seen[plane] = true;
+        continue;
+      }
+
+      seen[plane] = true;
+
+      $(candidates, add, &side);
+    }
+  }
+
+  Mem_Free(seen);
+
+  // score them, in parallel when there are enough brushes and candidates for that to pay
+
+  const bool parallel = (int64_t) candidates->count * numBrushes > 100000;
+
+  const MapBrushSide *bestSide = NULL;
+
+  if (candidates->count) {
+
+    scoring.sides = (const MapBrushSide **) candidates->elements;
+    scoring.brushes = brushes;
+    scoring.values = Mem_Malloc(candidates->count * sizeof(int32_t));
+
+    if (parallel) {
+      Work(NULL, SelectSplitSide_score, (int32_t) candidates->count);
+    } else {
+      for (size_t i = 0; i < candidates->count; i++) {
+        SelectSplitSide_score((int32_t) i);
+      }
+    }
+
+    // take the best candidate whose split of the volume is real, first in order winning ties
+    while (!bestSide) {
+
+      int32_t bestValue = INT32_MIN, best = -1;
+      for (size_t i = 0; i < candidates->count; i++) {
+        if (scoring.values[i] > bestValue) {
+          best = (int32_t) i;
+          bestValue = scoring.values[i];
+        }
+      }
+
+      if (best == -1) {
+        break;
+      }
+
       CsgBrush *front, *back;
-      SplitBrush(node->volume, plane, &front, &back);
+      SplitBrush(node->volume, scoring.sides[best]->plane & ~1, &front, &back);
       const bool validSplit = (front && back);
       if (front) {
         FreeBrush(front);
@@ -248,22 +334,18 @@ static const MapBrushSide *SelectSplitSide(Node *node, CsgBrush *brushes) {
       if (back) {
         FreeBrush(back);
       }
-      if (!validSplit) {
-        continue;
-      }
 
-      const int32_t value = SelectSplitSideHeuristic(side, brushes);
-      if (value > bestValue) {
-        bestSide = side->original;
-        bestValue = value;
+      if (validSplit) {
+        bestSide = scoring.sides[best]->original;
+      } else {
+        scoring.values[best] = INT32_MIN;
       }
-
-      intptr_t cachedPlane = plane;
-      $(cache, add, &cachedPlane);
     }
+
+    Mem_Free(scoring.values);
   }
 
-  release(cache);
+  release(candidates);
 
   return bestSide;
 }
