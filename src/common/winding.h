@@ -35,6 +35,11 @@
 #define COLINEAR_EPSILON .00001f
 
 /**
+ * @brief The distance within which a point is colinear with the line through its two neighbors.
+ */
+#define COLINEAR_DISTANCE .01f
+
+/**
  * @brief Point equality epsilon.
  */
 #define ON_EPSILON       .1f
@@ -165,6 +170,11 @@ Winding *Winding_Merge(const Winding *a, const Winding *b, const Vec3 normal);
  * @return The number of indices written.
  */
 int32_t Winding_Elements(const Winding *w, int32_t *elements);
+
+/**
+ * @return The area that the given triangle elements of the winding cover, in total.
+ */
+float Winding_ElementsArea(const Winding *w, const int32_t *elements, int32_t numElements);
 
 /**
  * @brief A UV mapped vertex primitive.

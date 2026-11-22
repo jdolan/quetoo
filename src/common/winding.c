@@ -620,6 +620,12 @@ Winding *Winding_Merge(const Winding *a, const Winding *b, const Vec3 normal) {
   for (i = 0; i < a->numPoints; i++) {
     p1 = a->points[i];
     p2 = a->points[(i + 1) % a->numPoints];
+
+    // an edge of no length is no seam; merging across one pinches the polygon
+    if (Vec3_Distance(p1, p2) < ON_EPSILON * 2.f) {
+      continue;
+    }
+
     for (j = 0; j < b->numPoints; j++) {
       Vec3 p3 = b->points[j];
       Vec3 p4 = b->points[(j + 1) % b->numPoints];
@@ -693,18 +699,52 @@ Winding *Winding_Merge(const Winding *a, const Winding *b, const Vec3 normal) {
     merged->numPoints++;
   }
 
+  // the merged polygon must cover exactly what the two did, or it folded over itself
+  const float area = Winding_Area(a) + Winding_Area(b);
+  Vec3 sum = Vec3_Zero();
+  for (k = 0; k < merged->numPoints; k++) {
+    sum = Vec3_Add(sum, Vec3_Cross(merged->points[k], merged->points[(k + 1) % merged->numPoints]));
+  }
+  if (fabsf(fabsf(Vec3_Dot(sum, normal)) * .5f - area) > Maxf(area * .001f, .05f)) {
+    Winding_Free(merged);
+    return NULL;
+  }
+
   return Winding_Fix(merged);
 }
 
 /**
+ * @return The distance of `b` from the line through `a` and `c`, positive if `b` is convex with
+ * respect to the winding that has the given `normal`.
+ */
+static float Winding_PointHeight(Vec3 a, Vec3 b, Vec3 c, Vec3 normal) {
+
+  const Vec3 ac = Vec3_Subtract(c, a);
+
+  const float length = Vec3_Length(ac);
+  if (length <= FLT_EPSILON) {
+    return 0.f;
+  }
+
+  const Vec3 cross = Vec3_Cross(Vec3_Subtract(b, a), ac);
+  const float height = Vec3_Length(cross) / length;
+
+  return Vec3_Dot(cross, normal) >= 0.f ? height : -height;
+}
+
+/**
  * @brief Creates a vertex element array of triangles for the given winding.
- * @details This function uses an ear-clipping algorithm to clip triangles from
- * the given winding. Invalid triangles due to colinear points are skipped over.
+ * @details This function uses an ear-clipping algorithm to clip triangles from the given winding.
+ * A point is colinear if it lies within `COLINEAR_DISTANCE` of the line through its neighbors, and
+ * is not a corner. Colinear points are kept as vertexes of the triangles beside them, so that the
+ * triangles meet the faces that share their edge. A winding that is a sliver, with fewer than
+ * three corners, is clipped at its widest point instead, so that it still gets the triangles it
+ * has the area for. Points that no triangle has the area for are skipped over.
  * @param w The winding.
  * @param elements The output array, which must be `>= (w->numPoints - 2) * 3` in length.
  * @return The number of vertex elements written to tris.
  */
-int32_t Winding_Elements(const Winding *w, int32_t *elements) {
+static int32_t Winding_ElementsClip(const Winding *w, int32_t *elements) {
 
   int32_t *out = elements;
 
@@ -712,49 +752,53 @@ int32_t Winding_Elements(const Winding *w, int32_t *elements) {
     Vec3 position;
     int32_t index;
     int32_t corner;
+    float height;
   } Point;
 
   int32_t numPoints = w->numPoints;
   Point points[numPoints];
 
+  Vec3 normal = Vec3_Zero();
+
   for (int32_t i = 0; i < numPoints; i++) {
     points[i].position = w->points[i];
     points[i].index = i;
+
+    const Vec3 p0 = Vec3_Subtract(w->points[i], w->points[0]);
+    const Vec3 p1 = Vec3_Subtract(w->points[(i + 1) % numPoints], w->points[0]);
+
+    normal = Vec3_Add(normal, Vec3_Cross(p0, p1));
   }
 
   while (numPoints > 2) {
 
-    // find the corners, or points without collinear neighbors
+    // find the corners, or points without collinear neighbors; the height of a point is its
+    // distance from the line through its neighbors, and is positive if the point is convex
 
     int32_t numCorners = 0;
     for (int32_t i = 0; i < numPoints; i++) {
 
-      Point *a = &points[(i + 0) % numPoints];
+      const Point *a = &points[(i + 0) % numPoints];
       Point *b = &points[(i + 1) % numPoints];
-      Point *c = &points[(i + 2) % numPoints];
+      const Point *c = &points[(i + 2) % numPoints];
 
-      const Vec3 ba = Vec3_Direction(b->position, a->position);
-      const Vec3 cb = Vec3_Direction(c->position, b->position);
+      // The angle at b is no use for this: a point a few tenths from its neighbor has an
+      // arbitrary angle, and a long sliver has a tiny one, however much area it covers.
 
-      const float dot = Vec3_Dot(ba, cb);
-      if (dot > 1.f - COLINEAR_EPSILON) {
+      b->height = Winding_PointHeight(a->position, b->position, c->position, normal);
+
+      if (fabsf(b->height) < COLINEAR_DISTANCE) {
         b->corner = 0;
       } else {
         b->corner = ++numCorners;
       }
     }
 
-    // if we don't find 3 corners, this is a degenerate winding (a line segment)
-
-    if (numCorners < 3) {
-      Com_Warn("Invalid winding: %d corners found in %d points\n", numCorners, numPoints);
-      break;
-    }
-
-    // chip away at edges with colinear points first
-
     const Point *clip = NULL;
-    if (numCorners < numPoints) {
+    if (numCorners >= 3 && numCorners < numPoints) {
+
+      // chip away at edges with colinear points first
+
       float best = FLT_MAX;
 
       for (int32_t i = 0; i < numPoints; i++) {
@@ -762,7 +806,7 @@ int32_t Winding_Elements(const Winding *w, int32_t *elements) {
         const Point *b = &points[(i + 1) % numPoints];
         const Point *c = &points[(i + 2) % numPoints];
 
-        if (!a->corner && b->corner) {
+        if (!a->corner && b->height > 0.f) {
           const float area = Vec3_TriangleArea(a->position, b->position, c->position);
           if (area < best) {
             best = area;
@@ -770,9 +814,56 @@ int32_t Winding_Elements(const Winding *w, int32_t *elements) {
           }
         }
       }
-      assert(clip);
-    } else {
+
+    } else if (numCorners == numPoints && points[1].height > 0.f) {
       clip = points + 1;
+    }
+
+    if (!clip) {
+
+      // clip the widest point, unless its triangle would leave a neighbor folded back over the
+      // rest of the winding, which loses the triangle that the remainder has the area for
+
+      float best = COLINEAR_DISTANCE, widest = COLINEAR_DISTANCE;
+      const Point *fallback = NULL;
+
+      for (int32_t i = 0; i < numPoints; i++) {
+        const Point *b = &points[(i + 1) % numPoints];
+
+        if (b->height <= COLINEAR_DISTANCE) {
+          continue;
+        }
+
+        if (b->height > widest) {
+          widest = b->height;
+          fallback = b;
+        }
+
+        if (numPoints > 3) {
+          const Vec3 z = points[(i + numPoints - 1) % numPoints].position;
+          const Vec3 a = points[i].position;
+          const Vec3 c = points[(i + 2) % numPoints].position;
+          const Vec3 d = points[(i + 3) % numPoints].position;
+
+          if (Winding_PointHeight(z, a, c, normal) < -COLINEAR_DISTANCE ||
+              Winding_PointHeight(a, c, d, normal) < -COLINEAR_DISTANCE) {
+            continue;
+          }
+        }
+
+        if (b->height > best) {
+          best = b->height;
+          clip = b;
+        }
+      }
+
+      if (!clip) {
+        clip = fallback;
+      }
+
+      if (!clip) {
+        break;
+      }
     }
 
     const int32_t i = (int32_t) (ptrdiff_t) (clip - points);
@@ -790,6 +881,151 @@ int32_t Winding_Elements(const Winding *w, int32_t *elements) {
   }
 
   return (int32_t) (ptrdiff_t) (out - elements);
+}
+
+/**
+ * @brief Clips ears from the winding with no tolerance for colinearity, taking the largest ear
+ * that no other point lies in. This is for the slivers that `Winding_ElementsClip` leaves area
+ * behind in: it has no regard for the edges a winding shares with its neighbors.
+ */
+static int32_t Winding_ElementsStrict(const Winding *w, int32_t *elements) {
+
+  int32_t *out = elements;
+
+  int32_t numPoints = w->numPoints;
+  int32_t indexes[numPoints];
+
+  Vec3 normal = Vec3_Zero();
+
+  for (int32_t i = 0; i < numPoints; i++) {
+    indexes[i] = i;
+    normal = Vec3_Add(normal, Vec3_Cross(w->points[i], w->points[(i + 1) % numPoints]));
+  }
+
+  while (numPoints > 2) {
+
+    int32_t clip = -1;
+    float best = 0.f;
+
+    for (int32_t pass = 0; pass < 2 && clip == -1; pass++) {
+      for (int32_t i = 0; i < numPoints; i++) {
+
+        const Vec3 a = w->points[indexes[(i + numPoints - 1) % numPoints]];
+        const Vec3 b = w->points[indexes[i]];
+        const Vec3 c = w->points[indexes[(i + 1) % numPoints]];
+
+        const Vec3 cross = Vec3_Cross(Vec3_Subtract(b, a), Vec3_Subtract(c, a));
+        if (Vec3_Dot(cross, normal) <= 0.f) {
+          continue;
+        }
+
+        const float area = Vec3_Length(cross) * .5f;
+        if (area <= best) {
+          continue;
+        }
+
+        // on the first pass, no other point may lie inside the ear
+        bool inside = false;
+        for (int32_t j = 0; pass == 0 && j < numPoints && !inside; j++) {
+
+          const Vec3 p = w->points[indexes[j]];
+          if (Vec3_Equal(p, a) || Vec3_Equal(p, b) || Vec3_Equal(p, c)) {
+            continue;
+          }
+
+          // a point just outside the ear counts: the diagonal then runs outside the winding
+          const Vec3 n = Vec3_Normalize(normal);
+          const Vec3 corners[] = { a, b, c };
+
+          inside = true;
+          for (int32_t k = 0; k < 3 && inside; k++) {
+            const Vec3 from = corners[k];
+            const Vec3 edge = Vec3_Subtract(corners[(k + 1) % 3], from);
+            const float length = Vec3_Length(edge);
+            inside = length > FLT_EPSILON &&
+                     Vec3_Dot(Vec3_Cross(edge, Vec3_Subtract(p, from)), n) / length > -COLINEAR_DISTANCE;
+          }
+        }
+
+        if (!inside) {
+          best = area;
+          clip = i;
+        }
+      }
+    }
+
+    if (clip == -1) {
+      break;
+    }
+
+    *out++ = indexes[(clip + numPoints - 1) % numPoints];
+    *out++ = indexes[clip];
+    *out++ = indexes[(clip + 1) % numPoints];
+
+    for (int32_t k = clip; k < numPoints - 1; k++) {
+      indexes[k] = indexes[k + 1];
+    }
+
+    numPoints--;
+  }
+
+  return (int32_t) (ptrdiff_t) (out - elements);
+}
+
+/**
+ * @return The area that the given triangle elements cover, in total.
+ */
+float Winding_ElementsArea(const Winding *w, const int32_t *elements, int32_t numElements) {
+
+  float area = 0.f;
+
+  for (int32_t i = 0; i < numElements; i += 3) {
+    area += Vec3_TriangleArea(w->points[elements[i]], w->points[elements[i + 1]], w->points[elements[i + 2]]);
+  }
+
+  return area;
+}
+
+/**
+ * @brief Creates a vertex element array of triangles for the given winding.
+ * @details The winding is triangulated by `Winding_ElementsClip`, which keeps its colinear points.
+ * Where that leaves a part of a sliver winding uncovered, the triangulation that comes closest
+ * to covering the winding exactly is used instead.
+ * @param w The winding.
+ * @param elements The output array, which must be `>= (w->numPoints - 2) * 3` in length.
+ * @return The number of vertex elements written to elements.
+ */
+int32_t Winding_Elements(const Winding *w, int32_t *elements) {
+
+  int32_t numElements = Winding_ElementsClip(w, elements);
+
+  if (w->numPoints > 3) {
+
+    Vec3 sum = Vec3_Zero();
+    for (int32_t i = 0; i < w->numPoints; i++) {
+      sum = Vec3_Add(sum, Vec3_Cross(w->points[i], w->points[(i + 1) % w->numPoints]));
+    }
+    const float area = Vec3_Length(sum) * .5f;
+
+    const float error = fabsf(Winding_ElementsArea(w, elements, numElements) - area);
+    if (error > Maxf(area * .001f, .001f)) {
+
+      int32_t strict[(w->numPoints - 2) * 3];
+      const int32_t numStrict = Winding_ElementsStrict(w, strict);
+
+      if (fabsf(Winding_ElementsArea(w, strict, numStrict) - area) < error) {
+        memcpy(elements, strict, sizeof(int32_t) * numStrict);
+        numElements = numStrict;
+      }
+    }
+  }
+
+  // a winding with no triangles is only a loss if it had area to cover
+  if (numElements == 0 && w->numPoints > 2 && Winding_Area(w) > 1.f) {
+    Com_Warn("Invalid winding: %d points have no area\n", w->numPoints);
+  }
+
+  return numElements;
 }
 
 /**

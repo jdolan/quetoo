@@ -200,6 +200,35 @@ START_TEST(check_Winding_Elements_quad) {
 
 } END_TEST
 
+START_TEST(check_Winding_Elements_sliver) {
+
+  // A sliver 60 units long and 0.2 wide has corners with angles under the old colinear
+  // threshold, but it covers area, and so it must be triangulated.
+
+  Winding *w = Winding_Alloc(4);
+  w->numPoints = 4;
+
+  w->points[0] = MakeVec3(0, 0, 0);
+  w->points[1] = MakeVec3(60, 0, 0);
+  w->points[2] = MakeVec3(60, 0.2f, 0);
+  w->points[3] = MakeVec3(0, 0.1f, 0);
+
+  int32_t elements[(w->numPoints - 2) * 3];
+  const int32_t numElements = Winding_Elements(w, elements);
+
+  ck_assert_int_eq(6, numElements);
+
+  float area = 0.f;
+  for (int32_t i = 0; i < numElements; i += 3) {
+    area += Vec3_TriangleArea(w->points[elements[i]], w->points[elements[i + 1]], w->points[elements[i + 2]]);
+  }
+
+  ck_assert_float_eq_tol(Winding_Area(w), area, .001f);
+
+  Winding_Free(w);
+
+} END_TEST
+
 START_TEST(check_Winding_Elements_skinnyQuad) {
 
   Winding *w = Winding_Alloc(4);
@@ -774,6 +803,7 @@ int32_t main(int32_t argc, char **argv) {
     tcase_add_test(tcase, check_Winding_Elements_triangle);
     tcase_add_test(tcase, check_Winding_Elements_quad);
     tcase_add_test(tcase, check_Winding_Elements_skinnyQuad);
+    tcase_add_test(tcase, check_Winding_Elements_sliver);
     tcase_add_test(tcase, check_Winding_Elements_colinearQuad);
     tcase_add_test(tcase, check_Winding_Elements_cornerCase);
     tcase_add_test(tcase, check_Winding_Elements_invalid);

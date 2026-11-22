@@ -204,7 +204,11 @@ BspFace *EmitFace(const Face *face) {
   int32_t elements[(w->numPoints - 2) * 3];
   const int32_t numElements = Winding_Elements(w, elements);
 
-  if (numElements != (int32_t) lengthof(elements)) {
+  // a sliver leaves out triangles that have no area to speak of; only a loss of area is a warning
+  const float area = Winding_Area(w);
+  const float covered = Winding_ElementsArea(w, elements, numElements);
+
+  if (fabsf(area - covered) > Maxf(area * .05f, 1.f)) {
     const MapMaterial *mat = &materials[face->brushSide->material];
     Com_Warn("Face %s @ %s has degenerate winding\n", mat->def->name, vtos(Winding_Center(w)));
   }
@@ -576,20 +580,48 @@ static void TangentVectors_(BspModel *model) {
 
   Winding_Tangents(windingVertexes, baseVertex, numVertexes, elements, numElements);
 
+  // a vertex that only slivers touch gets no tangents, yet the draw hulls still use it, and a
+  // zero tangent frame blanks every triangle it is part of. A face is planar, and so its vertexes
+  // share their tangent frame: borrow one from a vertex of the same face that has it.
+
+  #define TangentIsValid(v) (Vec3_Length((v)->tangent) >= .9f && Vec3_Length((v)->bitangent) >= .9f)
+
   int32_t numBadVertexes = 0;
 
-  v = vertexes;
-  for (int32_t i = 0; i < numVertexes; i++, v++) {
+  face = bspFile.faces + model->firstFace;
+  for (int32_t i = 0; i < model->numFaces; i++, face++) {
 
-    if (windingVertexes[i].numTris == 0) {
-      continue;
+    BspVertex *fv = bspFile.vertexes + face->firstVertex;
+
+    const BspVertex *donor = NULL;
+    for (int32_t j = 0; j < face->numVertexes; j++) {
+      if (TangentIsValid(fv + j)) {
+        donor = fv + j;
+        break;
+      }
     }
 
-    if (Vec3_Length(v->tangent) < .9f || Vec3_Length(v->bitangent) < .9f) {
-      Com_Warn("Vertex at %s has invalid tangents\n", vtos(v->position));
-      numBadVertexes++;
+    for (int32_t j = 0; j < face->numVertexes; j++) {
+
+      if (TangentIsValid(fv + j)) {
+        continue;
+      }
+
+      if (donor) {
+        Vec3_Tangents(fv[j].normal, donor->tangent, donor->bitangent, &fv[j].tangent, &fv[j].bitangent);
+      }
+
+      if (!TangentIsValid(fv + j)) {
+        const Vec3 n = fv[j].normal;
+        const Vec3 axis = fabsf(n.z) < .9f ? Vec3_Up() : MakeVec3(1.f, 0.f, 0.f);
+        Vec3_Tangents(n, Vec3_Cross(axis, n), Vec3_Cross(n, Vec3_Cross(axis, n)), &fv[j].tangent, &fv[j].bitangent);
+        Com_Verbose("Vertex at %s has no tangents\n", vtos(fv[j].position));
+        numBadVertexes++;
+      }
     }
   }
+
+  #undef TangentIsValid
 
   Com_Debug(DEBUG_ALL, "%d bad vertexes\n", numBadVertexes);
 
