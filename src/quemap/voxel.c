@@ -358,7 +358,7 @@ typedef struct {
   int32_t voxelIndex;
 } LightVoxelData;
 
-static void MapVoxel_AppendLightVoxel(const HashTable *table, ident key, ident value, ident data) {
+static void AssignLightVoxel(const HashTable *table, ident key, ident value, ident data) {
 
   LightVoxelData *d = data;
   const Light *light = key;
@@ -395,7 +395,7 @@ void AssignLightVoxels(void) {
       .voxelIndex = (int32_t) i
     };
 
-    $(voxels.voxels[i].lights, enumerate, MapVoxel_AppendLightVoxel, &data);
+    $(voxels.voxels[i].lights, enumerate, AssignLightVoxel, &data);
   }
 
   int32_t total = 0;
@@ -427,7 +427,7 @@ void AssignLightVoxels(void) {
  * @brief Builds a lookup from `CONTENTS_BLOCK` node index to the index of the block it defines
  * within `bspFile.blocks`, or -1 if the node is not a block.
  */
-static int32_t *MapVoxel_BuildNodeToBlock(void) {
+static int32_t *BuildNodeToBlockIndex(void) {
 
   int32_t *nodeToBlock = Mem_TagMalloc(bspFile.numNodes * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
 
@@ -448,7 +448,7 @@ static int32_t *MapVoxel_BuildNodeToBlock(void) {
  * has no parent pointers, unlike quemap's transient tree-building `Node`, so we derive them
  * here with a single pass over the node array.
  */
-static void MapVoxel_BuildParents(int32_t **nodeParent, int32_t **leafParent) {
+static void BuildParentNodeIndex(int32_t **nodeParent, int32_t **leafParent) {
 
   *nodeParent = Mem_TagMalloc(bspFile.numNodes * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
   *leafParent = Mem_TagMalloc(bspFile.numLeafs * sizeof(int32_t), (MemTag) MEM_TAG_VOXEL);
@@ -477,8 +477,10 @@ static void MapVoxel_BuildParents(int32_t **nodeParent, int32_t **leafParent) {
  * @brief Walks up from the given leaf to its enclosing `CONTENTS_BLOCK` ancestor, returning the
  * index of that block within `bspFile.blocks`, or -1 if none is found.
  */
-static int32_t MapVoxel_BlockForLeaf(int32_t leafNum, const int32_t *nodeParent, const int32_t *leafParent,
-                                     const int32_t *nodeToBlock) {
+static int32_t BlockForLeaf(int32_t leafNum,
+                            const int32_t *nodeParent,
+                            const int32_t *leafParent,
+                            const int32_t *nodeToBlock) {
 
   int32_t nodeNum = leafParent[leafNum];
 
@@ -510,9 +512,9 @@ void AssignBlockVoxels(void) {
   }
 
   int32_t *nodeParent, *leafParent;
-  MapVoxel_BuildParents(&nodeParent, &leafParent);
+  BuildParentNodeIndex(&nodeParent, &leafParent);
 
-  int32_t *nodeToBlock = MapVoxel_BuildNodeToBlock();
+  int32_t *nodeToBlock = BuildNodeToBlockIndex();
 
   Vector **blockVoxelLists = Mem_TagMalloc(bspFile.numBlocks * sizeof(Vector *), (MemTag) MEM_TAG_VOXEL);
   for (int32_t i = 0; i < bspFile.numBlocks; i++) {
