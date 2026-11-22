@@ -351,7 +351,8 @@ static void MakeTreePortals_r(Node *node) {
 
   CalcNodeBounds(node);
 
-  if (node->bounds.mins.x >= node->bounds.maxs.x) {
+  // a sliver of a unit of volume loses all of its portals as small, which is no cause to warn
+  if (node->bounds.mins.x >= node->bounds.maxs.x && (!node->volume || BrushVolume(node->volume) >= 1.f)) {
     Com_Warn("Node without a volume, is your map centered?\n");
   }
 

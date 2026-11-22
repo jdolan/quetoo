@@ -223,7 +223,7 @@ static bool PlaneSplitsVolume(const CsgBrush *volume, int32_t plane) {
     }
   }
 
-  return dFront >= ON_EPSILON && dBack <= -ON_EPSILON;
+  return dFront >= SPLIT_EPSILON && dBack <= -SPLIT_EPSILON;
 }
 
 /**

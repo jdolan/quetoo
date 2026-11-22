@@ -23,13 +23,6 @@
 #include "map.h"
 
 /**
- * @brief A brush that protrudes through a split plane by less than this is left whole. It must be
- * far smaller than `ON_EPSILON`: the protruding slab is lost from the other child, and any
- * brush face inside it with it, which left holes in curved brushwork built from near-coplanar hulls.
- */
-#define SPLIT_EPSILON 0.001
-
-/**
  * @brief Split fragments smaller than this volume are discarded. A fragment is real geometry, so
  * only a numerically degenerate one is dropped; a larger bound would open pinholes along brush surfaces.
  */

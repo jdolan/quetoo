@@ -34,6 +34,14 @@ typedef struct CsgBrush {
   struct CsgBrush *next;
 } CsgBrush;
 
+/**
+ * @brief A brush that protrudes through a split plane by less than this is left whole. It must be
+ * far smaller than `ON_EPSILON`: the protruding slab is lost from the other child, and any
+ * brush face inside it with it, which left holes in curved brushwork built from near-coplanar hulls.
+ * Anything that predicts whether `SplitBrush` will split a brush MUST use the same threshold.
+ */
+#define SPLIT_EPSILON 0.001
+
 CsgBrush *AllocBrush(int32_t numSides);
 void FreeBrush(CsgBrush *brush);
 void FreeBrushes(CsgBrush *brushes);
