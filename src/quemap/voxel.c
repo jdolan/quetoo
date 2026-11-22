@@ -530,36 +530,16 @@ void AssignBlockVoxels(void) {
     Progress("Assigning block voxels", 100.f * i / voxels.numVoxels);
 
     const MapVoxel *voxel = &voxels.voxels[i];
+    int32_t voxelIndex = (int32_t) i;
 
-    const size_t numLeafs = Cm_BoxLeafnums(voxel->bounds, leafs, lengthof(leafs), NULL, headNode);
-
-    int32_t seen[64];
-    size_t numSeen = 0;
 
     for (size_t j = 0; j < numLeafs; j++) {
 
-      const int32_t block = MapVoxel_BlockForLeaf(leafs[j], nodeParent, leafParent, nodeToBlock);
+      const int32_t block = BlockForLeaf(leafs[j], nodeParent, leafParent, nodeToBlock);
       if (block == -1) {
         continue;
       }
 
-      bool dup = false;
-      for (size_t k = 0; k < numSeen; k++) {
-        if (seen[k] == block) {
-          dup = true;
-          break;
-        }
-      }
-
-      if (dup) {
-        continue;
-      }
-
-      if (numSeen < lengthof(seen)) {
-        seen[numSeen++] = block;
-      }
-
-      int32_t voxelIndex = (int32_t) i;
       $(blockVoxelLists[block], add, &voxelIndex);
     }
   }
