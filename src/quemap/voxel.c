@@ -532,6 +532,8 @@ void AssignBlockVoxels(void) {
     const MapVoxel *voxel = &voxels.voxels[i];
     int32_t voxelIndex = (int32_t) i;
 
+    const Box3 bounds = Box3_Expand(voxel->bounds, BSP_VOXEL_SIZE * .5f);
+    const size_t numLeafs = Cm_BoxLeafnums(bounds, leafs, lengthof(leafs), NULL, headNode);
 
     for (size_t j = 0; j < numLeafs; j++) {
 
