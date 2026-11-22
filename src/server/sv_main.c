@@ -1054,7 +1054,7 @@ void Sv_Init(void) {
 
   memset(&svs, 0, sizeof(svs));
 
-  Cm_LoadBspModel(NULL, NULL);
+  Cm_LoadModel(NULL);
 
   Sv_InitConsole();
 

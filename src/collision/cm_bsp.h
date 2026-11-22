@@ -801,7 +801,7 @@ typedef struct BspFile {
   char *entityString;
 
   /**
-   * @brief Number of material references.
+   * @brief The number of material references.
    */
   int32_t numMaterials;
 
@@ -811,7 +811,7 @@ typedef struct BspFile {
   BspMaterial *materials;
 
   /**
-   * @brief Number of planes.
+   * @brief The number of planes.
    */
   int32_t numPlanes;
 
@@ -821,7 +821,7 @@ typedef struct BspFile {
   BspPlane *planes;
 
   /**
-   * @brief Number of brush sides.
+   * @brief The number of brush sides.
    */
   int32_t numBrushSides;
 
@@ -831,7 +831,7 @@ typedef struct BspFile {
   BspBrushSide *brushSides;
 
   /**
-   * @brief Number of brushes.
+   * @brief The number of brushes.
    */
   int32_t numBrushes;
 
@@ -841,7 +841,7 @@ typedef struct BspFile {
   BspBrush *brushes;
 
   /**
-   * @brief Number of Bezier patch surfaces.
+   * @brief The number of Bezier patch surfaces.
    */
   int32_t numPatches;
 
@@ -851,7 +851,7 @@ typedef struct BspFile {
   BspPatch *patches;
 
   /**
-   * @brief Number of vertices.
+   * @brief The number of vertices.
    */
   int32_t numVertexes;
 
@@ -861,7 +861,7 @@ typedef struct BspFile {
   BspVertex *vertexes;
 
   /**
-   * @brief Number of element indices.
+   * @brief The number of element indices.
    */
   int32_t numElements;
 
@@ -871,7 +871,7 @@ typedef struct BspFile {
   int32_t *elements;
 
   /**
-   * @brief Number of faces.
+   * @brief The number of faces.
    */
   int32_t numFaces;
 
@@ -881,7 +881,7 @@ typedef struct BspFile {
   BspFace *faces;
 
   /**
-   * @brief Number of BSP nodes.
+   * @brief The number of BSP nodes.
    */
   int32_t numNodes;
 
@@ -891,7 +891,7 @@ typedef struct BspFile {
   BspNode *nodes;
 
   /**
-   * @brief Number of leaf-brush references.
+   * @brief The number of leaf-brush references.
    */
   int32_t numLeafBrushes;
 
@@ -901,7 +901,7 @@ typedef struct BspFile {
   int32_t *leafBrushes;
 
   /**
-   * @brief Number of BSP leafs.
+   * @brief The number of BSP leafs.
    */
   int32_t numLeafs;
 
@@ -911,7 +911,7 @@ typedef struct BspFile {
   BspLeaf *leafs;
 
   /**
-   * @brief Number of draw element commands.
+   * @brief The number of draw element commands.
    */
   int32_t numDrawElements;
 
@@ -921,7 +921,7 @@ typedef struct BspFile {
   BspDrawElements *drawElements;
 
   /**
-   * @brief Number of block nodes.
+   * @brief The number of block nodes.
    */
   int32_t numBlocks;
 
@@ -931,7 +931,7 @@ typedef struct BspFile {
   BspBlock *blocks;
 
   /**
-   * @brief Number of inline models.
+   * @brief The number of inline models.
    */
   int32_t numModels;
 
@@ -941,7 +941,7 @@ typedef struct BspFile {
   BspModel *models;
 
   /**
-   * @brief Number of light sources.
+   * @brief The number of light sources.
    */
   int32_t numPortals;
 
@@ -951,7 +951,7 @@ typedef struct BspFile {
   BspPortal *portals;
 
   /**
-   * @brief Number of reflections.
+   * @brief The number of reflections.
    */
   int32_t numReflections;
 
@@ -960,6 +960,9 @@ typedef struct BspFile {
    */
   BspReflection *reflections;
 
+  /**
+   * @brief The number of lights.
+   */
   int32_t numLights;
 
   /**
@@ -978,7 +981,7 @@ typedef struct BspFile {
   BspVoxels *voxels;
 
   /**
-   * @brief Number of light voxel indices.
+   * @brief The number of light voxel indices.
    */
   int32_t numLightVoxels;
 
@@ -988,7 +991,7 @@ typedef struct BspFile {
   int32_t *lightVoxels;
 
   /**
-   * @brief Number of block voxel indices.
+   * @brief The number of block voxel indices.
    */
   int32_t numBlockVoxels;
 
@@ -1007,11 +1010,6 @@ typedef struct BspFile {
  * @brief Verifies the BSP file header; returns 0 on success, -1 on error.
  */
 int32_t Bsp_Verify(const BspHeader *file);
-
-/**
- * @brief Returns the total size in bytes of the BSP file described by the header.
- */
-int64_t Bsp_Size(const BspHeader *file);
 
 /**
  * @brief Returns true if the given lump has been loaded into the BSP.

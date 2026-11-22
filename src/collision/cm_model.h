@@ -24,19 +24,23 @@
 #include "cm_types.h"
 
 /**
- * @brief Loads the BSP and all sub-models for collision detection.
- * @param name The Quake path to the .bsp file, or `NULL` to unload.
- * @param size If non-`NULL`, receives the file size for compatibility checking.
- * @return The world inline model (model 0), or `NULL` on failure.
- */
-CollisionModel *Cm_LoadBspModel(const char *name, int64_t *size);
-
-/**
  * @brief Builds the collision model from a BSP file that is already resident in memory.
  * @param file The BSP file, which the caller owns and which MUST outlive the collision model.
  * @return The world inline model (model 0).
  */
 CollisionModel *Cm_LoadBspFile(struct BspFile *file);
+
+/**
+ * @brief Unloads all lumps from @p file and frees the collision model.
+ */
+void Cm_FreeBspFile(struct BspFile *file);
+
+/**
+ * @brief Loads the BSP and all sub-models for collision detection.
+ * @param name The Quake path to the .bsp file, or `NULL` to unload.
+ * @return The world inline model (model 0), or `NULL` on failure.
+ */
+CollisionModel *Cm_LoadModel(const char *name);
 
 /**
  * @brief Returns the inline BSP model with the given name (e.g. "*1").

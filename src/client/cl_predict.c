@@ -317,7 +317,7 @@ void Cl_UpdatePrediction(void) {
   // ensure the world model is loaded
   if (!Com_WasInit(QUETOO_SERVER) || cl.demoServer || !Cm_NumModels()) {
 
-    Cm_LoadBspModel(cl.configStrings[CS_BSP], NULL);
+    Cm_LoadModel(cl.configStrings[CS_BSP]);
 
     // prove it is the bsp the server loaded. The manifest can not answer this:
     // maps/<name>.mf is read from our own filesystem, so a locally consistent but

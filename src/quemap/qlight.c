@@ -462,6 +462,8 @@ int32_t Qlight_Main(void) {
     Mem_FreeTag(tag);
   }
 
+  Cm_FreeBspFile(&bspFile);
+
   const uint32_t end = (uint32_t) SDL_GetTicks();
   Com_Print("\nLit %s in %d ms\n", bspName, (end - start));
 

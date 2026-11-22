@@ -481,19 +481,6 @@ static void Bsp_SwapLump(const BspLumpId lumpId, void *lump, int32_t count) {
 }
 
 /**
- * @brief Calculates the effective size of the BSP file.
- */
-int64_t Bsp_Size(const BspHeader *file) {
-  int64_t total = 0;
-
-  for (BspLumpId lump = BSP_LUMP_FIRST; lump < BSP_LUMP_LAST; lump++) {
-    total += LittleLong(file->lumps[lump].fileLen);
-  }
-
-  return total;
-}
-
-/**
  * @brief Verifies that a file is indeed a BSP file and returns
  * the version number. Returns -1 if it is not a valid BSP.
  */
@@ -569,7 +556,7 @@ static bool Bsp_GetLumpOffsets(const BspFile *bsp, const BspLumpId lumpId, int32
  */
 bool Bsp_LumpLoaded(const BspFile *bsp, const BspLumpId lumpId) {
 
-  return bsp->loadedLumps & (BspLumpId) (1 << lumpId);
+  return bsp && (bsp->loadedLumps & (BspLumpId) (1 << lumpId));
 }
 
 /**

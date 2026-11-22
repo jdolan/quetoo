@@ -167,7 +167,7 @@ void Sv_FreeEditorEntity(int32_t number) {
  */
 void Sv_LoadEditorMap(void) {
   char path[MAX_QPATH];
-  StripExtension(Cm_Bsp()->name, path);
+  StripExtension(sv.configStrings[CS_BSP], path);
   Str_Append(path, ".map", sizeof(path));
 
   void *buffer;
@@ -198,7 +198,7 @@ void Sv_SaveEditorMap_f(void) {
   }
 
   char path[MAX_QPATH];
-  StripExtension(Cm_Bsp()->name, path);
+  StripExtension(sv.configStrings[CS_BSP], path);
   Str_Append(path, ".map", sizeof(path));
 
   File *file = Fs_OpenWrite(path);

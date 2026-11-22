@@ -350,24 +350,9 @@ typedef struct {
  */
 typedef struct {
   /**
-   * @brief The Quake path of the .bsp, e.g. `maps/edge.bsp`.
-   */
-  char name[MAX_QPATH];
-
-  /**
    * @brief A pointer to the backing file on disk.
    */
   struct BspFile *file;
-
-  /**
-   * @brief File size, for compatibility checking.
-   */
-  int64_t size;
-
-  /**
-   * @brief File modification time, for compatibility checking.
-   */
-  int64_t modTime;
 
   /**
    * @brief Number of planes.

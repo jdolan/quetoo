@@ -269,9 +269,11 @@ static void Cm_LoadBspVoxels(CollisionBsp *bsp) {
   (1 << BSP_LUMP_VOXELS)
 
 /**
- * @brief Builds the collision structures from the lumps of the given, already loaded BSP file.
+ * @brief Builds the collision model from a `BspFile`.
  */
-static CollisionModel *Cm_BuildBspModel(BspFile *file) {
+CollisionModel *Cm_LoadBspFile(BspFile *file) {
+
+  assert(file);
 
   collisionBsp.file = file;
 
@@ -292,27 +294,12 @@ static CollisionModel *Cm_BuildBspModel(BspFile *file) {
 }
 
 /**
- * @brief Builds the collision model from a BSP that is already resident in memory, as the map
- * compiler's is. The caller retains ownership of `file`, which MUST outlive the collision model.
+ * @brief Unloads all lumps from @p file and frees the collision model.
  */
-CollisionModel *Cm_LoadBspModelFromFile(BspFile *file) {
+void Cm_FreeBspFile(BspFile *file) {
 
-  Cm_LoadBspModel(NULL, NULL);
+  Bsp_UnloadLumps(file, BSP_LUMPS_ALL);
 
-  return Cm_BuildBspModel(file);
-}
-
-/**
- * @brief Loads in the BSP and all sub-models for collision detection. This
- * function can also be used to initialize or clean up the collision model by
- * invoking with `NULL`.
- */
-CollisionModel *Cm_LoadBspModel(const char *name, int64_t *size) {
-  static BspFile file;
-
-  Bsp_UnloadLumps(&file, BSP_LUMPS_ALL);
-
-  // free dynamic memory
   Mem_Free(collisionBsp.planes);
   Mem_Free(collisionBsp.nodes);
   Mem_Free(collisionBsp.leafs);
@@ -325,17 +312,22 @@ CollisionModel *Cm_LoadBspModel(const char *name, int64_t *size) {
   Mem_Free(collisionBsp.voxels);
 
   memset(&collisionBsp, 0, sizeof(collisionBsp));
-  collisionBsp.file = &file;
+}
 
-  // clean up and return
+/**
+ * @brief Loads in the BSP for collision detection.
+ * @param name The Quake path of the BSP file, or @p NULL to clear state.
+ * @return The @p CollisionModel.
+ */
+CollisionModel *Cm_LoadModel(const char *name) {
+  static BspFile file;
+
+  Cm_FreeBspFile(&file);
+
   if (!name) {
-    if (size) {
-      *size = 0;
-    }
     return &collisionBsp.models[0];
   }
 
-  // load the common BSP structure and the lumps we need
   BspHeader *header;
 
   if (Fs_Load(name, (void **) &header) == -1) {
@@ -352,18 +344,9 @@ CollisionModel *Cm_LoadBspModel(const char *name, int64_t *size) {
     Com_Error(ERROR_DROP, "Lump error loading %s\n", name);
   }
 
-  // in theory, by this point the BSP is valid - now we have to create the cm_
-  // structures out of the raw file data
-  if (size) {
-    collisionBsp.size = *size = Bsp_Size(header);
-    collisionBsp.modTime = Fs_LastModTime(name);
-  }
-
-  Str_Copy(collisionBsp.name, name, sizeof(collisionBsp.name));
-
   Fs_Free(header);
 
-  return Cm_BuildBspModel(&file);
+  return Cm_LoadBspFile(&file);
 }
 
 /**
@@ -388,6 +371,11 @@ CollisionModel *Cm_Model(const char *name) {
  * @brief Returns the number of inline BSP models in the loaded BSP file.
  */
 int32_t Cm_NumModels(void) {
+
+  if (collisionBsp.file == NULL) {
+    return 0;
+  }
+
   return collisionBsp.file->numModels;
 }
 
@@ -395,6 +383,11 @@ int32_t Cm_NumModels(void) {
  * @brief Returns the raw entity string from the loaded BSP file.
  */
 const char *Cm_EntityString(void) {
+
+  if (collisionBsp.file == NULL) {
+    return NULL;
+  }
+
   return collisionBsp.file->entityString;
 }
 
@@ -402,6 +395,11 @@ const char *Cm_EntityString(void) {
  * @brief Returns the worldspawn entity (first entity in the loaded BSP).
  */
 const Entity *Cm_Worldspawn(void) {
+
+  if (collisionBsp.file == NULL) {
+    return NULL;
+  }
+
   return *collisionBsp.entities;
 }
 
