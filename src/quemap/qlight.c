@@ -435,9 +435,8 @@ static void LightWorld(void) {
 /**
  * @brief `LIGHT` stage entry point: builds and bakes all lights, and writes the updated BSP.
  * @details `Qbsp_Main()` always runs immediately before this in the same process, so `bspFile`
- * is already fully populated in memory; there is no need to reload it from disk here. The
- * collision model, however, is a distinct representation that must be built from the .bsp file
- * `Qbsp_Main()` just wrote.
+ * is already fully populated in memory. The collision model is built from it directly, rather
+ * than reloading the .bsp from disk.
  */
 int32_t Qlight_Main(void) {
 
@@ -450,7 +449,7 @@ int32_t Qlight_Main(void) {
     Com_Error(ERROR_FATAL, "Empty map\n");
   }
 
-  bspModels[0] = Cm_LoadBspModel(bspName, NULL);
+  bspModels[0] = Cm_LoadBspFile(&bspFile);
   for (int32_t i = 1; i < Cm_NumModels(); i++) {
     bspModels[i] = Cm_Model(va("*%d", i));
   }

@@ -269,6 +269,40 @@ static void Cm_LoadBspVoxels(CollisionBsp *bsp) {
   (1 << BSP_LUMP_VOXELS)
 
 /**
+ * @brief Builds the collision structures from the lumps of the given, already loaded BSP file.
+ */
+static CollisionModel *Cm_BuildBspModel(BspFile *file) {
+
+  collisionBsp.file = file;
+
+  Cm_LoadBspMaterials(&collisionBsp);
+  Cm_LoadBspEntities(&collisionBsp);
+  Cm_LoadBspPlanes(&collisionBsp);
+  Cm_LoadBspNodes(&collisionBsp);
+  Cm_LoadBspLeafs(&collisionBsp);
+  Cm_LoadBspLeafBrushes(&collisionBsp);
+  Cm_LoadBspBrushSides(&collisionBsp);
+  Cm_LoadBspBrushes(&collisionBsp);
+  Cm_LoadBspInlineModels(&collisionBsp);
+  Cm_LoadBspVoxels(&collisionBsp);
+
+  Cm_InitBoxHull(&collisionBsp);
+
+  return &collisionBsp.models[0];
+}
+
+/**
+ * @brief Builds the collision model from a BSP that is already resident in memory, as the map
+ * compiler's is. The caller retains ownership of `file`, which MUST outlive the collision model.
+ */
+CollisionModel *Cm_LoadBspModelFromFile(BspFile *file) {
+
+  Cm_LoadBspModel(NULL, NULL);
+
+  return Cm_BuildBspModel(file);
+}
+
+/**
  * @brief Loads in the BSP and all sub-models for collision detection. This
  * function can also be used to initialize or clean up the collision model by
  * invoking with `NULL`.
@@ -329,20 +363,7 @@ CollisionModel *Cm_LoadBspModel(const char *name, int64_t *size) {
 
   Fs_Free(header);
 
-  Cm_LoadBspMaterials(&collisionBsp);
-  Cm_LoadBspEntities(&collisionBsp);
-  Cm_LoadBspPlanes(&collisionBsp);
-  Cm_LoadBspNodes(&collisionBsp);
-  Cm_LoadBspLeafs(&collisionBsp);
-  Cm_LoadBspLeafBrushes(&collisionBsp);
-  Cm_LoadBspBrushSides(&collisionBsp);
-  Cm_LoadBspBrushes(&collisionBsp);
-  Cm_LoadBspInlineModels(&collisionBsp);
-  Cm_LoadBspVoxels(&collisionBsp);
-
-  Cm_InitBoxHull(&collisionBsp);
-
-  return &collisionBsp.models[0];
+  return Cm_BuildBspModel(&file);
 }
 
 /**

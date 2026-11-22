@@ -32,6 +32,13 @@
 CollisionModel *Cm_LoadBspModel(const char *name, int64_t *size);
 
 /**
+ * @brief Builds the collision model from a BSP file that is already resident in memory.
+ * @param file The BSP file, which the caller owns and which MUST outlive the collision model.
+ * @return The world inline model (model 0).
+ */
+CollisionModel *Cm_LoadBspFile(struct BspFile *file);
+
+/**
  * @brief Returns the inline BSP model with the given name (e.g. "*1").
  */
 CollisionModel *Cm_Model(const char *name); // *1, *2, etc
