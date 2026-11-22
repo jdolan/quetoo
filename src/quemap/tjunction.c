@@ -107,6 +107,160 @@ static void FixTJunctions_(int32_t faceNum) {
 }
 
 /**
+ * @brief The distance within which face vertexes are one vertex.
+ */
+#define WELD_EPSILON .025f
+
+typedef struct {
+  Vec3 position;
+  int32_t face; // the index of the face in `faces`
+  int32_t point; // the index of the point in its winding
+  float lattice; // the squared distance to the nearest integer grid point
+  int32_t cluster; // the representative this point is welded to, or -1
+} WeldPoint;
+
+static WeldPoint *weldPoints;
+
+static int32_t WeldPointXComparator(const void *a, const void *b) {
+  const float x = weldPoints[*(const int32_t *) a].position.x;
+  const float y = weldPoints[*(const int32_t *) b].position.x;
+  return x < y ? -1 : x > y ? 1 : 0;
+}
+
+static int32_t WeldPointLatticeComparator(const void *a, const void *b) {
+  const WeldPoint *p = weldPoints + *(const int32_t *) a;
+  const WeldPoint *q = weldPoints + *(const int32_t *) b;
+
+  if (p->lattice != q->lattice) {
+    return p->lattice < q->lattice ? -1 : 1;
+  }
+  for (int32_t i = 0; i < 3; i++) {
+    if (p->position.xyz[i] != q->position.xyz[i]) {
+      return p->position.xyz[i] < q->position.xyz[i] ? -1 : 1;
+    }
+  }
+  return (int32_t) (p - q);
+}
+
+/**
+ * @brief Snaps the vertexes of all faces that are within `WELD_EPSILON` of each other to one
+ * position, so that neighboring faces share their edges bit for bit, even where CSG has left
+ * them a hair apart. The point closest to the integer grid is the one that the others move to, so
+ * that a map built on the grid stays on it. A face never has two of its own points welded
+ * together, which would collapse its winding.
+ */
+static void WeldFaces(void) {
+
+  int32_t numPoints = 0;
+  for (size_t i = 0; i < faces->count; i++) {
+    const Face *face = VectorValue(faces, Face *, i);
+    numPoints += face->w->numPoints;
+  }
+
+  weldPoints = Mem_Malloc(numPoints * sizeof(WeldPoint));
+
+  numPoints = 0;
+  for (size_t i = 0; i < faces->count; i++) {
+    const Face *face = VectorValue(faces, Face *, i);
+    const Winding *w = face->w;
+    for (int32_t j = 0; j < w->numPoints; j++) {
+
+      const Vec3 p = w->points[j];
+      const Vec3 r = Vec3_Subtract(p, MakeVec3(roundf(p.x), roundf(p.y), roundf(p.z)));
+
+      weldPoints[numPoints++] = (WeldPoint) {
+        .position = p,
+        .face = (int32_t) i,
+        .point = j,
+        .lattice = Vec3_Dot(r, r),
+        .cluster = -1
+      };
+    }
+  }
+
+  // by x, so that the points near one are found by a binary search and a short scan
+  int32_t *byX = Mem_Malloc(numPoints * sizeof(int32_t));
+  int32_t *byLattice = Mem_Malloc(numPoints * sizeof(int32_t));
+  for (int32_t i = 0; i < numPoints; i++) {
+    byX[i] = byLattice[i] = i;
+  }
+
+  qsort(byX, numPoints, sizeof(int32_t), WeldPointXComparator);
+  qsort(byLattice, numPoints, sizeof(int32_t), WeldPointLatticeComparator);
+
+  for (int32_t i = 0; i < numPoints; i++) {
+
+    WeldPoint *rep = weldPoints + byLattice[i];
+    if (rep->cluster != -1) {
+      continue;
+    }
+
+    rep->cluster = byLattice[i];
+
+    int32_t clusterFaces[64], numClusterFaces = 0;
+    clusterFaces[numClusterFaces++] = rep->face;
+
+    int32_t lo = 0, hi = numPoints;
+    while (lo < hi) {
+      const int32_t mid = (lo + hi) / 2;
+      if (weldPoints[byX[mid]].position.x < rep->position.x - WELD_EPSILON) {
+        lo = mid + 1;
+      } else {
+        hi = mid;
+      }
+    }
+
+    for (int32_t j = lo; j < numPoints; j++) {
+
+      WeldPoint *p = weldPoints + byX[j];
+      if (p->position.x > rep->position.x + WELD_EPSILON) {
+        break;
+      }
+
+      if (p->cluster != -1) {
+        continue;
+      }
+
+      if (Vec3_DistanceSquared(p->position, rep->position) > WELD_EPSILON * WELD_EPSILON) {
+        continue;
+      }
+
+      int32_t k;
+      for (k = 0; k < numClusterFaces; k++) {
+        if (clusterFaces[k] == p->face) {
+          break;
+        }
+      }
+      if (k < numClusterFaces || numClusterFaces == lengthof(clusterFaces)) {
+        continue;
+      }
+
+      clusterFaces[numClusterFaces++] = p->face;
+      p->cluster = byLattice[i];
+    }
+  }
+
+  int32_t numWelded = 0;
+  for (int32_t i = 0; i < numPoints; i++) {
+
+    const WeldPoint *p = weldPoints + i;
+    const WeldPoint *rep = weldPoints + p->cluster;
+
+    if (rep != p) {
+      const Face *face = VectorValue(faces, Face *, p->face);
+      face->w->points[p->point] = rep->position;
+      numWelded++;
+    }
+  }
+
+  Com_Verbose("%5i welded vertexes\n", numWelded);
+
+  Mem_Free(byX);
+  Mem_Free(byLattice);
+  Mem_Free(weldPoints);
+}
+
+/**
  * @brief Recursively traverses the tree and collects all unmerged faces into the faces array.
  */
 static void FixTJunctions_r(Node *node) {
@@ -143,6 +297,8 @@ void FixTJunctions(Tree *tree) {
   facesSet = $(alloc(HashTable), init, HashTableHashDirect, HashTableEqualDirect);
   FixTJunctions_r(tree->headNode);
   facesSet = release(facesSet);
+
+  WeldFaces();
 
   windings = Mem_Malloc(sizeof(Winding *) * faces->count);
   for (size_t i = 0; i < faces->count; i++) {

@@ -116,11 +116,10 @@ A curve and a straight hallway built with the same width, wall, height, arches a
 facets share their cross section vertex for vertex, so they abut with no
 gaps or overhangs once one is rotated a quarter turn and moved. Compile the
 result with `quemap` and check for leaks. Adjacent cell hulls overlap in thin
-slivers and have nearly coplanar fold planes, which `quemap`'s `SplitBrush`
-(it drops anything that sticks out less than `ON_EPSILON`) and its T-junction
-fixer handle imperfectly. A tight ring of 6-segment curves compiles with no
-warnings, but expect an occasional leak or hairline crack, and report it with the
-map.
+slivers and have nearly coplanar fold planes. `quemap` keeps every such fragment
+(`SplitBrush` leaves a brush whole only when it protrudes by a thousandth of a unit)
+and welds near-coincident vertexes before it fixes T-junctions, so rings of 6, 8
+and 16 segment curves compile with no warnings, no leaks and no cracks.
 
 `--texture NAME [--texture-scale 0.25]` textures the interior surface. Each
 interior vertex gets a texture coordinate, and each face's axes are solved to
