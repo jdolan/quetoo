@@ -265,6 +265,11 @@ typedef struct {
      * @brief Non-zero when world geometry is drawn as wireframe, in white, with no sampling.
      */
     int32_t wireframe;
+
+    /**
+     * @brief The voxel light heatmap mode: 0 is off, 1 flat shades, and 2 tints the diffuse color.
+     */
+    int32_t drawVoxels;
   } block;
 
 } RenderUniforms;

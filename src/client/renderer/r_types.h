@@ -985,31 +985,6 @@ typedef struct {
 } RenderBspLight;
 
 /**
- * @brief Individual voxel data for CPU-side access.
- */
-typedef struct {
-  /**
-   * @brief The voxel's world-space bounds.
-   */
-  Box3 bounds;
-
-  /**
-   * @brief The voxel's combined contents mask.
-   */
-  int32_t contents;
-
-  /**
-   * @brief The lights affecting this voxel.
-   */
-  const RenderBspLight **lights;
-
-  /**
-   * @brief The number of lights affecting this voxel.
-   */
-  int32_t numLights;
-} RenderBspVoxel;
-
-/**
  * @brief The BSP voxel grid, including light index data for clustered forward lighting.
  */
 typedef struct {
@@ -1027,11 +1002,6 @@ typedef struct {
    * @brief The voxel bounds in world space.
    */
   Box3 bounds;
-
-  /**
-   * @brief Array of individual voxel data (for CPU-side access and debugging).
-   */
-  RenderBspVoxel *voxels;
 
   /**
    * @brief The voxel caustics 3D texture (`RGB8`): caustics direction+strength.

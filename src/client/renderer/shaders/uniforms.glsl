@@ -202,6 +202,11 @@ layout (std140, set = UNIFORM_SET, binding = BINDING_UNIFORMS) uniform uniformsB
    * @brief Non-zero when world geometry is drawn as wireframe, in white, with no sampling.
    */
   int wireframe;
+
+  /**
+   * @brief Voxel light heatmap mode: 0 is off, 1 flat shades, and 2 tints the diffuse color.
+   */
+  int drawVoxels;
 };
 
 #endif // _UNIFORMS_GLSL_

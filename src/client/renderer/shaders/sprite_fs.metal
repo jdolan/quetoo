@@ -38,6 +38,7 @@ struct uniformsBlock
     int editor;
     int developer;
     int wireframe;
+    int drawVoxels;
 };
 
 struct main0_out

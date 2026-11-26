@@ -220,6 +220,10 @@ void main(void) {
     }
 #endif
 
+    if (drawVoxels == 2) {
+      fragment.diffuseSample.rgb = voxelHeatTint(vertex.modelPosition, fragment.diffuseSample.rgb);
+    }
+
     outColor = fragment.diffuseSample;
 
     outColor *= vertex.color;
@@ -304,6 +308,10 @@ void main(void) {
 
     fragment.diffuseSample *= vertex.color;
 
+    if (drawVoxels == 2) {
+      fragment.diffuseSample.rgb = voxelHeatTint(vertex.modelPosition, fragment.diffuseSample.rgb);
+    }
+
     outColor = fragment.diffuseSample;
 
     if ((material.flags & STAGE_LIGHTING) == STAGE_LIGHTING) {
@@ -315,5 +323,9 @@ void main(void) {
     if ((material.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
       outColor.rgb += fragment.diffuseSample.rgb * material.emissive;
     }
+  }
+
+  if (drawVoxels == 1) {
+    outColor.rgb = voxelHeat(vertex.modelPosition);
   }
 }

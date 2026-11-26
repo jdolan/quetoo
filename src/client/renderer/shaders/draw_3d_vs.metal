@@ -36,6 +36,7 @@ struct uniformsBlock
     int editor;
     int developer;
     int wireframe;
+    int drawVoxels;
 };
 
 struct vertexData

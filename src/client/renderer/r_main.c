@@ -194,6 +194,7 @@ void R_UpdateUniforms(const RenderView *view) {
     out->editor = editor->integer;
     out->developer = developer->integer;
     out->wireframe = r_drawWireframe->integer;
+    out->drawVoxels = view->type == VIEW_PLAYER_MODEL ? 0 : r_drawBspVoxels->integer;
     out->parallaxShadow = r_parallaxShadow->integer;
     out->shadowSamples = (int32_t) (8.f * R_QualityScale(r_shadowQuality));
     out->parallaxSamples = R_QualityScale(r_parallaxQuality);
@@ -530,7 +531,7 @@ static void R_InitLocal(void) {
   r_drawBspBlocks = Cvar_Add("r_drawBspBlocks", "0", CVAR_DEVELOPER, "Controls the rendering of BSP block boundaries (developer tool).");
   r_drawOcclusionQueries = Cvar_Add("r_drawOcclusionQueries", "0", CVAR_DEVELOPER, "Controls the rendering of occlusion query bounding boxes (developer tool).");
   r_drawBspNormals = Cvar_Add("r_drawBspNormals", "0", CVAR_DEVELOPER, "Controls the rendering of BSP vertex normals (developer tool).");
-  r_drawBspVoxels = Cvar_Add("r_drawBspVoxels", "0", CVAR_DEVELOPER | CVAR_R_MEDIA, "Controls the rendering of BSP voxel textures (developer tool).");
+  r_drawBspVoxels = Cvar_Add("r_drawBspVoxels", "0", CVAR_DEVELOPER, "Draws a heatmap of the lights affecting each voxel: 1 flat shades, 2 tints the diffuse color (developer tool).");
   r_drawEntityBounds = Cvar_Add("r_drawEntityBounds", "0", CVAR_DEVELOPER, "Controls the rendering of entity bounding boxes (developer tool).");
   r_drawLightBounds = Cvar_Add("r_drawLightBounds", "0", CVAR_DEVELOPER, "Controls the rendering of light source bounding boxes (developer tool).");
   r_drawMaterialStages = Cvar_Add("r_drawMaterialStages", "1", CVAR_DEVELOPER, "Controls the rendering of material stage effects (developer tool).");

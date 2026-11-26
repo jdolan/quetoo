@@ -73,6 +73,30 @@ ivec2 voxelLightData(in ivec3 voxel) {
 int voxelLightIndex(in int index) {
   return voxelLightIndices[index];
 }
+
+/**
+ * @brief Resolves the heatmap color for the number of clustered lights in the voxel at a position.
+ */
+vec3 voxelHeat(in vec3 position) {
+
+  const int lights = voxelLightData(voxelXyz(position)).y;
+
+  if (lights < 3) {
+    return vec3(0.0, 0.2, 1.0);
+  } else if (lights < 6) {
+    return vec3(0.0, 0.8, 0.1);
+  } else if (lights < 9) {
+    return vec3(1.0, 0.6, 0.0);
+  }
+  return vec3(1.0, 0.1, 0.0);
+}
+
+/**
+ * @brief Tints a diffuse color with the voxel heatmap, preserving its luminance detail.
+ */
+vec3 voxelHeatTint(in vec3 position, in vec3 diffuse) {
+  return voxelHeat(position) * (0.5 + dot(diffuse, vec3(0.299, 0.587, 0.114)));
+}
 #endif
 
 /**

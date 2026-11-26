@@ -689,51 +689,6 @@ static void R_LoadBspVoxels(RenderModel *mod) {
     .num_levels = 1,
     .sample_count = SDL_GPU_SAMPLECOUNT_1,
   }, occlusionData);
-
-  if (r_drawBspVoxels->value) {
-    
-    out->voxels = Mem_LinkMalloc(out->numVoxels * sizeof(RenderBspVoxel), mod->bsp);
-
-    for (int32_t u = 0; u < out->size.z; u++) {
-      for (int32_t t = 0; t < out->size.y; t++) {
-        for (int32_t s = 0; s < out->size.x; s++) {
-          const int32_t voxelIndex = (u * out->size.y + t) * out->size.x + s;
-          RenderBspVoxel *voxel = &out->voxels[voxelIndex];
-
-          const Vec3 voxelMins = MakeVec3(
-            out->bounds.mins.x + s * BSP_VOXEL_SIZE,
-            out->bounds.mins.y + t * BSP_VOXEL_SIZE,
-            out->bounds.mins.z + u * BSP_VOXEL_SIZE
-          );
-
-          const Vec3 voxelMaxs = Vec3_Add(voxelMins, MakeVec3(BSP_VOXEL_SIZE, BSP_VOXEL_SIZE, BSP_VOXEL_SIZE));
-          voxel->bounds = MakeBox3(voxelMins, voxelMaxs);
-
-          const int32_t firstLightIndex = lightData[voxelIndex * 2 + 0];
-          const int32_t numLightIndices = lightData[voxelIndex * 2 + 1];
-
-          voxel->numLights = numLightIndices;
-
-          if (voxel->numLights > 0) {
-            voxel->lights = Mem_LinkMalloc(voxel->numLights * sizeof(RenderBspLight *), mod->bsp);
-
-            for (int32_t i = 0; i < voxel->numLights; i++) {
-              const int32_t lightId = lightIndicesData[firstLightIndex + i];
-
-              if (lightId >= 0 && lightId < mod->bsp->numLights) {
-                voxel->lights[i] = &mod->bsp->lights[lightId];
-              } else {
-                voxel->lights[i] = NULL;
-              }
-            }
-          } else {
-            voxel->lights = NULL;
-          }
-        }
-      }
-    }
-  }
-
 }
 
 /**

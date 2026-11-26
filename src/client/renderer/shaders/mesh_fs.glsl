@@ -100,6 +100,10 @@ void main(void) {
     fragment.diffuseSample.rgb += (material.tintColors[1] * tintmap.g).rgb * tintmap.a;
     fragment.diffuseSample.rgb += (material.tintColors[2] * tintmap.b).rgb * tintmap.a;
 
+    if (drawVoxels == 2) {
+      fragment.diffuseSample.rgb = voxelHeatTint(vertex.modelPosition, fragment.diffuseSample.rgb);
+    }
+
     outColor = fragment.diffuseSample * vertex.color;
 
     meshFragmentLighting(vertex, fragment);
@@ -110,6 +114,10 @@ void main(void) {
   } else {
 
     fragment.diffuseSample = sampleMaterialStage(fragment.parallax) * vertex.color;
+
+    if (drawVoxels == 2) {
+      fragment.diffuseSample.rgb = voxelHeatTint(vertex.modelPosition, fragment.diffuseSample.rgb);
+    }
 
     outColor = fragment.diffuseSample;
 
@@ -122,5 +130,9 @@ void main(void) {
     if ((material.flags & STAGE_EMISSIVE) == STAGE_EMISSIVE) {
       outColor.rgb += fragment.diffuseSample.rgb * material.emissive;
     }
+  }
+
+  if (drawVoxels == 1) {
+    outColor.rgb = voxelHeat(vertex.modelPosition);
   }
 }
