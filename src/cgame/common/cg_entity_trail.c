@@ -649,12 +649,14 @@ static void Cg_HyperblasterTrail(ClientEntity *ent, Vec3 start, Vec3 end) {
     .lighting = .5f,
   });
 
-  Cg_AddLight(&(CGameLight) {
-    .origin = ent->origin,
-    .radius = 250.f,
-    .color = MakeVec3(.4f, .7f, 1.f),
-    .intensity = 3.f
-  });
+  if (Randomi() & 1) {
+    Cg_AddLight(&(CGameLight) {
+      .origin = ent->origin,
+      .radius = 128.f,
+      .color = MakeVec3(.4f, .7f, 1.f),
+      .intensity = 3.f
+    });
+  }
 }
 
 /**
